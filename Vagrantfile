@@ -2,6 +2,8 @@ MOUNT_POINT = '/home/vagrant/rdfs'
 
 Vagrant.configure("2") do |config|
     config.vm.box = "bento/ubuntu-16.04"
+    config.ssh.username = "vagrant"
+    config.ssh.password = "vagrant"
 
     config.vm.provider "virtualbox" do |v|
         v.name = "RDFS_VM"
