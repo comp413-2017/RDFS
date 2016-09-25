@@ -56,5 +56,6 @@ echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 
 # TODO: Setup Apache zookeeper
 
-# Put everything under /home/vagrant under the default login user.
+# Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
+chown -R vagrant:vagrant /home/vagrant/.ssh/*
