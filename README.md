@@ -32,3 +32,5 @@ cd build
 cmake ..
 make
 ```
+You will see a sample executable placed in `build/rice-namenode/namenode.` The
+compiled protocols are in `build/proto`.
