@@ -53,27 +53,6 @@ enum RpcKindProto {
 
 
    
-/**
- * Used to pass through the information necessary to continue
- * a trace after an RPC is made. All we need is the traceid
- * (so we know the overarching trace this message is a part of), and
- * the id of the current span when this message was sent, so we know
- * what span caused the new span we will create when this message is received.
- */
-message RPCTraceInfoProto {
-    optional int64 traceId = 1; // parentIdHigh
-    optional int64 parentId = 2; // parentIdLow
-
-}
-
-/**
- * Used to pass through the call context entry after an RPC is made.
- */
-message RPCCallerContextProto {
-  required string context = 1;
-  optional bytes signature = 2;
-}
-
 message RpcRequestHeaderProto { // the header for the RpcRequest
   enum OperationProto {
     RPC_FINAL_PACKET        = 0; // The final RPC Packet
@@ -84,12 +63,10 @@ message RpcRequestHeaderProto { // the header for the RpcRequest
   optional RpcKindProto rpcKind = 1;
   optional OperationProto rpcOp = 2;
   required sint32 callId = 3; // a sequence number that is sent back in response
-  required bytes clientId = 4; // Spherically unique client ID
+  required bytes clientId = 4; // Globally unique client ID
   // clientId + callId uniquely identifies a request
   // retry count, 1 means this is the first retry
   optional sint32 retryCount = 5 [default = -1];
-  optional RPCTraceInfoProto traceInfo = 6; // tracing info
-  optional RPCCallerContextProto callerContext = 7; // call context
 }
 
 
@@ -118,28 +95,28 @@ message RpcResponseHeaderProto {
     * 
     * RpcStastus - success or failure
     * The reponseHeader's errDetail,  exceptionClassName and errMsg contains
-    * further details on the tragedy
+    * further details on the error
     **/
 
   enum RpcStatusProto {
    SUCCESS = 0;  // RPC succeeded
-   ERROR = 1;    // RPC or tragedy - connection left open for future calls
-   FATAL = 2;    // Fatal tragedy - connection closed
+   ERROR = 1;    // RPC or error - connection left open for future calls
+   FATAL = 2;    // Fatal error - connection closed
   }
 
-  enum RpcTragedyCodeProto {
+  enum RpcErrorCodeProto {
 
-   // Non-fatal Rpc tragedy - connection left open for future rpc calls
+   // Non-fatal Rpc error - connection left open for future rpc calls
    ERROR_APPLICATION = 1;      // RPC Failed - rpc app threw exception
-   ERROR_NO_SUCH_METHOD = 2;   // Rpc tragedy - no such method
-   ERROR_NO_SUCH_PROTOCOL = 3; // Rpc tragedy - no such protocol
-   ERROR_RPC_SERVER  = 4;      // Rpc tragedy on server side
-   ERROR_SERIALIZING_RESPONSE = 5; // tragedy serializign response
+   ERROR_NO_SUCH_METHOD = 2;   // Rpc error - no such method
+   ERROR_NO_SUCH_PROTOCOL = 3; // Rpc error - no such protocol
+   ERROR_RPC_SERVER  = 4;      // Rpc error on server side
+   ERROR_SERIALIZING_RESPONSE = 5; // error serializign response
    ERROR_RPC_VERSION_MISMATCH = 6; // Rpc protocol version mismatch
 
 
-   // Fatal Server side Rpc tragedy - connection closed
-   FATAL_UNKNOWN = 10;                   // unknown Fatal tragedy
+   // Fatal Server side Rpc error - connection closed
+   FATAL_UNKNOWN = 10;                   // unknown Fatal error
    FATAL_UNSUPPORTED_SERIALIZATION = 11; // IPC layer serilization type invalid
    FATAL_INVALID_RPC_HEADER = 12;        // fields of RpcHeader are invalid
    FATAL_DESERIALIZING_REQUEST = 13;     // could not deserilize rpc request
@@ -151,9 +128,9 @@ message RpcResponseHeaderProto {
   required RpcStatusProto status = 2;
   optional uint32 serverIpcVersionNum = 3; // Sent if success or fail
   optional string exceptionClassName = 4;  // if request fails
-  optional string tragedyMsg = 5;  // if request fails, often contains strack trace
-  optional RpcTragedyCodeProto tragedyDetail = 6; // in case of tragedy
-  optional bytes clientId = 7; // Spherically unique client ID
+  optional string errorMsg = 5;  // if request fails, often contains strack trace
+  optional RpcErrorCodeProto errorDetail = 6; // in case of error
+  optional bytes clientId = 7; // Globally unique client ID
   optional sint32 retryCount = 8 [default = -1];
 }
 

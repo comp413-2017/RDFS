@@ -1,9 +1,11 @@
 #include <cstdlib>
 #include <netinet/in.h>
+#include <array>
 #include <thread>
 #include <iostream>
 #include <asio.hpp>
 #include <RpcHeader.pb.h>
+#include <IpcConnectionContext.pb.h>
 
 using asio::ip::tcp;
 
@@ -30,6 +32,8 @@ static bool receive_handshake(tcp::socket& sock, short* version, short* service,
 }
 
 static bool readint32(tcp::socket& sock, uint32_t* out) {
+    // Attempt to read uint32 from provided socket. Consumes 4 bytes. Return
+    // false means failure. Otherwise return true and set *out.
     uint32_t data;
     asio::error_code error;
     tcp::socket::message_flags flags;
@@ -41,6 +45,33 @@ static bool readint32(tcp::socket& sock, uint32_t* out) {
     return false;
 }
 
+/**
+ * Given socket sock and pointer to uint32 out, attempt to read a
+ * variable-length integer from sock. If successful, set *out to the value of
+ * the integer and return true. Otherwise return false.
+ */
+static bool readvarint32(tcp::socket& sock, uint32_t* out) {
+    return false;
+}
+
+static bool receive_prelude(tcp::socket& sock) {
+    // Attempt to receive the RPC prelude (header + context) from the socket.
+    uint32_t payload_len;
+    if (readint32(sock, &payload_len)) {
+        std::printf("Got payload length: %d\n", payload_len);
+    } else {
+        std::cout << "Failed to receive payload length." << std::endl;
+    }
+    asio::error_code error;
+    tcp::socket::message_flags flags;
+    uint32_t header_len;
+    if (readvarint32(sock, &header_len)) {
+        std::printf("Got payload length: %d\n", header_len);
+    } else {
+        std::cout << "Failed to receive varint RpcHeader length." << std::endl;
+    }
+}
+
 static void handle_rpc(tcp::socket sock) {
     // Remark: No need to close socket, it happens automatically in its
     // destructor.
@@ -49,12 +80,6 @@ static void handle_rpc(tcp::socket sock) {
         std::printf("Got handshake: version=%d, service=%d, protocol=%d\n", version, service, auth_protocol);
     } else {
         std::cout << "Failed to receive handshake." << std::endl;
-    }
-    uint32_t payload_len;
-    if (readint32(sock, &payload_len)) {
-        std::printf("Got payload length: %d\n", payload_len);
-    } else {
-        std::cout << "Failed to receive payload length." << std::endl;
     }
 }
 
