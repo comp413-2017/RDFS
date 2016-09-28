@@ -1,19 +1,21 @@
 #include <cstdlib>
-#include <netinet/in.h>
 #include <array>
 #include <thread>
 #include <iostream>
 #include <asio.hpp>
 #include <RpcHeader.pb.h>
 #include <IpcConnectionContext.pb.h>
+#include "socket_reads.cc"
 
 using asio::ip::tcp;
 
 #define ERROR_AND_FALSE(msg) ::std::cerr << msg << ::std::endl; return false
 
+/**
+ * Return true on success, false on failure. On success, version, service,
+ * and auth protocol set from the received
+ */
 static bool receive_handshake(tcp::socket& sock, short* version, short* service, short* auth_protocol) {
-    // Return true on success, false on failure.
-    // If we succeed, version, service, and auth protocol set from the received
     // handshake header.
     // Handshake has 7 bytes.
     constexpr size_t handshake_len = 7;
@@ -32,65 +34,10 @@ static bool receive_handshake(tcp::socket& sock, short* version, short* service,
     return false;
 }
 
-static bool read_int32(tcp::socket& sock, uint32_t* out) {
-    // Attempt to read uint32 from provided socket. Consumes 4 bytes. Return
-    // false means failure. Otherwise return true and set *out.
-    uint32_t data;
-    asio::error_code error;
-    tcp::socket::message_flags flags;
-    size_t rec_len = sock.read_some(asio::buffer(&data, 4), error);
-    if (!error && rec_len == 4) {
-        *out = ntohl(data);
-        return true;
-    }
-    return false;
-}
-
 /**
- * Attempt to read a byte from the socket. Return true on success and set *byte
- * to its value. Otherwise return false.
+ * Attempt to receive the RPC prelude from the socket.
+ * Return whether the attempt was succesful.
  */
-static bool read_byte(tcp::socket& sock, unsigned char* byte) {
-    asio::error_code error;
-    tcp::socket::message_flags flags;
-    unsigned char read[1];
-    size_t rec_len = sock.read_some(asio::buffer(read, 1), error);
-    *byte = read[0];
-    std::cout << "read byte " << (int) (*byte) << std::endl;
-    return !error && rec_len == 1;
-}
-
-/**
- * Given unsigned character buffer with capacity cap, attempt to read a varint.
- * Put the value of the varint in *out, and return the number of bytes consumed.
- */
-static size_t read_varint(char *buf, size_t cap, uint64_t* out) {
-    size_t idx = 0;
-    size_t shift = 0;
-    uint64_t val = 0;
-    do {
-        val |= (buf[idx] & 0x7F) << shift;
-        idx++;
-        shift += 7;
-    } while (buf[idx] & 0x80 && idx < cap);
-    *out = val;
-    return idx;
-}
-
-static bool read_proto(char *buf, size_t cap, ::google::protobuf::Message& proto, uint64_t *consumed) {
-    uint64_t len;
-    size_t skip = read_varint(buf, cap, &len);
-    std::string proto_str(buf + skip, std::min(len, cap - skip));
-    if (consumed != NULL) {
-        *consumed = skip + len;
-    }
-    return proto.ParseFromString(proto_str);
-}
-
-static bool read_proto(char* buf, size_t cap, ::google::protobuf::Message& proto) {
-    return read_proto(buf, cap, proto, NULL);
-}
-
 static bool receive_prelude(tcp::socket& sock) {
     // Attempt to receive the RPC prelude (header + context) from the socket.
     asio::error_code error;
@@ -103,6 +50,7 @@ static bool receive_prelude(tcp::socket& sock) {
     char* prelude = new char[prelude_len];
     uint64_t header_len;
     sock.read_some(asio::buffer(prelude, prelude_len), error);
+    std::string prelude_str(prelude, prelude_len);
     if (error) {
         ERROR_AND_FALSE("Failed to read message prelude.");
     }
@@ -124,6 +72,9 @@ static bool receive_prelude(tcp::socket& sock) {
     return true;
 }
 
+/**
+ * Handle a single RPC connection.
+ */
 static void handle_rpc(tcp::socket sock) {
     // Remark: No need to close socket, it happens automatically in its
     // destructor.
