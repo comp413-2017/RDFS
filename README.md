@@ -29,13 +29,13 @@ Check the wiki for documentation!
 
 # Building
 ```
+sudo apt-get install libboost-all-dev
+sudo apt-get install libasio-dev 
+
 mkdir build
 cd build
 cmake ..
 make
-
-sudo apt-get install libboost-all-dev
-sudo apt-get install libasio-dev 
 ```
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`.
