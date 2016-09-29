@@ -4,6 +4,7 @@
 #include <iostream>
 #include <asio.hpp>
 #include <RpcHeader.pb.h>
+#include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
 #include "socket_reads.cc"
 
@@ -66,7 +67,7 @@ namespace rpcserver {
     }
 
     /**
-     * Handle a single RPC connection.
+     * Handle a single RPC connection from Hadoop's ProtobufRpcEngine.
      */
     void handle_rpc(tcp::socket sock) {
         // Remark: No need to close socket, it happens automatically in its
@@ -92,29 +93,28 @@ namespace rpcserver {
             }
             std::cout << "Got payload size: " << payload_size << std::endl;
             hadoop::common::RpcRequestHeaderProto rpc_request_header;
-            if (read_proto(sock, rpc_request_header)) {
-                std::cout << rpc_request_header.DebugString() << std::endl;
-            } else {
+            if (!read_proto(sock, rpc_request_header)) {
+                ERROR_AND_RETURN("Failed to read the RPC request header");
+            }
+            std::cout << rpc_request_header.DebugString() << std::endl;
+
+            hadoop::common::RequestHeaderProto request_header;
+            if (!read_proto(sock, request_header)) {
                 ERROR_AND_RETURN("Failed to read the request header");
             }
-            uint64_t rpc_version;
-            if (!read_int64(sock, &rpc_version)) {
-                ERROR_AND_RETURN("Failed to read rpc version.");
+            std::cout << request_header.DebugString() << std::endl;
+
+            uint64_t request_len;
+            if (read_varint(sock, &request_len) == 0) {
+                ERROR_AND_RETURN("Request length was 0?");
             }
-            std::cout << "rpcversion=" << rpc_version << std::endl;
-            std::string class_proto_name = read_string(sock);
-            if (class_proto_name.size() == 0) {
-                ERROR_AND_RETURN("Failed to read declaring class protocol name.");
+            std::cout << "request length=" << request_len << std::endl;
+            std::string request(request_len, 0);
+            size_t rcv_len = sock.read_some(asio::buffer(&request[0], request_len), error);
+            if (rcv_len != request_len || error) {
+                ERROR_AND_RETURN("Failed to receive request.");
             }
-            std::cout << "declaring_class_protocol=" << class_proto_name << std::endl;
-            /*
-             * rpcVersion, err := readint64(r)
-             * declaringClassProtocolName, err := readString(r)
-             * methodName, err := readString(r)
-             * clientVersion, err := readint64(r)
-             * clientMethodHash, err := readint32(r)
-             * parameterClassesLength, err := readint32(r)
-             */
+            std::cout << request << std::endl;
         }
     }
 
