@@ -85,47 +85,52 @@ namespace rpcserver {
         return empty;
     }
 
-
     /**
-     * Given unsigned character buffer with capacity cap, attempt to read a varint.
-     * Put the value of the varint in *out, and return the number of bytes consumed.
+     * Given a socket sock, attempt to read a variable-length integer place the
+     * result in *out. Return the number of bytes read.
      */
-    size_t read_varint(char *buf, size_t cap, uint64_t* out) {
+    size_t read_varint(tcp::socket& sock, uint64_t* out) {
         size_t idx = 0;
         size_t shift = 0;
         uint64_t val = 0;
+        unsigned char byte;
         do {
-            val |= (buf[idx] & 0x7F) << shift;
+            if (!read_byte(sock, &byte)) {
+                break;
+            }
+            val |= (byte & 0x7F) << shift;
             idx++;
             shift += 7;
-        } while (buf[idx] & 0x80 && idx < cap);
+        } while (byte & 0x80);
         *out = val;
         return idx;
     }
 
 
     /**
-     * Attempt to parse given protocol from provided buffer with capactiy limit.
+     * Attempt to parse given protocol from provided socket.
      * Return whether the parse was successful. If successful, set *consumed to the
      * number of bytes consumed by the read.
      */
-    bool read_proto(char *buf, size_t cap, ::google::protobuf::Message& proto, uint64_t *consumed) {
+    bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto, uint64_t *consumed) {
         uint64_t len;
-        size_t skip = read_varint(buf, cap, &len);
-        std::string proto_str(buf + skip, std::min(len, cap - skip));
+        asio::error_code error;
+        size_t skip = read_varint(sock, &len);
+        char* buf = new char[len];
+        sock.read_some(asio::buffer(buf, len), error);
+        std::string proto_str(buf, len);
         if (consumed != NULL) {
             *consumed = skip + len;
         }
-        return proto.ParseFromString(proto_str);
+        return !error && proto.ParseFromString(proto_str);
     }
 
 
     /**
-     * Attempt to parse given protocol from provided buffer with capactiy limit.
+     * Attempt to parse given protocol from provided socket.
      * Return whether the parse was successful.
      */
-    bool read_proto(char* buf, size_t cap, ::google::protobuf::Message& proto) {
-        return read_proto(buf, cap, proto, NULL);
+    bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto) {
+        return read_proto(sock, proto, NULL);
     }
-
 }

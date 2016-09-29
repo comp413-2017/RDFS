@@ -49,27 +49,19 @@ namespace rpcserver {
         } else {
             ERROR_AND_FALSE("Failed to receive message prelude length.");
         }
-        char* prelude = new char[prelude_len];
-        uint64_t header_len;
-        sock.read_some(asio::buffer(prelude, prelude_len), error);
-        if (error) {
-            ERROR_AND_FALSE("Failed to read message prelude.");
-        }
-        uint64_t offset;
         hadoop::common::RpcRequestHeaderProto rpc_request_header;
-        if (read_proto(prelude, prelude_len, rpc_request_header, &offset)) {
+        if (read_proto(sock, rpc_request_header)) {
             std::cout << rpc_request_header.DebugString() << std::endl;
         } else {
             ERROR_AND_FALSE("Couldn't read the request header");
         }
         // Now read the length of the IpcConnectionContext and deserialize.
         hadoop::common::IpcConnectionContextProto connection_context;
-        if (read_proto(prelude + offset, prelude_len - offset, connection_context)) {
+        if (read_proto(sock, connection_context)) {
             std::cout << connection_context.DebugString() << std::endl;
         } else {
             ERROR_AND_FALSE("Couldn't read the ipc connection context");
         }
-        delete[] prelude;
         return true;
     }
 
@@ -99,26 +91,22 @@ namespace rpcserver {
                 ERROR_AND_RETURN("Failed to payload size.");
             }
             std::cout << "Got payload size: " << payload_size << std::endl;
-            char* payload = new char[payload_size];
-            sock.read_some(asio::buffer(payload, payload_size), error);
-            if (error) {
-                ERROR_AND_RETURN("Failed to read payload.");
-            }
-            uint64_t offset;
             hadoop::common::RpcRequestHeaderProto rpc_request_header;
-            if (read_proto(payload, payload_size, rpc_request_header, &offset)) {
+            if (read_proto(sock, rpc_request_header)) {
                 std::cout << rpc_request_header.DebugString() << std::endl;
             } else {
                 ERROR_AND_RETURN("Failed to read the request header");
             }
             uint64_t rpc_version;
-            if (payload_size - offset > sizeof(uint64_t)) {
-                rpc_version = (uint64_t) (payload + offset);
-                offset += sizeof(uint64_t);
-                std::cout << "rpcversion=" << rpc_version << std::endl;
-            } else {
+            if (!read_int64(sock, &rpc_version)) {
                 ERROR_AND_RETURN("Failed to read rpc version.");
             }
+            std::cout << "rpcversion=" << rpc_version << std::endl;
+            std::string class_proto_name = read_string(sock);
+            if (class_proto_name.size() == 0) {
+                ERROR_AND_RETURN("Failed to read declaring class protocol name.");
+            }
+            std::cout << "declaring_class_protocol=" << class_proto_name << std::endl;
             /*
              * rpcVersion, err := readint64(r)
              * declaringClassProtocolName, err := readString(r)
@@ -127,7 +115,6 @@ namespace rpcserver {
              * clientMethodHash, err := readint32(r)
              * parameterClassesLength, err := readint32(r)
              */
-            delete[] payload;
         }
     }
 
