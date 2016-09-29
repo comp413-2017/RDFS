@@ -54,7 +54,20 @@ EOF
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 
-# TODO: Setup Apache zookeeper
+# Setup Apache zookeeper
+wget --quiet http://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+tar -xf zookeeper-3.4.9.tar.gz
+mv zookeeper-3.4.9 /home/vagrant/zookeeper
+rm zookeeper-3.4.9.tar.gz 
+cat > /home/vagrant/zookeeper/conf/zoo.cfg <<EOF
+tickTime=2000
+dataDir=/var/zookeeper
+clientPort=2181
+EOF
+cd /home/vagrant/zookeeper/src/c/
+./configure
+make cli_mt
+cd /home/vagrant
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
