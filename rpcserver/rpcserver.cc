@@ -16,9 +16,7 @@ using asio::ip::tcp;
 
 using namespace rpcserver;
 
-RPCServer::RPCServer(int port) {
-    this->port = port;
-}
+RPCServer::RPCServer(int p) : port{p} {}
 
 /**
  * Return true on success, false on failure. On success, version, service,
@@ -121,7 +119,20 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             ERROR_AND_RETURN("Failed to receive request.");
         }
         std::cout << request << std::endl;
+
+        // TODO: dispatch on request_header.methodName.
+        auto iter = this->dispatch_table.find(request_header.methodname());
+        if (iter != this->dispatch_table.end()) {
+            std::cout << "dispatching handler for " << request_header.methodname() << std::endl;
+            iter->second(request);
+        } else {
+            std::cout << "no handler found for " << request_header.methodname() << std::endl;
+        }
     }
+}
+
+void RPCServer::register_handler(std::string key, std::function<std::string(std::string)> handler) {
+    this->dispatch_table[key] = handler;
 }
 
 void RPCServer::serve(asio::io_service& io_service) {
