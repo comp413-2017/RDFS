@@ -1,6 +1,5 @@
-include_directories(${ProtobufIncludePath})
+include_directories(${CMAKE_SOURCE_DIR}/rpcserver)
 
-add_library(rpcserver rpcserver.cc)
 add_executable(namenode main.cc)
 target_link_libraries( namenode rpcserver )
 target_link_libraries( namenode protobuf )

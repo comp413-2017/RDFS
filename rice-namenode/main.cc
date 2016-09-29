@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <asio.hpp>
-#include "rpcserver.h"
+#include <rpcserver.h>
 
 int main(int argc, char* argv[]) {
     asio::io_service io_service;

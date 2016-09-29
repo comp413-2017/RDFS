@@ -11,4 +11,7 @@ link_directories(${Boost_LIBRARY_DIR})
 include_directories(/usr/include/asio)
 
 add_subdirectory(proto)
+include_directories(${ProtobufIncludePath})
+
+add_subdirectory(rpcserver)
 add_subdirectory(rice-namenode)
