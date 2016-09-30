@@ -16,7 +16,7 @@ apt-get install -y git build-essential cmake automake autoconf libtool libboost-
 wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
 tar -xf protobuf-cpp-3.0.0.tar.gz
 rm protobuf-cpp-3.0.0.tar.gz
-cd protobuf-3.0.0; ./autogen.sh && ./configure --prefix=/usr && make && make check && make install
+cd protobuf-3.0.0; ./autogen.sh && ./configure --prefix=/usr && make && make install
 cd /home/vagrant/; ldconfig
 
 # Install and setup dependencies of hadoop
@@ -66,16 +66,16 @@ clientPort=2181
 EOF
 
 # Set up the ZooKeeper client libraries
-apt-get install ant
+apt-get --assume-yes install ant
 cd /home/vagrant/zookeeper
 ant compile_jute
 cd /home/vagrant/zookeeper/src/c
-apt-get install autoconf
-apt-get install libcppunit-dev
-apt-get install libtool
+apt-get --assume-yes install autoconf
+apt-get --assume-yes install libcppunit-dev
+apt-get --assume-yes install libtool
 autoreconf -if
 ./configure
-make; make install
+make && make install
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
