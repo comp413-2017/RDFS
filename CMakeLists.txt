@@ -6,10 +6,12 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
+find_package(Zookeeper REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
+include_directories(${ZOOKEEPER_INCLUDE_DIR}/zookeeper)
 
-include_directories(/home/vagrant/zookeeper/src/c)
+include_directories(/home/vagrant/zookeeper/src/c/include)
 
 include_directories(/usr/include/asio)
 
@@ -18,3 +20,4 @@ include_directories(${ProtobufIncludePath})
 
 add_subdirectory(rpcserver)
 add_subdirectory(rice-namenode)
+add_subdirectory(zookeeper)
