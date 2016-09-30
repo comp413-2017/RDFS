@@ -69,6 +69,18 @@ cd /home/vagrant/zookeeper/src/c/
 make cli_mt
 cd /home/vagrant
 
+# Set up the ZooKeeper client libraries
+apt-get install ant
+cd /home/vagrant/zookeeper
+ant compile_jute
+cd /home/vagrant/zookeeper/src/c
+apt-get install autoconf
+apt-get install libcppunit-dev
+apt-get install libtool
+autoreconf -if
+./configure
+make; make install
+
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
 chown -R vagrant:vagrant /home/vagrant/.ssh/*

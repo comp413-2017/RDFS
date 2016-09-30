@@ -20,7 +20,7 @@ char *foo_get_cert_once(char* id) { return 0; }
 void watcher(zhandle_t *zzh, int type, int state, const char *path,
              void *watcherCtx) {}
 
-int main(int argc, char argv) {
+int main(int argc, char * argv[]) {
     char buffer[512];
     char p[2048];
     char *cert=0;
@@ -57,9 +57,8 @@ int main(int argc, char argv) {
     struct Stat stat;
     rc = zoo_get(zh, "/xyz", 0, buffer, &buflen, &stat);
     if (rc) {
-        fprintf(stderr, "Error %d for %s\n", rc, __LINE__);
+        //fprintf(stderr, "Error %d for %s\n", rc, __LINE__);
     }
-    std::cout << buffer << std::endl;
     zookeeper_close(zh);
     return 0;
 }
