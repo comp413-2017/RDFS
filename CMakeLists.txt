@@ -1,5 +1,6 @@
 project(rdfs)
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -7,6 +8,8 @@ find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
+
+include_directories(/home/vagrant/zookeeper/src/c)
 
 include_directories(/usr/include/asio)
 
