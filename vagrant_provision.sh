@@ -64,10 +64,6 @@ tickTime=2000
 dataDir=/var/zookeeper
 clientPort=2181
 EOF
-cd /home/vagrant/zookeeper/src/c/
-./configure
-make cli_mt
-cd /home/vagrant
 
 # Set up the ZooKeeper client libraries
 apt-get install ant
