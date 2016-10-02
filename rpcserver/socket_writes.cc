@@ -12,7 +12,8 @@ namespace rpcserver {
      */
     bool write_int32(tcp::socket& sock, uint32_t val) {
         asio::error_code error;
-        size_t write_len = sock.write_some(asio::buffer(&val, 4), error);
+        uint32_t val_net = htonl(val);
+        size_t write_len = sock.write_some(asio::buffer(&val_net, 4), error);
         return !error && write_len == 4;
     }
 
@@ -36,9 +37,6 @@ namespace rpcserver {
      */
     bool write_delimited_proto(tcp::socket& sock, std::string& proto_bytes) {
         asio::error_code error;
-        if (proto_bytes.size() == 0) {
-            return true;
-        }
         if (!write_varint(sock, proto_bytes.size())) {
             return false;
         }
