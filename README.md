@@ -1,6 +1,6 @@
 # Rice-HDFS
 
-The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code is needed by both (such as various protocals). We'll add more as we need them.
+The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code is needed by both (such as various protocols). We'll add more as we need them.
 
 
 Check the wiki for documentation!
@@ -12,7 +12,7 @@ Check the wiki for documentation!
 4. `cd Rice-HDFS`
 5. `vagrant up` (takes 17 minutes from scratch for me)
    - I (Stu) had to "sudo" these commands
-   - Make sure to do this from the repo directory (otherwise it asks for vagrant install) 
+   - Make sure to do this from the repo directory (otherwise it asks for vagrant install)
 6. `vagrant ssh`.
 7. You should be in the development environment. Things to know:
    - The username is `vagrant` and the password is `vagrant`.
@@ -36,3 +36,19 @@ make
 ```
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`.
+
+# Testing
+
+The Google Test framework is now included in the development environment. You may need to do `vagrant destroy` and `vagrant up` to install it.
+Tests should be placed in the home/vagrant/rdfs/test directory.
+After creating a new test file, you can modify the CMakeLists.txt file to create an executable
+to run those tests.
+There is currently a file in the test directory, tests.cc, with a sample test. You can run it by
+executing
+```
+cmake CMakeLists.txt
+make
+./runTests
+```
+in the test/ directory.
+A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
