@@ -73,7 +73,7 @@ bool RPCServer::receive_prelude(tcp::socket& sock) {
 
 /**
  * Handle a single RPC connection from Hadoop's ProtobufRpcEngine.
- */ 
+ */
 void RPCServer::handle_rpc(tcp::socket sock) {
     // Remark: No need to close socket, it happens automatically in its
     // destructor.

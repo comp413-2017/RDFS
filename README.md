@@ -45,5 +45,8 @@ You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`
 
 # Testing
-Run the namenode executable. Then run something like "hdfs dfs -fs hdfs://localhost:5351/ -mkdir foo"
-with the correct port. 
+```
+Run the namenode executable from build/rice-namenode. 
+Then run something like "hdfs dfs -fs hdfs://localhost:port/ -mkdir foo"
+where port is the port used by the namenode (it will print the port used)
+``` 
