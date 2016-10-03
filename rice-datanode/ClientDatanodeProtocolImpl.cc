@@ -91,7 +91,6 @@ std::string ClientDatanodeTranslator::getHdfsBlockLocations(std::string input) {
 	const std::string& block_pool_id = req.blockpoolid();
 	for (int i = 0; i < req.tokens_size(); i++) {
 		const hadoop::common::TokenProto& token = req.tokens(i);
-		// TODO use token
 	}
 	for (int i = 0; i < req.blockids_size(); i++) {
 		const int64_t block_id = req.blockids(i);
@@ -181,7 +180,13 @@ void ClientDatanodeTranslator::RegisterClientRPCHandlers() {
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
     // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 
-	//TODO register handlers
+	server.register_handler("getReplicaVisibleLength", std::bind(&ClientDatanodeTranslator::getReplicaVisibleLength, this, _1));
+	server.register_handler("refreshNamenodes", std::bind(&ClientDatanodeTranslator::refreshNamenodes, this, _1));
+	server.register_handler("deleteBlockPool", std::bind(&ClientDatanodeTranslator::deleteBlockPool, this, _1));
+	server.register_handler("getBlockLocalPathInfo", std::bind(&ClientDatanodeTranslator::getBlockLocalPathInfo, this, _1));
+	server.register_handler("getHdfsBlockLocations", std::bind(&ClientDatanodeTranslator::getHdfsBlockLocations, this, _1));
+	server.register_handler("shutdownDatanode", std::bind(&ClientDatanodeTranslator::shutdownDatanode, this, _1));
+	server.register_handler("getDatanodeInfo", std::bind(&ClientDatanodeTranslator::getDatanodeInfo, this, _1));
 }
 
 /**
@@ -199,7 +204,7 @@ int ClientDatanodeTranslator::getPort() {
 }
 
 void ClientDatanodeTranslator::logMessage(google::protobuf::Message& req) {
-    std::cout << "Got mkdir request with input " << req.DebugString()<< std::endl;
+    std::cout << "Got request with input " << req.DebugString() << std::endl;
 }
 
 } //namespace
