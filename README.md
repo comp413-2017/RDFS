@@ -34,8 +34,16 @@ sudo apt-get install libasio-dev
 
 mkdir build
 cd build
+
+sudo apt-get install libboost-all-dev
+sudo apt-get install libasio-dev 
+
 cmake ..
 make
 ```
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
-compiled protocols are in `build/proto`.
+compiled protocols are in `build/proto`
+
+# Testing
+Run the namenode executable. Then run something like "hdfs dfs -fs hdfs://localhost:5351/ -mkdir foo"
+with the correct port. 

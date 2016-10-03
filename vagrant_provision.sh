@@ -56,6 +56,17 @@ echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 
 # TODO: Setup Apache zookeeper
 
+# Add Valgrind
+sudo apt-get install libc6-dbg
+mkdir valgrindtemp
+cd valgrindtemp
+wget --quiet http://valgrind.org/downloads/valgrind-3.11.0.tar.bz2
+tar -xf valgrind-3.11.0.tar.bz2
+cd valgrind-3.11.0
+sudo ./configure --prefix=/usr && sudo make && sudo make install
+cd ../..
+sudo rm -r valgrindtemp
+
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
 chown -R vagrant:vagrant /home/vagrant/.ssh/*
