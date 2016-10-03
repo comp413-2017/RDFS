@@ -8,11 +8,13 @@ Check the wiki for documentation!
 # Development
 1. Install [Virtualbox](https://www.virtualbox.org/). Works with 5.1.
 2. Install [Vagrant](https://vagrantup.com/). Works with 1.8.5.
-3. `vagrant up` (takes 17 minutes from scratch for me)
+3. Clone the repo: `git clone https://github.com/Rice-Comp413-2016/Rice-HDFS.git`
+4. `cd Rice-HDFS`
+5. `vagrant up` (takes 17 minutes from scratch for me)
    - I (Stu) had to "sudo" these commands
-   - Make sure to do this from the repo directory (otherwise it asks for vagrant install) 
-4. `vagrant ssh`.
-5. You should be in the development environment. Things to know:
+   - Make sure to do this from the repo directory (otherwise it asks for vagrant install)
+6. `vagrant ssh`.
+7. You should be in the development environment. Things to know:
    - The username is `vagrant` and the password is `vagrant`.
    - The machine has 1G of memory allocated. Change Vagrantfile if you need
      more.
@@ -34,3 +36,19 @@ make
 ```
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`.
+
+# Testing
+
+The Google Test framework is now included in the development environment. You may need to do `vagrant destroy` and `vagrant up` to install it.
+Tests should be placed in the home/vagrant/rdfs/test directory.
+After creating a new test file, you can modify the CMakeLists.txt file to create an executable
+to run those tests.
+There is currently a file in the test directory, tests.cc, with a sample test. You can run it by
+executing
+```
+cmake CMakeLists.txt
+make
+./runTests
+```
+in the test/ directory.
+A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
