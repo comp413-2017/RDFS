@@ -11,7 +11,7 @@ apt-get autoremove -y
 # Install some basics
 apt-get install -y language-pack-en zip unzip curl
 
-apt-get install -y git build-essential cmake automake autoconf libtool
+apt-get install -y git build-essential cmake automake autoconf libtool libboost-all-dev libasio-dev
 
 wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
 tar -xf protobuf-cpp-3.0.0.tar.gz
@@ -56,14 +56,24 @@ echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 
 # TODO: Setup Apache zookeeper
 
-
 # Add Google Test
 apt-get install libgtest-dev
 cd /usr/src/gtest
 cmake CMakeLists.txt
 make
 cp *.a /usr/lib
+cd /home/vagrant
 
+# Add Valgrind
+sudo apt-get install libc6-dbg
+mkdir valgrindtemp
+cd valgrindtemp
+wget --quiet http://valgrind.org/downloads/valgrind-3.11.0.tar.bz2
+tar -xf valgrind-3.11.0.tar.bz2
+cd valgrind-3.11.0
+./configure --prefix=/usr && sudo make && sudo make install
+cd ../..
+rm -r valgrindtemp
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*

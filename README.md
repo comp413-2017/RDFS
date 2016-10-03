@@ -29,8 +29,15 @@ Check the wiki for documentation!
 
 # Building
 ```
+sudo apt-get install libboost-all-dev
+sudo apt-get install libasio-dev 
+
 mkdir build
 cd build
+
+sudo apt-get install libboost-all-dev
+sudo apt-get install libasio-dev 
+
 cmake ..
 make
 ```
@@ -52,3 +59,8 @@ make
 ```
 in the test/ directory.
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
+
+To create an example interaction with the RPC server,
+run the namenode executable from build/rice-namenode.
+Then run something like `hdfs dfs -fs hdfs://localhost:port/ -mkdir foo`
+where port is the port used by the namenode (it will print the port used).
