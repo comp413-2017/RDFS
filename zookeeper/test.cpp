@@ -1,27 +1,23 @@
-#include <zookeeper.h> // TODO: this should be removed
 #include <string>
 #include <zkwrapper.h>
 #include <iostream>
 
-/** Watcher function -- empty for this example, not something you should
- * do in real code */
-void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-
-}
 
 int main(int argc, char* argv[]) {
     /**
      * TODO: Need to find a better way to do this. Ideally, calling init should
      * be in the constructor of ZKWrapper, but it caused errors. Will fix later.
+     *
+     * Joe's comment: I fixed this issue by declaring watcher as a friend function of ZKWrapper.
+     *                
      */
-    zhandle_t *zh = zookeeper_init("localhost:2181", watcher, 10000, 0, 0, 0);
-    if (!zh) {
-        exit(1);
-    }
-    ZKWrapper zk(zh);
-
-    int res1 = zk.create("/xyz", "Hello from /xyz", 15);
-    std::string res2 = zk.get("/xyz");
+    //zhandle_t *zh = zookeeper_init("localhost:2181", watcher, 10000, 0, 0, 0);
+    //if (!zh) {
+    //    exit(1);
+    //}
+    ZKWrapper zk("localhost:2181");
+    int res1 = zk.create("/dirtest", "HelloRice", 9);
+    std::string res2 = zk.get("/dirtest");
     std::cout << "Created Znode with value: " << res2 << std::endl;
 }
 

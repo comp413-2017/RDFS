@@ -6,16 +6,20 @@
 #define RDFS_ZKWRAPPER_H
 
 #include <string>
+#include <zookeeper.h>
 
 class ZKWrapper {
     public:
-        ZKWrapper(zhandle_t *handle);
-        int create(std::string path, std::string data, int num_bytes);
+        ZKWrapper(std::string host);
+ 	int create(std::string path, std::string data, int num_bytes);
         std::string get(std::string path);
         void close();
 
     private:
-        void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+        zhandle_t *zh;
+        friend void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+
 };
 
 #endif //RDFS_ZKWRAPPER_H
