@@ -146,8 +146,8 @@ void ClientDatanodeTranslator::Config() {
 		xml_document doc;
 		xml_parse_result result = doc.load_file(HDFS_DEFAULTS_CONFIG);
 		if (!result) {
-		    std::cout << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
-    		std::cout << "Error description: " << result.description() << "\n";
+			std::cout << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
+			std::cout << "Error description: " << result.description() << "\n";
 		}
 			
 		xml_node properties = doc.child("configuration");
@@ -175,10 +175,10 @@ void ClientDatanodeTranslator::InitServer() {
  * Register our rpc handlers with the server
  */
 void ClientDatanodeTranslator::RegisterClientRPCHandlers() {
-    using namespace std::placeholders; // for `_1`
+	using namespace std::placeholders; // for `_1`
 
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
-    // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 
 	server.register_handler("getReplicaVisibleLength", std::bind(&ClientDatanodeTranslator::getReplicaVisibleLength, this, _1));
 	server.register_handler("refreshNamenodes", std::bind(&ClientDatanodeTranslator::refreshNamenodes, this, _1));
@@ -204,7 +204,7 @@ int ClientDatanodeTranslator::getPort() {
 }
 
 void ClientDatanodeTranslator::logMessage(google::protobuf::Message& req) {
-    std::cout << "Got request with input " << req.DebugString() << std::endl;
+	std::cout << "Got request with input " << req.DebugString() << std::endl;
 }
 
 } //namespace
