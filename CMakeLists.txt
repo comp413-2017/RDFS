@@ -21,3 +21,7 @@ add_subdirectory(rice-namenode)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rice-namenode/)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/nn-log-conf.conf
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rice-namenode/)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/dn-log-conf.conf
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rice-datanode/)

@@ -10,6 +10,7 @@
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 
+#include <easylogging++.h>
 #include <rpcserver.h>
 #include <pugixml.hpp>
 
@@ -31,7 +32,7 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
 	: port(port_arg), server(port) {
 	InitServer();
 	Config();
-	std::cout << "Created client namenode translator." << std::endl;
+	LOG(INFO) << "Created client namenode translator.";
 }
 
 std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
@@ -149,8 +150,8 @@ void ClientNamenodeTranslator::Config() {
 		xml_document doc;
 		xml_parse_result result = doc.load_file(HDFS_DEFAULTS_CONFIG);
 		if (!result) {
-		    std::cout << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
-    		std::cout << "Error description: " << result.description() << "\n";
+		    LOG(ERROR) << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
+    		LOG(ERROR) << "Error description: " << result.description() << "\n";
 		}
 			
 		xml_node properties = doc.child("configuration");
@@ -166,7 +167,7 @@ void ClientNamenodeTranslator::Config() {
 				// TODO for example, here, we would add this field to our member FsServerDefault info
 			}
 		}
-		std::cout << "Configured namenode (but not really!)" << std::endl;
+		LOG(INFO) << "Configured namenode (but not really!)";
 	}
 
 	// TODO any other configs that we need to read? 	
@@ -176,6 +177,7 @@ void ClientNamenodeTranslator::Config() {
  * Initialize the rpc server
  */
 void ClientNamenodeTranslator::InitServer() {
+	LOG(INFO) << "Initializing namenode server...";
 	RegisterClientRPCHandlers();
 }
 
@@ -211,7 +213,7 @@ int ClientNamenodeTranslator::getPort() {
 }
 
 void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req) {
-    std::cout << "Got mkdir request with input " << req.DebugString()<< std::endl;
+    LOG(INFO) << "Got mkdir request with input " << req.DebugString();
 }
 
 } //namespace

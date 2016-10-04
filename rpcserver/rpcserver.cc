@@ -6,12 +6,14 @@
 #include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
 
+#include <easylogging++.h>
+
 #include "socket_writes.cc"
 #include "socket_reads.cc"
 #include "rpcserver.h"
 
-#define ERROR_AND_RETURN(msg) ::std::cerr << msg << ::std::endl; return
-#define ERROR_AND_FALSE(msg) ::std::cerr << msg << ::std::endl; return false
+#define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
+#define ERROR_AND_FALSE(msg) LOG(ERROR) << msg; return false
 
 using asio::ip::tcp;
 
@@ -51,20 +53,20 @@ bool RPCServer::receive_prelude(tcp::socket& sock) {
     asio::error_code error;
     uint32_t prelude_len;
     if (read_int32(sock, &prelude_len)) {
-        std::cout << "Got prelude length: " << prelude_len << std::endl;
+        LOG(INFO) << "Got prelude length: " << prelude_len;
     } else {
         ERROR_AND_FALSE("Failed to receive message prelude length.");
     }
     hadoop::common::RpcRequestHeaderProto rpc_request_header;
     if (read_proto(sock, rpc_request_header)) {
-        std::cout << rpc_request_header.DebugString() << std::endl;
+        LOG(INFO) << rpc_request_header.DebugString();
     } else {
         ERROR_AND_FALSE("Couldn't read the request header");
     }
     // Now read the length of the IpcConnectionContext and deserialize.
     hadoop::common::IpcConnectionContextProto connection_context;
     if (read_proto(sock, connection_context)) {
-        std::cout << connection_context.DebugString() << std::endl;
+        LOG(INFO) << connection_context.DebugString();
     } else {
         ERROR_AND_FALSE("Couldn't read the ipc connection context");
     }
@@ -80,13 +82,13 @@ void RPCServer::handle_rpc(tcp::socket sock) {
     asio::error_code error;
     short version, service, auth_protocol;
     if (receive_handshake(sock, &version, &service, &auth_protocol)) {
-        std::cout << "Got handshake version=" << version << ", service=" << service
-                  << " protocol=" << auth_protocol << std::endl;
+        LOG(INFO) << "Got handshake version=" << version << ", service=" << service
+                  << " protocol=" << auth_protocol;
     } else {
         ERROR_AND_RETURN("Failed to receive handshake.");
     }
     if (receive_prelude(sock)) {
-        std::cout << "Received whole prelude." << std::endl;
+        LOG(INFO) << "Received whole prelude.";
     } else {
         ERROR_AND_RETURN("Failed to receive prelude.");
     }
@@ -96,24 +98,24 @@ void RPCServer::handle_rpc(tcp::socket sock) {
         if (!read_int32(sock, &payload_size)) {
             ERROR_AND_RETURN("Failed to read payload size, maybe connection closed.");
         }
-        std::cout << "Got payload size: " << payload_size << std::endl;
+        LOG(INFO) << "Got payload size: " << payload_size;
         hadoop::common::RpcRequestHeaderProto rpc_request_header;
         if (!read_proto(sock, rpc_request_header)) {
             ERROR_AND_RETURN("Failed to read the RPC request header");
         }
-        std::cout << rpc_request_header.DebugString() << std::endl;
+        LOG(INFO) << rpc_request_header.DebugString();
 
         hadoop::common::RequestHeaderProto request_header;
         if (!read_proto(sock, request_header)) {
             ERROR_AND_RETURN("Failed to read the request header");
         }
-        std::cout << request_header.DebugString() << std::endl;
+        LOG(INFO) << request_header.DebugString();
 
         uint64_t request_len;
         if (read_varint(sock, &request_len) == 0) {
             ERROR_AND_RETURN("Request length was 0?");
         }
-        std::cout << "request length=" << request_len << std::endl;
+        LOG(INFO) << "request length=" << request_len;
         std::string request(request_len, 0);
         size_t rcv_len = sock.read_some(asio::buffer(&request[0], request_len), error);
         if (rcv_len != request_len || error) {
@@ -121,7 +123,7 @@ void RPCServer::handle_rpc(tcp::socket sock) {
         }
         auto iter = this->dispatch_table.find(request_header.methodname());
         if (iter != this->dispatch_table.end()) {
-            std::cout << "dispatching handler for " << request_header.methodname() << std::endl;
+            LOG(INFO) << "dispatching handler for " << request_header.methodname();
             // Send the response back on the socket.
             hadoop::common::RpcResponseHeaderProto response_header;
             response_header.set_callid(rpc_request_header.callid());
@@ -133,12 +135,12 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             if (write_int32(sock, response.size() + response_header_str.size()) &&
                 write_delimited_proto(sock, response_header_str) &&
                 write_delimited_proto(sock, response)) {
-                std::cout << "successfully wrote response to client." << std::endl;
+                LOG(INFO)  << "successfully wrote response to client.";
             } else {
-                std::cout << "failed to write response to client." << std::endl;
+                LOG(INFO) << "failed to write response to client.";
             }
         } else {
-            std::cout << "no handler found for " << request_header.methodname() << std::endl;
+            LOG(INFO) << "no handler found for " << request_header.methodname();
         }
     }
 }
@@ -157,7 +159,7 @@ void RPCServer::register_handler(std::string key, std::function<std::string(std:
  * Begin the server's main listen loop using provided io service.
  */
 void RPCServer::serve(asio::io_service& io_service) {
-    std::cout << "Listen on :" << this->port << std::endl;
+    LOG(INFO) << "Listen on :" << this->port;
     tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), this->port));
 
     for (;;) {
