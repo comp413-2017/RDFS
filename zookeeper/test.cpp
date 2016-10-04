@@ -10,12 +10,16 @@ void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watche
 }
 
 int main(int argc, char* argv[]) {
-//    int res0 = zk.init("localhost:2181");
+    /**
+     * TODO: Need to find a better way to do this. Ideally, calling init should
+     * be in the constructor of ZKWrapper, but it caused errors. Will fix later.
+     */
     zhandle_t *zh = zookeeper_init("localhost:2181", watcher, 10000, 0, 0, 0);
     if (!zh) {
         exit(1);
     }
     ZKWrapper zk(zh);
+
     int res1 = zk.create("/xyz", "Hello from /xyz", 15);
     std::string res2 = zk.get("/xyz");
     std::cout << "Created Znode with value: " << res2 << std::endl;
