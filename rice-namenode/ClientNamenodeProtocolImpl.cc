@@ -166,8 +166,11 @@ void ClientNamenodeTranslator::Config() {
 			xml_node value = name.next_sibling();	
 			const char* name_str = name.first_child().text().get();
 			const char* val_str = value.first_child().text().get();
-			config[name_str] = val_str;
-			LOG(INFO) << name_str << " : " << config[name_str];
+			bool is_nn_config = strstr(name_str, "namenode");
+			if (is_nn_config) {
+				config[name_str] = val_str;
+				LOG(INFO) << name_str << " : " << config[name_str];
+			}
 		}
 		LOG(INFO) << "Configured namenode (but not really!)";
 	}
