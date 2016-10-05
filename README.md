@@ -62,10 +62,10 @@ A beginner's guide to using Google Test is located [here](https://github.com/goo
 
 Namenode:
 Run the namenode executable from build/rice-namenode. 
-Then run something like "hdfs dfs -fs hdfs://localhost:port/ -mkdir foo"
+Then run something like `hdfs dfs -fs hdfs://localhost:port/ -mkdir foo`
 where port is the port used by the namenode (it will print the port used)
 
 Datanode:
 Run the datanode executable from build/rice-datanode. 
-Then run something like "hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/"
+Then run something like `hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/`
 where port is the port used by the datanode (it will print the port used)
