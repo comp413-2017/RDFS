@@ -53,6 +53,8 @@ cat > /home/vagrant/hadoop/etc/hdfs-site.xml <<EOF
 EOF
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
+# add diff detector to path
+echo 'python /home/vagrant/rdfs/utility/provision_diff.py' >> /home/vagrant/.bashrc
 
 # TODO: Setup Apache zookeeper
 
