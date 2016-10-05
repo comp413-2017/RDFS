@@ -27,6 +27,9 @@ using namespace hadoop::hdfs;
 // static string info
 const char* ClientNamenodeTranslator::HDFS_DEFAULTS_CONFIG = "hdfs-default.xml";
 
+// config
+std::map <std::string, std::string> config;
+
 // TODO - this will probably take some zookeeper object
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
 	: port(port_arg), server(port) {
@@ -150,8 +153,10 @@ void ClientNamenodeTranslator::Config() {
 		xml_document doc;
 		xml_parse_result result = doc.load_file(HDFS_DEFAULTS_CONFIG);
 		if (!result) {
-		    LOG(ERROR) << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
+		    LOG(ERROR) << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << 
+		    	doc.child("node").attribute("attr").value() << "]\n";
     		LOG(ERROR) << "Error description: " << result.description() << "\n";
+    		return;
 		}
 			
 		xml_node properties = doc.child("configuration");
@@ -160,12 +165,9 @@ void ClientNamenodeTranslator::Config() {
 			xml_node name = child.first_child();
 			xml_node value = name.next_sibling();	
 			const char* name_str = name.first_child().text().get();
-			// TODO best way to do this? there are a lot of cases 	
-			if (strcmp(name_str, "dfs.namenode.fs-limits.min-block-size") == 0) {
-				xml_node value = name.next_sibling();
-				int min_block_size = value.first_child().text().as_int();;
-				// TODO for example, here, we would add this field to our member FsServerDefault info
-			}
+			const char* val_str = value.first_child().text().get();
+			config[name_str] = val_str;
+			LOG(INFO) << name_str << " : " << config[name_str];
 		}
 		LOG(INFO) << "Configured namenode (but not really!)";
 	}
