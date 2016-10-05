@@ -16,8 +16,17 @@ int main(int argc, char* argv[]) {
     //    exit(1);
     //}
     ZKWrapper zk("localhost:2181");
-    int res1 = zk.create("/dirtest", "HelloRice", 9);
-    std::string res2 = zk.get("/dirtest");
+    char path[] = "/testing";
+    int rc = zk.exists(path);
+    if (rc == 0){
+        fprintf(stdout, "path %s exists\n", path);
+        zk.delete_node(path);
+    }
+    else {
+        fprintf(stdout, "path %s does not exist\n", path);
+    }
+    int res1 = zk.create(path, "Hello", 5);
+    std::string res2 = zk.get(path);
     std::cout << "Created Znode with value: " << res2 << std::endl;
 }
 
