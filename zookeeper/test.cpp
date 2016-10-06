@@ -25,8 +25,12 @@ int main(int argc, char* argv[]) {
     else {
         fprintf(stdout, "path %s does not exist\n", path);
     }
+
     int res1 = zk.create(path, "Hello", 5);
     std::string res2 = zk.get(path);
     std::cout << "Created Znode with value: " << res2 << std::endl;
+    int res3 = zk.recursiveCreate("/testing/testing1/testing2/testing3", "Nothing", 7);
+    std::string res4 = zk.get("/testing/testing1/testing2/testing3");
+    std::cout << "Recursively created Znode with value: " << res4 << std::endl;
 }
 
