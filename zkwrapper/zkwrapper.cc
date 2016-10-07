@@ -5,11 +5,11 @@
 // Modified by Zhouhan Chen on 10/4/16.
 //
 
+#include <iostream>
+#include <string.h>
+#include <vector>
 #include <zookeeper.h>
 #include "zkwrapper.h"
-#include <string.h>
-
-#include <iostream>
 
 
 int init = 0;
@@ -108,11 +108,23 @@ int ZKWrapper::delete_node(const std::string& path) const {
    return (rc);
 }
 
-int ZKWrapper::get_children(const std::string& path) const {
+std::vector<std::string> ZKWrapper::get_children(const std::string& path) const {
    // TODO: not implemented
    // c binding function: int zoo_get_children(zhandle_t *zh, const char *path, int watch,
    //                        struct String_vector *strings);
-   return (1);
+
+    int watch = 0; // TODO: Will we ever want to watch here?
+    struct String_vector stvector;
+    struct String_vector *vector = &stvector;
+    int rc = zoo_get_children(zh, path.c_str(), watch, vector);
+    // TODO: error checking on rc
+
+    int i;
+    std::vector<std::string> children;
+    for (i=0; i < stvector.count; i++) {
+        children.push_back(stvector.data[i]);
+    }
+    return children;
 }
 
 void ZKWrapper::close() {

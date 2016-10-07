@@ -8,6 +8,7 @@
 #define RDFS_ZKWRAPPER_H
 
 #include <string>
+#include <vector>
 #include <zookeeper.h>
 
 class ZKWrapper {
@@ -17,7 +18,7 @@ class ZKWrapper {
 	int recursiveCreate(const std::string& path, const std::string& data, const int num_bytes) const;
 	int exists(const std::string& path) const;
 	int delete_node(const std::string& path) const;
-	int get_children(const std::string& path) const;
+	std::vector<std::string> get_children(const std::string& path) const;
 	std::string get(const std::string& path) const;
 	void close();
 
