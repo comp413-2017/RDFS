@@ -1,5 +1,5 @@
 #!/bin/sh
-# Provisioning the vagrant box for development on RDFS.
+# Provisioning the vagrant box for development on RDFS
 
 set -e
 set -x
@@ -56,6 +56,12 @@ echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 
 # TODO: Setup Apache zookeeper
 
+# Add Google Mock
+apt-get install -y google-mock
+cd /usr/src/gmock
+cmake CMakeLists.txt
+make
+cp *.a /usr/lib
 
 # Add Google Test
 apt-get install libgtest-dev
@@ -63,6 +69,7 @@ cd /usr/src/gtest
 cmake CMakeLists.txt
 make
 cp *.a /usr/lib
+
 
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
