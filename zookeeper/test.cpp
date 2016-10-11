@@ -17,6 +17,15 @@ int main(int argc, char* argv[]) {
     //}
     ZKWrapper zk("localhost:2181");
     char path[] = "/testing";
+
+    //TODO
+    //I could not fix the linking errors when calling my functions
+    // struct Stat st;
+    // int rc = zk.add_watcher_exists(path, (char *)"context for watcher", &st);
+    // if (ZOK != rc){                                                     
+    //     printf("Problems  %d\n", rc);                                   
+    // }
+
     int rc = zk.exists(path);
     if (rc == 0){
         fprintf(stdout, "path %s exists\n", path);
@@ -25,6 +34,22 @@ int main(int argc, char* argv[]) {
     else {
         fprintf(stdout, "path %s does not exist\n", path);
     }
+
+    //TODO
+    //I need to fix the linking errors when calling my watcher functions
+    // struct String_vector str;
+    // rc = zk.add_watcher_getchildren(path, (char *)"context  for watcher", &str);
+    // if (ZOK != rc){                                          
+    //     printf("Problems  %d\n", rc);                        
+    // } else {                                                 
+    //     int i = 0;                                           
+    //     while (i < str.count) {                              
+    //         printf("Children %s\n", str.data[i++]);          
+    //     }                                                    
+    //     if (str.count) {                                     
+    //         deallocate_String_vector(&str);                  
+    //     }                                                    
+    // } 
 
     int res1 = zk.create(path, "Hello", 5);
     std::string res2 = zk.get(path);

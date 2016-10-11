@@ -22,8 +22,8 @@ cd /home/vagrant/; ldconfig
 # Install and setup dependencies of hadoop
 apt-get install -y ssh pdsh openjdk-8-jdk-headless
 # passphraseless ssh
-ssh-keygen -b 2048 -t rsa -f /home/vagrant/.ssh/id_rsa -N ""
-cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
+#ssh-keygen -b 2048 -t rsa -f /home/vagrant/.ssh/id_rsa -N ""
+#cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
 wget --quiet http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz

@@ -21,11 +21,14 @@ class ZKWrapper {
 	std::vector<std::string> get_children(const std::string& path) const;
 	std::string get(const std::string& path) const;
 	void close();
+	int add_watcher_getchildren(const std::string& path, void *watcher_context, struct String_vector* str);
+	int add_watcher_exists(const std::string& path, void *watcher_context, struct Stat *st);
 
     private:
         zhandle_t *zh;
         friend void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
-
+        friend void watcher_getchildren(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+        friend void watcher_exists(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
 };
 
