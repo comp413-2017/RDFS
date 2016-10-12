@@ -49,7 +49,7 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	const std::string& src = req.src();
 	GetFileInfoResponseProto res;
 	// Ask whether zookeeper has the file...
-	int rc = zk.exists(src, 0);
+	int rc = zk.exists(ZookeeperPath(src), 0);
 	if (rc == 0) {
 		// Then the file exists, create stub status.
 		HdfsFileStatusProto* status = res.mutable_fs();
@@ -121,7 +121,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	const hadoop::hdfs::FsPermissionProto& masked = req.masked();
 	std::string out;
 	CreateResponseProto res;
-    int rc = zk.create(src, "foo", 0);
+    int rc = zk.create(ZookeeperPath(src), "foo", 0);
 	if (rc == 0) {
 		// Then the file exists, create stub status.
 		HdfsFileStatusProto* status = res.mutable_fs();
@@ -275,7 +275,9 @@ std::string ClientNamenodeTranslator::ZookeeperPath(const std::string &hadoopPat
         zkpath += "/";
     }
     zkpath += hadoopPath;
-    LOG(INFO) << "zookeeper path is " << zkpath;
+    if (zkpath.at(zkpath.length() - 1) == '/'){
+        zkpath.at(zkpath.length() - 1) = '\0';
+    }
     return zkpath;
 }
 
