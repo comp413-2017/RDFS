@@ -1,3 +1,6 @@
 .vagrant/
 build/
 .idea/
+*/CMakeFiles
+*/CMakeCache*
+
