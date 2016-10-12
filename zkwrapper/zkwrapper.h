@@ -15,7 +15,7 @@ class ZKWrapper {
 public:
     ZKWrapper(std::string host);
 
-    int create(const std::string &path, const std::string &data, const int num_bytes) const;
+    int create(const std::string &path, const std::string &data, const int num_bytes, int flag = 0) const;
 
     int recursiveCreate(const std::string &path, const std::string &data, const int num_bytes) const;
 
