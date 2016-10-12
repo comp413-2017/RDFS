@@ -3,6 +3,7 @@
 #include "hdfs.pb.h"
 #include <google/protobuf/message.h>
 #include <rpcserver.h>
+#include <zkwrapper.h>
 
 #pragma once
 
@@ -37,6 +38,7 @@ class ClientNamenodeTranslator {
 		FsServerDefaultsProto server_defaults;
 		int port;
 		RPCServer server;
+		ZKWrapper zk;
 
 		static const char* HDFS_DEFAULTS_CONFIG;
 		

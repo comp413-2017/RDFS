@@ -12,6 +12,7 @@
 
 #include <easylogging++.h>
 #include <rpcserver.h>
+#include <zkwrapper.h>
 #include <pugixml.hpp>
 
 #include "ClientNamenodeProtocolImpl.h"
@@ -30,12 +31,15 @@ const char* ClientNamenodeTranslator::HDFS_DEFAULTS_CONFIG = "hdfs-default.xml";
 // config
 std::map <std::string, std::string> config;
 
-// TODO - this will probably take some zookeeper object
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
-	: port(port_arg), server(port) {
+	: port(port_arg), server(port), zk("localhost:2181") {
 	InitServer();
 	Config();
 	LOG(INFO) << "Created client namenode translator.";
+	// Create root node TODO: should check if it exists..
+	if (zk.exists("/", 0)) {
+		zk.create("/", "foo", 0);
+	}
 }
 
 std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
@@ -43,11 +47,27 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req);
 	const std::string& src = req.src();
-	// from here, we would ask zoo-keeper something, we should check
-	// the response, and either return the response or return some 
-	// void response...for now we will just return			
-	std::string out; 
 	GetFileInfoResponseProto res;
+	// Ask whether zookeeper has the file...
+	int rc = zk.exists(src, 0);
+	if (rc == 0) {
+		// Then the file exists, create stub status.
+		HdfsFileStatusProto* status = res.mutable_fs();
+		FsPermissionProto* permission = status->mutable_permission();
+		// Shorcut to set permission to 777.
+		permission->set_perm(~0);
+		// Set it to be a file with length 1, "foo" owner and group, 0
+		// modification/access time, "0" path inode.
+		status->set_filetype(HdfsFileStatusProto::IS_FILE);
+		status->set_path("0");
+		status->set_length(1);
+		status->set_owner("foo");
+		status->set_group("foo");
+		status->set_modification_time(0);
+		status->set_access_time(0);
+		// Other fields are optional, skip.
+	}
+	std::string out;
 	return Serialize(&out, res);
 }
 
@@ -101,6 +121,24 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	const hadoop::hdfs::FsPermissionProto& masked = req.masked();
 	std::string out;
 	CreateResponseProto res;
+	int rc = zk.create(src, "foo", 0);
+	if (rc == 0) {
+		// Then the file exists, create stub status.
+		HdfsFileStatusProto* status = res.mutable_fs();
+		FsPermissionProto* permission = status->mutable_permission();
+		// Shorcut to set permission to 777.
+		permission->set_perm(~0);
+		// Set it to be a file with length 1, "foo" owner and group, 0
+		// modification/access time, "0" path inode.
+		status->set_filetype(HdfsFileStatusProto::IS_FILE);
+		status->set_path("0");
+		status->set_length(1);
+		status->set_owner("foo");
+		status->set_group("foo");
+		status->set_modification_time(0);
+		status->set_access_time(0);
+		// Other fields are optional, skip.
+	}
 	// TODO for now, just say the create command failed. Not entirely sure
 	// how to do that, but I think you just don't include an
 	// HDFSFileStatusProto
