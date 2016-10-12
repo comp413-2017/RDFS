@@ -3,7 +3,7 @@
 
 #include "zk_client_common.h"
 
-namespace zkclient{
+namespace zkclient {
 
 class ZkClientDn : public ZkClientCommon {
 
