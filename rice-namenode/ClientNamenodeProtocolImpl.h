@@ -25,6 +25,7 @@ class ClientNamenodeTranslator {
 		std::string create(std::string);
 		std::string getBlockLocations(std::string);
 		std::string getServerDefaults(std::string);
+        std::string complete(std::string);
 
 		int getPort();
 		RPCServer getRPCServer();
@@ -34,7 +35,7 @@ class ClientNamenodeTranslator {
 		void RegisterClientRPCHandlers();
 		void Config();
 		void logMessage(google::protobuf::Message& req);
-
+        std::string ZookeeperPath(const std::string &hadoopPath);
 		FsServerDefaultsProto server_defaults;
 		int port;
 		RPCServer server;

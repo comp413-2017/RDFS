@@ -37,8 +37,8 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
 	Config();
 	LOG(INFO) << "Created client namenode translator.";
 	// Create root node TODO: should check if it exists..
-	if (zk.exists("/", 0)) {
-		zk.create("/", "foo", 0);
+	if (zk.exists("/namespace", 0) == 1) {
+		zk.create("/namespace", "foo", 0);
 	}
 }
 
@@ -59,7 +59,7 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 		// Set it to be a file with length 1, "foo" owner and group, 0
 		// modification/access time, "0" path inode.
 		status->set_filetype(HdfsFileStatusProto::IS_FILE);
-		status->set_path("0");
+		status->set_path(src);
 		status->set_length(1);
 		status->set_owner("foo");
 		status->set_group("foo");
@@ -121,7 +121,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	const hadoop::hdfs::FsPermissionProto& masked = req.masked();
 	std::string out;
 	CreateResponseProto res;
-	int rc = zk.create(src, "foo", 0);
+    int rc = zk.create(src, "foo", 0);
 	if (rc == 0) {
 		// Then the file exists, create stub status.
 		HdfsFileStatusProto* status = res.mutable_fs();
@@ -131,7 +131,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 		// Set it to be a file with length 1, "foo" owner and group, 0
 		// modification/access time, "0" path inode.
 		status->set_filetype(HdfsFileStatusProto::IS_FILE);
-		status->set_path("0");
+		status->set_path(src);
 		status->set_length(1);
 		status->set_owner("foo");
 		status->set_group("foo");
@@ -139,10 +139,8 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 		status->set_access_time(0);
 		// Other fields are optional, skip.
 	}
-	// TODO for now, just say the create command failed. Not entirely sure
-	// how to do that, but I think you just don't include an
-	// HDFSFileStatusProto
-	return Serialize(&out, res);
+
+    return Serialize(&out, res);
 }
 
 
@@ -168,6 +166,17 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	std::string out;
 	GetServerDefaultsResponseProto res;
 	return Serialize(&out, res);
+}
+
+std::string ClientNamenodeTranslator::complete(std::string input) {
+    CompleteRequestProto req;
+    req.ParseFromString(input);
+    logMessage(req);
+    std::string out;
+    CompleteResponseProto res;
+    // TODO need to check that last block has MIN_REPL_FACTOR replicas
+    res.set_result(true);
+    return Serialize(&out, res);
 }
 
 /**
@@ -239,7 +248,8 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("destroy", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
 	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
-}
+    server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
+    }
 
 /**
  * Get the RPCServer this namenode uses to connect with clients
@@ -257,6 +267,16 @@ int ClientNamenodeTranslator::getPort() {
 
 void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req) {
     LOG(INFO) << "Got mkdir request with input " << req.DebugString();
+}
+
+std::string ClientNamenodeTranslator::ZookeeperPath(const std::string &hadoopPath){
+    std::string zkpath = "/namespace";
+    if (hadoopPath.at(0) != '/'){
+        zkpath += "/";
+    }
+    zkpath += hadoopPath;
+    LOG(INFO) << "zookeeper path is " << zkpath;
+    return zkpath;
 }
 
 } //namespace
