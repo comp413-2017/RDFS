@@ -31,53 +31,28 @@ void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watche
             zookeeper_close(zzh);
             exit(1);
         }
-    } else if (type == ZOO_CREATED_EVENT) {
-        printf("Node under %s appeared\n", path);
-        if (path[0] == '\0'){
-            return;
-        }
-        int j = 0;
-        bool is_heartbeat = true;
-        while (path[j] != '\0' && health[j] != '\0'){
-            if (path[j] != health[j]){
-                is_heartbeat = false;
-                break;
-            }
-        }
-        if (!is_heartbeat){
-            return;
-        }
-
+    } else if (type == ZOO_CREATED_EVENT) {            
+        printf("Node created at %s\n", path);
+        int rc = zoo_exists(zzh, path, 1, 0);                         
+        if (ZOK != rc){                                                     
+            printf("Problems  %d\n", rc);                                   
+        }                                                                   
+    } else if (type == ZOO_DELETED_EVENT) {                                 
+        printf("Node deleted at %s\n", path);
+        int rc = zoo_exists(zzh, path, 1, 0);                              
+        if (ZOK != rc){                                                      
+            printf("Problems  %d\n", rc);                                    
+        }                                                                    
+    } else{
+        printf("a child has been added under path %s\n", path);
+        
         struct String_vector stvector;
         struct String_vector *vector = &stvector;
         int rc = zoo_get_children(zzh, path, 1, vector);
         int i = 0;
-        while (i < vector->count) {
-            printf("Children %s\n", vector->data[i++]);
+        if (vector->count == 0){
+            printf("no childs to retrieve\n");
         }
-        if (vector->count) {
-            deallocate_String_vector(vector);
-        }
-    } else if (type == ZOO_DELETED_EVENT) {
-        printf("Node under %s was deleted\n", path);
-        if (path[0] == '\0'){
-            return;
-        }
-        int j = 0;
-        bool is_heartbeat = true;
-        while (path[j] != '\0' && health[j] != '\0'){
-            if (path[j] != health[j]){
-                is_heartbeat = false;
-                break;
-            }
-        }
-        if (!is_heartbeat){
-            return;
-        }
-        struct String_vector stvector;
-        struct String_vector *vector = &stvector;
-        int rc = zoo_get_children(zzh, path, 1, vector);
-        int i = 0;
         while (i < vector->count) {
             printf("Children %s\n", vector->data[i++]);
         }
@@ -127,7 +102,7 @@ int ZKWrapper::create(const std::string &path, const std::string &data,
  * @return 0 on success, 1 on failure
  */
 int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data, const int num_bytes) const {
-    if (!exists(path)) { // If the path exists (0), then do nothing
+    if (!exists(path, 0)) { // If the path exists (0), then do nothing
         // TODO: Should we overwrite existing data?
         return 0;
     } else { // Else recursively generate the path
@@ -140,12 +115,12 @@ int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data,
     }
 }
 
-std::string ZKWrapper::get(const std::string &path) const {
+std::string ZKWrapper::get(const std::string &path, const int watch) const {
     char *buffer = new char[512];
     int buf_len = sizeof(buffer);
     struct Stat stat;
 
-    int rc = zoo_get(zh, path.c_str(), 0, buffer, &buf_len, &stat);
+    int rc = zoo_get(zh, path.c_str(), watch, buffer, &buf_len, &stat);
 
     if (rc) {
         printf("Error when getting!");
@@ -161,9 +136,9 @@ std::string ZKWrapper::get(const std::string &path) const {
  *
  * \return 0 if path exists, 1 otherwise. Because ZOK = 0
  */
-int ZKWrapper::exists(const std::string &path) const {
+int ZKWrapper::exists(const std::string &path, const int watch) const {
     // TODO: for now watch argument is set to 0, need more error checking
-    int rc = zoo_exists(zh, path.c_str(), 0, 0);
+    int rc = zoo_exists(zh, path.c_str(), watch, 0);
     return (rc);
 }
 
