@@ -6,15 +6,18 @@
 namespace zkclient {
     ZkClientCommon::ZkClientCommon() {
         zk = std::make_shared<ZKWrapper>("localhost:2181");  
-	//ZKWrapper zk("localhost:2181");
-        // no-op
     }
 
     void ZkClientCommon::init() {
-	/* create health node */
-    	if (1){
+        /* return 0 if path exists, 1 otherwise. */
+	if (zk->exists("/health"))
 	        zk->create("/health", "health", 6);
-	}
+	if (zk->exists("/fileSystem"))
+                zk->create("/fileSystem", "fileSystem", 10);
+	if (zk->exists("/work_queues"))
+                zk->create("/work_queues", "work_queues", 11);
+	if (zk->exists("blockMap"))
+                zk->create("/blockMap", "blockMap", 8);
     	
     }
 }
