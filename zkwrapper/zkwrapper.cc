@@ -36,12 +36,12 @@ ZKWrapper::ZKWrapper(std::string host) {
 
 
 int ZKWrapper::create(const std::string &path, const std::string &data,
-                      const int num_bytes) const {
+                      const int num_bytes, int flag) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
         exit(1); // Error handle
     }
-    int rc = zoo_create(zh, path.c_str(), data.c_str(), num_bytes, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
+    int rc = zoo_create(zh, path.c_str(), data.c_str(), num_bytes, &ZOO_OPEN_ACL_UNSAFE, flag, NULL, 0);
     if (rc != 0) {
         fprintf(stderr, "error %d in zoo_create\n", rc);
         if (rc = ZNODEEXISTS) {

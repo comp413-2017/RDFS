@@ -3,14 +3,21 @@
 
 #include "zk_client_dn.h"
 
+
 namespace zkclient{
 
-ZkClientDn::ZkClientDn(const std::string& ipAndHost) : ipAndHost(ipAndHost) {
+ZkClientDn::ZkClientDn(const std::string& id, const std::string& zkAddress) : id(id), ZkClientCommon(zkAddress) {
 
 }
 
 void ZkClientDn::registerDataNode() {
-    // no-op
+    // TODO: Consider using startup time of the DN along with the ip and port
+    // TODO: Handle error
+    zk->create("/health/data_node" + id, "", 0, ZOO_EPHEMERAL);
+}
+
+ZkClientDn::~ZkClientDn() {
+    zk->close();
 }
 
 }

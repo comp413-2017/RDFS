@@ -8,11 +8,12 @@ namespace zkclient{
 class ZkClientDn : public ZkClientCommon {
 
 public:
-    ZkClientDn(const std::string& ipAndHost);
+    ZkClientDn(const std::string& id, const std::string& zkAddress);
+    ~ZkClientDn();
     void registerDataNode();
 
 private:
-    std::string ipAndHost;
+    const std::string id;
 
 };
 
