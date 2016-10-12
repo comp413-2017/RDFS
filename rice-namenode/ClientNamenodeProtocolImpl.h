@@ -37,9 +37,10 @@ class ClientNamenodeTranslator {
 		std::string append(std::string);
 		std::string setPermission(std::string);
 		std::string recoverLease(std::string);
-		std::String concat(std::string);
+		std::string concat(std::string);
 
 		// lease manager interactions
+		std::string abandonBlock(std::string input);
 
 		int getPort();
 		RPCServer getRPCServer();

@@ -206,7 +206,7 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	logMessage(req, "AbandonBlock ");
 	const ExtendedBlockProto& blockProto = req.b();
 	const std::string& src = req.src();
-	const std::String& holder = req.src(); // TODO who is the holder??
+	const std::string& holder = req.src(); // TODO who is the holder??
 	// TODO some optional fields
 	// TODO tell zookeeper to get rid of the last block (should not need to 
     // (talk to datanode as far as i am aware)
