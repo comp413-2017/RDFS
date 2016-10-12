@@ -20,6 +20,71 @@ clientid_t myid;
  * do in real code */
 void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
     std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
+    char health[] = "/health/datanode_";
+    if (type == ZOO_SESSION_EVENT) {                         
+        if (state == ZOO_CONNECTED_STATE) {                  
+            return;                                          
+        } else if (state == ZOO_AUTH_FAILED_STATE) {         
+            zookeeper_close(zzh);                            
+            exit(1);                                         
+        } else if (state == ZOO_EXPIRED_SESSION_STATE) {     
+            zookeeper_close(zzh);                            
+            exit(1);                                         
+        }                                                    
+    } else if (type == ZOO_CREATED_EVENT) {            
+        printf("Node under %s appeared\n", path);
+        if (path[0] == '\0'){
+            return;
+        }      
+        int j = 0;
+        bool is_heartbeat = true;
+        while (path[j] != '\0' && health[j] != '\0'){
+            if (path[j] != health[j]){
+                is_heartbeat = false;
+                break;
+            }
+        } 
+        if (!is_heartbeat){
+            return;
+        }
+
+        struct String_vector stvector;
+        struct String_vector *vector = &stvector;
+        int rc = zoo_get_children(zzh, path, 1, vector);
+        int i = 0;                                           
+        while (i < vector->count) {                              
+            printf("Children %s\n", vector->data[i++]);          
+        }  
+        if (vector->count) {                                     
+            deallocate_String_vector(vector);                  
+        }                                                         
+    } else if (type == ZOO_DELETED_EVENT) {                                 
+        printf("Node under %s was deleted\n", path);
+        if (path[0] == '\0'){
+            return;
+        }      
+        int j = 0;
+        bool is_heartbeat = true;
+        while (path[j] != '\0' && health[j] != '\0'){
+            if (path[j] != health[j]){
+                is_heartbeat = false;
+                break;
+            }
+        } 
+        if (!is_heartbeat){
+            return;
+        }                          
+        struct String_vector stvector;
+        struct String_vector *vector = &stvector;
+        int rc = zoo_get_children(zzh, path, 1, vector);
+        int i = 0;                                           
+        while (i < vector->count) {                              
+            printf("Children %s\n", vector->data[i++]);          
+        } 
+        if (vector->count) {                                     
+            deallocate_String_vector(vector);                  
+        }                                                                  
+    }  
 }
 
 ZKWrapper::ZKWrapper(std::string host) {
