@@ -15,98 +15,38 @@
 int init = 0;
 zhandle_t *zh;
 clientid_t myid;
+
 /** Watcher function -- empty for this example, not something you should
  * do in real code */
-void watcher_getchildren(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-    struct String_vector str;                                            
-    int rc;                                                              
- 
-    printf("The event path %s, event type %d\n", path, type);
-    if (type == ZOO_SESSION_EVENT) {                         
-        if (state == ZOO_CONNECTED_STATE) {                  
-            return;                                          
-        } else if (state == ZOO_AUTH_FAILED_STATE) {         
-            zookeeper_close(zzh);                            
-            exit(1);                                         
-        } else if (state == ZOO_EXPIRED_SESSION_STATE) {     
-            zookeeper_close(zzh);                            
-            exit(1);                                         
-        }                                                    
-    }                                                        
-    // Put the watch again                                   
-    rc = zoo_wget_children(zzh, "/testing",                 
-            watcher_getchildren , watcherCtx, &str);                
-    if (ZOK != rc){                                          
-        printf("Problems  %d\n", rc);                        
-    } else {                                                 
-        int i = 0;                                           
-        while (i < str.count) {                              
-            printf("Children %s\n", str.data[i++]);          
-        }                                                    
-        if (str.count) {                                     
-            deallocate_String_vector(&str);                  
-        }                                                    
-    } 
-}
-void watcher_exists(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-    struct Stat st;                                               
-    int rc;                                                              
- 
-    if (type == ZOO_SESSION_EVENT) {
-        if (state == ZOO_CONNECTED_STATE) {
-            return;                       
-        } else if (state == ZOO_AUTH_FAILED_STATE) {
-            zookeeper_close(zzh);                  
-            exit(1);                               
-        } else if (state == ZOO_EXPIRED_SESSION_STATE) {
-            zookeeper_close(zzh);                      
-            exit(1);                                   
-        }                                              
-    } else if (type == ZOO_CREATED_EVENT) {            
-        printf("Node appeared %s, now Let us watch for its delete \n", path);
-        rc = zoo_wexists(zh, path,                                          
-                watcher_exists , watcherCtx, &st);                           
-        if (ZOK != rc){                                                     
-            printf("Problems  %d\n", rc);                                   
-        }                                                                   
-    } else if (type == ZOO_DELETED_EVENT) {                                 
-        printf("Node deleted %s, now Let us watch for its creation \n", path);
-        rc = zoo_wexists(zh, path,                                           
-                watcher_exists , watcherCtx, &st);                            
-        if (ZOK != rc){                                                      
-            printf("Problems  %d\n", rc);                                    
-        }                                                                    
-    }   
-}
 void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-
+    std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
 }
-
-
 
 ZKWrapper::ZKWrapper(std::string host) {
     zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
     if (!zh) {
-	fprintf(stderr, "zk init failed!");
+        fprintf(stderr, "zk init failed!");
         exit(1);
     }
-        
+
     //zh = handle;
     init = 1;
 
 }
 
 
-int ZKWrapper::create(const std::string& path, const std::string& data, const int num_bytes) const {
+int ZKWrapper::create(const std::string &path, const std::string &data,
+                      const int num_bytes) const {
     if (!init) {
-	    fprintf(stderr, "Attempt to create before init!");
+        fprintf(stderr, "Attempt to create before init!");
         exit(1); // Error handle
     }
     int rc = zoo_create(zh, path.c_str(), data.c_str(), num_bytes, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
     if (rc != 0) {
-	    fprintf(stderr,"error %d in zoo_create\n", rc);
+        fprintf(stderr, "error %d in zoo_create\n", rc);
         if (rc = ZNODEEXISTS) {
-            fprintf(stderr, "Node %s already exists.\n", path.c_str()); // TODO: add more error code checking
+            fprintf(stderr, "Node %s already exists.\n",
+                    path.c_str()); // TODO: add more error code checking
             exit(1); // TODO: Handle error
         }
     }
@@ -121,7 +61,7 @@ int ZKWrapper::create(const std::string& path, const std::string& data, const in
  * @param num_bytes number of bytes to store
  * @return 0 on success, 1 on failure
  */
-int ZKWrapper::recursiveCreate(const std::string& path, const std::string& data, const int num_bytes) const {
+int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data, const int num_bytes) const {
     if (!exists(path)) { // If the path exists (0), then do nothing
         // TODO: Should we overwrite existing data?
         return 0;
@@ -135,8 +75,8 @@ int ZKWrapper::recursiveCreate(const std::string& path, const std::string& data,
     }
 }
 
-std::string ZKWrapper::get(const std::string& path) const {
-    char* buffer = new char[512];
+std::string ZKWrapper::get(const std::string &path) const {
+    char *buffer = new char[512];
     int buf_len = sizeof(buffer);
     struct Stat stat;
 
@@ -150,52 +90,37 @@ std::string ZKWrapper::get(const std::string& path) const {
     return std::string(buffer);
 }
 
-
-
-int add_watcher_getchildren(const std::string& path, void *watcher_context, struct String_vector* str){
-    int rc = zoo_wget_children(zh, path.c_str(),                 
-            watcher_getchildren , watcher_context, str); 
-    return rc;
-}
-
-int add_watcher_exists(const std::string& path, void *watcher_context, struct Stat *st){
-    int rc = zoo_wexists(zh, path.c_str(),                                          
-            watcher_exists , watcher_context, st);   
-    return rc;                        
-}
-
-/*
+/**
  * \param path The name of the node. Expressed as a file name with slashes
  * separating ancestors of the node.
  *
  * \return 0 if path exists, 1 otherwise. Because ZOK = 0
  */
-int ZKWrapper::exists(const std::string& path) const {
-  // TODO: for now watch argument is set to 0, need more error checking
-  int rc = zoo_exists(zh, path.c_str(), 0, 0);
-  return (rc);
+int ZKWrapper::exists(const std::string &path) const {
+    // TODO: for now watch argument is set to 0, need more error checking
+    int rc = zoo_exists(zh, path.c_str(), 0, 0);
+    return (rc);
 }
 
-int ZKWrapper::delete_node(const std::string& path) const {
-   // NOTE: use -1 for version, check will not take place.
-   int rc = zoo_delete(zh, path.c_str(), -1);
-   return (rc);
+int ZKWrapper::delete_node(const std::string &path) const {
+    // NOTE: use -1 for version, check will not take place.
+    int rc = zoo_delete(zh, path.c_str(), -1);
+    return (rc);
 }
 
-std::vector<std::string> ZKWrapper::get_children(const std::string& path) const {
-   // TODO: not implemented
-   // c binding function: int zoo_get_children(zhandle_t *zh, const char *path, int watch,
-   //                        struct String_vector *strings);
+std::vector <std::string> ZKWrapper::get_children(const std::string &path, const int watch) const {
+    // TODO: not implemented
+    // c binding function: int zoo_get_children(zhandle_t *zh, const char *path, int watch,
+    //                        struct String_vector *strings);
 
-    int watch = 0; // TODO: Will we ever want to watch here?
     struct String_vector stvector;
     struct String_vector *vector = &stvector;
     int rc = zoo_get_children(zh, path.c_str(), watch, vector);
     // TODO: error checking on rc
 
     int i;
-    std::vector<std::string> children;
-    for (i=0; i < stvector.count; i++) {
+    std::vector <std::string> children;
+    for (i = 0; i < stvector.count; i++) {
         children.push_back(stvector.data[i]);
     }
     return children;
