@@ -4,5 +4,5 @@
 
 int main(int argc, char* argv[]) {
     std::cout << "hi" << std::endl;
-    ZkClientCommon* me = new ZkClientCommon();
+    zkclient::ZkClientCommon* me = new zkclient::ZkClientCommon();
 }

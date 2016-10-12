@@ -3,12 +3,14 @@
 
 #include "zk_client_common.h"
 
-ZkClientCommon::ZkClientCommon(){
-    // no-op
-}
+namespace zkclient {
+    ZkClientCommon::ZkClientCommon() {
+        // no-op
+    }
 
-void ZkClientCommon::init() {
+    void ZkClientCommon::init() {
 
+    }
 }
 
 #endif

@@ -5,13 +5,17 @@
 
 #include <boost/shared_ptr.hpp>
 
-class ZkClientCommon {
-public:
-    ZkClientCommon();
-    void init();
+namespace zkclient {
 
-private:
-    std::shared_ptr<ZKWrapper> zk;
-};
+    class ZkClientCommon {
+    public:
+        ZkClientCommon();
+
+        void init();
+
+    private:
+        std::shared_ptr <ZKWrapper> zk;
+    };
+}
 
 #endif //RDFS_ZKCLIENTCOMMON_H
