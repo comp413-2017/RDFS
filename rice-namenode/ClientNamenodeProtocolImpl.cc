@@ -37,7 +37,7 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
 	Config();
 	LOG(INFO) << "Created client namenode translator.";
 	// Create root node TODO: should check if it exists..
-	if (zk.exists("/namespace", 0) == 1) {
+	if (zk.exists("/namespace", 0) != 0) {
 		zk.create("/namespace", "foo", 0);
 	}
 }
