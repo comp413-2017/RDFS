@@ -2,6 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/zkwrapper)
 include_directories(${CMAKE_SOURCE_DIR}/zookeeper/include)
 
 add_library(zk_client_common source/zk_client_common.cc)
+target_link_libraries(zk_client_common zkwrapper)
 
 add_executable(zktest source/test.cpp)
 target_link_libraries(zktest zkwrapper)

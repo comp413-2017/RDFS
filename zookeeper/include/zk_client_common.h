@@ -1,7 +1,7 @@
 #ifndef RDFS_ZKCLIENTCOMMON_H
 #define RDFS_ZKCLIENTCOMMON_H
 
-#include "zkwrapper.h"
+#include <zkwrapper.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -15,6 +15,7 @@ namespace zkclient {
 
     private:
         std::shared_ptr <ZKWrapper> zk;
+	//ZKWrapper zk;
     };
 }
 
