@@ -13,7 +13,10 @@ ZkClientDn::ZkClientDn(const std::string& id, const std::string& zkAddress) : id
 void ZkClientDn::registerDataNode() {
     // TODO: Consider using startup time of the DN along with the ip and port
     // TODO: Handle error
-    zk->create("/health/data_node" + id, "", 0, ZOO_EPHEMERAL);
+    if (zk->exists("/health/datanode_" + id)) {
+        zk->create("/health/datanode_" + id, "", 0);
+    }
+    zk->create("/health/datanode_" + id + "/health", "", 0, ZOO_EPHEMERAL);
 }
 
 ZkClientDn::~ZkClientDn() {
