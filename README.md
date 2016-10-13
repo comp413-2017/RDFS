@@ -99,4 +99,3 @@ at (/googletest/googlemock/docs/) before using it:
    - [CheatSheet](CheatSheet.md) -- a quick reference.
    - [CookBook](CookBook.md) -- recipes for doing various tasks using Google 
      Mock.
->>>>>>> origin/develop
