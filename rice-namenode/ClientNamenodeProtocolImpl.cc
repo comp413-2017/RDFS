@@ -319,13 +319,18 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
 	server.register_handler("destroy", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
-	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
+	server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
+	server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));
+	server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
+	server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
+	server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
 
 	// register handlers for unsupported calls
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
 	server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
 	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
-	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
+	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
+	server.register_handler("concat", std::bind(&ClientNamenodeTranslator::concat, this, _1));
 }
 
 /**
