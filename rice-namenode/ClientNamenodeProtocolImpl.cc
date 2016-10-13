@@ -28,7 +28,7 @@ namespace client_namenode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60;
+const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
 // config
 std::map <std::string, std::string> config;
@@ -168,7 +168,7 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	// remove the lease from this file  
 	bool succ = lease_manager.removeLease(clientname, src);         
 	if (!succ) {
-		LOG(ERROR) << "A client tried to close a file which is not theres";
+		LOG(ERROR) << "A client tried to close a file which is not theirs";
 	}
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
 	// for now, we failed to close the file
@@ -209,7 +209,7 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	const std::string& holder = req.src(); // TODO who is the holder??
 	// TODO some optional fields
 	// TODO tell zookeeper to get rid of the last block (should not need to 
-    // (talk to datanode as far as i am aware)
+	// (talk to datanode as far as i am aware)
 
 	AbandonBlockResponseProto res; 
 	return Serialize(res);	

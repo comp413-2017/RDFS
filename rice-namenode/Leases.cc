@@ -29,12 +29,12 @@ void Lease::resetTimer() {
  * expired, then we forcibly close it. Otherwise, we hadd 60
  * seconds onto the timer 
  */
-bool Lease::isExpired(int time) {
+bool Lease::isExpired(int check_time) {
 	// TODO close the file and recover the blocks
 	if (time >= LEASE_EXPIRATION_TIME) {
 		return false;
 	}
-	time += time;
+	time += check_time;
 	return true; 	
 }
 

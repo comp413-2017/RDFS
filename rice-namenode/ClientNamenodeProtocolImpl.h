@@ -53,7 +53,7 @@ class ClientNamenodeTranslator {
 		
 		int getDefaultInt(std::string);
 
-        static const int LEASE_CHECK_TIME;
+        static const int LEASE_CHECK_TIME; // in seconds, how often the namenode checks all leases
 		lease::LeaseManager lease_manager; 
 		config_reader::ConfigReader config; 
 		int port;
