@@ -60,11 +60,15 @@ make
 in the test/ directory.
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 
-
-To create an example interaction with the RPC server,
-run the namenode executable from build/rice-namenode.
+Namenode:
+Run the namenode executable from build/rice-namenode. 
 Then run something like `hdfs dfs -fs hdfs://localhost:port/ -mkdir foo`
-where port is the port used by the namenode (it will print the port used).
+where port is the port used by the namenode (it will print the port used)
+
+Datanode:
+Run the datanode executable from build/rice-datanode. 
+Then run something like `hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/`
+where port is the port used by the datanode (it will print the port used)
 
 # Mocking
 
@@ -95,3 +99,4 @@ at (/googletest/googlemock/docs/) before using it:
    - [CheatSheet](CheatSheet.md) -- a quick reference.
    - [CookBook](CookBook.md) -- recipes for doing various tasks using Google 
      Mock.
+>>>>>>> origin/develop
