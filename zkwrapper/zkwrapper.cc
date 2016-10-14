@@ -115,6 +115,22 @@ int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data,
     }
 }
 
+
+std::string ZKWrapper::wget(const std::string &path, watcher_fn watch, void* watcherCtx) const {
+    char *buffer = new char[512];
+    int buf_len = sizeof(buffer);
+    struct Stat stat;
+
+    int rc = zoo_wget(zh, path.c_str(), watch, watcherCtx, buffer, &buf_len, &stat);
+
+    if (rc) {
+        printf("Error when getting!");
+        exit(1); // TODO: error handling
+    }
+
+    return std::string(buffer);
+}
+
 std::string ZKWrapper::get(const std::string &path, const int watch) const {
     char *buffer = new char[512];
     int buf_len = sizeof(buffer);
@@ -142,6 +158,13 @@ int ZKWrapper::exists(const std::string &path, const int watch) const {
     return (rc);
 }
 
+int ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const {
+    struct Stat stat;
+    int rc = zoo_wexists(zh, path.c_str(), watch, watcherCtx, &stat);
+    return (rc);
+}
+
+
 int ZKWrapper::delete_node(const std::string &path) const {
     // NOTE: use -1 for version, check will not take place.
     int rc = zoo_delete(zh, path.c_str(), -1);
@@ -149,9 +172,6 @@ int ZKWrapper::delete_node(const std::string &path) const {
 }
 
 std::vector <std::string> ZKWrapper::get_children(const std::string &path, const int watch) const {
-    // TODO: not implemented
-    // c binding function: int zoo_get_children(zhandle_t *zh, const char *path, int watch,
-    //                        struct String_vector *strings);
 
     struct String_vector stvector;
     struct String_vector *vector = &stvector;
@@ -165,6 +185,21 @@ std::vector <std::string> ZKWrapper::get_children(const std::string &path, const
     }
     return children;
 }
+
+std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watcher_fn watch, void* watcherCtx) const {
+
+    struct String_vector stvector;
+    struct String_vector *vector = &stvector;
+    int rc = zoo_wget_children(zh, path.c_str(), watch, watcherCtx, vector);
+
+    int i;
+    std::vector <std::string> children;
+    for (i = 0; i < stvector.count; i++) {
+        children.push_back(stvector.data[i]);
+    }
+    return children;
+}
+
 
 void ZKWrapper::close() {
     zookeeper_close(zh);

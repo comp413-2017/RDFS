@@ -12,28 +12,34 @@
 #include <zookeeper.h>
 
 class ZKWrapper {
-public:
-    ZKWrapper(std::string host);
+	public:
+		ZKWrapper(std::string host);
 
-    int create(const std::string &path, const std::string &data, const int num_bytes, int flag = 0) const;
+		int create(const std::string &path, const std::string &data, const int num_bytes, int flag = 0) const;
 
-    int recursiveCreate(const std::string &path, const std::string &data, const int num_bytes) const;
+		int recursiveCreate(const std::string &path, const std::string &data, const int num_bytes) const;
 
-    int exists(const std::string &path, const int watch) const;
+		int exists(const std::string &path, const int watch) const;
 
-    int delete_node(const std::string &path) const;
+		int wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const;
 
-    std::vector <std::string> get_children(const std::string &path, const int watch) const;
+		int delete_node(const std::string &path) const;
 
-    std::string get(const std::string &path, const int watch) const;
+		std::vector <std::string> get_children(const std::string &path, const int watch) const;
 
-    void close();
+		std::vector <std::string> wget_children(const std::string &path, watcher_fn  watch, void* watcherCtx) const;
 
-private:
-    zhandle_t *zh;
+		std::string get(const std::string &path, const int watch) const;
 
-    friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
-                        void *watcherCtx);
+		std::string wget(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+
+		void close();
+
+	private:
+		zhandle_t *zh;
+
+		friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
+				void *watcherCtx);
 };
 
 #endif //RDFS_ZKWRAPPER_H
