@@ -115,7 +115,14 @@ int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data,
     }
 }
 
-
+/* This function is similar to zoo_get except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ *
+ * @param path the name of the node
+ * @param watch a watcher function
+ * @param watcherCtx user specific data, will be passed to the watcher callback.
+ * @return znode value as a stream of bytes
+ */
 std::string ZKWrapper::wget(const std::string &path, watcher_fn watch, void* watcherCtx) const {
     char *buffer = new char[512];
     int buf_len = sizeof(buffer);
@@ -131,6 +138,12 @@ std::string ZKWrapper::wget(const std::string &path, watcher_fn watch, void* wat
     return std::string(buffer);
 }
 
+/*
+ * gets the data associated with a node
+ * @param path the name of the node
+ * @param watch, if nonzero, a watch will be set at the server to notify
+ * @return znode value as a stream of bytes
+ */
 std::string ZKWrapper::get(const std::string &path, const int watch) const {
     char *buffer = new char[512];
     int buf_len = sizeof(buffer);
@@ -147,10 +160,11 @@ std::string ZKWrapper::get(const std::string &path, const int watch) const {
 }
 
 /**
- * \param path The name of the node. Expressed as a file name with slashes
+ * check if a znode exists or not.
+ * @param path The name of the node. Expressed as a file name with slashes
  * separating ancestors of the node.
  *
- * \return 0 if path exists, 1 otherwise. Because ZOK = 0
+ * @return 0 if path exists, 1 otherwise. Because ZOK = 0
  */
 int ZKWrapper::exists(const std::string &path, const int watch) const {
     // TODO: for now watch argument is set to 0, need more error checking
@@ -158,6 +172,9 @@ int ZKWrapper::exists(const std::string &path, const int watch) const {
     return (rc);
 }
 
+/* This function is similar to zoo_exist except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ */
 int ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const {
     struct Stat stat;
     int rc = zoo_wexists(zh, path.c_str(), watch, watcherCtx, &stat);
@@ -171,6 +188,11 @@ int ZKWrapper::delete_node(const std::string &path) const {
     return (rc);
 }
 
+/* This function gets a list of children path
+ * @param path path of parent node
+ * @param watch, if nonzero, a watch will be set at the server to notify
+ * @return a list of path
+ */
 std::vector <std::string> ZKWrapper::get_children(const std::string &path, const int watch) const {
 
     struct String_vector stvector;
@@ -186,6 +208,9 @@ std::vector <std::string> ZKWrapper::get_children(const std::string &path, const
     return children;
 }
 
+/* This function is similar to zoo_getchildren except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ */
 std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watcher_fn watch, void* watcherCtx) const {
 
     struct String_vector stvector;
