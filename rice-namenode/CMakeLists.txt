@@ -1,8 +1,8 @@
-include_directories(${CMAKE_SOURCE_DIR}/rpcserver ${CMAKE_SOURCE_DIR}/utility/pugixml/src ${CMAKE_SOURCE_DIR}/utility/logging)
+include_directories(${CMAKE_SOURCE_DIR}/rpcserver ${CMAKE_SOURCE_DIR}/utility/config-reader ${CMAKE_SOURCE_DIR}/utility/logging)
 
-add_executable(namenode main.cc ClientNamenodeProtocolImpl.cc)
+add_executable(namenode main.cc ClientNamenodeProtocolImpl.cc Leases.cc)
 target_link_libraries( namenode rpcserver )
-target_link_libraries( namenode pugixml )
+target_link_libraries( namenode config )
 target_link_libraries( namenode easylogging++ )
 target_link_libraries( namenode protobuf )
 target_link_libraries( namenode pthread )
