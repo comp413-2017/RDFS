@@ -126,6 +126,19 @@ std::string ClientDatanodeTranslator::getDatanodeInfo(std::string input) {
 }
 
 /**
+ * Temporary method to accept an OpReadBlockProto.
+ */
+std::string ClientDatanodeTranslator::_acceptReadBlock(std::string input) {
+	OpReadBlockProto req;
+	req.ParseFromString(input);
+	logMessage(req);
+	std::string out;
+	BlockOpResponseProto res;
+	// TODO respond properly
+	return Serialize(&out, res);
+}
+
+/**
  * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
  * If it succeeds, we simly return the serialized string. 
  */

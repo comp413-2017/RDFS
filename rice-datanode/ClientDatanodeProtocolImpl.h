@@ -1,6 +1,7 @@
 #include <iostream>
 #include "ClientDatanodeProtocol.pb.h"
 #include "hdfs.pb.h"
+#include "datatransfer.pb.h"
 #include <google/protobuf/message.h>
 #include <rpcserver.h>
 
@@ -24,6 +25,7 @@ class ClientDatanodeTranslator {
 		std::string getHdfsBlockLocations(std::string);
 		std::string shutdownDatanode(std::string);
 		std::string getDatanodeInfo(std::string);
+		std::string _acceptReadBlock(std::string);
 
 		int getPort();
 		RPCServer getRPCServer();
