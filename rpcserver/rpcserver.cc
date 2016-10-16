@@ -122,7 +122,11 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             ERROR_AND_RETURN("Failed to receive request.");
         }
         auto iter = this->dispatch_table.find(request_header.methodname());
-        if (iter != this->dispatch_table.end()) {
+        std::cout << std::endl;
+	std::cout << "RPC_METHOD_FOUND: [[" << request_header.methodname()
+		<< "]]" << std::endl << std::endl;
+
+	if (iter != this->dispatch_table.end()) {
             LOG(INFO) << "dispatching handler for " << request_header.methodname();
             // Send the response back on the socket.
             hadoop::common::RpcResponseHeaderProto response_header;
