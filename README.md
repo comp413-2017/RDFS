@@ -35,9 +35,6 @@ sudo apt-get install libasio-dev
 mkdir build
 cd build
 
-sudo apt-get install libboost-all-dev
-sudo apt-get install libasio-dev 
-
 cmake ..
 make
 ```
