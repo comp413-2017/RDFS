@@ -45,14 +45,16 @@ message ListEncryptionZonesRequestProto {
   required int64 id = 1;
 }
 
-message EncryptionZoneWithIdProto {
-  required string path = 1;
-  required string keyName = 2;
-  required int64 id = 3;
+message EncryptionZoneProto {
+  required int64 id = 1;
+  required string path = 2;
+  required CipherSuiteProto suite = 3;
+  required CryptoProtocolVersionProto cryptoProtocolVersion = 4;
+  required string keyName = 5;
 }
 
 message ListEncryptionZonesResponseProto {
-  repeated EncryptionZoneWithIdProto zones = 1;
+  repeated EncryptionZoneProto zones = 1;
   required bool hasMore = 2;
 }
 
@@ -61,5 +63,5 @@ message GetEZForPathRequestProto {
 }
 
 message GetEZForPathResponseProto {
-    required EncryptionZoneWithIdProto zone = 1;
+    optional EncryptionZoneProto zone = 1;
 }

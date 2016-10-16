@@ -22,53 +22,40 @@
  * for what changes are allowed for a *stable* .proto interface.
  */
 
-option java_package = "org.apache.hadoop.security.proto";
-option java_outer_classname = "SecurityProtos";
+option java_package = "org.apache.hadoop.ipc.proto";
+option java_outer_classname = "GenericRefreshProtocolProtos";
 option java_generic_services = true;
 option java_generate_equals_and_hash = true;
 package hadoop.common;
 
 /**
- * Security token identifier
+ *  Refresh request.
  */
-message TokenProto {
-  required bytes identifier = 1;
-  required bytes password = 2;
-  required string kind = 3;
-  required string service = 4;
+message GenericRefreshRequestProto {
+    optional string identifier = 1;
+    repeated string args = 2;
 }
 
-message CredentialsKVProto {
-  required string alias = 1;
-  optional hadoop.common.TokenProto token = 2;
-  optional bytes secret = 3;
+/**
+ * A single response from a refresh handler.
+ */
+message GenericRefreshResponseProto {
+    optional int32 exitStatus = 1; // unix exit status to return
+    optional string userMessage = 2; // to be displayed to the user
+    optional string senderName = 3; // which handler sent this message
 }
 
-message CredentialsProto {
-  repeated hadoop.common.CredentialsKVProto tokens = 1;
-  repeated hadoop.common.CredentialsKVProto secrets = 2;
+/**
+ * Collection of responses from zero or more handlers.
+ */
+message GenericRefreshResponseCollectionProto {
+    repeated GenericRefreshResponseProto responses = 1;
 }
 
-message GetDelegationTokenRequestProto {
-  required string renewer = 1;
+/**
+ * Protocol which is used to refresh a user-specified feature.
+ */
+service GenericRefreshProtocolService {
+  rpc refresh(GenericRefreshRequestProto)
+      returns(GenericRefreshResponseCollectionProto);
 }
-
-message GetDelegationTokenResponseProto {
-  optional hadoop.common.TokenProto token = 1;
-}
-
-message RenewDelegationTokenRequestProto {
-  required hadoop.common.TokenProto token = 1;
-}
-
-message RenewDelegationTokenResponseProto {
-  required uint64 newExpiryTime = 1;
-}
-
-message CancelDelegationTokenRequestProto {
-  required hadoop.common.TokenProto token = 1;
-}
-
-message CancelDelegationTokenResponseProto { // void response
-}
-

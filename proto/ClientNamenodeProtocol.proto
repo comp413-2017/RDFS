@@ -33,6 +33,8 @@ import "hdfs.proto";
 import "acl.proto";
 import "xattr.proto";
 import "encryption.proto";
+import "inotify.proto";
+import "erasurecoding.proto";
 
 /**
  * The ClientNamenodeProtocol Service defines the interface between a client 
@@ -64,6 +66,8 @@ enum CreateFlagProto {
   CREATE = 0x01;    // Create a file
   OVERWRITE = 0x02; // Truncate/overwrite a file. Same as POSIX O_TRUNC
   APPEND = 0x04;    // Append to a file
+  LAZY_PERSIST = 0x10; // File with reduced durability guarantees.
+  NEW_BLOCK = 0x20; // Write data to a new block when appending
 }
 
 message CreateRequestProto {
@@ -74,7 +78,7 @@ message CreateRequestProto {
   required bool createParent = 5;
   required uint32 replication = 6; // Short: Only 16 bits used
   required uint64 blockSize = 7;
-  repeated CipherSuite cipherSuites = 8;
+  repeated CryptoProtocolVersionProto cryptoProtocolVersion = 8;
 }
 
 message CreateResponseProto {
@@ -84,10 +88,12 @@ message CreateResponseProto {
 message AppendRequestProto {
   required string src = 1;
   required string clientName = 2;
+  optional uint32 flag = 3; // bits set using CreateFlag
 }
 
 message AppendResponseProto {
   optional LocatedBlockProto block = 1;
+  optional HdfsFileStatusProto stat = 2;
 }
 
 message SetReplicationRequestProto {
@@ -97,6 +103,36 @@ message SetReplicationRequestProto {
 
 message SetReplicationResponseProto {
   required bool result = 1;
+}
+
+message SetStoragePolicyRequestProto {
+  required string src = 1;
+  required string policyName = 2;
+}
+
+message SetStoragePolicyResponseProto { // void response
+}
+
+message UnsetStoragePolicyRequestProto {
+  required string src = 1;
+}
+
+message UnsetStoragePolicyResponseProto {
+}
+
+message GetStoragePolicyRequestProto {
+  required string path = 1;
+}
+
+message GetStoragePolicyResponseProto {
+  required BlockStoragePolicyProto storagePolicy = 1;
+}
+
+message GetStoragePoliciesRequestProto { // void request
+}
+
+message GetStoragePoliciesResponseProto {
+  repeated BlockStoragePolicyProto policies = 1;
 }
 
 message SetPermissionRequestProto {
@@ -126,6 +162,10 @@ message AbandonBlockRequestProto {
 message AbandonBlockResponseProto { // void response
 }
 
+enum AddBlockFlagProto {
+  NO_LOCAL_WRITE = 1; // avoid writing to local node.
+}
+
 message AddBlockRequestProto {
   required string src = 1;
   required string clientName = 2;
@@ -133,6 +173,7 @@ message AddBlockRequestProto {
   repeated DatanodeInfoProto excludeNodes = 4;
   optional uint64 fileId = 5 [default = 0];  // default as a bogus id
   repeated string favoredNodes = 6; //the set of datanodes to use for the block
+  repeated AddBlockFlagProto flags = 7; // default to empty.
 }
 
 message AddBlockResponseProto {
@@ -178,6 +219,16 @@ message ConcatRequestProto {
 }
 
 message ConcatResponseProto { // void response
+}
+
+message TruncateRequestProto {
+  required string src = 1;
+  required uint64 newLength = 2;
+  required string clientName = 3;
+}
+
+message TruncateResponseProto {
+  required bool result = 1;
 }
 
 message RenameRequestProto {
@@ -266,6 +317,9 @@ message GetFsStatsResponseProto {
   required uint64 under_replicated = 4;
   required uint64 corrupt_blocks = 5;
   required uint64 missing_blocks = 6;
+  optional uint64 missing_repl_one_blocks = 7;
+  optional uint64 blocks_in_future = 8;
+  optional uint64 pending_deletion_blocks = 9;
 }
 
 enum DatanodeReportTypeProto {  // type of the datanode report
@@ -308,6 +362,7 @@ enum SafeModeActionProto {
   SAFEMODE_LEAVE = 1;
   SAFEMODE_ENTER = 2;
   SAFEMODE_GET = 3;
+  SAFEMODE_FORCE_EXIT = 4;
 }
 
 message SetSafeModeRequestProto {
@@ -319,10 +374,13 @@ message SetSafeModeResponseProto {
   required bool result = 1;
 }
 
-message SaveNamespaceRequestProto { // no parameters
+message SaveNamespaceRequestProto {
+  optional uint64 timeWindow = 1 [default = 0];
+  optional uint64 txGap = 2 [default = 0];
 }
 
 message SaveNamespaceResponseProto { // void response
+  optional bool saved = 1 [default = true];
 }
 
 message RollEditsRequestProto { // no parameters
@@ -476,6 +534,7 @@ message CachePoolInfoProto {
   optional int32 mode = 4;
   optional int64 limit = 5;
   optional int64 maxRelativeExpiry = 6;
+  optional uint32 defaultReplication = 7 [default=1];
 }
 
 message CachePoolStatsProto {
@@ -537,10 +596,19 @@ message GetContentSummaryResponseProto {
   required ContentSummaryProto summary = 1;
 }
 
+message GetQuotaUsageRequestProto {
+  required string path = 1;
+}
+
+message GetQuotaUsageResponseProto {
+  required QuotaUsageProto usage = 1;
+}
+
 message SetQuotaRequestProto {
   required string path = 1;
   required uint64 namespaceQuota = 2;
-  required uint64 diskspaceQuota = 3;
+  required uint64 storagespaceQuota = 3;
+  optional StorageTypeProto storageType = 4;
 }
 
 message SetQuotaResponseProto { // void response
@@ -664,6 +732,21 @@ message CheckAccessRequestProto {
 message CheckAccessResponseProto { // void response
 }
 
+message GetCurrentEditLogTxidRequestProto {
+}
+
+message GetCurrentEditLogTxidResponseProto {
+  required int64 txid = 1;
+}
+
+message GetEditsFromTxidRequestProto {
+  required int64 txid = 1;
+}
+
+message GetEditsFromTxidResponseProto {
+  required EventsListProto eventsList = 1;
+}
+
 service ClientNamenodeProtocol {
   rpc getBlockLocations(GetBlockLocationsRequestProto)
       returns(GetBlockLocationsResponseProto);
@@ -673,6 +756,14 @@ service ClientNamenodeProtocol {
   rpc append(AppendRequestProto) returns(AppendResponseProto);
   rpc setReplication(SetReplicationRequestProto)
       returns(SetReplicationResponseProto);
+  rpc setStoragePolicy(SetStoragePolicyRequestProto)
+      returns(SetStoragePolicyResponseProto);
+  rpc unsetStoragePolicy(UnsetStoragePolicyRequestProto)
+      returns(UnsetStoragePolicyResponseProto);
+  rpc getStoragePolicy(GetStoragePolicyRequestProto)
+      returns(GetStoragePolicyResponseProto);
+  rpc getStoragePolicies(GetStoragePoliciesRequestProto)
+      returns(GetStoragePoliciesResponseProto);
   rpc setPermission(SetPermissionRequestProto)
       returns(SetPermissionResponseProto);
   rpc setOwner(SetOwnerRequestProto) returns(SetOwnerResponseProto);
@@ -684,6 +775,7 @@ service ClientNamenodeProtocol {
   rpc reportBadBlocks(ReportBadBlocksRequestProto)
       returns(ReportBadBlocksResponseProto);
   rpc concat(ConcatRequestProto) returns(ConcatResponseProto);
+  rpc truncate(TruncateRequestProto) returns(TruncateResponseProto);
   rpc rename(RenameRequestProto) returns(RenameResponseProto);
   rpc rename2(Rename2RequestProto) returns(Rename2ResponseProto);
   rpc delete(DeleteRequestProto) returns(DeleteResponseProto);
@@ -801,4 +893,16 @@ service ClientNamenodeProtocol {
       returns(ListEncryptionZonesResponseProto);
   rpc getEZForPath(GetEZForPathRequestProto)
       returns(GetEZForPathResponseProto);
+  rpc setErasureCodingPolicy(SetErasureCodingPolicyRequestProto)
+      returns(SetErasureCodingPolicyResponseProto);
+  rpc getCurrentEditLogTxid(GetCurrentEditLogTxidRequestProto)
+      returns(GetCurrentEditLogTxidResponseProto);
+  rpc getEditsFromTxid(GetEditsFromTxidRequestProto)
+      returns(GetEditsFromTxidResponseProto);
+  rpc getErasureCodingPolicies(GetErasureCodingPoliciesRequestProto)
+      returns(GetErasureCodingPoliciesResponseProto);
+  rpc getErasureCodingPolicy(GetErasureCodingPolicyRequestProto)
+      returns(GetErasureCodingPolicyResponseProto);
+  rpc getQuotaUsage(GetQuotaUsageRequestProto)
+      returns(GetQuotaUsageResponseProto);
 }

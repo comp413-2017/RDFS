@@ -22,53 +22,38 @@
  * for what changes are allowed for a *stable* .proto interface.
  */
 
-option java_package = "org.apache.hadoop.security.proto";
-option java_outer_classname = "SecurityProtos";
+option java_package = "org.apache.hadoop.ha.proto";
+option java_outer_classname = "ZKFCProtocolProtos";
 option java_generic_services = true;
 option java_generate_equals_and_hash = true;
 package hadoop.common;
 
+message CedeActiveRequestProto {
+  required uint32 millisToCede = 1;
+}
+
+message CedeActiveResponseProto {
+}
+
+message GracefulFailoverRequestProto {
+}
+
+message GracefulFailoverResponseProto {
+}
+
+
 /**
- * Security token identifier
+ * Protocol provides manual control of the ZK Failover Controllers
  */
-message TokenProto {
-  required bytes identifier = 1;
-  required bytes password = 2;
-  required string kind = 3;
-  required string service = 4;
-}
+service ZKFCProtocolService {
+  /**
+   * Request that the service cede its active state, and quit the election
+   * for some amount of time
+   */
+  rpc cedeActive(CedeActiveRequestProto)
+      returns(CedeActiveResponseProto);
 
-message CredentialsKVProto {
-  required string alias = 1;
-  optional hadoop.common.TokenProto token = 2;
-  optional bytes secret = 3;
-}
 
-message CredentialsProto {
-  repeated hadoop.common.CredentialsKVProto tokens = 1;
-  repeated hadoop.common.CredentialsKVProto secrets = 2;
+  rpc gracefulFailover(GracefulFailoverRequestProto)
+      returns(GracefulFailoverResponseProto);
 }
-
-message GetDelegationTokenRequestProto {
-  required string renewer = 1;
-}
-
-message GetDelegationTokenResponseProto {
-  optional hadoop.common.TokenProto token = 1;
-}
-
-message RenewDelegationTokenRequestProto {
-  required hadoop.common.TokenProto token = 1;
-}
-
-message RenewDelegationTokenResponseProto {
-  required uint64 newExpiryTime = 1;
-}
-
-message CancelDelegationTokenRequestProto {
-  required hadoop.common.TokenProto token = 1;
-}
-
-message CancelDelegationTokenResponseProto { // void response
-}
-

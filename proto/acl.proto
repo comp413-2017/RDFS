@@ -58,11 +58,7 @@ message AclStatusProto {
   required string group          = 2;
   required bool sticky           = 3;
   repeated AclEntryProto entries = 4;
-}
-
-message AclEditLogProto {
-  required string src            = 1;
-  repeated AclEntryProto entries = 2;
+  optional FsPermissionProto permission = 5;
 }
 
 message ModifyAclEntriesRequestProto {
