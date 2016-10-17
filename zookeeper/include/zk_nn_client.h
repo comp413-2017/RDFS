@@ -14,6 +14,11 @@ namespace zkclient {
 		public:
 			ZkNnClient(std::string zkIpAndAddress);
 			void register_watches();
+			
+			//void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+			//void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+			
 			void get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res);
 			void create_file(CreateRequestProto& request, CreateResponseProto& response);
 			bool file_exists(const std::string& path);
