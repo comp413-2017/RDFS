@@ -20,9 +20,10 @@
 
 #include "Leases.h"
 #include "ClientNamenodeProtocolImpl.h"
+#include "zk_nn_client.h"
 
 /**
- * The implementation of the rpc calls. 
+ * The implementation of the rpc calls.
  */
 namespace client_namenode_translator {
 
@@ -34,15 +35,11 @@ const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 // config
 std::map <std::string, std::string> config;
 
-ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
-	: port(port_arg), server(port), zk("localhost:2181") {
+ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
+	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
 	std::thread(&ClientNamenodeTranslator::leaseCheck, this).detach();
 	LOG(INFO) << "Created client namenode translator.";
-	// Create root node TODO: should check if it exists..
-	if (zk.exists("/namespace", 0) != 0) {
-		zk.create("/namespace", "foo", 0);
-	}
 }
 
 
@@ -52,27 +49,8 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	GetFileInfoRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetFileInfo ");
-	const std::string& src = req.src();
 	GetFileInfoResponseProto res;
-	// Ask whether zookeeper has the file...
-	int rc = zk.exists(ZookeeperPath(src), 0);
-	if (rc == 0) {
-		// Then the file exists, create stub status.
-		HdfsFileStatusProto* status = res.mutable_fs();
-		FsPermissionProto* permission = status->mutable_permission();
-		// Shorcut to set permission to 777.
-		permission->set_perm(~0);
-		// Set it to be a file with length 1, "foo" owner and group, 0
-		// modification/access time, "0" path inode.
-		status->set_filetype(HdfsFileStatusProto::IS_FILE);
-		status->set_path(src);
-		status->set_length(1);
-		status->set_owner("foo");
-		status->set_group("foo");
-		status->set_modification_time(0);
-		status->set_access_time(0);
-		// Other fields are optional, skip.
-	}
+	zk.get_info(req, res);
 	return Serialize(res);
 }
 
@@ -107,29 +85,8 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
-	const std::string& src = req.src();
-	const hadoop::hdfs::FsPermissionProto& masked = req.masked();
-	std::string out;
 	CreateResponseProto res;
-    int rc = zk.create(ZookeeperPath(src), "foo", 0);
-	if (rc == 0) {
-		// Then the file exists, create stub status.
-		HdfsFileStatusProto* status = res.mutable_fs();
-		FsPermissionProto* permission = status->mutable_permission();
-		// Shorcut to set permission to 777.
-		permission->set_perm(~0);
-		// Set it to be a file with length 1, "foo" owner and group, 0
-		// modification/access time, "0" path inode.
-		status->set_filetype(HdfsFileStatusProto::IS_FILE);
-		status->set_path(src);
-		status->set_length(1);
-		status->set_owner("foo");
-		status->set_group("foo");
-		status->set_modification_time(0);
-		status->set_access_time(0);
-		// Other fields are optional, skip.
-	}
-
+	zk.create_file(req, res);
     return Serialize(res);
 }
 
@@ -368,7 +325,7 @@ int ClientNamenodeTranslator::getPort() {
 }
 
 // ------------------------------- LEASES ----------------------------
-        
+
 void ClientNamenodeTranslator::leaseCheck() {
 	LOG(INFO) << "Lease manager check initialized";
 	for (;;) {
@@ -382,24 +339,11 @@ void ClientNamenodeTranslator::leaseCheck() {
 
 // ------------------------------- HELPERS -----------------------------
 
-std::string ClientNamenodeTranslator::ZookeeperPath(const std::string &hadoopPath){
-	std::string zkpath = "/namespace";
-	if (hadoopPath.at(0) != '/'){
-		zkpath += "/";
-	}
-	zkpath += hadoopPath;
-	if (zkpath.at(zkpath.length() - 1) == '/'){
-		zkpath.at(zkpath.length() - 1) = '\0';
-	}
-	return zkpath;
-}
-
-
 void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
 	LOG(INFO) << "Got message " << req_name << ": " << req.DebugString();
 }
 
 ClientNamenodeTranslator::~ClientNamenodeTranslator() {
-	// TODO handle being shut down 
+	// TODO handle being shut down
 }
 } //namespace

@@ -6,6 +6,7 @@
 #include <zkwrapper.h>
 #include <ConfigReader.h>
 #include "Leases.h"
+#include "zk_nn_client.h"
 
 #pragma once
 
@@ -19,7 +20,7 @@ using namespace hadoop::hdfs;
 
 class ClientNamenodeTranslator {
 	public:
-		ClientNamenodeTranslator(int port); 
+		ClientNamenodeTranslator(int port, zkclient::ZkNnClient& zk_arg);
 		~ClientNamenodeTranslator();
 
 		std::string getFileInfo(std::string);
@@ -54,7 +55,7 @@ class ClientNamenodeTranslator {
 		FsServerDefaultsProto server_defaults;
 		int port;
 		RPCServer server;
-		ZKWrapper zk;
+		zkclient::ZkNnClient& zk;
 		lease::LeaseManager lease_manager;
 		config_reader::ConfigReader config;
 

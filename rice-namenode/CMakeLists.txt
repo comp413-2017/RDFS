@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/rpcserver ${CMAKE_SOURCE_DIR}/utility/config-reader ${CMAKE_SOURCE_DIR}/utility/logging ${CMAKE_SOURCE_DIR}/zkwrapper)
+include_directories(${CMAKE_SOURCE_DIR}/rpcserver ${CMAKE_SOURCE_DIR}/utility/config-reader ${CMAKE_SOURCE_DIR}/utility/logging ${CMAKE_SOURCE_DIR}/zkwrapper ${CMAKE_SOURCE_DIR}/zookeeper/include)
 
 add_executable(namenode main.cc ClientNamenodeProtocolImpl.cc Leases.cc)
 target_link_libraries( namenode rpcserver )
@@ -9,5 +9,7 @@ target_link_libraries( namenode easylogging++ )
 target_link_libraries( namenode protobuf )
 target_link_libraries( namenode pthread )
 target_link_libraries( namenode messages )
+target_link_libraries( namenode zk_client_nn )
+target_link_libraries( namenode /usr/local/lib/libzookeeper_mt.so )
 target_link_libraries( namenode ${Boost_LIBRARIES} )
 include_directories(${CMAKE_SOURCE_DIR}/rpcserver)
