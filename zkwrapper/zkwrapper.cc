@@ -84,7 +84,7 @@ int ZKWrapper::create(const std::string &path, const std::string &data,
     int rc = zoo_create(zh, path.c_str(), data.c_str(), num_bytes, &ZOO_OPEN_ACL_UNSAFE, flag, NULL, 0);
     if (rc != 0) {
         fprintf(stderr, "error %d in zoo_create\n", rc);
-        if (rc = ZNODEEXISTS) {
+        if (rc == ZNODEEXISTS) {
             fprintf(stderr, "Node %s already exists.\n",
                     path.c_str()); // TODO: add more error code checking
             exit(1); // TODO: Handle error
@@ -106,8 +106,9 @@ int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data,
         // TODO: Should we overwrite existing data?
         return 0;
     } else { // Else recursively generate the path
+        // TODO: We can use a multi-op at this point
         size_t index = path.find_last_of("/");
-        if (recursiveCreate(path.substr(0, index), "", 0)) {
+        if (recursiveCreate(path.substr(0, index), NULL, -1)) {
             return 1;
         }
         // std::cout << "Recursively creating " << path << std::endl;
@@ -124,8 +125,9 @@ int ZKWrapper::recursiveCreate(const std::string &path, const std::string &data,
  * @return znode value as a stream of bytes
  */
 std::string ZKWrapper::wget(const std::string &path, watcher_fn watch, void* watcherCtx) const {
+    // TODO: Make this a constant value. Define a smarter retry policy for oversized data
     char *buffer = new char[512];
-    int buf_len = sizeof(buffer);
+    int buf_len = 512;
     struct Stat stat;
 
     int rc = zoo_wget(zh, path.c_str(), watch, watcherCtx, buffer, &buf_len, &stat);
@@ -145,8 +147,9 @@ std::string ZKWrapper::wget(const std::string &path, watcher_fn watch, void* wat
  * @return znode value as a stream of bytes
  */
 std::string ZKWrapper::get(const std::string &path, const int watch) const {
+    // TODO: Make this a constant value. Define a smarter retry policy for oversized data
     char *buffer = new char[512];
-    int buf_len = sizeof(buffer);
+    int buf_len = 512;
     struct Stat stat;
 
     int rc = zoo_get(zh, path.c_str(), watch, buffer, &buf_len, &stat);
@@ -172,6 +175,13 @@ int ZKWrapper::exists(const std::string &path, const int watch) const {
     return (rc);
 }
 
+
+int ZKWrapper::set(const std::string &path, const std::string &data, int version) const {
+
+    const char * me = path.c_str();
+    return zoo_set(zh, path.c_str(), data.c_str(), 17, version);
+}
+
 /* This function is similar to zoo_exist except it allows one specify
  * a watcher object rather than a boolean watch flag.
  */
@@ -186,6 +196,24 @@ int ZKWrapper::delete_node(const std::string &path) const {
     // NOTE: use -1 for version, check will not take place.
     int rc = zoo_delete(zh, path.c_str(), -1);
     return (rc);
+}
+
+int ZKWrapper::recursive_delete(const std::string path) const {
+    bool root = ("/" == path);
+    bool directory =  path[path.size() - 1] == '/';
+    std::string znodePath = directory ? path.substr(0, path.size() - 1) : path;
+    std::vector<std::string> children = get_children(root ? "/" : znodePath, 0);
+    int rc = 0;
+    for (std::string child : children) {
+        std::string newPath = znodePath + "/" + child;
+        int result = recursive_delete(newPath);
+        rc = (result != 0) ? result : rc;
+    }
+    if (!directory) {
+        int result = delete_node(path); // return 0 on success
+        rc = (result != 0) ? result : rc;
+    }
+    return rc;
 }
 
 /* This function gets a list of children path
@@ -208,9 +236,6 @@ std::vector <std::string> ZKWrapper::get_children(const std::string &path, const
     return children;
 }
 
-/* This function is similar to zoo_getchildren except it allows one specify
- * a watcher object rather than a boolean watch flag.
- */
 std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watcher_fn watch, void* watcherCtx) const {
 
     struct String_vector stvector;
@@ -224,6 +249,36 @@ std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watc
     }
     return children;
 }
+
+
+std::shared_ptr<ZooOp> ZKWrapper::build_create_op(const std::string& path, const std::string& data, const int flags) const {
+    auto op = std::make_shared<ZooOp>(path, data);
+    zoo_create_op_init(op->op, op->path, op->data, op->num_bytes, &ZOO_OPEN_ACL_UNSAFE, flags, nullptr, 0);
+    return op;
+}
+
+std::shared_ptr<ZooOp> ZKWrapper::build_delete_op(const std::string& path, int version) const {
+    auto op = std::make_shared<ZooOp>(path);
+    zoo_delete_op_init(op->op, op->path, version);
+    return op;
+}
+
+std::shared_ptr<ZooOp> ZKWrapper::build_set_op(const std::string& path, const std::string& data, int version) const {
+    auto op = std::make_shared<ZooOp>(path, data);
+    zoo_set_op_init(op->op, op->path, op->data, op->num_bytes, version, nullptr);
+    return op;
+}
+
+
+int ZKWrapper::execute_multi(const std::vector<std::shared_ptr<ZooOp>> ops, std::vector<zoo_op_result>& results) const {
+    results.resize(ops.size());
+    std::vector<zoo_op_t> trueOps = std::vector<zoo_op_t>();
+    for (auto op : ops) {
+        trueOps.push_back(*(op->op));
+    }
+    return zoo_multi(zh, ops.size(), &trueOps[0], &results[0]);
+}
+
 
 
 void ZKWrapper::close() {
