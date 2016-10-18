@@ -17,17 +17,29 @@ namespace zkclient{
 
 	}
 
-	void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-		std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
+	/*
+	 * A simple print function that will be triggered when 
+	 * namenode loses a heartbeat
+	 */
+	void notify_delete() {
+		printf("No heartbeat, no childs to retrieve\n");
+	}
+
+	/*
+	 * Watcher for health child node (/health/datanode_)
+	 */
+	void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
+		std::cout << "[health child] Watcher triggered on path '" << path << "'" << std::endl;
 		char health[] = "/health/datanode_";
-		printf("a child has been added under path %s\n", path);
+		printf("[health child] Receive a heartbeat. A child has been added under path %s\n", path);
 
 		struct String_vector stvector;
 		struct String_vector *vector = &stvector;
-		int rc = zoo_get_children(zzh, path, 1, vector);
+		int rc = zoo_wget_children(zzh, path, watcher_health_child, nullptr, vector);
 		int i = 0;
 		if (vector->count == 0){
-			printf("no childs to retrieve\n");
+			notify_delete();
+			//printf("no childs to retrieve\n");
 		}
 		while (i < vector->count) {
 			printf("Children %s\n", vector->data[i++]);
@@ -37,13 +49,44 @@ namespace zkclient{
 		}
 	}
 
+	/*
+	* Watcher for /health root node
+	*/
+	void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
+
+		struct String_vector stvector;
+		struct String_vector *vector = &stvector;
+		/* reinstall watcher */
+		int rc = zoo_wget_children(zzh, path, watcher_health, nullptr, vector);
+		std::cout << "[rc] health:" << rc << std::endl;
+		int i;
+		std::vector <std::string> children;
+		for (i = 0; i < stvector.count; i++) {
+			children.push_back(stvector.data[i]);
+		}
+
+		if (children.size() == 0){
+			printf("no childs to retrieve\n");
+		}
+
+		for (int i = 0; i < children.size(); i++) {
+			std::cout << "[In watcher_health] Attaching child to " << children[i] << std::endl;
+			int rc = zoo_wget_children(zzh, ("/health/" + children[i]).c_str(), watcher_health_child, nullptr, vector);
+			int k=0;
+			while (k < vector->count) {
+				printf("Children of %s:  %s\n", children[i].c_str(),  vector->data[k++]);
+			}
+		}
+
+	}
+
 	void ZkNnClient::register_watches() {
 
-		// Place a watch on the health subtree
-		std::vector <std::string> children = zk->get_children("/health", 1); // TODO: use a constant for the path
+		/* Place a watch on the health subtree */
+		std::vector <std::string> children = zk->wget_children("/health", watcher_health, nullptr);
 		for (int i = 0; i < children.size(); i++) {
-			std::cout << "Attaching child to " << children[i] << ", " << std::endl;
-			std::vector <std::string> ephem = zk->wget_children("/health/" + children[i], watcher, nullptr);
+			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
+			std::vector <std::string> ephem = zk->wget_children("/health/" + children[i], watcher_health_child, nullptr);
 			/*
 			   if (ephem.size() > 0) {
 			   std::cout << "Found ephem " << ephem[0] << std::endl;

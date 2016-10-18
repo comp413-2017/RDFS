@@ -21,7 +21,7 @@ const std::vector<std::uint8_t> ZKWrapper::EMPTY_VECTOR = std::vector<std::uint8
 /** Watcher function -- empty for this example, not something you should
  * do in real code */
 void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-    std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
+    std::cout << "[Global watcher] Watcher triggered on path '" << path << "'" << std::endl;
     char health[] = "/health/datanode_";
     if (type == ZOO_SESSION_EVENT) {
         if (state == ZOO_CONNECTED_STATE) {
@@ -46,7 +46,7 @@ void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watche
             printf("Problems  %d\n", rc);                                    
         }                                                                    
     } else{
-        printf("a child has been added under path %s\n", path);
+        printf("[Global watcher] a child has been added under path %s\n", path);
         
         struct String_vector stvector;
         struct String_vector *vector = &stvector;
