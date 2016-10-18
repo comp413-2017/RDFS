@@ -1,7 +1,71 @@
 #include <string>
 #include <zkwrapper.h>
 #include <iostream>
+#include <cassert>
 
+int preTest(ZKWrapper zk) {
+    zk.recursive_delete("/testing/");
+    assert(zk.get_children("/testing", 0).size() == 0);
+}
+
+int testDeleteAll(ZKWrapper zk) {
+
+    preTest(zk);
+
+    zk.create("/testing/child1", "hello", 5);
+    zk.create("/testing/child1/child2", "hello", 5);
+    zk.create("/testing/child1/child3", "hello", 5);
+
+    zk.recursive_delete("/testing/child1");
+    assert(zk.exists("/testing/child1", 0));
+
+    zk.create("/testing/child1", "hello", 5);
+    zk.create("/testing/child2", "hello", 5);
+    zk.create("/testing/child1/child1", "hello", 5);
+    zk.create("/testing/child1/child2", "hello", 5);
+    zk.create("/testing/child2/child1", "hello", 5);
+
+    zk.recursive_delete("/testing/");
+    assert(zk.get_children("/testing", 0).size() == 0);
+}
+
+int testMultiOp(ZKWrapper zk) {
+
+    preTest(zk);
+
+    auto op = zk.build_create_op("/testing/child1", "hello");
+    auto op2 = zk.build_create_op("/testing/child2", "jello");
+    auto op3 = zk.build_create_op("/testing/toDelete", "bye");
+
+    auto operations = std::vector<std::shared_ptr<ZooOp>>();
+
+    operations.push_back(op);
+    operations.push_back(op2);
+    operations.push_back(op3);
+
+    std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
+    zk.execute_multi(operations, results);
+
+    assert("hello" == zk.get("/testing/child1", 0));
+    assert("jello" == zk.get("/testing/child2", 0));
+    assert("bye" == zk.get("/testing/toDelete", 0));
+
+    auto op4 = zk.build_set_op("/testing/child1", "new_hello");
+    auto op5 = zk.build_set_op("/testing/child2", "new_jello");
+    auto op6 = zk.build_delete_op("/testing/toDelete");
+
+    operations = std::vector<std::shared_ptr<ZooOp>>();
+
+    operations.push_back(op4);
+    operations.push_back(op5);
+    operations.push_back(op6);
+
+    zk.execute_multi(operations, results);
+
+    assert("new_hello" == zk.get("/testing/child1", 0));
+    assert("new_jello" == zk.get("/testing/child2", 0));
+    assert(zk.exists("/toDelete", 0));
+}
 
 int main(int argc, char* argv[]) {
     /**
@@ -17,11 +81,28 @@ int main(int argc, char* argv[]) {
     //}
 
     ZKWrapper zk("localhost:2181");
+
+    if (zk.exists("/testing", 0)) {
+        zk.create("/testing", "" , -1);
+    }
+
+    testDeleteAll(zk);
+    testMultiOp(zk);
+
+    // zk.recursive_delete("/");
+    /*
     zk.create("/testing", "hello", 5);
     zk.create("/testing/child", "world", 5);
     zk.get_children("/testing", 1);
     zk.delete_node("/testing/child");
     zk.delete_node("/testing");
+    */
+
+    /*
+
+    */
+
+
 
     //TODO
     //I could not fix the linking errors when calling my functions
@@ -82,4 +163,6 @@ int main(int argc, char* argv[]) {
 //    zk.delete_node("/testing");
 
 }
+
+
 

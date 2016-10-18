@@ -95,10 +95,8 @@ std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
 	GetBlockLocationsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetBlockLocations ");
-	const std::string& src = req.src();
-	google::protobuf::uint64 offset = req.offset();
-	google::protobuf::uint64 length = req.offset();
 	GetBlockLocationsResponseProto res;
+	zk.get_block_locations(req, res);
 	// TODO for now, just say the getBlockLocations command failed. Not entirely sure
 	// how to do that, but I think you just don't include a
 	// LocatedBlocksProto
@@ -148,8 +146,8 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 		LOG(ERROR) << "A client tried to close a file which is not theirs";
 	}
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
-	// for now, we failed to close the file
-	bool result = false;		
+	// for now, we claim to succeed.
+	bool result = true;
 	CompleteResponseProto res;
 	res.set_result(result);
 	return Serialize(res);
@@ -301,6 +299,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
 	server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
 	server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
+	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
 
 	// register handlers for unsupported calls
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
