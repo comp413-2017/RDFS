@@ -102,7 +102,7 @@ namespace zkclient{
 
 
 	std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath){
-		std::string zkpath = "/namespace";
+		std::string zkpath = "/fileSystem";
 		if (hadoopPath.at(0) != '/'){
 			zkpath += "/";
 		}
