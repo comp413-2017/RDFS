@@ -18,9 +18,9 @@ namespace zkclient{
 	}
 
 	void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-		std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
+		std::cout << "[health child] Watcher triggered on path '" << path << "'" << std::endl;
 		char health[] = "/health/datanode_";
-		printf("a child has been added under path %s\n", path);
+		printf("[health child] A child has been added under path %s\n", path);
 
 		struct String_vector stvector;
 		struct String_vector *vector = &stvector;
@@ -39,7 +39,7 @@ namespace zkclient{
 
 
 	void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-		std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
+		//std::cout << "Watcher triggered on path '" << path << "'" << std::endl;
 
 
 
