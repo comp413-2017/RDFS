@@ -95,9 +95,6 @@ std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
 	GetBlockLocationsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetBlockLocations ");
-	const std::string& src = req.src();
-	google::protobuf::uint64 offset = req.offset();
-	google::protobuf::uint64 length = req.offset();
 	GetBlockLocationsResponseProto res;
 	zk.get_block_locations(req, res);
 	// TODO for now, just say the getBlockLocations command failed. Not entirely sure
