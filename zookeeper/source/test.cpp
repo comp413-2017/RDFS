@@ -2,6 +2,7 @@
 #include <zkwrapper.h>
 #include <iostream>
 #include <cassert>
+#include <algorithm>
 
 int preTest(ZKWrapper zk) {
     zk.recursive_delete("/testing/");
@@ -11,19 +12,18 @@ int preTest(ZKWrapper zk) {
 int testDeleteAll(ZKWrapper zk) {
 
     preTest(zk);
-
-    zk.create("/testing/child1", "hello", 5);
-    zk.create("/testing/child1/child2", "hello", 5);
-    zk.create("/testing/child1/child3", "hello", 5);
+    zk.create("/testing/child1", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child1/child3", ZKWrapper::EMPTY_VECTOR);
 
     zk.recursive_delete("/testing/child1");
     assert(zk.exists("/testing/child1", 0));
 
-    zk.create("/testing/child1", "hello", 5);
-    zk.create("/testing/child2", "hello", 5);
-    zk.create("/testing/child1/child1", "hello", 5);
-    zk.create("/testing/child1/child2", "hello", 5);
-    zk.create("/testing/child2/child1", "hello", 5);
+    zk.create("/testing/child1", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child2", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child1/child1", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child2/child1", ZKWrapper::EMPTY_VECTOR);
 
     zk.recursive_delete("/testing/");
     assert(zk.get_children("/testing", 0).size() == 0);
@@ -33,9 +33,12 @@ int testMultiOp(ZKWrapper zk) {
 
     preTest(zk);
 
-    auto op = zk.build_create_op("/testing/child1", "hello");
-    auto op2 = zk.build_create_op("/testing/child2", "jello");
-    auto op3 = zk.build_create_op("/testing/toDelete", "bye");
+    auto hello_vec = ZKWrapper::get_byte_vector("hello");
+    auto jello_vec = ZKWrapper::get_byte_vector("jello");
+    auto bye_vec = ZKWrapper::get_byte_vector("bye");
+    auto op = zk.build_create_op("/testing/child1", hello_vec);
+    auto op2 = zk.build_create_op("/testing/child2", jello_vec);
+    auto op3 = zk.build_create_op("/testing/toDelete", bye_vec);
 
     auto operations = std::vector<std::shared_ptr<ZooOp>>();
 
@@ -46,12 +49,14 @@ int testMultiOp(ZKWrapper zk) {
     std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
     zk.execute_multi(operations, results);
 
-    assert("hello" == zk.get("/testing/child1", 0));
-    assert("jello" == zk.get("/testing/child2", 0));
-    assert("bye" == zk.get("/testing/toDelete", 0));
+    assert(hello_vec == zk.get("/testing/child1", 0));
+    assert(jello_vec == zk.get("/testing/child2", 0));
+    assert(bye_vec == zk.get("/testing/toDelete", 0));
 
-    auto op4 = zk.build_set_op("/testing/child1", "new_hello");
-    auto op5 = zk.build_set_op("/testing/child2", "new_jello");
+    auto nhello_vec = ZKWrapper::get_byte_vector("new_hello");
+    auto njello_vec = ZKWrapper::get_byte_vector("new_jello");
+    auto op4 = zk.build_set_op("/testing/child1", nhello_vec);
+    auto op5 = zk.build_set_op("/testing/child2", njello_vec);
     auto op6 = zk.build_delete_op("/testing/toDelete");
 
     operations = std::vector<std::shared_ptr<ZooOp>>();
@@ -62,8 +67,8 @@ int testMultiOp(ZKWrapper zk) {
 
     zk.execute_multi(operations, results);
 
-    assert("new_hello" == zk.get("/testing/child1", 0));
-    assert("new_jello" == zk.get("/testing/child2", 0));
+    assert(nhello_vec == zk.get("/testing/child1", 0));
+    assert(njello_vec == zk.get("/testing/child2", 0));
     assert(zk.exists("/toDelete", 0));
 }
 
@@ -81,9 +86,9 @@ int main(int argc, char* argv[]) {
     //}
 
     ZKWrapper zk("localhost:2181");
-
+    std::vector<std::uint8_t> vec;
     if (zk.exists("/testing", 0)) {
-        zk.create("/testing", "" , -1);
+        zk.create("/testing", vec);
     }
 
     testDeleteAll(zk);

@@ -15,13 +15,13 @@
 class ZooOp {
 public:
 
-    ZooOp(const std::string& path_in, const std::string& data_in = "") {
+    ZooOp(const std::string& path_in, const std::vector<std::uint8_t>& data_in) {
         this->path = new char [path_in.size() + 1];
         strcpy (this->path, path_in.c_str());
         if (data_in.size() != 0) { // Only save non-empty data
-            this->num_bytes = data_in.size() + 1;
+            this->num_bytes = data_in.size();
             this->data = new char[this->num_bytes];
-            strcpy(this->data, data_in.c_str());
+            memcpy(this->data, data_in.data(), data_in.size());
         }
         op = new zoo_op_t();
     }
@@ -44,9 +44,9 @@ class ZKWrapper {
 	public:
 		ZKWrapper(std::string host);
 
-		int create(const std::string &path, const std::string &data, const int num_bytes, int flag = 0) const;
+		int create(const std::string &path, const std::vector<std::uint8_t> &data, int flag = 0) const;
 
-		int recursiveCreate(const std::string &path, const std::string &data, const int num_bytes) const;
+		int recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const;
 
 		int exists(const std::string &path, const int watch) const;
 
@@ -69,11 +69,11 @@ class ZKWrapper {
          */
 		std::vector <std::string> wget_children(const std::string &path, watcher_fn  watch, void* watcherCtx) const;
 
-		std::string get(const std::string &path, const int watch) const;
+		std::vector<std::uint8_t> get(const std::string &path, const int watch) const;
 
-		std::string wget(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+		std::vector<std::uint8_t> wget(const std::string &path, watcher_fn watch, void* watcherCtx) const;
 
-        int set(const std::string &path, const std::string &data, int version = -1) const;
+        int set(const std::string &path, const std::vector<std::uint8_t> &data, int version = -1) const;
 
         /**
          * @param path path of znode
@@ -82,7 +82,7 @@ class ZKWrapper {
          * @return a ZooOp to be used in execute_multi
          */
         // TODO: Create a path buffer for returning sequential path names
-        std::shared_ptr<ZooOp> build_create_op(const std::string& path, const std::string& data, const int flags = 0) const;
+        std::shared_ptr<ZooOp> build_create_op(const std::string& path, const std::vector<std::uint8_t> &data, const int flags = 0) const;
 
         /**
          * @param path of znode
@@ -98,7 +98,7 @@ class ZKWrapper {
          * @param version
          * @return
          */
-        std::shared_ptr<ZooOp> build_set_op(const std::string& path, const std::string& data, int version = -1) const;
+        std::shared_ptr<ZooOp> build_set_op(const std::string& path, const std::vector<std::uint8_t> &data, int version = -1) const;
 
         /**
          * Runs all of the zookeeper operations within the operations vector atomically (without ordering).
@@ -113,11 +113,17 @@ class ZKWrapper {
 
 		void close();
 
+        static std::vector<uint8_t> get_byte_vector(const std::string &string);
+
+        static const std::vector<std::uint8_t> EMPTY_VECTOR;
+
 	private:
 		zhandle_t *zh;
 
 		friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
 				void *watcherCtx);
+
+        const static std::uint32_t MAX_PAYLOAD = 65536;
 };
 
 

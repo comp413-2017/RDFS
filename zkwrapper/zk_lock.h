@@ -33,7 +33,7 @@ private:
 
     static const std::string lock_path;
 
-    static std::string generate_uuid();
+    static std::vector<std::uint8_t> generate_uuid();
 
     std::string locknode_with_seq;
 };

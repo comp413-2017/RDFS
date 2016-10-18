@@ -14,9 +14,9 @@ namespace zkclient{
 		// TODO: Consider using startup time of the DN along with the ip and port
 		// TODO: Handle error
 		if (zk->exists("/health/datanode_" + id, 1)) {
-			zk->create("/health/datanode_" + id, "this is the registered datanode", 31);
+			zk->create("/health/datanode_" + id, ZKWrapper::EMPTY_VECTOR);
 		} 
-		zk->create("/health/datanode_" + id + "/health", "this is the ephemeral node", 26, ZOO_EPHEMERAL);
+		zk->create("/health/datanode_" + id + "/health", ZKWrapper::EMPTY_VECTOR, ZOO_EPHEMERAL);
 	}
 
 	ZkClientDn::~ZkClientDn() {
