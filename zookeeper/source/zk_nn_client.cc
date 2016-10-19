@@ -147,7 +147,7 @@ namespace zkclient{
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 		const std::string& src = req.src();
 		google::protobuf::uint64 offset = req.offset();
-		google::protobuf::uint64 length = req.offset();
+		google::protobuf::uint64 length = req.length();
 		LocatedBlocksProto* blocks = res.mutable_locations();
 		// TODO: get the actual data from zookeeper.
 		blocks->set_filelength(1);
@@ -172,7 +172,7 @@ namespace zkclient{
 			// Construct data node info objects.
 			DatanodeInfoProto* dn_info = block->add_locs();
 			DatanodeIDProto* id = dn_info->mutable_id();
-			id->set_ipaddr("localhost");
+			id->set_ipaddr("127.0.0.1");
 			id->set_hostname("localhost");
 			id->set_datanodeuuid("1234");
 			// TODO: fill in from config

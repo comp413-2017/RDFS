@@ -40,6 +40,8 @@ bool RPCServer::receive_handshake(tcp::socket& sock, short* version, short* serv
             *auth_protocol = data[6];
             return true;
         }
+    } else {
+        LOG(ERROR) << "Received " << rec_len << " bytes and expected 7, error code " << error << ".";
     }
     return false;
 }

@@ -106,16 +106,15 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	logMessage(req, "GetServerDefaults ");
 	std::string out;
 	GetServerDefaultsResponseProto res;
-	FsServerDefaultsProto def;
+	FsServerDefaultsProto* def = res.mutable_serverdefaults();
 	// read all this config info
-	def.set_blocksize(getDefaultInt("dfs.blocksize"));
-	def.set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
-	def.set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
-	def.set_replication(getDefaultInt("dfs.replication"));
-	def.set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
-	def.set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
+	def->set_blocksize(getDefaultInt("dfs.blocksize"));
+	def->set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
+	def->set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
+	def->set_replication(getDefaultInt("dfs.replication"));
+	def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
+	def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
 	// TODO ChecksumTypeProto (optional)	
-	res.set_allocated_serverdefaults(&def);
 	return Serialize(res);
 }
 
