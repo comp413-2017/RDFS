@@ -46,6 +46,9 @@ class ZKWrapper {
 
 		int create(const std::string &path, const std::vector<std::uint8_t> &data, int flag = 0) const;
 
+        int create_sequential(const std::string &path, const std::vector<std::uint8_t> &data,
+                                         std::string &new_path, bool ephemeral) const;
+
 		int recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const;
 
 		int exists(const std::string &path, const int watch) const;
@@ -124,6 +127,7 @@ class ZKWrapper {
 				void *watcherCtx);
 
         const static std::uint32_t MAX_PAYLOAD = 65536;
+        const static std::uint32_t MAX_PATH_LEN = 512;
 };
 
 

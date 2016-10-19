@@ -84,7 +84,7 @@ int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &
     }
     int rc = zoo_create(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag,
                         nullptr, 0);
-    if (rc != 0) {
+    if (rc != ZOK) {
         fprintf(stderr, "error %d in zoo_create\n", rc);
         if (rc == ZNODEEXISTS) {
             fprintf(stderr, "Node %s already exists.\n",
@@ -92,6 +92,35 @@ int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &
             exit(1); // TODO: Handle error
         }
     }
+    return (rc);
+}
+
+int ZKWrapper::create_sequential(const std::string &path, const std::vector<std::uint8_t> &data, std::string &new_path,
+                                 bool ephemeral) const {
+    if (!init) {
+        fprintf(stderr, "Attempt to create before init!");
+        exit(1); // Error handle
+    }
+    int flag = ZOO_SEQUENCE;
+    if (ephemeral){
+        flag = flag | ZOO_EPHEMERAL;
+    }
+    new_path.resize(MAX_PATH_LEN);
+    int rc = zoo_create(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag,
+                        reinterpret_cast<char *>(&new_path[0]), MAX_PATH_LEN);
+    if (rc != ZOK) {
+        fprintf(stderr, "error %d in zoo_create\n", rc);
+        if (rc == ZNODEEXISTS) {
+            fprintf(stderr, "Node %s already exists.\n",
+                    path.c_str()); // TODO: add more error code checking
+            exit(1); // TODO: Handle error
+        }
+    }
+    int i = 0;
+    while (new_path[i] != '\0'){
+        i++;
+    }
+    new_path.resize(i);
     return (rc);
 }
 

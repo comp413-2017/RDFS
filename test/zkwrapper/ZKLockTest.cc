@@ -5,10 +5,10 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <future>
+#include <chrono>
 #include "zk_lock.h"
 
 namespace {
-
     const std::string zk_dir = "/a";
     class ZKLockTest : public ::testing::Test {
     protected:
@@ -29,10 +29,11 @@ namespace {
 
         static void lock_and_write(ZKWrapper &zkWrapper, std::condition_variable &cv, int &x) {
             ZKLock lock1(zkWrapper, zk_dir);
-            lock1.lock();
+            ASSERT_EQ(0, lock1.lock());
             cv.notify_one();
             x = 5;
-            lock1.unlock();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            ASSERT_EQ(0, lock1.unlock());
         }
 
         static void lock_and_read(ZKWrapper &zkWrapper,std::condition_variable &cv, int &x, std::promise<int> &p) {
@@ -40,9 +41,9 @@ namespace {
             std::mutex mtx;
             std::unique_lock<std::mutex> lck(mtx);
             cv.wait(lck);
-            lock2.lock();
+            ASSERT_EQ(0, lock2.lock());
             p.set_value(x);
-            lock2.unlock();
+            ASSERT_EQ(0, lock2.unlock());
         }
 
         // Objects declared here can be used by all tests in the test case for Foo.

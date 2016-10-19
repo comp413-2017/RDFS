@@ -5,7 +5,8 @@
 #ifndef RDFS_ZK_QUEUE_H
 #define RDFS_ZK_QUEUE_H
 
-
+#include <algorithm>
+#include <zookeeper.h>
 #include "zkwrapper.h"
 
 class ZKQueue {
@@ -14,15 +15,14 @@ class ZKQueue {
                 q_path = path;
                 element = path + "/q_item-";
                 peek_path = "";
-
-                zk.create(path, "queue_parent", 12);
+                zk.create(path, ZKWrapper::EMPTY_VECTOR);
         }
 
         std::string peek();
 
         int pop();
 
-        std::string push(const std::string &data, const int num_bytes);
+        std::string push(const std::vector<std::uint8_t> &data);
 
     private:
         std::string q_path;
