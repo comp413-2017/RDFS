@@ -15,13 +15,15 @@
 
 #include <easylogging++.h>
 #include <rpcserver.h>
+#include <zkwrapper.h>
 #include <ConfigReader.h>
 
 #include "Leases.h"
 #include "ClientNamenodeProtocolImpl.h"
+#include "zk_nn_client.h"
 
 /**
- * The implementation of the rpc calls. 
+ * The implementation of the rpc calls.
  */
 namespace client_namenode_translator {
 
@@ -33,9 +35,8 @@ const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 // config
 std::map <std::string, std::string> config;
 
-// TODO - this will probably take some zookeeper object
-ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg)
-	: port(port_arg), server(port) {
+ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
+	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
 	std::thread(&ClientNamenodeTranslator::leaseCheck, this).detach();
 	LOG(INFO) << "Created client namenode translator.";
@@ -48,20 +49,8 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	GetFileInfoRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetFileInfo ");
-	const std::string& src = req.src();
-	// from here, we would ask zoo-keeper something, we should check
-	// the response, and either return the response or return some 
-	// void response...for now we will just return			
-	
-	HdfsFileStatusProto file_status;
-	{
-		// set the file information
-		
-	}
-
-	std::string out; 
 	GetFileInfoResponseProto res;
-	
+	zk.get_info(req, res);
 	return Serialize(res);
 }
 
@@ -96,21 +85,9 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
-	const std::string& src = req.src();
-	const hadoop::hdfs::FsPermissionProto& masked = req.masked();
-	std::string out;
 	CreateResponseProto res;
-	// TODO for now, just say the create command failed. Not entirely sure
-	// how to do that, but I think you just don't include an
-	// HDFSFileStatusProto
-	
-	// TODO - if the create was successful, then add the file to the lease
-	// manager 
-	if (false) {
-
-	}
-
-	return Serialize(res);
+	zk.create_file(req, res);
+    return Serialize(res);
 }
 
 
@@ -118,13 +95,8 @@ std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
 	GetBlockLocationsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetBlockLocations ");
-	const std::string& src = req.src();
-	google::protobuf::uint64 offset = req.offset();
-	google::protobuf::uint64 length = req.offset();
 	GetBlockLocationsResponseProto res;
-	// TODO for now, just say the getBlockLocations command failed. Not entirely sure
-	// how to do that, but I think you just don't include a
-	// LocatedBlocksProto
+	zk.get_block_locations(req, res);
 	return Serialize(res);
 }
 
@@ -166,13 +138,13 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	const std::string& clientname = req.clientname();
 	// TODO some optional fields need to be read
 	// remove the lease from this file  
-	bool succ = lease_manager.removeLease(clientname, src);         
+	bool succ = lease_manager.removeLease(clientname, src);
 	if (!succ) {
 		LOG(ERROR) << "A client tried to close a file which is not theirs";
 	}
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
-	// for now, we failed to close the file
-	bool result = false;		
+	// for now, we claim to succeed.
+	bool result = true;
 	CompleteResponseProto res;
 	res.set_result(result);
 	return Serialize(res);
@@ -197,7 +169,7 @@ std::string ClientNamenodeTranslator::setReplication(std::string input) {
 
 /**
  * The client can give up on a block by calling abandonBlock().
- * The client can then either obtain a new block, or complete or 
+ * The client can then either obtain a new block, or complete or
  * abandon the file. Any partial writes to the block will be discarded.
  */
 std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
@@ -324,6 +296,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
 	server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
 	server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
+	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
 
 	// register handlers for unsupported calls
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
@@ -348,7 +321,7 @@ int ClientNamenodeTranslator::getPort() {
 }
 
 // ------------------------------- LEASES ----------------------------
-        
+
 void ClientNamenodeTranslator::leaseCheck() {
 	LOG(INFO) << "Lease manager check initialized";
 	for (;;) {
@@ -360,7 +333,6 @@ void ClientNamenodeTranslator::leaseCheck() {
 	}
 }
 
-
 // ------------------------------- HELPERS -----------------------------
 
 void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
@@ -368,6 +340,6 @@ void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req, std::s
 }
 
 ClientNamenodeTranslator::~ClientNamenodeTranslator() {
-	// TODO handle being shut down 
+	// TODO handle being shut down
 }
 } //namespace

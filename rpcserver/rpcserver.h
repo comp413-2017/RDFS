@@ -3,7 +3,7 @@
 
 #include <asio.hpp>
 
-#pragma once 
+#pragma once
 
 using asio::ip::tcp;
 

@@ -6,6 +6,7 @@
 #include <asio.hpp>
 #include <rpcserver.h>
 #include <easylogging++.h>
+#include "zk_nn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
 
 // initialize the logging library (only do this once!)
@@ -24,6 +25,8 @@ int main(int argc, char* argv[]) {
 	if (argc == 2) {
 		port = std::atoi(argv[1]);
 	}
-	ClientNamenodeTranslator translator(port);
+	zkclient::ZkNnClient nncli("localhost:2181");
+	nncli.register_watches();
+	ClientNamenodeTranslator translator(port, nncli);
 	translator.getRPCServer().serve(io_service);
 }

@@ -3,8 +3,10 @@
 #include "hdfs.pb.h"
 #include <google/protobuf/message.h>
 #include <rpcserver.h>
+#include <zkwrapper.h>
 #include <ConfigReader.h>
 #include "Leases.h"
+#include "zk_nn_client.h"
 
 #pragma once
 
@@ -18,7 +20,7 @@ using namespace hadoop::hdfs;
 
 class ClientNamenodeTranslator {
 	public:
-		ClientNamenodeTranslator(int port); 
+		ClientNamenodeTranslator(int port, zkclient::ZkNnClient& zk_arg);
 		~ClientNamenodeTranslator();
 
 		std::string getFileInfo(std::string);
@@ -48,15 +50,22 @@ class ClientNamenodeTranslator {
 		std::string Serialize(google::protobuf::Message&);
 		void InitServer();
 		void RegisterClientRPCHandlers();
+		void logMessage(google::protobuf::Message& req);
+        std::string ZookeeperPath(const std::string &hadoopPath);
+		FsServerDefaultsProto server_defaults;
+		int port;
+		RPCServer server;
+		zkclient::ZkNnClient& zk;
+		lease::LeaseManager lease_manager;
+		config_reader::ConfigReader config;
+
+		static const char* HDFS_DEFAULTS_CONFIG;
+		
 		void logMessage(google::protobuf::Message& req, std::string req_name);
 		void leaseCheck();
 		
 		int getDefaultInt(std::string);
 
         static const int LEASE_CHECK_TIME; // in seconds, how often the namenode checks all leases
-		lease::LeaseManager lease_manager; 
-		config_reader::ConfigReader config; 
-		int port;
-		RPCServer server;
 }; // class
 } // namespace
