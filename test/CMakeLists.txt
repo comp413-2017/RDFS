@@ -21,5 +21,10 @@ target_link_libraries(ZKLockTest zk_lock zkwrapper /usr/local/lib/libzookeeper_m
 target_link_libraries(ZKLockTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ZKLockTest ${GTEST})
 
+add_executable(ZKQueueTest zkwrapper/ZKQueueTest.cc ../zkwrapper/zk_queue.h)
+target_link_libraries(ZKQueueTest zk_queue zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(ZKQueueTest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(ZKQueueTest ${GTEST})
+
 target_link_libraries(runTests ${GTEST_LIBRARIES} pthread)
 target_link_libraries(runTests ${GTEST})
