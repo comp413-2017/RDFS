@@ -97,9 +97,6 @@ std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
 	logMessage(req, "GetBlockLocations ");
 	GetBlockLocationsResponseProto res;
 	zk.get_block_locations(req, res);
-	// TODO for now, just say the getBlockLocations command failed. Not entirely sure
-	// how to do that, but I think you just don't include a
-	// LocatedBlocksProto
 	return Serialize(res);
 }
 
