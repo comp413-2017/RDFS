@@ -34,7 +34,6 @@ import "acl.proto";
 import "xattr.proto";
 import "encryption.proto";
 import "inotify.proto";
-import "erasurecoding.proto";
 
 /**
  * The ClientNamenodeProtocol Service defines the interface between a client 
@@ -113,21 +112,6 @@ message SetStoragePolicyRequestProto {
 message SetStoragePolicyResponseProto { // void response
 }
 
-message UnsetStoragePolicyRequestProto {
-  required string src = 1;
-}
-
-message UnsetStoragePolicyResponseProto {
-}
-
-message GetStoragePolicyRequestProto {
-  required string path = 1;
-}
-
-message GetStoragePolicyResponseProto {
-  required BlockStoragePolicyProto storagePolicy = 1;
-}
-
 message GetStoragePoliciesRequestProto { // void request
 }
 
@@ -162,10 +146,6 @@ message AbandonBlockRequestProto {
 message AbandonBlockResponseProto { // void response
 }
 
-enum AddBlockFlagProto {
-  NO_LOCAL_WRITE = 1; // avoid writing to local node.
-}
-
 message AddBlockRequestProto {
   required string src = 1;
   required string clientName = 2;
@@ -173,7 +153,6 @@ message AddBlockRequestProto {
   repeated DatanodeInfoProto excludeNodes = 4;
   optional uint64 fileId = 5 [default = 0];  // default as a bogus id
   repeated string favoredNodes = 6; //the set of datanodes to use for the block
-  repeated AddBlockFlagProto flags = 7; // default to empty.
 }
 
 message AddBlockResponseProto {
@@ -318,8 +297,6 @@ message GetFsStatsResponseProto {
   required uint64 corrupt_blocks = 5;
   required uint64 missing_blocks = 6;
   optional uint64 missing_repl_one_blocks = 7;
-  optional uint64 blocks_in_future = 8;
-  optional uint64 pending_deletion_blocks = 9;
 }
 
 enum DatanodeReportTypeProto {  // type of the datanode report
@@ -362,7 +339,6 @@ enum SafeModeActionProto {
   SAFEMODE_LEAVE = 1;
   SAFEMODE_ENTER = 2;
   SAFEMODE_GET = 3;
-  SAFEMODE_FORCE_EXIT = 4;
 }
 
 message SetSafeModeRequestProto {
@@ -374,13 +350,10 @@ message SetSafeModeResponseProto {
   required bool result = 1;
 }
 
-message SaveNamespaceRequestProto {
-  optional uint64 timeWindow = 1 [default = 0];
-  optional uint64 txGap = 2 [default = 0];
+message SaveNamespaceRequestProto { // no parameters
 }
 
 message SaveNamespaceResponseProto { // void response
-  optional bool saved = 1 [default = true];
 }
 
 message RollEditsRequestProto { // no parameters
@@ -534,7 +507,6 @@ message CachePoolInfoProto {
   optional int32 mode = 4;
   optional int64 limit = 5;
   optional int64 maxRelativeExpiry = 6;
-  optional uint32 defaultReplication = 7 [default=1];
 }
 
 message CachePoolStatsProto {
@@ -594,14 +566,6 @@ message GetContentSummaryRequestProto {
 
 message GetContentSummaryResponseProto {
   required ContentSummaryProto summary = 1;
-}
-
-message GetQuotaUsageRequestProto {
-  required string path = 1;
-}
-
-message GetQuotaUsageResponseProto {
-  required QuotaUsageProto usage = 1;
 }
 
 message SetQuotaRequestProto {
@@ -758,10 +722,6 @@ service ClientNamenodeProtocol {
       returns(SetReplicationResponseProto);
   rpc setStoragePolicy(SetStoragePolicyRequestProto)
       returns(SetStoragePolicyResponseProto);
-  rpc unsetStoragePolicy(UnsetStoragePolicyRequestProto)
-      returns(UnsetStoragePolicyResponseProto);
-  rpc getStoragePolicy(GetStoragePolicyRequestProto)
-      returns(GetStoragePolicyResponseProto);
   rpc getStoragePolicies(GetStoragePoliciesRequestProto)
       returns(GetStoragePoliciesResponseProto);
   rpc setPermission(SetPermissionRequestProto)
@@ -893,16 +853,8 @@ service ClientNamenodeProtocol {
       returns(ListEncryptionZonesResponseProto);
   rpc getEZForPath(GetEZForPathRequestProto)
       returns(GetEZForPathResponseProto);
-  rpc setErasureCodingPolicy(SetErasureCodingPolicyRequestProto)
-      returns(SetErasureCodingPolicyResponseProto);
   rpc getCurrentEditLogTxid(GetCurrentEditLogTxidRequestProto)
       returns(GetCurrentEditLogTxidResponseProto);
   rpc getEditsFromTxid(GetEditsFromTxidRequestProto)
       returns(GetEditsFromTxidResponseProto);
-  rpc getErasureCodingPolicies(GetErasureCodingPoliciesRequestProto)
-      returns(GetErasureCodingPoliciesResponseProto);
-  rpc getErasureCodingPolicy(GetErasureCodingPolicyRequestProto)
-      returns(GetErasureCodingPolicyResponseProto);
-  rpc getQuotaUsage(GetQuotaUsageRequestProto)
-      returns(GetQuotaUsageResponseProto);
 }

@@ -31,10 +31,7 @@ option java_generic_services = true;
 option java_generate_equals_and_hash = true;
 package hadoop.hdfs.datanode;
 
-import "HAServiceProtocol.proto";
 import "hdfs.proto";
-import "erasurecoding.proto";
-import "HdfsServer.proto";
 
 /**
  * Information to identify a datanode to a namenode
@@ -60,7 +57,6 @@ message DatanodeCommandProto {
     UnusedUpgradeCommand = 6;
     NullDatanodeCommand = 7;
     BlockIdCommand = 8;
-    BlockECReconstructionCommand = 9;
   }
 
   required Type cmdType = 1;    // Type of the command
@@ -74,7 +70,6 @@ message DatanodeCommandProto {
   optional KeyUpdateCommandProto keyUpdateCmd = 6;
   optional RegisterCommandProto registerCmd = 7;
   optional BlockIdCommandProto blkIdCmd = 8;
-  optional BlockECReconstructionCommandProto blkECReconstructionCmd = 9;
 }
 
 /**
@@ -149,13 +144,6 @@ message RegisterCommandProto {
 }
 
 /**
- * Block Erasure coding reconstruction command
- */
-message BlockECReconstructionCommandProto {
-  repeated BlockECReconstructionInfoProto blockECReconstructioninfo = 1;
-}
-
-/**
  * registration - Information of the datanode registering with the namenode
  */
 message RegisterDatanodeRequestProto {
@@ -206,7 +194,6 @@ message HeartbeatRequestProto {
   optional uint64 cacheCapacity = 6 [ default = 0 ];
   optional uint64 cacheUsed = 7 [default = 0 ];
   optional VolumeFailureSummaryProto volumeFailureSummary = 8;
-  optional bool requestFullBlockReportLease = 9 [ default = false ];
 }
 
 /**
@@ -214,7 +201,11 @@ message HeartbeatRequestProto {
  * txid - Highest transaction ID this NN has seen
  */
 message NNHAStatusHeartbeatProto {
-  required hadoop.common.HAServiceStateProto state = 1;
+  enum State {
+    ACTIVE = 0;
+    STANDBY = 1;
+  }
+  required State state = 1; 
   required uint64 txid = 2;
 }
 
@@ -227,7 +218,6 @@ message HeartbeatResponseProto {
   required NNHAStatusHeartbeatProto haStatus = 2;
   optional RollingUpgradeStatusProto rollingUpgradeStatus = 3;
   optional RollingUpgradeStatusProto rollingUpgradeStatusV2 = 4;
-  optional uint64 fullBlockReportLeaseId = 5 [ default = 0 ];
 }
 
 /**
@@ -257,13 +247,6 @@ message BlockReportContextProto  {
 
   // The unique 64-bit ID of this block report
   required int64 id = 3;
-
-  // The block report lease ID, or 0 if we are sending without a lease to
-  // bypass rate-limiting.
-  optional uint64 leaseId = 4 [ default = 0 ];
-
-  // True if the reported blocks are sorted by increasing block IDs
-  optional bool sorted = 5 [default = false];
 }
 
 /**
