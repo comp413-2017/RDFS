@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 	//el::Loggers::reconfigureAllLoggers(conf);
 
 	asio::io_service io_service;
-	short port = 5544;
+	unsigned short port = 5544;
 	if (argc == 2) {
 		port = std::atoi(argv[1]);
 	}
