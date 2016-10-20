@@ -8,7 +8,7 @@
 
 #include <easylogging++.h>
 
-#include "socket_writes.cc"
+#include "socket_writes.h"
 #include "socket_reads.h"
 #include "rpcserver.h"
 

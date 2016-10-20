@@ -7,6 +7,7 @@
 #include <easylogging++.h>
 
 #include "socket_reads.h"
+#include "socket_writes.h"
 #include "rpcserver.h"
 #include "data_transfer_server.h"
 
@@ -40,6 +41,17 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		LOG(INFO) << proto.DebugString();
 	} else {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
+	}
+	BlockOpResponseProto response;
+	std::string responseString;
+	response.set_status(SUCCESS);
+	response.SerializeToString(&responseString);
+	LOG(INFO) << response.DebugString();
+	LOG(INFO) << std::endl << responseString;
+	if (rpcserver::write_delimited_proto(sock, responseString)) {
+		LOG(INFO) << "Successfully sent response to client";
+	} else {
+		LOG(INFO) << "Could not send response to client";
 	}
 }
 

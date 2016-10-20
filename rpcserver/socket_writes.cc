@@ -2,6 +2,7 @@
 #include <asio.hpp>
 #include <netinet/in.h>
 #include <google/protobuf/io/coded_stream.h>
+#include "socket_writes.h"
 
 using asio::ip::tcp;
 
