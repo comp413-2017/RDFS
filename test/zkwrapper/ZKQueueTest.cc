@@ -34,7 +34,7 @@ namespace {
 
 
     TEST_F(ZKQueueTest, Push) {
-        ASSERT_EQ("q_item-0000000000", queue->push(ZKWrapper::EMPTY_VECTOR));
+        ASSERT_EQ("/queue_test/q_item-0000000000", queue->push(ZKWrapper::EMPTY_VECTOR));
     }
 }
 
