@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <unistd.h>
+
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/generated_message_util.h>
@@ -10,9 +12,9 @@
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 
+#include <easylogging++.h>
 #include <rpcserver.h>
-#include <pugixml.hpp>
-#include <cstdint>
+#include <ConfigReader.h>
 
 #include "ClientDatanodeProtocolImpl.h"
 
@@ -24,70 +26,65 @@ namespace client_datanode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-// static string info
-const char* ClientDatanodeTranslator::HDFS_DEFAULTS_CONFIG = "hdfs-default.xml";
+// config
+std::map <std::string, std::string> config;
 
 // TODO - this will probably take some zookeeper object
 ClientDatanodeTranslator::ClientDatanodeTranslator(int port_arg)
 	: port(port_arg), server(port) {
 	InitServer();
-	Config();
 	std::cout << "Created client datanode translator." << std::endl;
 }
 
 std::string ClientDatanodeTranslator::getReplicaVisibleLength(std::string input) {
 	GetReplicaVisibleLengthRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
+	logMessage(req, "GetReplicaVisibleLength ");
 	const hadoop::hdfs::ExtendedBlockProto& block = req.block();
-	std::string out;
 	GetReplicaVisibleLengthResponseProto res;
 	// TODO get the visible length of the block and set it the response
 	//res.set_length();
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::refreshNamenodes(std::string input) {
 	RefreshNamenodesRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
-	std::string out;
+	logMessage(req, "RefreshNamenodes ");
 	RefreshNamenodesResponseProto res;
 	// TODO refresh the namenodes. Response contains no fields
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::deleteBlockPool(std::string input) {
 	DeleteBlockPoolRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
+	logMessage(req, "DeleteBlockPool ");
 	const std::string& block_pool = req.blockpool();
 	const bool force = req.force();
-	std::string out;
 	DeleteBlockPoolResponseProto res;
 	// TODO delete the block pool. Response contains no fields
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getBlockLocalPathInfo(std::string input) {
 	GetBlockLocalPathInfoRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
+	logMessage(req, "GetBlockLocalPathInfo ");
 	const hadoop::hdfs::ExtendedBlockProto& block = req.block();
 	const hadoop::common::TokenProto& token = req.token();
-	std::string out;
 	GetBlockLocalPathInfoResponseProto res;
 	// TODO get local path info for block
 	//res.set_block();
 	//res.set_localpath();
 	//res.set_localmetapath();
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getHdfsBlockLocations(std::string input) {
 	GetHdfsBlockLocationsRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
+	logMessage(req, "GetHdfsBlockLocations ");
 	const std::string& block_pool_id = req.blockpoolid();
 	for (int i = 0; i < req.tokens_size(); i++) {
 		const hadoop::common::TokenProto& token = req.tokens(i);
@@ -95,81 +92,63 @@ std::string ClientDatanodeTranslator::getHdfsBlockLocations(std::string input) {
 	for (int i = 0; i < req.blockids_size(); i++) {
 		const int64_t block_id = req.blockids(i);
 	}
-	std::string out;
 	GetHdfsBlockLocationsResponseProto res;
 	// TODO get HDFS-specific metadata about blocks
 	//res.add_volumeids() for each volume id
 	//res.add_volumeindexes() for each volume index
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::shutdownDatanode(std::string input) {
 	ShutdownDatanodeRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
+	logMessage(req, "ShutdownDatanode ");
 	const bool for_upgrade = req.forupgrade();
-	std::string out;
 	ShutdownDatanodeResponseProto res;
 	// TODO shut down the datanode. Response contains no fields
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getDatanodeInfo(std::string input) {
 	GetDatanodeInfoRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req);
-	std::string out;
+	logMessage(req, "GetDatanodeInfo ");
 	GetDatanodeInfoResponseProto res;
 	// TODO get datanode info
 	//res.set_localinfo();
-	return Serialize(&out, res);
+	return Serialize(res);
 }
 
 /**
  * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
  * If it succeeds, we simly return the serialized string. 
  */
-std::string ClientDatanodeTranslator::Serialize(std::string* out, google::protobuf::Message& res) {
-	if (!res.SerializeToString(out)) {
+std::string ClientDatanodeTranslator::Serialize(google::protobuf::Message& res) {
+	std::string out;
+	if (!res.SerializeToString(&out)) {
 		// TODO handle error
 	}
-	return *out;
+	return out;
 }
 
-/**
- * Set the configuration info for the datanode
- */
-void ClientDatanodeTranslator::Config() {
-	// Read the hdfs-defaults xml file 
-	{
-		using namespace pugi;
-		xml_document doc;
-		xml_parse_result result = doc.load_file(HDFS_DEFAULTS_CONFIG);
-		if (!result) {
-			std::cout << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
-			std::cout << "Error description: " << result.description() << "\n";
-		}
-			
-		xml_node properties = doc.child("configuration");
-		for (xml_node child : properties.children()) {
-			// the name and value nodes in the xml 
-			xml_node name = child.first_child();
-			xml_node value = name.next_sibling();	
-			const char* name_str = name.first_child().text().get();
-			// TODO get the config properties we care about
-		}
-		std::cout << "Configured datanode (but not really!)" << std::endl;
-	}
+// ------------------------- CONFIG AND INITIALIZATION ------------------------
 
-	// TODO any other configs that we need to read? 	
+/**
+ * Get an integer from the hdfs-defaults config 
+ */
+int ClientDatanodeTranslator::getDefaultInt(std::string key) {
+	return config.getInt(key);
 }
 
 /**
  * Initialize the rpc server
  */
 void ClientDatanodeTranslator::InitServer() {
+	LOG(INFO) << "Initializing datanode server...";
 	RegisterClientRPCHandlers();
 }
+
+// ------------------------------------ RPC SERVER INTERACTIONS --------------------------
 
 /**
  * Register our rpc handlers with the server
@@ -203,8 +182,8 @@ int ClientDatanodeTranslator::getPort() {
 	return port;
 }
 
-void ClientDatanodeTranslator::logMessage(google::protobuf::Message& req) {
-	std::cout << "Got request with input " << req.DebugString() << std::endl;
+void ClientDatanodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
+	LOG(INFO) << "Got message " << req_name << ": " << req.DebugString();
 }
 
 } //namespace
