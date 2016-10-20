@@ -51,9 +51,9 @@ class ZKWrapper {
 
 		int recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const;
 
-		int exists(const std::string &path, const int watch) const;
+		bool exists(const std::string &path, const int watch) const;
 
-		int wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+		bool wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const;
 
 		int delete_node(const std::string &path) const;
 

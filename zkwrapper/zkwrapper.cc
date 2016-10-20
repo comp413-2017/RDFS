@@ -93,7 +93,7 @@ ZKWrapper::ZKWrapper(std::string host) {
  * @param path The location of the new znode within the zookeeper structure
  * @param data The data contained in this znode
  * @param flag The zookeeper create flags: ZOO_EPHEMERAL and/or ZOO_SEQUENCE
- * @return
+ * @return 0 if the operation is successful, non-zero error code otherwise
  */
 int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int flag) const {
     if (!init) {
@@ -119,7 +119,7 @@ int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &
  * @param data The data contained in this znode
  * @param new_path Will contain the value of the newly created path
  * @param ephemeral If true, the created node will ephemeral
- * @return
+ * @return 0 if the operation is successful, non-zero error code otherwise
  */
 int ZKWrapper::create_sequential(const std::string &path, const std::vector<std::uint8_t> &data, std::string &new_path,
                                  bool ephemeral) const {
@@ -154,7 +154,7 @@ int ZKWrapper::create_sequential(const std::string &path, const std::vector<std:
    * Recursively creates a new znode, non-existent path components will be created
    * @param path The path to create,
    * @param data The data to store in the new ZNode
-   * @return
+   * @return 0 if the operation is successful, non-zero error code otherwise
    */
 int ZKWrapper::recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const {
     if (!exists(path, 0)) { // If the path exists (0), then do nothing
@@ -216,29 +216,30 @@ std::vector<std::uint8_t> ZKWrapper::get(const std::string &path, const int watc
 }
 
 /**
- * Check if a Znode exists or not.
- * @param path The path to the node. Expressed as a file name with slashes
- * separating ancestors of the node.
- *
- * @return 0 if a Znode exists at the given path, 1 otherwise. Because ZOK = 0
- */
-int ZKWrapper::exists(const std::string &path, const int watch) const {
-    // TODO: for now watch argument is set to 0, need more error checking
-    int rc = zoo_exists(zh, path.c_str(), watch, 0);
-    return (rc);
-}
-
-/**
  * Sets the data in a given Znode
  * @param path The path to the node
  * @param data The data that this node should contain
  * @param version A version number indicating changes to the data at this node
- * @return
+ * @return 0 if the operation completed successfully, non-zero error code otherwise
  */
 int ZKWrapper::set(const std::string &path, const std::vector<std::uint8_t> &data, int version) const {
 
     const char * me = path.c_str();
     return zoo_set(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), version);
+}
+
+/**
+ * Check if a Znode exists or not.
+ * @param path The path to the node
+ * @return True if a Znode exists at the given path, False otherwise
+ */
+bool ZKWrapper::exists(const std::string &path, const int watch) const {
+    // TODO: for now watch argument is set to 0, need more error checking
+    int rc = zoo_exists(zh, path.c_str(), watch, 0);
+    if (rc == 0) {
+        return true;
+    }
+    return false;
 }
 
  /**
@@ -247,18 +248,21 @@ int ZKWrapper::set(const std::string &path, const std::vector<std::uint8_t> &dat
   * @param path The path to the Znode that needs to be checked
   * @param watch A watcher function
   * @param watcherCtx User specific data, will be passed to the watcher callback.
-  * @return
+  * @return True if a Znode exists at the given path, False otherwise
   */
-int ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const {
+bool ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const {
     struct Stat stat;
     int rc = zoo_wexists(zh, path.c_str(), watch, watcherCtx, &stat);
-    return (rc);
+    if (rc == 0) {
+     return true;
+    }
+    return false;
 }
 
 /**
  * Deletes a Znode from zookeeper
  * @param path The path to the Znode that should be deleted
- * @return
+ * @return 0 if the operation completed successfully, non-zero error code otherwise
  */
 int ZKWrapper::delete_node(const std::string &path) const {
     // NOTE: use -1 for version, check will not take place.
@@ -269,7 +273,7 @@ int ZKWrapper::delete_node(const std::string &path) const {
 /**
  * Recursively deletes the Znode specified in the path and any children of that path
  * @param path The path the Znode (and its children) which will be deleted
- * @return
+ * @return 0 if the operation completed successfully, non-zero error code otherwise
  */
 int ZKWrapper::recursive_delete(const std::string path) const {
     bool root = ("/" == path);
@@ -293,7 +297,7 @@ int ZKWrapper::recursive_delete(const std::string path) const {
  * This function gets a list of children of the Znode specified by the path
  * @param path The path of parent node
  * @param watch If nonzero, a watch will be set at the server to notify
- * @return
+ * @return A vector of children Znode names
  */
 std::vector <std::string> ZKWrapper::get_children(const std::string &path, const int watch) const {
 
@@ -316,7 +320,7 @@ std::vector <std::string> ZKWrapper::get_children(const std::string &path, const
  * @param path The path to get children of and the node to place the watch on
  * @param watch A watcher function
  * @param watcherCtx User specific data, will be passed to the watcher callback.
- * @return
+ * @return A vector of children Znode names
  */
 std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watcher_fn watch, void* watcherCtx) const {
 
