@@ -45,6 +45,15 @@ void TransferServer::handle_connection(tcp::socket sock) {
 	BlockOpResponseProto response;
 	std::string responseString;
 	response.set_status(SUCCESS);
+	OpBlockChecksumResponseProto* checksum_res = response.mutable_checksumresponse();
+	checksum_res->set_bytespercrc(13);
+	checksum_res->set_crcperblock(7);
+	checksum_res->set_md5("this is my md5");
+	ReadOpChecksumInfoProto* checksum_info = response.mutable_readopchecksuminfo();
+	checksum_info->set_chunkoffset(0);
+	ChecksumProto* checksum = checksum_info->mutable_checksum();
+	checksum->set_type(CHECKSUM_NULL);
+	checksum->set_bytesperchecksum(17);
 	response.SerializeToString(&responseString);
 	LOG(INFO) << response.DebugString();
 	LOG(INFO) << std::endl << responseString;
@@ -52,6 +61,13 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		LOG(INFO) << "Could not send response to client";
+	}
+	// TODO: write the packet header. see PacketReceiver.java#doRead
+	rpcserver::write_int32(sock, 19);
+	uint32_t i = 0;
+	while (true) {
+		rpcserver::write_int32(sock, i);
+		i++;
 	}
 }
 
