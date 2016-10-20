@@ -18,8 +18,14 @@ clientid_t myid;
 
 const std::vector<std::uint8_t> ZKWrapper::EMPTY_VECTOR = std::vector<std::uint8_t>(0);
 
-/** Watcher function -- empty for this example, not something you should
- * do in real code */
+/**
+ * TODO
+ * @param zzh
+ * @param type
+ * @param state
+ * @param path
+ * @param watcherCtx
+ */
 void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
     std::cout << "[Global watcher] Watcher triggered on path '" << path << "'" << std::endl;
     char health[] = "/health/datanode_";
@@ -64,6 +70,11 @@ void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watche
     }
 }
 
+/**
+ * Initializes zookeeper
+ * @param host The location of where Zookeeper is running. For local development
+ *             this will usually be 'localhost:2181'
+ */
 ZKWrapper::ZKWrapper(std::string host) {
     zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
     if (!zh) {
@@ -71,12 +82,19 @@ ZKWrapper::ZKWrapper(std::string host) {
         exit(1);
     }
 
-    //zh = handle;
     init = 1;
-
 }
 
 
+/* Wrapper Implementation of Zookeeper Functions */
+
+/**
+ * Create a znode in zookeeper
+ * @param path The location of the new znode within the zookeeper structure
+ * @param data The data contained in this znode
+ * @param flag The zookeeper create flags: ZOO_EPHEMERAL and/or ZOO_SEQUENCE
+ * @return
+ */
 int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int flag) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
@@ -95,6 +113,14 @@ int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &
     return (rc);
 }
 
+/**
+ * Creates a sequential znode
+ * @param path The path to the new sequential znode, must end in "-" like: /foo/bar-
+ * @param data The data contained in this znode
+ * @param new_path Will contain the value of the newly created path
+ * @param ephemeral If true, the created node will ephemeral
+ * @return
+ */
 int ZKWrapper::create_sequential(const std::string &path, const std::vector<std::uint8_t> &data, std::string &new_path,
                                  bool ephemeral) const {
     if (!init) {
@@ -124,14 +150,12 @@ int ZKWrapper::create_sequential(const std::string &path, const std::vector<std:
     return (rc);
 }
 
-/**
- * Recursively create a path if its parent directories do not exist
- *
- * @param path path to create
- * @param data data to store in the new ZNode
- * @param num_bytes number of bytes to store
- * @return 0 on success, 1 on failure
- */
+  /**
+   * Recursively creates a new znode, non-existent path components will be created
+   * @param path The path to create,
+   * @param data The data to store in the new ZNode
+   * @return
+   */
 int ZKWrapper::recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const {
     if (!exists(path, 0)) { // If the path exists (0), then do nothing
         // TODO: Should we overwrite existing data?
@@ -148,13 +172,14 @@ int ZKWrapper::recursive_create(const std::string &path, const std::vector<std::
     }
 }
 
-/* This function is similar to zoo_get except it allows one specify
+/**
+ * This function is similar to 'get' except it allows one to specify
  * a watcher object rather than a boolean watch flag.
  *
- * @param path the name of the node
- * @param watch a watcher function
- * @param watcherCtx user specific data, will be passed to the watcher callback.
- * @return znode value as a stream of bytes
+ * @param path The path to the node
+ * @param watch A watcher function
+ * @param watcherCtx User specific data, will be passed to the watcher callback.
+ * @return Znode value as a stream of bytes
  */
 std::vector<std::uint8_t> ZKWrapper::wget(const std::string &path, watcher_fn watch, void* watcherCtx) const {
     // TODO: Make this a constant value. Define a smarter retry policy for oversized data
@@ -170,11 +195,11 @@ std::vector<std::uint8_t> ZKWrapper::wget(const std::string &path, watcher_fn wa
     return vec;
 }
 
-/*
- * gets the data associated with a node
- * @param path the name of the node
- * @param watch, if nonzero, a watch will be set at the server to notify
- * @return znode value as a stream of bytes
+/**
+ * Gets the data associated with a node
+ * @param path The path to the node
+ * @param watch If nonzero, a watch will be set at the server to notify
+ * @return Znode value as a stream of bytes
  */
 std::vector<std::uint8_t> ZKWrapper::get(const std::string &path, const int watch) const {
     // TODO: Make this a constant value. Define a smarter retry policy for oversized data
@@ -191,11 +216,11 @@ std::vector<std::uint8_t> ZKWrapper::get(const std::string &path, const int watc
 }
 
 /**
- * check if a znode exists or not.
- * @param path The name of the node. Expressed as a file name with slashes
+ * Check if a Znode exists or not.
+ * @param path The path to the node. Expressed as a file name with slashes
  * separating ancestors of the node.
  *
- * @return 0 if path exists, 1 otherwise. Because ZOK = 0
+ * @return 0 if a Znode exists at the given path, 1 otherwise. Because ZOK = 0
  */
 int ZKWrapper::exists(const std::string &path, const int watch) const {
     // TODO: for now watch argument is set to 0, need more error checking
@@ -203,29 +228,49 @@ int ZKWrapper::exists(const std::string &path, const int watch) const {
     return (rc);
 }
 
-
+/**
+ * Sets the data in a given Znode
+ * @param path The path to the node
+ * @param data The data that this node should contain
+ * @param version A version number indicating changes to the data at this node
+ * @return
+ */
 int ZKWrapper::set(const std::string &path, const std::vector<std::uint8_t> &data, int version) const {
 
     const char * me = path.c_str();
     return zoo_set(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), version);
 }
 
-/* This function is similar to zoo_exist except it allows one specify
- * a watcher object rather than a boolean watch flag.
- */
+ /**
+  * This function is similar to 'exists' except it allows one to specify
+  * a watcher object rather than a boolean watch flag.
+  * @param path The path to the Znode that needs to be checked
+  * @param watch A watcher function
+  * @param watcherCtx User specific data, will be passed to the watcher callback.
+  * @return
+  */
 int ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const {
     struct Stat stat;
     int rc = zoo_wexists(zh, path.c_str(), watch, watcherCtx, &stat);
     return (rc);
 }
 
-
+/**
+ * Deletes a Znode from zookeeper
+ * @param path The path to the Znode that should be deleted
+ * @return
+ */
 int ZKWrapper::delete_node(const std::string &path) const {
     // NOTE: use -1 for version, check will not take place.
     int rc = zoo_delete(zh, path.c_str(), -1);
     return (rc);
 }
 
+/**
+ * Recursively deletes the Znode specified in the path and any children of that path
+ * @param path The path the Znode (and its children) which will be deleted
+ * @return
+ */
 int ZKWrapper::recursive_delete(const std::string path) const {
     bool root = ("/" == path);
     bool directory =  path[path.size() - 1] == '/';
@@ -244,10 +289,11 @@ int ZKWrapper::recursive_delete(const std::string path) const {
     return rc;
 }
 
-/* This function gets a list of children path
- * @param path path of parent node
- * @param watch, if nonzero, a watch will be set at the server to notify
- * @return a list of path
+/**
+ * This function gets a list of children of the Znode specified by the path
+ * @param path The path of parent node
+ * @param watch If nonzero, a watch will be set at the server to notify
+ * @return
  */
 std::vector <std::string> ZKWrapper::get_children(const std::string &path, const int watch) const {
 
@@ -264,6 +310,14 @@ std::vector <std::string> ZKWrapper::get_children(const std::string &path, const
     return children;
 }
 
+/**
+ * Similar to 'get_children', except it allows one to specify
+ * a watcher object rather than a boolean watch flag.
+ * @param path The path to get children of and the node to place the watch on
+ * @param watch A watcher function
+ * @param watcherCtx User specific data, will be passed to the watcher callback.
+ * @return
+ */
 std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watcher_fn watch, void* watcherCtx) const {
 
     struct String_vector stvector;
@@ -278,6 +332,7 @@ std::vector <std::string> ZKWrapper::wget_children(const std::string &path, watc
     return children;
 }
 
+/* Multi-Operations */
 
 std::shared_ptr<ZooOp> ZKWrapper::build_create_op(const std::string& path, const std::vector<std::uint8_t> &data, const int flags) const {
     auto op = std::make_shared<ZooOp>(path, data);
