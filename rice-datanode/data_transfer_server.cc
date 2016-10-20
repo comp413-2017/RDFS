@@ -2,7 +2,7 @@
 #include <asio.hpp>
 #include <thread>
 
-#include <Datatransfer.pb.h>
+#include <datatransfer.pb.h>
 
 #include <easylogging++.h>
 
@@ -14,6 +14,8 @@
 #define ERROR_AND_FALSE(msg) LOG(ERROR) << msg; return false
 
 using asio::ip::tcp;
+// the .proto file implementation's namespace, used for messages
+using namespace hadoop::hdfs;
 
 TransferServer::TransferServer(int p) : port{p} {}
 
@@ -25,10 +27,19 @@ void TransferServer::handle_connection(tcp::socket sock) {
 	asio::error_code error;
 	uint16_t version;
 	unsigned char type;
+	uint64_t payload_size;
 	if (receive_header(sock, &version, &type)) {
 		LOG(INFO) << "Got header version=" << version << ", type=" << (int) type;
 	} else {
 		ERROR_AND_RETURN("Failed to receive header.");
+	}
+	// TODO: switch proto based on type
+	OpReadBlockProto proto;
+	if (rpcserver::read_proto(sock, proto)) {
+		LOG(INFO) << "Op a read block proto";
+		LOG(INFO) << proto.DebugString();
+	} else {
+		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
 }
 
