@@ -9,7 +9,7 @@
 #include <easylogging++.h>
 
 #include "socket_writes.cc"
-#include "socket_reads.cc"
+#include "socket_reads.h"
 #include "rpcserver.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return

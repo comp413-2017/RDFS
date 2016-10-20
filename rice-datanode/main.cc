@@ -7,6 +7,7 @@
 #include <rpcserver.h>
 #include <easylogging++.h>
 #include "ClientDatanodeProtocolImpl.h"
+#include "data_transfer_server.h"
 
 // initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
@@ -20,10 +21,16 @@ int main(int argc, char* argv[]) {
 	//el::Loggers::reconfigureAllLoggers(conf);
 
 	asio::io_service io_service;
-	unsigned short port = 5544;
-	if (argc == 2) {
-		port = std::atoi(argv[1]);
+	unsigned short xferPort = 50010;
+	unsigned short ipcPort = 50020;
+	if (argc >= 2) {
+		xferPort = std::atoi(argv[1]);
 	}
-	ClientDatanodeTranslator translator(port);
+	if (argc >= 3) {
+		ipcPort = std::atoi(argv[2]);
+	}
+	ClientDatanodeTranslator translator(ipcPort);
+	TransferServer transfer_server(xferPort);
+	transfer_server.serve(io_service);
 	translator.getRPCServer().serve(io_service);
 }

@@ -1,10 +1,12 @@
 #include <iostream>
 #include <asio.hpp>
 #include <netinet/in.h>
+#include "socket_reads.h"
 
 using asio::ip::tcp;
 
 namespace rpcserver {
+    // TODO: sub namespace for these
 
     /**
      * Attempt to read a byte from the socket. Return true on success and set *byte
