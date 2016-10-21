@@ -20,11 +20,11 @@ const std::vector<std::uint8_t> ZKWrapper::EMPTY_VECTOR = std::vector<std::uint8
 
 /**
  * TODO
- * @param zzh
- * @param type
- * @param state
- * @param path
- * @param watcherCtx
+ * @param zzh zookeeper handle
+ * @param type type of event
+ * @param state state of the event
+ * @param path path to the watcher node
+ * @param watcherCtx the state of the watcher
  */
 void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
     std::cout << "[Global watcher] Watcher triggered on path '" << path << "'" << std::endl;
@@ -38,34 +38,6 @@ void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watche
         } else if (state == ZOO_EXPIRED_SESSION_STATE) {
             zookeeper_close(zzh);
             exit(1);
-        }
-    } else if (type == ZOO_CREATED_EVENT) {            
-        printf("Node created at %s\n", path);
-        int rc = zoo_exists(zzh, path, 1, 0);                         
-        if (ZOK != rc){                                                     
-            printf("Problems  %d\n", rc);                                   
-        }                                                                   
-    } else if (type == ZOO_DELETED_EVENT) {                                 
-        printf("Node deleted at %s\n", path);
-        int rc = zoo_exists(zzh, path, 1, 0);                              
-        if (ZOK != rc){                                                      
-            printf("Problems  %d\n", rc);                                    
-        }                                                                    
-    } else{
-        printf("[Global watcher] a child has been added under path %s\n", path);
-        
-        struct String_vector stvector;
-        struct String_vector *vector = &stvector;
-        int rc = zoo_get_children(zzh, path, 1, vector);
-        int i = 0;
-        if (vector->count == 0){
-            printf("no childs to retrieve\n");
-        }
-        while (i < vector->count) {
-            printf("Children %s\n", vector->data[i++]);
-        }
-        if (vector->count) {
-            deallocate_String_vector(vector);
         }
     }
 }
@@ -210,12 +182,12 @@ std::vector<std::uint8_t> ZKWrapper::wget(const std::string &path, watcher_fn wa
  * @param watch If nonzero, a watch will be set at the server to notify
  * @return Znode value as a stream of bytes
  */
-std::vector<std::uint8_t> ZKWrapper::get(const std::string &path, const int watch) const {
+std::vector<std::uint8_t> ZKWrapper::get(const std::string &path) const {
     // TODO: Make this a constant value. Define a smarter retry policy for oversized data
     std::vector<std::uint8_t> vec(MAX_PAYLOAD);
     struct Stat stat;
     int len = MAX_PAYLOAD;
-    int rc = zoo_get(zh, path.c_str(), watch, reinterpret_cast<char *>(vec.data()), &len, &stat);
+    int rc = zoo_get(zh, path.c_str(), 0, reinterpret_cast<char *>(vec.data()), &len, &stat);
     if (rc != ZOK) {
         printf("Error when getting!");
     }
@@ -241,9 +213,9 @@ int ZKWrapper::set(const std::string &path, const std::vector<std::uint8_t> &dat
  * @param path The path to the node
  * @return True if a Znode exists at the given path, False otherwise
  */
-bool ZKWrapper::exists(const std::string &path, const int watch) const {
+bool ZKWrapper::exists(const std::string &path) const {
     // TODO: for now watch argument is set to 0, need more error checking
-    int rc = zoo_exists(zh, path.c_str(), watch, 0);
+    int rc = zoo_exists(zh, path.c_str(), 0, 0);
     if (rc == 0) {
         return true;
     }
@@ -307,11 +279,11 @@ int ZKWrapper::recursive_delete(const std::string path) const {
  * @param watch If nonzero, a watch will be set at the server to notify
  * @return A vector of children Znode names
  */
-std::vector <std::string> ZKWrapper::get_children(const std::string &path, const int watch) const {
+std::vector <std::string> ZKWrapper::get_children(const std::string &path) const {
 
     struct String_vector stvector;
     struct String_vector *vector = &stvector;
-    int rc = zoo_get_children(zh, path.c_str(), watch, vector);
+    int rc = zoo_get_children(zh, path.c_str(), 0, vector);
     // TODO: error checking on rc
 
     int i;
