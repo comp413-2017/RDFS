@@ -63,10 +63,38 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		LOG(INFO) << "Could not send response to client";
 	}
 	// TODO: write the packet header. see PacketReceiver.java#doRead
-	rpcserver::write_int32(sock, 19);
+	//rpcserver::write_int32(sock, 19);
 	uint32_t i = 0;
-	while (true) {
+	::google::protobuf::int64 offset = 0;
+	int num_packets = 1;
+	while (i < num_packets) {
+
+		PacketHeaderProto p_head;
+		p_head.set_offsetinblock(offset);
+		p_head.set_seqno(i);
+		if (i == num_packets - 1) {
+			p_head.set_lastpacketinblock(true);
+		} else {
+			p_head.set_lastpacketinblock(false);
+		}
+		p_head.set_datalen(4);
+		std::string p_head_str;
+		p_head.SerializeToString(&p_head_str);
+		LOG(INFO) << p_head.DebugString();
+
+
+		uint16_t header_len = p_head_str.length();
+		uint32_t payload_len = 36;
+
+		rpcserver::write_int32(sock, payload_len);
+		rpcserver::write_int16(sock, header_len);
+		if (rpcserver::write_delimited_proto(sock, p_head_str)) {
+			LOG(INFO) << "Successfully sent packet header to client";
+		} else {
+			LOG(INFO) << "Could not send packet header to client";
+		}
 		rpcserver::write_int32(sock, i);
+		offset += 4;
 		i++;
 	}
 }

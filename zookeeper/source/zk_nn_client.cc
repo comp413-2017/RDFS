@@ -113,7 +113,7 @@ namespace zkclient{
 			// modification/access time, "0" path inode.
 			status->set_filetype(HdfsFileStatusProto::IS_FILE);
 			status->set_path(path);
-			status->set_length(1);
+			status->set_length(10);
 			status->set_owner("foo");
 			status->set_group("foo");
 			status->set_modification_time(0);

@@ -19,6 +19,16 @@ namespace rpcserver {
     }
 
     /**
+     * Return whether an attempt to write 16-bit val on socket is successful.
+     */
+    bool write_int16(tcp::socket& sock, uint16_t val) {
+        asio::error_code error;
+        uint16_t val_net = htons(val);
+        size_t write_len = sock.write_some(asio::buffer(&val_net, 2), error);
+        return !error && write_len == 2;
+    }
+
+    /**
      * Return whether an attempt to write given value as a varint on socket is
      * successful.
      */
