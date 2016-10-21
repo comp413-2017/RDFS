@@ -108,21 +108,17 @@ ZKWrapper::ZKWrapper(std::string host, int* errorcode) {
  * @param flag The zookeeper create flags: ZOO_EPHEMERAL and/or ZOO_SEQUENCE
  * @return 0 if the operation is successful, non-zero error code otherwise
  */
-int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int* errorcode, int flag) const {
+bool ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int* errorcode, int flag) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
         exit(1); // Error handle
     }
     int rc = zoo_create(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag,
                         nullptr, 0);
-    if (rc != ZOK) {
-        if (rc == ZNODEEXISTS) {
-            fprintf(stderr, "Node %s already exists.\n",
-                    path.c_str()); // TODO: add more error code checking
-		}
-    }
 	*errorcode = rc;
-    return (rc);
+    if (!rc)
+		return true;
+	return false;
 }
 
 /**
@@ -133,7 +129,7 @@ int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &
  * @param ephemeral If true, the created node will ephemeral
  * @return 0 if the operation is successful, non-zero error code otherwise
  */
-int ZKWrapper::create_sequential(const std::string &path, const std::vector<std::uint8_t> &data, std::string &new_path,
+bool ZKWrapper::create_sequential(const std::string &path, const std::vector<std::uint8_t> &data, std::string &new_path,
                                  bool ephemeral) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
@@ -159,7 +155,9 @@ int ZKWrapper::create_sequential(const std::string &path, const std::vector<std:
         i++;
     }
     new_path.resize(i);
-    return (rc);
+	if (!rc)
+		return true;
+	return false;
 }
 
   /**
@@ -201,7 +199,6 @@ std::vector<std::uint8_t> ZKWrapper::wget(const std::string &path, watcher_fn wa
     int rc = zoo_wget(zh, path.c_str(), watch, watcherCtx, reinterpret_cast<char *>(vec.data()), &len, &stat);
     if (rc != ZOK) {
         printf("Error when getting!");
-        exit(1); // TODO: error handling
     }
     vec.resize(len);
     return vec;
@@ -221,7 +218,6 @@ std::vector<std::uint8_t> ZKWrapper::get(const std::string &path, const int watc
     int rc = zoo_get(zh, path.c_str(), watch, reinterpret_cast<char *>(vec.data()), &len, &stat);
     if (rc != ZOK) {
         printf("Error when getting!");
-        exit(1); // TODO: error handling
     }
     vec.resize(len);
     return vec;
