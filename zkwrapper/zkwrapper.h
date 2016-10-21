@@ -42,43 +42,34 @@ class ZooOp {
 
 class ZKWrapper {
 	public:
-		ZKWrapper(std::string host, int* errorcode);
+		ZKWrapper(std::string host, int &errorcode);
 
 		std::string translate_error(int errorcode);
 
-		int create(const std::string &path, const std::vector<std::uint8_t> &data, int* errorcode, int flag = 0) const;
+		bool create(const std::string &path, const std::vector<std::uint8_t> &data, int &errorcode) const;
 
-		int create_sequential(const std::string &path, const std::vector<std::uint8_t> &data,
-				std::string &new_path, bool ephemeral) const;
+		bool create_sequential(const std::string &path, const std::vector<std::uint8_t> &data,
+				std::string &new_path, bool ephemeral, int &errorcode) const;
 
-		int recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const;
+		bool recursive_create(const std::string &path, const std::vector<std::uint8_t> &data, int &errorcode) const;
 
-		bool exists(const std::string &path, const int watch) const;
+		bool exists(const std::string &path, int &errorcode) const;
 
-		bool wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+		bool wexists(const std::string &path, watcher_fn watch, void* watcherCtx, int &errorcode) const;
 
-		int delete_node(const std::string &path) const;
+		bool delete_node(const std::string &path, int &errorcode) const;
 
-		/**
-		 * Recursively deletes the znode directory rooted at path. If the path ends with "/" then it only deletes
-		 * the children of the paths, else it deletes the znode at the defined path itself.
-		 * @param path
-		 * @return
-		 */
-		int recursive_delete(const std::string path) const;
+		bool recursive_delete(const std::string path, int &errorcode) const;
 
-		std::vector <std::string> get_children(const std::string &path, const int watch) const;
+		std::vector <std::string> get_children(const std::string &path, int &errorcode) const;
 
-		/* This function is similar to zoo_getchildren except it allows one specify
-		 * a watcher object rather than a boolean watch flag.
-		 */
-		std::vector <std::string> wget_children(const std::string &path, watcher_fn  watch, void* watcherCtx) const;
+		std::vector <std::string> wget_children(const std::string &path, watcher_fn  watch, void* watcherCtx, int &errorcode) const;
 
-		std::vector<std::uint8_t> get(const std::string &path, const int watch) const;
+		std::vector<std::uint8_t> get(const std::string &path, int &errorcode) const;
 
-		std::vector<std::uint8_t> wget(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+		std::vector<std::uint8_t> wget(const std::string &path, watcher_fn watch, void* watcherCtx, int &errorcode) const;
 
-		int set(const std::string &path, const std::vector<std::uint8_t> &data, int version = -1) const;
+		bool set(const std::string &path, const std::vector<std::uint8_t> &data, int version = -1, int &errorcode) const;
 
 		/**
 		 * @param path path of znode
