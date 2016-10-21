@@ -70,18 +70,31 @@ void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watche
     }
 }
 
+/*
+ * tranlsate numerical error code to zookeeper error string
+ * @param errorcode an integer 
+ * @return a string translation of the error code
+ */
+std::string ZKWrapper::translate_error(int errorcode) {
+	std::vector<std::uint8_t> vec(MAX_PAYLOAD);
+	//std::string message = error_message[errorcode];
+	std::string message;
+	message =  error_message.at(errorcode);
+	return message;
+}
+
 /**
  * Initializes zookeeper
  * @param host The location of where Zookeeper is running. For local development
+ * @param errorcode pointer of int, if set to 0, there is no error; otherwise, an error code is returned. The meaning of an error code can be retrieved from translate_error() (to be implemented) 
  *             this will usually be 'localhost:2181'
  */
-ZKWrapper::ZKWrapper(std::string host) {
+ZKWrapper::ZKWrapper(std::string host, int* errorcode) {
     zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
-    if (!zh) {
+	if (!zh) {
         fprintf(stderr, "zk init failed!");
-        exit(1);
+        *errorcode = -1;
     }
-
     init = 1;
 }
 
@@ -95,7 +108,7 @@ ZKWrapper::ZKWrapper(std::string host) {
  * @param flag The zookeeper create flags: ZOO_EPHEMERAL and/or ZOO_SEQUENCE
  * @return 0 if the operation is successful, non-zero error code otherwise
  */
-int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int flag) const {
+int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int* errorcode, int flag) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
         exit(1); // Error handle
@@ -103,13 +116,12 @@ int ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &
     int rc = zoo_create(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag,
                         nullptr, 0);
     if (rc != ZOK) {
-        fprintf(stderr, "error %d in zoo_create\n", rc);
         if (rc == ZNODEEXISTS) {
             fprintf(stderr, "Node %s already exists.\n",
                     path.c_str()); // TODO: add more error code checking
-            exit(1); // TODO: Handle error
-        }
+		}
     }
+	*errorcode = rc;
     return (rc);
 }
 

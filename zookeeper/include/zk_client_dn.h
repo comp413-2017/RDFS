@@ -14,7 +14,7 @@ public:
 
 private:
     const std::string id;
-
+	int* errorcode;
 };
 
 }

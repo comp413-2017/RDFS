@@ -8,7 +8,7 @@
 
 namespace zkclient {
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
-        zk = std::make_shared<ZKWrapper>(hostAndIp);
+        zk = std::make_shared<ZKWrapper>(hostAndIp, errorcode);
         init();
     }
 
@@ -18,16 +18,16 @@ namespace zkclient {
         auto vec = ZKWrapper::get_byte_vector("");
 
         if (zk->exists("/health", 0)) {
-            zk->create("/health", vec);
+            zk->create("/health", vec, errorcode);
         }
         if (zk->exists("/fileSystem", 0)){
-            zk->create("/fileSystem", vec);
+            zk->create("/fileSystem", vec, errorcode);
         }
         if (zk->exists("/work_queues", 0)){
-            zk->create("/work_queues", vec);
+            zk->create("/work_queues", vec, errorcode);
         }
         if (zk->exists("/blockMap", 0)) {
-            zk->create("/blockMap", vec);
+            zk->create("/blockMap", vec, errorcode);
         }
         std::cout << "Finished ZkClientCommon" << std::endl;
 

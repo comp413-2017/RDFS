@@ -12,7 +12,7 @@ namespace zkclient {
         ZkClientCommon(std::string hostAndIp);
 
         void init();
-
+		int* errorcode;
         std::shared_ptr <ZKWrapper> zk;
     };
 }

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <algorithm>
 
+int* errorcode;
 int preTest(ZKWrapper zk) {
     zk.recursive_delete("/testing/");
     assert(zk.get_children("/testing", 0).size() == 0);
@@ -12,18 +13,18 @@ int preTest(ZKWrapper zk) {
 int testDeleteAll(ZKWrapper zk) {
 
     preTest(zk);
-    zk.create("/testing/child1", ZKWrapper::EMPTY_VECTOR);
-    zk.create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR);
-    zk.create("/testing/child1/child3", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child1", ZKWrapper::EMPTY_VECTOR, errorcode);
+    zk.create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR, errorcode);
+    zk.create("/testing/child1/child3", ZKWrapper::EMPTY_VECTOR, errorcode);
 
     zk.recursive_delete("/testing/child1");
     assert(zk.exists("/testing/child1", 0));
 
-    zk.create("/testing/child1", ZKWrapper::EMPTY_VECTOR);
-    zk.create("/testing/child2", ZKWrapper::EMPTY_VECTOR);
-    zk.create("/testing/child1/child1", ZKWrapper::EMPTY_VECTOR);
-    zk.create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR);
-    zk.create("/testing/child2/child1", ZKWrapper::EMPTY_VECTOR);
+    zk.create("/testing/child1", ZKWrapper::EMPTY_VECTOR, errorcode);
+    zk.create("/testing/child2", ZKWrapper::EMPTY_VECTOR, errorcode);
+    zk.create("/testing/child1/child1", ZKWrapper::EMPTY_VECTOR, errorcode);
+    zk.create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR, errorcode);
+    zk.create("/testing/child2/child1", ZKWrapper::EMPTY_VECTOR, errorcode);
 
     zk.recursive_delete("/testing/");
     assert(zk.get_children("/testing", 0).size() == 0);
@@ -84,11 +85,10 @@ int main(int argc, char* argv[]) {
     //if (!zh) {
     //    exit(1);
     //}
-
-    ZKWrapper zk("localhost:2181");
+    ZKWrapper zk("localhost:2181", errorcode);
     std::vector<std::uint8_t> vec;
     if (zk.exists("/testing", 0)) {
-        zk.create("/testing", vec);
+        zk.create("/testing", vec, errorcode);
     }
 
     testDeleteAll(zk);

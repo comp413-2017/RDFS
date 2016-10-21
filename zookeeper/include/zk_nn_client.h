@@ -24,6 +24,7 @@ namespace zkclient {
 			void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
 			bool file_exists(const std::string& path);
 		private:
+			int* errorcode;
 			std::string ZookeeperPath(const std::string &hadoopPath);
 	};
 

@@ -16,7 +16,8 @@ int main(int argc, char* argv[]) {
     {
         zkclient::ZkClientDn client(id, "localhost:2181");
         client.registerDataNode();
-        ZKWrapper zk("localhost:2181");
+		int* errorcode;
+        ZKWrapper zk("localhost:2181", errorcode);
 
         // std::cout << zk.get_children("/health", 0)[0] << std::endl;
         while(true){

@@ -15,7 +15,7 @@ class ZKQueue {
                 q_path = path;
                 element = path + "/q_item-";
                 peek_path = "";
-                zk.create(path, ZKWrapper::EMPTY_VECTOR);
+                zk.create(path, ZKWrapper::EMPTY_VECTOR, errorcode);
         }
 
         std::string peek();
@@ -25,6 +25,7 @@ class ZKQueue {
         std::string push(const std::vector<std::uint8_t> &data);
 
     private:
+		int* errorcode;
         std::string q_path;
         std::string peek_path;
         std::string element;

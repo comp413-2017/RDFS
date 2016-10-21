@@ -126,7 +126,7 @@ namespace zkclient{
 		const std::string& path = request.src();
 		if (!file_exists(path)) {
 			std::vector<std::uint8_t> vec;
-			zk->create(ZookeeperPath(path), vec);
+			zk->create(ZookeeperPath(path), vec, errorcode);
 			HdfsFileStatusProto* status = response.mutable_fs();
 			FsPermissionProto* permission = status->mutable_permission();
 			// Shorcut to set permission to 777.
