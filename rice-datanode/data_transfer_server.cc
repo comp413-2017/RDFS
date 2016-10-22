@@ -67,28 +67,29 @@ void TransferServer::handle_connection(tcp::socket sock) {
 	uint32_t i = 0;
 	::google::protobuf::int64 offset = 0;
 	int num_packets = 1;
-	while (i < num_packets) {
+	while (i < num_packets + 1) {
 
 		PacketHeaderProto p_head;
 		p_head.set_offsetinblock(offset);
 		p_head.set_seqno(i);
-		if (i == num_packets - 1) {
+		if (i == num_packets) {
 			p_head.set_lastpacketinblock(true);
+			p_head.set_datalen(0);
 		} else {
 			p_head.set_lastpacketinblock(false);
+			p_head.set_datalen(4);
 		}
-		p_head.set_datalen(4);
 		std::string p_head_str;
 		p_head.SerializeToString(&p_head_str);
 		LOG(INFO) << p_head.DebugString();
 
 
 		uint16_t header_len = p_head_str.length();
-		uint32_t payload_len = 36;
+		uint32_t payload_len = 8;
 
 		rpcserver::write_int32(sock, payload_len);
 		rpcserver::write_int16(sock, header_len);
-		if (rpcserver::write_delimited_proto(sock, p_head_str)) {
+		if (rpcserver::write_proto(sock, p_head_str)) {
 			LOG(INFO) << "Successfully sent packet header to client";
 		} else {
 			LOG(INFO) << "Could not send packet header to client";

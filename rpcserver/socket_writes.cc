@@ -47,10 +47,17 @@ namespace rpcserver {
      * socket.
      */
     bool write_delimited_proto(tcp::socket& sock, std::string& proto_bytes) {
-        asio::error_code error;
         if (!write_varint(sock, proto_bytes.size())) {
             return false;
         }
+        return write_proto(sock, proto_bytes);
+    }
+
+    /**
+     * Return success of attempt to write proto on socket.
+     */
+    bool write_proto(tcp::socket& sock, std::string& proto_bytes) {
+        asio::error_code error;
         size_t write_len = sock.write_some(asio::buffer(&proto_bytes[0],
                                                         proto_bytes.size()), error);
         return write_len == proto_bytes.size() && !error;
