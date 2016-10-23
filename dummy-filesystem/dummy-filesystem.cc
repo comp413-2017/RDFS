@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <map>
 #include <string>
 #include <stdio.h>
@@ -12,7 +13,18 @@ std::map<long, std::string> blockMap;
 // Given an ID, allocate a block. Returns a status message
 int allocateBlock(long id, unsigned char* blk)
 {
-	std::string filename = std::to_string(id);
+
+	if (!blockMap[id].empty()) {
+		return -1;
+	}
+
+	std::ostringstream oss;
+	oss << id;
+	std::cout << oss.str();
+
+	std::string filename = "" + oss.str() + ".txt";
+
+	blockMap[id] = filename;
 	std::fstream file;
 	file.open(filename);
 
