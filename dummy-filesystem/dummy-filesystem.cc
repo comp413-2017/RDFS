@@ -12,7 +12,14 @@ std::map<long, std::string> blockMap;
 // Given an ID, allocate a block. Returns a status message
 int allocateBlock(long id, unsigned char* blk)
 {
+
+	if (!blockMap[id].empty()) {
+		return -1;
+	}
+
 	std::string filename = std::to_string(id);
+
+	blockMap[id] = filename;
 	std::fstream file;
 	file.open(filename);
 
