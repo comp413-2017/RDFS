@@ -101,7 +101,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
 	// Receive a status code from the client.
 	ClientReadStatusProto status_proto;
 	if (rpcserver::read_proto(sock, status_proto)) {
-		LOG(INFO) << "Received write status from client.";
+		LOG(INFO) << "Received read status from client.";
 		LOG(INFO) << status_proto.DebugString();
 	} else {
 		LOG(INFO) << "Could not read status from client.";
