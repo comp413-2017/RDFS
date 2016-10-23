@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <map>
 #include <string>
 #include <stdio.h>
@@ -17,7 +18,11 @@ int allocateBlock(long id, unsigned char* blk)
 		return -1;
 	}
 
-	std::string filename = std::to_string(id);
+	std::ostringstream oss;
+	oss << id;
+	std::cout << oss.str();
+
+	std::string filename = "" + oss.str() + ".txt";
 
 	blockMap[id] = filename;
 	std::fstream file;
