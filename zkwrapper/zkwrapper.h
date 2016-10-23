@@ -329,7 +329,8 @@ class ZKWrapper {
         {-118, "ZSESSIONMOVED"},
         {-120, "ZNEWCONFIGNOQUORUM"},
         {-121, "ZRECONFIGINPROGRESS"},
-    };
+    	{-999, "ZKWRAPPERDEFAULTERROR"},
+	};
 };
 
 #endif //RDFS_ZKWRAPPER_H

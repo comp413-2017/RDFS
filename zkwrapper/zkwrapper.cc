@@ -61,11 +61,11 @@ std::string ZKWrapper::translate_error(int errorcode) {
  * @param errorcode pointer of int, if set to 0, there is no error; otherwise, an error code is returned. The meaning of an error code can be retrieved from translate_error() (to be implemented) 
  *             this will usually be 'localhost:2181'
  */
-ZKWrapper::ZKWrapper(std::string host, int* errorcode) {
+ZKWrapper::ZKWrapper(std::string host, int& error_code) {
     zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
 	if (!zh) {
         fprintf(stderr, "zk init failed!");
-        *errorcode = -1;
+        error_code = -999;
     }
     init = 1;
 }
@@ -80,14 +80,15 @@ ZKWrapper::ZKWrapper(std::string host, int* errorcode) {
  * @param flag The zookeeper create flags: ZOO_EPHEMERAL and/or ZOO_SEQUENCE
  * @return 0 if the operation is successful, non-zero error code otherwise
  */
-bool ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int* errorcode, int flag) const {
+bool ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> &data, int& error_code) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
-        exit(1); // Error handle
-    }
+    	errorcode = -999;
+		return false;
+	}
     int rc = zoo_create(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag,
                         nullptr, 0);
-	*errorcode = rc;
+	error_code = rc;
     if (!rc)
 		return true;
 	return false;
@@ -102,10 +103,10 @@ bool ZKWrapper::create(const std::string &path, const std::vector<std::uint8_t> 
  * @return 0 if the operation is successful, non-zero error code otherwise
  */
 bool ZKWrapper::create_sequential(const std::string &path, const std::vector<std::uint8_t> &data, std::string &new_path,
-                                 bool ephemeral) const {
+                                 bool ephemeral, int &error_code) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
-        exit(1); // Error handle
+		return false;
     }
     int flag = ZOO_SEQUENCE;
     if (ephemeral){
@@ -114,22 +115,16 @@ bool ZKWrapper::create_sequential(const std::string &path, const std::vector<std
     new_path.resize(MAX_PATH_LEN);
     int rc = zoo_create(zh, path.c_str(), reinterpret_cast<const char *>(data.data()), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag,
                         reinterpret_cast<char *>(&new_path[0]), MAX_PATH_LEN);
-    if (rc != ZOK) {
-        fprintf(stderr, "error %d in zoo_create\n", rc);
-        if (rc == ZNODEEXISTS) {
-            fprintf(stderr, "Node %s already exists.\n",
-                    path.c_str()); // TODO: add more error code checking
-            exit(1); // TODO: Handle error
-        }
-    }
+    error_code = rc;
+	if (!rc) {
+    	return false;
+	}
     int i = 0;
     while (new_path[i] != '\0'){
         i++;
     }
     new_path.resize(i);
-	if (!rc)
-		return true;
-	return false;
+	return true;
 }
 
   /**
@@ -138,19 +133,24 @@ bool ZKWrapper::create_sequential(const std::string &path, const std::vector<std
    * @param data The data to store in the new ZNode
    * @return 0 if the operation is successful, non-zero error code otherwise
    */
-int ZKWrapper::recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const {
-    if (!exists(path, 0)) { // If the path exists (0), then do nothing
+bool ZKWrapper::recursive_create(const std::string &path, const std::vector<std::uint8_t> &data, int &error_code) const {
+    bool* exist;
+	exists(path, exist, error_code);
+	if (*exist) { 
+		// If the path exists (0), then do nothing
         // TODO: Should we overwrite existing data?
-        return 0;
+		// return false here to be consistent with 
+		// the logic of create (if node exists, return false)
+		return false;
     } else { // Else recursively generate the path
         // TODO: We can use a multi-op at this point
         size_t index = path.find_last_of("/");
         std::vector<std::uint8_t> vec;
-        if (recursive_create(path.substr(0, index), vec)) {
-            return 1;
+        if (!recursive_create(path.substr(0, index), vec, error_code)) {
+            return false;
         }
         // std::cout << "Recursively creating " << path << std::endl;
-        return create(path, data, 0);
+        return create(path, data, error_code);
     }
 }
 
@@ -213,13 +213,22 @@ int ZKWrapper::set(const std::string &path, const std::vector<std::uint8_t> &dat
  * @param path The path to the node
  * @return True if a Znode exists at the given path, False otherwise
  */
-bool ZKWrapper::exists(const std::string &path) const {
+bool ZKWrapper::exists(const std::string &path, bool &exist, int &error_code) const {
     // TODO: for now watch argument is set to 0, need more error checking
     int rc = zoo_exists(zh, path.c_str(), 0, 0);
-    if (rc == 0) {
-        return true;
-    }
-    return false;
+    error_code = rc;
+	if (rc == ZOK){
+        exist = true;
+		return true;
+	}
+	else if (rc == ZNONODE){
+		exist = false;
+		return true;
+	}
+	else{
+		// NOTE: value exist is not updated in this case
+		return false;
+	}
 }
 
  /**
@@ -230,13 +239,22 @@ bool ZKWrapper::exists(const std::string &path) const {
   * @param watcherCtx User specific data, will be passed to the watcher callback.
   * @return True if a Znode exists at the given path, False otherwise
   */
-bool ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const {
+bool ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcherCtx, int &error_code) const {
     struct Stat stat;
     int rc = zoo_wexists(zh, path.c_str(), watch, watcherCtx, &stat);
-    if (rc == 0) {
-     return true;
-    }
-    return false;
+    error_code = rc;
+	if (rc == ZOK){
+        exist = true;
+		return true;
+	}
+	else if (rc == ZNONODE){
+		exist = false;
+		return true;
+	}
+	else{
+		// NOTE: value exist is not updated in this case
+		return false;
+	}
 }
 
 /**
@@ -244,10 +262,13 @@ bool ZKWrapper::wexists(const std::string &path, watcher_fn watch, void* watcher
  * @param path The path to the Znode that should be deleted
  * @return 0 if the operation completed successfully, non-zero error code otherwise
  */
-int ZKWrapper::delete_node(const std::string &path) const {
+bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
     // NOTE: use -1 for version, check will not take place.
     int rc = zoo_delete(zh, path.c_str(), -1);
-    return (rc);
+    error_code = rc;
+	if (!rc)
+		return true;
+	return false;
 }
 
 /**
