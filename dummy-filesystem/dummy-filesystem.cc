@@ -25,41 +25,42 @@ int allocateBlock(long id, unsigned char* blk)
 // TODO: Potentially return value if error reading file/allocating space
 // TODO: Decide where we're storing files
 // Given an ID, returns a block buffer
-// unsigned char* getBlock(long id)
-// {
-// 	// Look in map and get filename
-// 	string filename = blockMap[id];
-//
-// 	// Open file
-// 	FILE* file;
-// 	file = fopen(filename, "r");
-// 	if (file == NULL) {
-// 		fputs("Error opening file", stderr);
-// 		exit(2);
-// 	}
-//
-// 	// Find file size and allocate enough space
-// 	long fileSize = fseek(file, 0, SEEK_END);
-// 	rewind(file);
-// 	unsigned char* blk = (unsigned char*) malloc(sizeof(unsigned char)*fileSize);
-// 	if (blk == NULL) {
-// 		fputs("Error allocating memory", stderr)
-// 		exit(3);
-// 	}
-//
-// 	// Copy file into buffer
-// 	size_t bytesRead = fread(blk, 1, fileSize, file);
-// 	if (bytesRead != fileSize) {
-// 		fputs("Error reading in file", stderr);
-// 		exit(3);
-// 	}
-//
-// 	// Close file
-// 	fclose(file);
-//
-// 	// Return buffer
-// 	return blk;
-// }
+unsigned char* getBlock(long id)
+{
+	// Look in map and get filename
+	std::string strFilename = blockMap[id];
+        const char* filename = ((const char*)filename);
+
+	// Open file
+	FILE* file;
+	file = fopen(filename, "r");
+	if (file == NULL) {
+		fputs("Error opening file", stderr);
+		exit(2);
+	}
+
+	// Find file size and allocate enough space
+	long fileSize = fseek(file, 0, SEEK_END);
+	rewind(file);
+	unsigned char* blk = (unsigned char*) malloc(sizeof(unsigned char)*fileSize);
+	if (blk == NULL) {
+		fputs("Error allocating memory", stderr);
+		exit(3);
+	}
+
+	// Copy file into buffer
+	size_t bytesRead = fread(blk, 1, fileSize, file);
+	if (bytesRead != fileSize) {
+		fputs("Error reading in file", stderr);
+		exit(3);
+	}
+
+	// Close file
+	fclose(file);
+
+	// Return buffer
+	return blk;
+}
 
 // Given an ID, deletes a block. Returns -1 on error, 0 otherwise
 int rmBlock(long id)
