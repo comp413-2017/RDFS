@@ -98,6 +98,14 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		offset += 4;
 		i++;
 	}
+	// Receive a status code from the client.
+	ClientReadStatusProto status_proto;
+	if (rpcserver::read_proto(sock, status_proto)) {
+		LOG(INFO) << "Received write status form client.";
+		LOG(INFO) << status_proto.DebugString();
+	} else {
+		LOG(INFO) << "Could not read status from client.";
+	}
 }
 
 void TransferServer::serve(asio::io_service& io_service) {
