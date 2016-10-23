@@ -41,14 +41,14 @@ unsigned char* getBlock(long id)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
-        const char* filename = ((const char*)filename);
+    const char* filename = ((const char*)filename);
 
 	// Open file
 	FILE* file;
 	file = fopen(filename, "r");
 	if (file == NULL) {
-		fputs("Error opening file", stderr);
-		exit(2);
+		std::cout << "Error opening file" << std::endl;
+		return NULL;
 	}
 
 	// Find file size and allocate enough space
@@ -56,15 +56,15 @@ unsigned char* getBlock(long id)
 	rewind(file);
 	unsigned char* blk = (unsigned char*) malloc(sizeof(unsigned char)*fileSize);
 	if (blk == NULL) {
-		fputs("Error allocating memory", stderr);
-		exit(3);
+		std::cout << "Error allocating memory" << std::endl;
+		return NULL;
 	}
 
 	// Copy file into buffer
 	size_t bytesRead = fread(blk, 1, fileSize, file);
 	if (bytesRead != fileSize) {
-		fputs("Error reading in file", stderr);
-		exit(3);
+		std::cout << "Error reading in file std::endl" << std::endl;
+		return NULL;
 	}
 
 	// Close file
