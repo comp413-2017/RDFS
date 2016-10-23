@@ -61,8 +61,30 @@ int allocateBlock(long id, unsigned char* blk)
 // 	return blk;
 // }
 
-// Given an ID, deletes a block. Returns a status message
+// Given an ID, deletes a block. Returns -1 on error, 0 otherwise
 int rmBlock(long id)
 {
-	return 0;
+        std::string fileName;
+
+        // Find and delete block in mapping
+        auto iter = blockMap.find(id);
+        if(iter == blockMap.end()){
+                fputs("Error: block not found\n", stderr);
+                return -1;
+        }
+        fileName = iter->second;
+
+	//Copy to a char*, which erase and remove need
+	char *fileNameFmtd = const_cast<char*>(fileName.c_str());
+        blockMap.erase(iter);
+
+        // Delete the corresponding file
+        puts("Succesfully found file to delete: \n");
+	puts(fileNameFmtd);
+        if( remove(fileNameFmtd) != 0 ){
+                fputs("Error deleting file\n", stderr);
+                return -1;
+        }
+        return 0;
+
 }
