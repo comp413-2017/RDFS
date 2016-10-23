@@ -171,6 +171,7 @@ class ZKWrapper {
      * @param path The path of parent node
      * @param children Reference to a vector which will be populated with the
      *        names of the children znodes of the given path
+     *        TODO: How large should this vector be when passed in?
      * @param error_code Int reference, set to a value in ZK_ERRORS
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
@@ -186,6 +187,7 @@ class ZKWrapper {
      * @param path The path to get children of and the node to place the watch on
      * @param children Reference to a vector which will be populated with the
      *        names of the children znodes of the given path
+     *        TODO: How large should this vector be when passed in?
      * @param watch A watcher function
      * @param watcherCtx User specific data, will be passed to the watcher callback.
      * @param error_code Int reference, set to a value in ZK_ERRORS
@@ -203,6 +205,7 @@ class ZKWrapper {
      *
      * @param path The path to the node
      * @param data Reference to a vector which will be filled with the znode data
+     *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
      * @param error_code Int reference, set to a value in ZK_ERRORS
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
@@ -217,6 +220,7 @@ class ZKWrapper {
      *
      * @param path The path to the node
      * @param data Reference to a vector which will be filled with the znode data
+     *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
      * @param watch A watcher function
      * @param watcherCtx User specific data, will be passed to the watcher callback.
      * @param error_code Int reference, set to a value in ZK_ERRORS
@@ -241,8 +245,8 @@ class ZKWrapper {
      */
     bool set(const std::string &path,
              const std::vector <std::uint8_t> &data,
-             int version = -1,
-             int &error_code) const;
+             int &error_code,
+             int version = -1)const;
 
     /**
      * @param path path of znode

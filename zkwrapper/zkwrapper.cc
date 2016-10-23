@@ -72,7 +72,7 @@ bool ZKWrapper::create(const std::string &path,
                        int &error_code) const {
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
-        errorcode = -999;
+        error_code = -999;
         return false;
     }
     int rc = zoo_create(zh,
@@ -80,7 +80,7 @@ bool ZKWrapper::create(const std::string &path,
                         reinterpret_cast<const char *>(data.data()),
                         data.size(),
                         &ZOO_OPEN_ACL_UNSAFE,
-                        flag,
+                        0,
                         nullptr,
                         0);
     error_code = rc;
@@ -126,9 +126,9 @@ bool ZKWrapper::create_sequential(const std::string &path,
 bool ZKWrapper::recursive_create(const std::string &path,
                                  const std::vector <std::uint8_t> &data,
                                  int &error_code) const {
-    bool *exist;
+    bool exist;
     exists(path, exist, error_code);
-    if (*exist) {
+    if (exist) {
         // If the path exists (0), then do nothing
         // TODO: Should we overwrite existing data?
         // return false here to be consistent with
@@ -146,55 +146,62 @@ bool ZKWrapper::recursive_create(const std::string &path,
     }
 }
 
-std::vector <std::uint8_t> ZKWrapper::wget(const std::string &path,
-                                           watcher_fn watch,
-                                           void *watcherCtx) const {
+bool ZKWrapper::wget(const std::string &path,
+                     std::vector <std::uint8_t> &data,
+                     watcher_fn watch,
+                     void *watcherCtx,
+                     int &error_code) const {
     // TODO: Make this a constant value. Define a smarter retry policy for oversized data
-    std::vector <std::uint8_t> vec(MAX_PAYLOAD);
     int len = 0;
     struct Stat stat;
-    int rc = zoo_wget(zh,
-                      path.c_str(),
-                      watch,
-                      watcherCtx,
-                      reinterpret_cast<char *>(vec.data()),
-                      &len,
-                      &stat);
-    if (rc != ZOK) {
-        printf("Error when getting!");
+    error_code = zoo_wget(zh,
+                          path.c_str(),
+                          watch,
+                          watcherCtx,
+                          reinterpret_cast<char *>(data.data()),
+                          &len,
+                          &stat);
+    if (error_code != ZOK) {
+        return false;
     }
-    vec.resize(len);
-    return vec;
+    data.resize(len);
+    return true;
 }
 
-std::vector <std::uint8_t> ZKWrapper::get(const std::string &path) const {
+bool ZKWrapper::get(const std::string &path,
+                    std::vector <std::uint8_t> &data,
+                    int &error_code) const {
+
     // TODO: Make this a constant value. Define a smarter retry policy for oversized data
-    std::vector <std::uint8_t> vec(MAX_PAYLOAD);
     struct Stat stat;
     int len = MAX_PAYLOAD;
-    int rc = zoo_get(zh,
+    error_code = zoo_get(zh,
                      path.c_str(),
                      0,
-                     reinterpret_cast<char *>(vec.data()),
+                     reinterpret_cast<char *>(data.data()),
                      &len,
                      &stat);
-    if (rc != ZOK) {
-        printf("Error when getting!");
+    if (error_code != ZOK) {
+        return false;
     }
-    vec.resize(len);
-    return vec;
+    data.resize(len);
+    return true;
 }
 
-int ZKWrapper::set(const std::string &path,
-                   const std::vector <std::uint8_t> &data,
-                   int version) const {
+bool ZKWrapper::set(const std::string &path,
+                    const std::vector <std::uint8_t> &data,
+                    int &error_code,
+                    int version) const {
 
-    const char *me = path.c_str();
-    return zoo_set(zh,
+    error_code = zoo_set(zh,
                    path.c_str(),
                    reinterpret_cast<const char *>(data.data()),
                    data.size(),
                    version);
+    if (error_code != ZOK) {
+        return false;
+    }
+    return true;
 }
 
 bool ZKWrapper::exists(const std::string &path,
@@ -216,6 +223,7 @@ bool ZKWrapper::exists(const std::string &path,
 }
 
 bool ZKWrapper::wexists(const std::string &path,
+                        bool &exist,
                         watcher_fn watch,
                         void *watcherCtx,
                         int &error_code) const {
@@ -236,61 +244,75 @@ bool ZKWrapper::wexists(const std::string &path,
 
 bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
     // NOTE: use -1 for version, check will not take place.
-    int rc = zoo_delete(zh, path.c_str(), -1);
-    error_code = rc;
-    if (!rc)
-        return true;
-    return false;
+    error_code = zoo_delete(zh, path.c_str(), -1);
+    if (error_code != ZOK) {
+        return false;
+    }
+    return true;
 }
 
-int ZKWrapper::recursive_delete(const std::string path) const {
+bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const {
     bool root = ("/" == path);
     bool directory = path[path.size() - 1] == '/';
-    std::string znodePath = directory ? path.substr(0, path.size() - 1) : path;
-    std::vector <std::string>
-        children = get_children(root ? "/" : znodePath, 0);
     int rc = 0;
+
+    std::string znodePath = directory ? path.substr(0, path.size() - 1) : path;
+    std::vector <std::string> children;
+    get_children(root ? "/" : znodePath, children, rc);
+
     for (std::string child : children) {
         std::string newPath = znodePath + "/" + child;
-        int result = recursive_delete(newPath);
+        int result = recursive_delete(newPath, error_code);
         rc = (result != 0) ? result : rc;
     }
+
     if (!directory) {
-        int result = delete_node(path); // return 0 on success
+        int result = delete_node(path, error_code); // return 0 on success
         rc = (result != 0) ? result : rc;
     }
-    return rc;
+
+    if (error_code != ZOK) {
+        return false;
+    }
+    return true;
 }
 
-std::vector <std::string> ZKWrapper::get_children(const std::string &path) const {
+bool ZKWrapper::get_children(const std::string &path,
+                             std::vector <std::string> &children,
+                             int &error_code) const {
 
     struct String_vector stvector;
     struct String_vector *vector = &stvector;
-    int rc = zoo_get_children(zh, path.c_str(), 0, vector);
-    // TODO: error checking on rc
+    error_code = zoo_get_children(zh, path.c_str(), 0, vector);
+    if (error_code != ZOK) {
+        return false;
+    }
 
     int i;
-    std::vector <std::string> children;
     for (i = 0; i < stvector.count; i++) {
         children.push_back(stvector.data[i]);
     }
-    return children;
+    return true;
 }
 
-std::vector <std::string> ZKWrapper::wget_children(const std::string &path,
+bool ZKWrapper::wget_children(const std::string &path,
+                                                   std::vector <std::string> &children,
                                                    watcher_fn watch,
-                                                   void *watcherCtx) const {
+                                                   void *watcherCtx,
+                                                   int &error_code) const {
 
     struct String_vector stvector;
     struct String_vector *vector = &stvector;
-    int rc = zoo_wget_children(zh, path.c_str(), watch, watcherCtx, vector);
+    error_code = zoo_wget_children(zh, path.c_str(), watch, watcherCtx, vector);
+    if (error_code != ZOK) {
+        return false;
+    }
 
     int i;
-    std::vector <std::string> children;
     for (i = 0; i < stvector.count; i++) {
         children.push_back(stvector.data[i]);
     }
-    return children;
+    return true;
 }
 
 /* Multi-Operations */
