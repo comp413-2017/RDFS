@@ -42,6 +42,8 @@ TEST_F(DummyFSTest, CanAllocateBlock) {
 }
 
 TEST_F(DummyFSTest, CanAddBlock) {
+		allocateBlock(blk_id, blk);
+		std::cout << "Created file \n";
         ASSERT_EQ(blk, getBlock(blk_id));
 }
 

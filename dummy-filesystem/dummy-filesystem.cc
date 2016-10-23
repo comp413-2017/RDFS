@@ -20,16 +20,13 @@ int allocateBlock(long id, unsigned char* blk)
 
 	std::ostringstream oss;
 	oss << id;
-	std::cout << oss.str();
-
-	std::string filename = "" + oss.str() + ".txt";
+	std::string filename = "block" + oss.str() + ".txt";
 
 	blockMap[id] = filename;
-	std::fstream file;
-	file.open(filename);
+	std::ofstream myfile (filename);
 
-	file << blk;
-	file.close();
+	myfile << blk;
+	myfile.close();
 
 	return 0;
 
@@ -41,7 +38,7 @@ unsigned char* getBlock(long id)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
-        const char* filename = ((const char*)filename);
+    const char* filename = ((const char*)filename);
 
 	// Open file
 	FILE* file;
