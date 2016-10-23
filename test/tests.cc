@@ -42,8 +42,7 @@ TEST_F(DummyFSTest, CanAllocateBlock) {
 }
 
 TEST_F(DummyFSTest, CanAddBlock) {
-        //Insert test here
-        ASSERT_EQ(0, 0);
+        ASSERT_EQ(blk, getBlock(blk_id));
 }
 
 TEST_F(DummyFSTest, CanRemoveBlock) {
