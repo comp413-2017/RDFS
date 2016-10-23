@@ -13,7 +13,7 @@ std::map<long, std::string> blockMap;
 int allocateBlock(long id, unsigned char* blk)
 {
 	std::string filename = std::to_string(id);
-	ofstream file;
+	std::fstream file;
 	file.open(filename);
 
 	file << blk;
