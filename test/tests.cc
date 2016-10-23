@@ -22,14 +22,33 @@ using ::testing::AtLeast;
 // 	ASSERT_EQ(6, squareRoot(36));
 // }
 
-TEST(DummyFSTest, CanAllocateBlock) {
-	long blk_id;
-	unsigned char* blk = (unsigned char*) malloc(sizeof(unsigned char)*5);
-	for(int i = 0; i < 5; i++)
-    {
-        blk[i] = 'X';
-    }
-	ASSERT_EQ(0, allocateBlock(0, blk));
+class DummyFSTest : public ::testing::Test {
+        protected:
+                virtual void SetUp(){
+                        blk_id = 0;
+                        blk = (unsigned char*) malloc(sizeof(unsigned char)*5);
+                        for(int i = 0; i < 5; i++)
+                        {
+                                blk[i] = 'X';
+                        }
+                }
+                long blk_id;
+                unsigned char* blk;
+};
+
+
+TEST_F(DummyFSTest, CanAllocateBlock) {
+        ASSERT_EQ(0, allocateBlock(blk_id, blk));
+}
+
+TEST_F(DummyFSTest, CanAddBlock) {
+        //Insert test here
+        ASSERT_EQ(0, 0);
+}
+
+TEST_F(DummyFSTest, CanRemoveBlock) {
+        ASSERT_EQ(0, 0);
+	//ASSERT_EQ(0, rmBlock(blk_id));
 }
 
 
