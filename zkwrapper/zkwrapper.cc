@@ -57,6 +57,7 @@ std::string ZKWrapper::translate_error(int errorcode) {
 }
 
 ZKWrapper::ZKWrapper(std::string host, int &error_code) {
+    // TODO: Move these default values to some readable CONSTANT value
     zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
     if (!zh) {
         fprintf(stderr, "zk init failed!");
@@ -94,6 +95,8 @@ bool ZKWrapper::create_sequential(const std::string &path,
                                   std::string &new_path,
                                   bool ephemeral,
                                   int &error_code) const {
+
+    std::cout << "Starting sequential for " << path << std::endl;
     if (!init) {
         fprintf(stderr, "Attempt to create before init!");
         return false;
@@ -102,6 +105,8 @@ bool ZKWrapper::create_sequential(const std::string &path,
     if (ephemeral) {
         flag = flag | ZOO_EPHEMERAL;
     }
+    std::cout << "Attempting to generate new path" << new_path << std::endl;
+
     new_path.resize(MAX_PATH_LEN);
     int rc = zoo_create(zh,
                         path.c_str(),
@@ -112,14 +117,17 @@ bool ZKWrapper::create_sequential(const std::string &path,
                         reinterpret_cast<char *>(&new_path[0]),
                         MAX_PATH_LEN);
     error_code = rc;
-    if (!rc) {
+    if (rc) { // Z_OK is 0, so if we receive anything else fail
+        // TODO: Report the proper error
         return false;
     }
     int i = 0;
+    std::cout << "NEW path is " << new_path << std::endl;
     while (new_path[i] != '\0') {
         i++;
     }
     new_path.resize(i);
+    std::cout << "NEW path is now this" << new_path << std::endl;
     return true;
 }
 
@@ -175,6 +183,10 @@ bool ZKWrapper::get(const std::string &path,
     // TODO: Make this a constant value. Define a smarter retry policy for oversized data
     struct Stat stat;
     int len = MAX_PAYLOAD;
+    // TODO: Perhaps we can be smarter about this
+    // std::cout << "Data resizing to " << len << std::endl;
+    data.resize(len);
+    // std::cout << "Data resizing to 1;" << data.size() << std::endl;
     error_code = zoo_get(zh,
                      path.c_str(),
                      0,

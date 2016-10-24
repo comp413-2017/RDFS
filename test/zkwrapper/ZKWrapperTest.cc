@@ -9,8 +9,9 @@ namespace {
             // Code here will be called immediately after the constructor (right
             // before each test).
             system("sudo ~/zookeeper/bin/zkServer.sh start");
-
-            zk = new ZKWrapper("localhost:2181");
+            int error_code;
+            zk = new ZKWrapper("localhost:2181", error_code);
+            assert(error_code == 0); // Z_OK
         }
 
         virtual void TearDown() {
@@ -22,12 +23,16 @@ namespace {
         }
 
         static int preTest(ZKWrapper& zk) {
-            if (zk.exists("/testing", 0)) {
-                zk.recursive_delete("/testing/");
-                assert(zk.get_children("/testing", 0).size() == 0);
+            int error_code;
+            bool exists;
+            assert(zk.exists("/testing", exists, error_code));
+            if (exists) {
+                assert(zk.recursive_delete("/testing/", error_code));
+                // assert(zk.get_children("/testing", 0).size() == 0);
             } else {
-                zk.create("/testing", ZKWrapper::EMPTY_VECTOR);
+                assert(zk.create("/testing", ZKWrapper::EMPTY_VECTOR, error_code));
             }
+
         }
 
         // Objects declared here can be used by all tests in the test case for Foo.
@@ -36,25 +41,37 @@ namespace {
 
     TEST_F(ZKWrapperTest, RecursiveDelete) {
         preTest(* zk);
-        zk->create("/testing/child1", ZKWrapper::EMPTY_VECTOR);
-        zk->create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR);
-        zk->create("/testing/child1/child3", ZKWrapper::EMPTY_VECTOR);
 
-        zk->recursive_delete("/testing/child1");
-        ASSERT_EQ(false, zk->exists("/testing/child1", 0));
+        int error_code;
 
-        zk->create("/testing/child1", ZKWrapper::EMPTY_VECTOR);
-        zk->create("/testing/child2", ZKWrapper::EMPTY_VECTOR);
-        zk->create("/testing/child1/child1", ZKWrapper::EMPTY_VECTOR);
-        zk->create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR);
-        zk->create("/testing/child2/child1", ZKWrapper::EMPTY_VECTOR);
+        zk->create("/testing/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/testing/child1/child3", ZKWrapper::EMPTY_VECTOR, error_code);
 
-        zk->recursive_delete("/testing/");
-        ASSERT_EQ(0, zk->get_children("/testing", 0).size());
+        ASSERT_TRUE(zk->recursive_delete("/testing/child1", error_code));
+
+        bool exists;
+        ASSERT_TRUE(zk->exists("/testing/child1", exists, error_code));
+        ASSERT_EQ(false, exists);
+
+        zk->create("/testing/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/testing/child2", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/testing/child1/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/testing/child2/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+
+        zk->recursive_delete("/testing/", error_code);
+
+        auto children = std::vector<std::string>();
+        ASSERT_TRUE(zk->get_children("/testing", children, error_code));
+        ASSERT_EQ(0, children.size());
+
     }
 
     TEST_F(ZKWrapperTest, MultiOperation) {
         preTest(* zk);
+
+        int error_code;
 
         auto hello_vec = ZKWrapper::get_byte_vector("hello");
         auto jello_vec = ZKWrapper::get_byte_vector("jello");
@@ -72,9 +89,14 @@ namespace {
         std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
         zk->execute_multi(operations, results);
 
-        ASSERT_EQ(hello_vec, zk->get("/testing/child1", 0));
-        ASSERT_EQ(jello_vec, zk->get("/testing/child2", 0));
-        ASSERT_EQ(bye_vec, zk->get("/testing/toDelete", 0));
+        std::vector <std::uint8_t> vec = std::vector <std::uint8_t>();
+
+        zk->get("/testing/child1", vec, error_code);
+        ASSERT_EQ(hello_vec, vec);
+        zk->get("/testing/child2", vec, error_code);
+        ASSERT_EQ(jello_vec, vec);
+        zk->get("/testing/toDelete", vec, error_code);
+        ASSERT_EQ(bye_vec, vec);
 
         auto nhello_vec = ZKWrapper::get_byte_vector("new_hello");
         auto njello_vec = ZKWrapper::get_byte_vector("new_jello");
@@ -90,9 +112,14 @@ namespace {
 
         zk->execute_multi(operations, results);
 
-        ASSERT_EQ(nhello_vec, zk->get("/testing/child1", 0));
-        ASSERT_EQ(njello_vec, zk->get("/testing/child2", 0));
-        ASSERT_TRUE(!zk->exists("/toDelete", 0));
+        zk->get("/testing/child1", vec, error_code);
+        ASSERT_EQ(nhello_vec, vec);
+        zk->get("/testing/child2", vec, error_code);
+        ASSERT_EQ(njello_vec, vec);
+
+        bool exists;
+        assert(zk->exists("/testing/toDelete", exists, error_code));
+        ASSERT_TRUE(!exists);
     }
 }
 

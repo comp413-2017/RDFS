@@ -82,11 +82,21 @@ namespace zkclient{
 
 	void ZkNnClient::register_watches() {
 
+        int error_code;
+        // TODO: Do we have to free the returned children?
+        std::vector <std::string> children = std::vector <std::string>();
+
 		/* Place a watch on the health subtree */
-		std::vector <std::string> children = zk->wget_children("/health", watcher_health, nullptr);
+		if (!zk->wget_children("/health", children, watcher_health, nullptr, error_code)) {
+            // TODO: Handle error
+        }
+
 		for (int i = 0; i < children.size(); i++) {
 			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
-			std::vector <std::string> ephem = zk->wget_children("/health/" + children[i], watcher_health_child, nullptr);
+			std::vector <std::string> ephem = std::vector <std::string>();
+            if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code)) {
+                // TODO: Handle error
+            }
 			/*
 			   if (ephem.size() > 0) {
 			   std::cout << "Found ephem " << ephem[0] << std::endl;
@@ -98,7 +108,13 @@ namespace zkclient{
 	}
 
 	bool ZkNnClient::file_exists(const std::string& path) {
-		return zk->exists(ZookeeperPath(path), 0) == 0;
+        int error_code;
+        bool exists;
+        if (zk->exists(ZookeeperPath(path), exists, error_code)) {
+            return exists;
+        } else {
+            // TODO: Handle error
+        }
 	}
 
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
@@ -123,10 +139,14 @@ namespace zkclient{
 	}
 
 	void ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
+
+        int error_code;
 		const std::string& path = request.src();
 		if (!file_exists(path)) {
 			std::vector<std::uint8_t> vec;
-			zk->create(ZookeeperPath(path), vec, errorcode);
+			if (!zk->create(ZookeeperPath(path), vec, error_code)) {
+                // TODO: Handle error
+            }
 			HdfsFileStatusProto* status = response.mutable_fs();
 			FsPermissionProto* permission = status->mutable_permission();
 			// Shorcut to set permission to 777.
