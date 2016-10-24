@@ -52,6 +52,10 @@ TEST_F(DummyFSTest, CanRemoveBlock) {
 	ASSERT_EQ(0, rmBlock(blk_id));
 }
 
+TEST_F(DummyFSTest, RemoveNonExistBlockReturnsError) {
+	ASSERT_NE(0, rmBlock(blk_id));
+}
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
