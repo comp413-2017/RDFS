@@ -32,9 +32,6 @@ using namespace hadoop::hdfs;
 
 const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
-// config
-std::map <std::string, std::string> config;
-
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
 	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
@@ -87,7 +84,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	logMessage(req, "Create ");
 	CreateResponseProto res;
 	zk.create_file(req, res);
-    return Serialize(res);
+    	return Serialize(res);
 }
 
 
