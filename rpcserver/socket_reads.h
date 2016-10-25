@@ -14,6 +14,7 @@ namespace rpcserver {
 	bool read_int32(tcp::socket& sock, uint32_t* out);
 	bool read_int64(tcp::socket& sock, uint64_t* out);
 	size_t read_varint(tcp::socket& sock, uint64_t* out);
+	std::string read_string(tcp::socket& sock);
 	bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto,
 uint64_t *consumed);
 	bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto);
