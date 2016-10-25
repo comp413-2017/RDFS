@@ -8,8 +8,8 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
-#include <zookeeper.h>
 #include "zkwrapper.h"
+#include <zookeeper.h>
 
 int init = 0;
 zhandle_t *zh;

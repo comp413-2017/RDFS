@@ -1,8 +1,8 @@
 include_directories(${CMAKE_SOURCE_DIR}/zkwrapper)
 include_directories(${CMAKE_SOURCE_DIR}/zookeeper/include)
 
-add_library(zk_client_common source/zk_client_common.cc)
-target_link_libraries(zk_client_common zkwrapper)
+#add_library(zk_client_common source/zk_client_common.cc)
+#target_link_libraries(zk_client_common zkwrapper)
 
 add_library(zk_client_dn source/zk_client_dn.cc)
 target_link_libraries(zk_client_dn zk_client_common)
