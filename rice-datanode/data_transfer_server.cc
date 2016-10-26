@@ -35,8 +35,18 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		} else {
 			ERROR_AND_RETURN("Failed to receive header.");
 		}
-		// TODO: switch proto based on type
-		processReadRequest(sock);
+		// TODO: switch proto based on type for all types in header
+		switch (type) {
+			case (WRITE_BLOCK):
+				ERROR_AND_RETURN("Handler for write not written yet.");
+			case (READ_BLOCK):
+				//Read Block
+				processReadRequest(sock);
+				break;
+			default:
+				//Other block ops
+				ERROR_AND_RETURN("Unimplemented.");
+		}
 		sleep(5);
 	}
 }
