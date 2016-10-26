@@ -51,6 +51,7 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	logMessage(req, "GetFileInfo ");
 	GetFileInfoResponseProto res;
 	zk.get_info(req, res);
+	LOG(INFO) << res.DebugString();
 	return Serialize(res);
 }
 
@@ -87,6 +88,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	logMessage(req, "Create ");
 	CreateResponseProto res;
 	zk.create_file(req, res);
+	LOG(INFO) << res.DebugString();
     return Serialize(res);
 }
 
@@ -184,6 +186,18 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 
 	AbandonBlockResponseProto res; 
 	return Serialize(res);	
+}
+
+/**
+ * TODO: stub please fix. @swyrough
+ */
+std::string ClientNamenodeTranslator::addBlock(std::string input) {
+	AddBlockRequestProto req;
+	AddBlockResponseProto res;
+	req.ParseFromString(input);
+	logMessage(req, "AddBlock ");
+	zk.add_block(req, res);
+	return Serialize(res);
 }
 
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
@@ -296,6 +310,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
 	server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
 	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
+	server.register_handler("addBlock", std::bind(&ClientNamenodeTranslator::addBlock, this, _1));
 
 	// register handlers for unsupported calls
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));

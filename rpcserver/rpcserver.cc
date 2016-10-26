@@ -143,7 +143,7 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                 write_delimited_proto(sock, response)) {
                 LOG(INFO)  << "successfully wrote response to client.";
             } else {
-                LOG(INFO) << "failed to write response to client.";
+                LOG(ERROR) << "failed to write response to client.";
             }
         } else {
             LOG(INFO) << "no handler found for " << request_header.methodname();

@@ -39,6 +39,10 @@ namespace rpcserver {
         ::google::protobuf::io::CodedOutputStream::WriteVarint64ToArray(val, buf);
         size_t write_len = sock.write_some(asio::buffer(buf, len), error);
         delete[] buf;
+        if (error)
+            std::cout << error << std::endl;
+        if (write_len != len)
+            std::cout << write_len << " " << len << std::endl;
         return !error && write_len == len;
     }
 
@@ -48,6 +52,7 @@ namespace rpcserver {
      */
     bool write_delimited_proto(tcp::socket& sock, std::string& proto_bytes) {
         if (!write_varint(sock, proto_bytes.size())) {
+            std::cout << "varint failed hahaha " << proto_bytes.size() << std::endl;
             return false;
         }
         return write_proto(sock, proto_bytes);

@@ -122,6 +122,19 @@ namespace zkclient{
 		}
 	}
 
+	// TODO: take swyrough's version
+	void ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
+		LocatedBlockProto* block = res.mutable_block();
+		block->set_offset(0);
+		block->set_corrupt(false);
+		ExtendedBlockProto* eb = block->mutable_b();
+		eb->set_poolid("0");
+		eb->set_blockid(0);
+		eb->set_generationstamp(1);
+		eb->set_numbytes(8);
+	}
+
+
 	void ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
 		const std::string& path = request.src();
 		if (!file_exists(path)) {
