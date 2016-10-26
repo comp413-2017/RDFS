@@ -10,11 +10,15 @@ namespace config_reader {
  * The methods will need to be more specified to pick which config
  * file you are reading from. Right now it only reads in the HDFS
  * default xml file.
+ *
+ * If you want to add files, then just add a function in the constructor
+ * which parses the file. This assumes all key names are unique across ALL
+ * files
  */
 class ConfigReader {
 	public:
 		ConfigReader();
-		
+	
 		std::string getString(std::string key); 	
 		int getInt(std::string key);
 		bool getBool(std::string key);
