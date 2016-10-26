@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <chrono>
+#include <sys/time.h>
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
@@ -228,8 +230,12 @@ namespace zkclient{
 			std::cout << "sup";			
 			znode_data.length = 0;
 			znode_data.under_construction = 1; // TODO where are these enums
-			znode_data.access_time = 0; // TODO what are these
-			znode_data.modification_time = 0;
+			// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+			struct timeval tp;
+			gettimeofday(&tp, NULL);
+			uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+			znode_data.access_time = mslong; // TODO what are these
+			znode_data.modification_time = mslong;
 			strcpy(znode_data.owner, owner.c_str());
 			strcpy(znode_data.group, owner.c_str());
 			znode_data.replication = replication;
@@ -267,8 +273,12 @@ namespace zkclient{
 	 */ 
 	void ZkNnClient::set_mkdir_znode(FileZNode* znode_data) {
 		znode_data->length = 0;
-		znode_data->access_time = 0;
-		znode_data->modification_time = 0;
+		struct timeval tp;
+		gettimeofday(&tp, NULL);
+		// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+		uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		znode_data->access_time = mslong; // TODO what are these
+		znode_data->modification_time = mslong;
 		znode_data->blocksize = 0;
 		znode_data->replication = 0;
 		znode_data->filetype = 1;

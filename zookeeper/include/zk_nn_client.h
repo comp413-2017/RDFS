@@ -21,6 +21,7 @@ typedef struct
 	int under_construction; // 1 for under construction, 0 for complete
 	int filetype; // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported) 
 	std::uint64_t length; 
+	// https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/FileSystem.html#setOwner(org.apache.hadoop.fs.Path, java.lang.String, java.lang.String)
 	std::uint64_t access_time;
 	std::uint64_t modification_time;
 	char owner[256]; // the client who created the file 
