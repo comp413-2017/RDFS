@@ -56,6 +56,10 @@ TEST_F(DummyFSTest, RemoveNonExistBlockReturnsError) {
 	ASSERT_NE(0, rmBlock(blk_id));
 }
 
+TEST_F(DummyFSTest, AddExistBlockReturnsError) {
+	allocateBlock(block_id, blk);
+	ASSERTEQ(1, allocateBlock(block_id, blk));
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
