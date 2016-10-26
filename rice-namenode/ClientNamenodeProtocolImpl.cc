@@ -82,7 +82,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
-	CreateResponseProto res = CreateResponseProto::default_instance();
+	CreateResponseProto res;
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
 	logMessage(res, "Create response ");
@@ -103,18 +103,17 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	GetServerDefaultsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetServerDefaults ");
-	std::string out;
 	GetServerDefaultsResponseProto res;
-	FsServerDefaultsProto def;
+	FsServerDefaultsProto* def = res.mutable_serverdefaults();
 	// read all this config info
-	def.set_blocksize(getDefaultInt("dfs.blocksize"));
-	def.set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
-	def.set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
-	def.set_replication(getDefaultInt("dfs.replication"));
-	def.set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
-	def.set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
-	// TODO ChecksumTypeProto (optional)	
-	res.set_allocated_serverdefaults(&def);
+	def->set_blocksize(getDefaultInt("dfs.blocksize"));
+	def->set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
+	def->set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
+	def->set_replication(getDefaultInt("dfs.replication"));
+	def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
+	def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
+	// TODO ChecksumTypeProto (optional)
+	logMessage(res, "GetServerDefaults responsE ");
 	return Serialize(res);
 }
 
@@ -141,6 +140,7 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	if (!succ) {
 		LOG(ERROR) << "A client tried to close a file which is not theirs";
 	}
+	logMessage(res, "Complete responded ");
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
 	// for now, we claim to succeed.
 	return Serialize(res);

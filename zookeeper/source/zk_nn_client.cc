@@ -18,9 +18,7 @@ namespace zkclient{
 
 	ZkNnClient::ZkNnClient(std::string zkIpAndAddress) : ZkClientCommon(zkIpAndAddress) {
 
-	}
-
-	
+	}	
 
 	/*
 	 * A simple print function that will be triggered when 
@@ -87,19 +85,18 @@ namespace zkclient{
 
 	void ZkNnClient::register_watches() {
 
-        	int error_code;
         	// TODO: Do we have to free the returned children?
         	std::vector <std::string> children = std::vector <std::string>();
 
 		/* Place a watch on the health subtree */
-		if (!zk->wget_children("/health", children, watcher_health, nullptr, error_code)) {
+		if (!zk->wget_children("/health", children, watcher_health, nullptr, errorcode)) {
 	            // TODO: Handle error
         	}
 
 		for (int i = 0; i < children.size(); i++) {
 			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
 			std::vector <std::string> ephem = std::vector <std::string>();
-            		if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code)) {
+            		if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, errorcode)) {
                 		// TODO: Handle error
             		}
 			/*
@@ -113,12 +110,11 @@ namespace zkclient{
 	}
 
 	bool ZkNnClient::file_exists(const std::string& path) {
-        	int error_code;
         	bool exists;
-        	if (zk->exists(ZookeeperPath(path), exists, error_code)) {
+        	if (zk->exists(ZookeeperPath(path), exists, errorcode)) {
             		return exists;
         	} else {
-            	// TODO: Handle error
+            		// TODO: Handle error
         	}
 	}
 
@@ -126,9 +122,10 @@ namespace zkclient{
 	// --------------------------- PROTOCOL CALLS ---------------------------------------
 
 	void ZkNnClient::read_file_znode(FileZNode& znode_data, const std::string& path) {
-		int errorcode;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
-		zk->get(ZookeeperPath(path), data, errorcode);
+		if (!zk->get(ZookeeperPath(path), data, errorcode)) {
+			// TODO handle error
+		}
 		std::uint8_t *buffer = &data[0];
 		memcpy(&znode_data, buffer, sizeof(znode_data));
 	}
@@ -180,18 +177,27 @@ namespace zkclient{
 			std::vector<std::uint8_t> data(sizeof(*znode_data));
 			file_znode_struct_to_vec(znode_data, data);	
 			// crate the node in zookeeper 
-			int errorcode;
-			zk->create(ZookeeperPath(path), data, errorcode);
+			if (!zk->create(ZookeeperPath(path), data, errorcode)) {
+				std::cout << "Create failed" << std::endl;
+				return 0;
+				// TODO : handle error
+			}
 			return 1; 
 		}
 		return 0;
+	}
+
+	int ZkNnClient::destroy(DeleteRequestProto& request, DeleteResponseProto& response) {
+		const std::string& path = request.src();
+		bool recursive = request.recursive();
+		return 1;			
 	}
 
 	/**
 	 * Create a file in zookeeper 
 	 */ 
 	int ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
-
+		std::cout << "hello" << std::endl;
 		const std::string& path = request.src();
 		const std::string& owner = request.clientname();
 		bool create_parent = request.createparent();
@@ -206,6 +212,7 @@ namespace zkclient{
 		if (create_parent) {
 			std::string directory_paths = ""; 
 			auto split_path = split(path, '/');
+			std::cout << split_path.size() << std::endl;
 			for (int i = 0; i < split_path.size() - 1; i++) {
 				directory_paths += split_path[i];
 			}
@@ -218,10 +225,10 @@ namespace zkclient{
 		if (!file_exists(path)) {
 			// create the znode
 			FileZNode znode_data;
-			
+			std::cout << "sup";			
 			znode_data.length = 0;
 			znode_data.under_construction = 1; // TODO where are these enums
-			znode_data.access_time = 0;
+			znode_data.access_time = 0; // TODO what are these
 			znode_data.modification_time = 0;
 			strcpy(znode_data.owner, owner.c_str());
 			strcpy(znode_data.group, owner.c_str());
@@ -247,8 +254,9 @@ namespace zkclient{
 		znode_data.under_construction = 0;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		file_znode_struct_to_vec(&znode_data, data);
-		int error;	
-		zk->set(ZookeeperPath(src), data, error);
+		if (!zk->set(ZookeeperPath(src), data, errorcode)) {
+			// TODO : handle erro
+		}
 		res.set_result(true);		
 	}
 

@@ -49,7 +49,7 @@ class ZkNnClient : public ZkClientCommon {
 		int create_file(CreateRequestProto& request, CreateResponseProto& response);
 		void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);	
-		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
+		int destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 
 		/**
@@ -57,7 +57,7 @@ class ZkNnClient : public ZkClientCommon {
 		 */ 	
 		bool file_exists(const std::string& path);
 	private:
-		int* errorcode;
+		int errorcode;
 		/**
 		 * Set the file status proto with information from the znode struct and the path
 		 */
