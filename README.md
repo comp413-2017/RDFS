@@ -35,9 +35,6 @@ sudo apt-get install libasio-dev
 mkdir build
 cd build
 
-sudo apt-get install libboost-all-dev
-sudo apt-get install libasio-dev 
-
 cmake ..
 make
 ```
@@ -59,6 +56,11 @@ make
 ```
 in the test/ directory.
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
+
+A githook has been added at rdfs/test/pre-commit.  It's a shell script that will build and run 
+the unit tests.  To use it, copy the file to rdfs/.git/hooks.  Then, before each commit is made
+the tests will run, and a failure will halt the commit.  If this is too restrictive, renaming
+the file to pre-push will do the same thing only when you try to push.
 
 Namenode:
 Run the namenode executable from build/rice-namenode. 
@@ -84,12 +86,17 @@ verification of expectations.
 The typical flow is:
 1. Import the Google Mock names you need to use. All Google Mock names are
 in the `testing` namespace unless they are macros or otherwise noted.
+
 2. Create the mock objects.
+
 3. Optionally, set the default actions of the mock objects.
+
 4. Set your expectations on the mock objects (How will they be called? What
 will they do?).
+
 5. Exercise code that uses the mock objects; if necessary, check the result
 using [Google Test](../../googletest/) assertions.
+
 6. When a mock objects is destructed, Google Mock automatically verifies
 that all expectations on it have been satisfied.
 
