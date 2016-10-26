@@ -38,8 +38,8 @@ unsigned char* getBlock(long id)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
-    char* filename = const_cast<char*>(strFilename.c_str());
-    const long blockSize = 67108864;
+	char* filename = const_cast<char*>(strFilename.c_str());
+	const long blockSize = 67108864;
 	// Open file
 	FILE* file;
 	file = fopen(filename, "r");
@@ -72,27 +72,25 @@ unsigned char* getBlock(long id)
 // Given an ID, deletes a block. Returns -1 on error, 0 otherwise
 int rmBlock(long id)
 {
-        std::string fileName;
+	std::string fileName;
 
-        // Find and delete block in mapping
-        auto iter = blockMap.find(id);
-        if(iter == blockMap.end()){
-                fputs("Error: block not found\n", stderr);
-                return -1;
-        }
-        fileName = iter->second;
+	// Find and delete block in mapping
+	auto iter = blockMap.find(id);
+	if(iter == blockMap.end()){
+		fputs("Error: block not found\n", stderr);
+		return -1;
+	}
+	fileName = iter->second;
 
 	//Copy to a char*, which erase and remove need
 	char *fileNameFmtd = const_cast<char*>(fileName.c_str());
-        blockMap.erase(iter);
+	blockMap.erase(iter);
 
-        // Delete the corresponding file
-        puts("Succesfully found file to delete: \n");
-	puts(fileNameFmtd);
-        if( remove(fileNameFmtd) != 0 ){
-                fputs("Error deleting file\n", stderr);
-                return -1;
-        }
-        return 0;
+	// Delete the corresponding file
+	if( remove(fileNameFmtd) != 0 ){
+		fputs("Error deleting file\n", stderr);
+		return -1;
+	}
+	return 0;
 
 }
