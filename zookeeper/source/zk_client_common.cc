@@ -3,6 +3,7 @@
 
 #include "../include/zk_client_common.h"
 
+#include <easylogging++.h>
 #include <zkwrapper.h>
 #include <iostream>
 
@@ -16,7 +17,7 @@ namespace zkclient {
 
     void ZkClientCommon::init() {
         /* return 0 if path exists, 1 otherwise. */
-        std::cout << "Initializing ZkClientCommon" << std::endl;
+        LOG(INFO) << "Initializing ZkClientCommon";
         auto vec = ZKWrapper::get_byte_vector("");
 
         bool exists;
@@ -52,7 +53,7 @@ namespace zkclient {
             // TODO: Handle error
         }
 
-        std::cout << "Finished ZkClientCommon" << std::endl;
+        LOG(INFO) << "Finished ZkClientCommon";
 
     }
 }

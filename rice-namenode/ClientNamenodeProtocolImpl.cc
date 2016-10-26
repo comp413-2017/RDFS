@@ -70,10 +70,8 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	logMessage(req, "Delete ");
 	const std::string& src = req.src();
 	const bool recursive = req.recursive();
-	std::string out;
 	DeleteResponseProto res;
-	// TODO for now, just say the delete command failed
-	res.set_result(false);
+	zk.destroy(req, res);
 	return Serialize(res);
 }
 
@@ -279,7 +277,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
 	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
 	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
-	server.register_handler("destroy", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
+	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
 	server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 	server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));

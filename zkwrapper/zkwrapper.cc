@@ -10,6 +10,7 @@
 #include <vector>
 #include "zkwrapper.h"
 #include <zookeeper.h>
+#include <easylogging++.h>
 
 int init = 0;
 zhandle_t *zh;
@@ -32,8 +33,8 @@ void watcher(zhandle_t *zzh,
 		int state,
 		const char *path,
 		void *watcherCtx) {
-	std::cout << "[Global watcher] Watcher triggered on path '" << path << "'"
-		<< std::endl;
+	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'"
+		;
 	char health[] = "/health/datanode_";
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE) {
@@ -60,7 +61,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code) {
 	// TODO: Move these default values to some readable CONSTANT value
 	zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
 	if (!zh) {
-		fprintf(stderr, "zk init failed!");
+		LOG(ERROR) << "zk init failed!";
 		error_code = -999;
 	}
 	init = 1;
@@ -72,7 +73,7 @@ bool ZKWrapper::create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		int &error_code) const {
 	if (!init) {
-		fprintf(stderr, "Attempt to create before init!");
+		LOG(ERROR) << "Attempt to create before init!";
 		error_code = -999;
 		return false;
 	}
@@ -96,16 +97,16 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		bool ephemeral,
 		int &error_code) const {
 
-	std::cout << "Starting sequential for " << path << std::endl;
+	LOG(INFO) << "Starting sequential for " << path;
 	if (!init) {
-		fprintf(stderr, "Attempt to create before init!");
+		LOG(ERROR) << "Attempt to create before init!";
 		return false;
 	}
 	int flag = ZOO_SEQUENCE;
 	if (ephemeral) {
 		flag = flag | ZOO_EPHEMERAL;
 	}
-	std::cout << "Attempting to generate new path" << new_path << std::endl;
+	LOG(INFO) << "Attempting to generate new path" << new_path;
 	int len = path.size();
 	new_path.resize(MAX_PATH_LEN);
 	int rc = zoo_create(zh,
@@ -122,9 +123,9 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		return false;
 	}
 	int i = 0;
-	std::cout << "NEW path is " << new_path << std::endl;
+	LOG(INFO) << "NEW path is " << new_path;
 	new_path.resize(len+10);
-	std::cout << "NEW path is now this" << new_path << std::endl;
+	LOG(INFO) << "NEW path is now this" << new_path;
 	return true;
 }
 
@@ -179,9 +180,9 @@ bool ZKWrapper::get(const std::string &path,
 	struct Stat stat;
 	int len = MAX_PAYLOAD;
 	// TODO: Perhaps we can be smarter about this
-	// std::cout << "Data resizing to " << len << std::endl;
+	// LOG(INFO) << "Data resizing to " << len;
 	data.resize(len);
-	// std::cout << "Data resizing to 1;" << data.size() << std::endl;
+	// LOG(INFO) << "Data resizing to 1;" << data.size();
 	error_code = zoo_get(zh,
 			path.c_str(),
 			0,

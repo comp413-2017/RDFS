@@ -102,6 +102,15 @@ class ZkNnClient : public ZkClientCommon {
 		 * Serialize a znode struct representation to a byte array to feed into zookeeper
 		 */
 		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
+
+		/**
+		 * Try to delete a node and log error if we couldnt and set response to false
+		 */
+		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
+
+		const int UNDER_CONSTRUCTION = 1;
+		const int FILE_COMPLETE = 0;
+		const int UNDER_DESTRUCTION = 2; 
 };
 
 } // namespace
