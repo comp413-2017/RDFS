@@ -132,6 +132,24 @@ namespace zkclient{
 		eb->set_blockid(0);
 		eb->set_generationstamp(1);
 		eb->set_numbytes(8);
+		DatanodeInfoProto* dn_info = block->add_locs();
+		DatanodeIDProto* id = dn_info->mutable_id();
+		id->set_ipaddr("127.0.0.1");
+		id->set_hostname("localhost");
+		id->set_datanodeuuid("1234");
+		// TODO: fill in from config
+		id->set_xferport(50010);
+		id->set_infoport(50020);
+		id->set_ipcport(50030);
+
+		// Construct security token.
+		hadoop::common::TokenProto* token = block->mutable_blocktoken();
+		// TODO what do these mean
+		token->set_identifier("open");
+		token->set_password("sesame");
+		token->set_kind("foo");
+		token->set_service("bar");
+
 	}
 
 
