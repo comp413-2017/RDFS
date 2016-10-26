@@ -87,20 +87,20 @@ namespace zkclient{
 
 	void ZkNnClient::register_watches() {
 
-        	// TODO: Do we have to free the returned children?
-        	std::vector <std::string> children = std::vector <std::string>();
+        // TODO: Do we have to free the returned children?
+        std::vector <std::string> children = std::vector <std::string>();
 
 		/* Place a watch on the health subtree */
 		if (!zk->wget_children("/health", children, watcher_health, nullptr, errorcode)) {
 	            // TODO: Handle error
-        	}
+		}
 
 		for (int i = 0; i < children.size(); i++) {
 			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
 			std::vector <std::string> ephem = std::vector <std::string>();
-            		if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, errorcode)) {
-                		// TODO: Handle error
-            		}
+			if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, errorcode)) {
+				// TODO: Handle error
+            }
 			/*
 			   if (ephem.size() > 0) {
 			   std::cout << "Found ephem " << ephem[0] << std::endl;
@@ -112,12 +112,12 @@ namespace zkclient{
 	}
 
 	bool ZkNnClient::file_exists(const std::string& path) {
-        	bool exists;
-        	if (zk->exists(ZookeeperPath(path), exists, errorcode)) {
-            		return exists;
-        	} else {
-            		// TODO: Handle error
-        	}
+        bool exists;
+		if (zk->exists(ZookeeperPath(path), exists, errorcode)) {
+			return exists;
+		} else {
+			// TODO: Handle error
+        }
 	}
 
 
@@ -189,10 +189,65 @@ namespace zkclient{
 		return 0;
 	}
 
-	int ZkNnClient::destroy(DeleteRequestProto& request, DeleteResponseProto& response) {
+
+	/**
+	 * Go down directories recursively. If a child is a file, then put its deletion on a queue.
+	 * Files delete themselves, but directories are deleted by their parent (so root can't be deleted) 
+	 */	
+	void ZkNnClient::destroy(DeleteRequestProto& request, DeleteResponseProto& response) {
 		const std::string& path = request.src();
 		bool recursive = request.recursive();
-		return 1;			
+		if (!file_exists(path)) {
+			response.set_result(false);
+			return;
+		}
+		FileZNode znode_data;
+		read_file_znode(znode_data, path);	
+		if (recursive) {
+			// we cannot have a file if we are deleting recursively
+			if (znode_data.filetype != 1 || znode_data.filetype != 0) {
+				response.set_result(false);		
+				return;
+			}
+			// get the kids
+			std::vector<std::string> children;
+			if (!zk->get_children(path, children, errorcode)) {
+				response.set_result(false);
+				return;
+			}
+			// delete the kids
+			for (auto src : children) {
+				FileZNode znode_data_child;
+				read_file_znode(znode_data, src);
+				DeleteRequestProto request_child;
+				DeleteResponseProto response_child;
+				request.set_src(src);
+				if (znode_data_child.filetype == 2) {
+					request.set_recursive(false);
+				}  
+				else if (znode_data_child.filetype == 1) {
+					request.set_recursive(true);
+				} else {
+					// TODO handle error
+				}
+				destroy(request_child, response_child);
+				if (response_child.result() == false) {
+					response.set_result(false);
+					return;
+				}
+				if (znode_data_child.filetype == 1) {
+					// TODO delete the child 
+				}	
+			}
+		} else {
+			// we cannot have a directory if we are not recursively deleting 
+			if (znode_data.filetype != 2) {
+				response.set_result(false);
+				return;
+			}
+			// TODO delete all of this dudes blocks (or put the cmd on a queue), then delete the dude
+			
+		}
 	}
 
 	/**

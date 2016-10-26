@@ -50,7 +50,7 @@ class ZkNnClient : public ZkClientCommon {
 		int create_file(CreateRequestProto& request, CreateResponseProto& response);
 		void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);	
-		int destroy(DeleteRequestProto& req, DeleteResponseProto& res);
+		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 
 		/**
