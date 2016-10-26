@@ -6,8 +6,8 @@
 #include <iostream>
 #include <memory>
 #include <cstring>
-#include <zookeeper.h>
 #include <map>
+#include <zookeeper.h>
 
 enum ZK_ERRORS {
     OK = 0,

@@ -6,6 +6,7 @@
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <google/protobuf/message.h>
+#include <ConfigReader.h>
 
 namespace zkclient {
 
@@ -21,9 +22,9 @@ typedef struct
 	int filetype; 
 	std::uint64_t length;
 	std::uint64_t access_time;
-	std::uint64_t modication_time;
-	std::string owner;
-	std::string group;
+	std::uint64_t modification_time;
+	char owner[256];
+	char group[256];
 }FileZNode;
 
 using namespace hadoop::hdfs;
@@ -45,10 +46,11 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 
 		void get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res);
-		void create_file(CreateRequestProto& request, CreateResponseProto& response);
+		int create_file(CreateRequestProto& request, CreateResponseProto& response);
 		void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
-		void mkdir(MkdirRequestProto& req, MkdirResponseProto& res);	
+		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);	
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
+		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls 
@@ -59,7 +61,7 @@ class ZkNnClient : public ZkClientCommon {
 		/**
 		 * Set the file status proto with information from the znode struct and the path
 		 */
-		void set_file_info(HdfsFileStatusProto& fs, std::string path, FileZNode node);
+		void set_file_info(HdfsFileStatusProto* fs, const std::string& path, FileZNode& node);
 		/**
 		 * Given the filesystem path, get the full zookeeper path
 		 */ 
@@ -73,7 +75,8 @@ class ZkNnClient : public ZkClientCommon {
 		 * Crate a znode corresponding to a file of "filetype", with path "path", with
 		 * znode data contained in "znode_data"
 		 */
-		void create_file_znode(int filetype, std::string& path, FileZNode* znode_data);
+		int create_file_znode(const std::string &path, FileZNode* znode_data);
+		
 		/**
 		 * Split the string according to delimiter
 		 */
@@ -87,7 +90,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * all the parent directories which are not in zookeeper already. Return false
 		 * if the creation did not work, true otherwise 
 		 */ 
-		bool :mkdir_helper(std::string& path, bool create_parent);
+		bool mkdir_helper(const std::string &path, bool create_parent);
+
+		void read_file_znode(FileZNode& znode_data, const std::string& path);
+
+		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
 };
 
 } // namespace

@@ -14,10 +14,12 @@ int main(int argc, char* argv[]) {
     std::string id = argv[1];
 
     {
+        int error_code;
+
         zkclient::ZkClientDn client(id, "localhost:2181");
         client.registerDataNode();
-		int* errorcode;
-        ZKWrapper zk("localhost:2181", errorcode);
+        ZKWrapper zk("localhost:2181", error_code);
+        assert(error_code == 0); // Stands for ZOK
 
         // std::cout << zk.get_children("/health", 0)[0] << std::endl;
         while(true){

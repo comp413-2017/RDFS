@@ -9,7 +9,6 @@
 #include "zk_nn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
 
-// initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
 
 #define LOG_CONFIG_FILE "nn-log-conf.conf"
@@ -27,6 +26,7 @@ int main(int argc, char* argv[]) {
 	}
 	zkclient::ZkNnClient nncli("localhost:2181");
 	nncli.register_watches();
+	std::cout << "Namenode is starting" << std::endl;
 	ClientNamenodeTranslator translator(port, nncli);
 	translator.getRPCServer().serve(io_service);
 }

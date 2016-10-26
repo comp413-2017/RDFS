@@ -3,12 +3,14 @@
 
 #include "../include/zk_nn_client.h"
 #include "zkwrapper.h"
-#include <iostreami>
+#include <iostream>
+#include <sstream>
 #include <ctime>
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <google/protobuf/message.h>
+#include <ConfigReader.h>
 
 namespace zkclient{
 
@@ -85,11 +87,21 @@ namespace zkclient{
 
 	void ZkNnClient::register_watches() {
 
+        	int error_code;
+        	// TODO: Do we have to free the returned children?
+        	std::vector <std::string> children = std::vector <std::string>();
+
 		/* Place a watch on the health subtree */
-		std::vector <std::string> children = zk->wget_children("/health", watcher_health, nullptr);
+		if (!zk->wget_children("/health", children, watcher_health, nullptr, error_code)) {
+	            // TODO: Handle error
+        	}
+
 		for (int i = 0; i < children.size(); i++) {
 			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
-			std::vector <std::string> ephem = zk->wget_children("/health/" + children[i], watcher_health_child, nullptr);
+			std::vector <std::string> ephem = std::vector <std::string>();
+            		if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code)) {
+                		// TODO: Handle error
+            		}
 			/*
 			   if (ephem.size() > 0) {
 			   std::cout << "Found ephem " << ephem[0] << std::endl;
@@ -101,65 +113,105 @@ namespace zkclient{
 	}
 
 	bool ZkNnClient::file_exists(const std::string& path) {
-		return zk->exists(ZookeeperPath(path), 0) == 0;
+        	int error_code;
+        	bool exists;
+        	if (zk->exists(ZookeeperPath(path), exists, error_code)) {
+            		return exists;
+        	} else {
+            	// TODO: Handle error
+        	}
 	}
 
 
 	// --------------------------- PROTOCOL CALLS ---------------------------------------
 
+	void ZkNnClient::read_file_znode(FileZNode& znode_data, const std::string& path) {
+		int errorcode;
+		std::vector<std::uint8_t> data(sizeof(znode_data));
+		zk->get(ZookeeperPath(path), data, errorcode);
+		std::uint8_t *buffer = &data[0];
+		memcpy(&znode_data, buffer, sizeof(znode_data));
+	}
+
+	void ZkNnClient::file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t>& data) {
+		memcpy(&data[0], znode_data, sizeof(*znode_data));
+	}
+
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
 		const std::string& path = req.src();
-		if (file_exists(path)) {
-			// read the node into the file node struct
-			int errorcode;
+		// special casee the root
+		if (path == "/") {
+			HdfsFileStatusProto* status = res.mutable_fs();
 			FileZNode znode_data;
-			std::vector<std::uint8_t> data(sizeof(znode_data));
-			zk->get(ZookeeperPath(path), data, errorcode);
-			std::uint8_t buffer* = &data[0];
-			memcpy(&znode_data, buffer, sizeof(znode_data)); 
-			
+			set_mkdir_znode(&znode_data);
+			set_file_info(status, path, znode_data);
+			std::cout << "Got info for root" << std::endl;	
+			return;
+		}
+		
+		if (file_exists(path)) {
+			std::cout << "File exists" << std::endl;
+			// read the node into the file node struct
+			FileZNode znode_data;
+			read_file_znode(znode_data, path);		
+	
 			// set the file status in the get file info response res
 			HdfsFileStatusProto* status = res.mutable_fs();
 			set_file_info(status, path, znode_data);	
+			std::cout << "Got info for file " << std::endl;
+			std::flush(std::cout);
+			return;
 		}
+		std::cout << "No file to get info for" << std::endl;
 	}
 
 	/**
 	 * Create a node in zookeeper corresponding to a file 
 	 */
-	int ZkNnClient::create_file_znode(std::string& path, FileZNode* znode_data) {
+	int ZkNnClient::create_file_znode(const std::string& path, FileZNode* znode_data) {
 		if (!file_exists(path)) {	
+			std::cout<< "Creating znode at " << path << std::endl; 
+			{
+				std::cout << znode_data->replication << std::endl;
+				std::cout << znode_data->owner << std::endl;
+				std::cout << "size of znode is " << sizeof(*znode_data) << std::endl;
+			}
 			// serialize struct to byte vector 
-			std::vector<std::uint8_t> data(sizeof(znode_data));
-			memcpy(&data[0], znode_data, sizeof(znode_data));
+			std::vector<std::uint8_t> data(sizeof(*znode_data));
+			file_znode_struct_to_vec(znode_data, data);	
 			// crate the node in zookeeper 
 			int errorcode;
 			zk->create(ZookeeperPath(path), data, errorcode);
-			return errorcode; 
+			return 1; 
 		}
+		return 0;
 	}
 
 	/**
 	 * Create a file in zookeeper 
 	 */ 
-	void ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
+	int ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
+
 		const std::string& path = request.src();
 		const std::string& owner = request.clientname();
 		bool create_parent = request.createparent();
 		std::uint64_t blocksize = request.blocksize();
 		std::uint32_t replication = request.replication();
-	
-		if (file_exits(path))
-			return;
+		std::uint32_t createflag = request.createflag();
+
+		if (file_exists(path))
+			return 0;
 
 		// If we need to create directories, do so 
 		if (create_parent) {
 			std::string directory_paths = ""; 
 			auto split_path = split(path, '/');
 			for (int i = 0; i < split_path.size() - 1; i++) {
-				directory_paths += split_paths[i];
+				directory_paths += split_path[i];
 			}
-			mkdir_helper(directory_paths, true); 
+			// try and make all the parents
+			if (!mkdir_helper(directory_paths, true))
+				return 0; 
 		}
 
 		// Now create the actual file which will hold blocks 	
@@ -169,41 +221,55 @@ namespace zkclient{
 			
 			znode_data.length = 0;
 			znode_data.under_construction = 1; // TODO where are these enums
-			znode_data.access_time = time();
-			znode_data.modication_time = time();
-			znode_data.owner = owner;
-			znode_data.group = "foo"; 
+			znode_data.access_time = 0;
+			znode_data.modification_time = 0;
+			strcpy(znode_data.owner, owner.c_str());
+			strcpy(znode_data.group, owner.c_str());
 			znode_data.replication = replication;
 			znode_data.blocksize = blocksize;
-			znode_data.filetype = HdfsFileStatusProto::IS_FILE;	
+			znode_data.filetype = 2;	
 
 			// if we failed, then do not set any status 
 			if (!create_file_znode(path, &znode_data))
-				return;
+				return 0;
 
-			// set the return info 	
 			HdfsFileStatusProto* status = response.mutable_fs();
-			set_file_info(status, path, &znode_data);
+			set_file_info(status, path, znode_data);
 		}
+		return 1;
 	}
+
+	void ZkNnClient::complete(CompleteRequestProto& req, CompleteResponseProto& res) {
+		// change the under construction bit
+		const std::string& src = req.src();
+		FileZNode znode_data;
+		read_file_znode(znode_data, src);
+		znode_data.under_construction = 0;
+		std::vector<std::uint8_t> data(sizeof(znode_data));
+		file_znode_struct_to_vec(&znode_data, data);
+		int error;	
+		zk->set(ZookeeperPath(src), data, error);
+		res.set_result(true);		
+	}
+
+	// ------- make a directory
 
 	/**
 	 * Set the default information for a directory znode 
 	 */ 
 	void ZkNnClient::set_mkdir_znode(FileZNode* znode_data) {
 		znode_data->length = 0;
-		znode_data->access_time = time();
-		znode_data->modication_time = time();
-		znode_data->owner = "foo"
+		znode_data->access_time = 0;
+		znode_data->modification_time = 0;
 		znode_data->blocksize = 0;
 		znode_data->replication = 0;
-		znode_data->filetype = HdfsFileStatusProto::IS_DIR;
+		znode_data->filetype = 1;
 	}
 
 	/**
 	 * Make a directory in zookeeper
 	 */ 
-	void ZkNnClient::mkdir(MkdirRequestProto& request, MkdirResponseProto& response) {	
+	void ZkNnClient::mkdir(MkdirsRequestProto& request, MkdirsResponseProto& response) {	
 		const std::string& path = request.src();
 		bool create_parent = request.createparent();
 		if (!mkdir_helper(path, create_parent)) {
@@ -216,16 +282,12 @@ namespace zkclient{
 	 * Helper for creating a direcotyr znode. Iterates over the parents and crates them
 	 * if necessary. 
 	 */ 
-	bool ZkNnClient::mkdir_helper(std::string& path, bool create_parent) {
-		const std::string& path = request.src();
-		bool create_parent = request.createparent();
-
+	bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
 		if (create_parent) {
-			//TODO abstract this away to a helper function (both mkdir and create have createparent field)
-			std::string p_path("");
-			auto split_path = split(p_path, '/');
+			auto split_path = split(path, '/');
 			bool not_exist = false;
 			std::string unroll;
+			std::string p_path = "";
 			for (int i = 0; i < split_path.size(); i++) {
 				p_path += split_path[i] + "/";
 				if (!file_exists(p_path)) {
@@ -247,13 +309,13 @@ namespace zkclient{
 		else {
 			FileZNode znode_data;
 			set_mkdir_znode(&znode_data);
-			return create_file_znode(path, &znode_data));	
+			return create_file_znode(path, &znode_data);	
 		}
 		return true; 
 	}
 
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
-		const std::string& src = req.src();
+		const std::string &src = req.src();
 		google::protobuf::uint64 offset = req.offset();
 		google::protobuf::uint64 length = req.offset();
 		LocatedBlocksProto* blocks = res.mutable_locations();
@@ -305,19 +367,42 @@ namespace zkclient{
 		return zkpath;
 	}
 
-	void ZkNnClient::set_file_info(HdfsFileStatusProto* status, std::string& path, FileZNode& znode_data) {
-		                        FsPermissionProto* permission = status->mutable_permission();
+	void ZkNnClient::set_file_info(HdfsFileStatusProto* status, const std::string& path, FileZNode& znode_data) {
+		HdfsFileStatusProto_FileType filetype;
+		std::cout << znode_data.filetype << " HEY " << std::endl;
+		// get the filetype, since we do not want to serialize an enum	
+		switch(znode_data.filetype) {
+			case(0):
+				filetype = HdfsFileStatusProto::IS_DIR;
+				break;
+			case(1):
+				filetype = HdfsFileStatusProto::IS_DIR;
+                                break;
+			case(2):
+				filetype = HdfsFileStatusProto::IS_FILE;
+				break;
+			default:
+				break;
+
+		}
+		
+		FsPermissionProto* permission = status->mutable_permission();
 		// Shorcut to set permission to 777.
 		permission->set_perm(~0);
 		// Set it to be a file with length 1, "foo" owner and group, 0
 		// modification/access time, "0" path inode.
-		status->set_filetype(znode_data.filetype);
+		status->set_filetype(filetype);
 		status->set_path(path);
 		status->set_length(znode_data.length);
-		status->set_owner(znode_data.owner);
-		status->set_group(znode_data.group);
+		
+		std::string owner(znode_data.owner);
+		std::string group(znode_data.group);
+		status->set_owner(owner);
+		status->set_group(group);
+		
 		status->set_modification_time(znode_data.modification_time);
 		status->set_access_time(znode_data.access_time);
+		std::cout << "Set file info " << std::endl;
 	}
 
 	/**

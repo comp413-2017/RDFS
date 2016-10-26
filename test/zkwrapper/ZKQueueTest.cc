@@ -10,11 +10,14 @@ namespace {
     class ZKQueueTest : public ::testing::Test {
     protected:
         virtual void SetUp() {
+
+            int error_code;
             // Code here will be called immediately after the constructor (right
             // before each test).
             system("sudo ~/zookeeper/bin/zkServer.sh start");
 
-            zk = new ZKWrapper("localhost:2181");
+            zk = new ZKWrapper("localhost:2181", error_code);
+            assert(error_code == 0); // Z_OK
             queue = new ZKQueue(*zk, "/queue_test");
         }
 

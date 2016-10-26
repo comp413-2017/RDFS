@@ -47,7 +47,7 @@ LeaseManager::LeaseManager() {}
 /**
  * Create a lease for a file 
  */
-bool LeaseManager::addLease(std::string client, std::string file) {
+bool LeaseManager::addLease(const std::string& client, const std::string& file) {
 	if (leases.find(client) == leases.end()) { // if this client is not in the map, init the vector
 		std::vector<Lease> clientLeases;
 		leases[client] = clientLeases; 
@@ -60,7 +60,7 @@ bool LeaseManager::addLease(std::string client, std::string file) {
 /**
  * Remove the lease associated with the client and file
  */
-bool LeaseManager::removeLease(std::string client, std::string file) {
+bool LeaseManager::removeLease(const std::string& client, const std::string& file) {
 	int i = 0;
 	for (Lease lease : leases[client]) {
 		if (lease.getFile() == file) {

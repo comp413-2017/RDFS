@@ -27,6 +27,7 @@
  */
 namespace client_namenode_translator {
 
+
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
@@ -48,6 +49,8 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	logMessage(req, "GetFileInfo ");
 	GetFileInfoResponseProto res;
 	zk.get_info(req, res);
+	std::cout << "hello " << std::endl;
+	logMessage(res, "GetFileInfo response ");
 	return Serialize(res);
 }
 
@@ -55,13 +58,10 @@ std::string ClientNamenodeTranslator::mkdir(std::string input) {
 	MkdirsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Mkdir ");
-	const std::string& src = req.src();
-	const hadoop::hdfs::FsPermissionProto& permission_msg = req.masked();
-	bool create_parent = req.createparent();
-	std::string out;
 	MkdirsResponseProto res;
 	// TODO for now, just say the mkdir command failed
-	res.set_result(false);
+	zk.mkdir(req, res);
+	logMessage(res, "Mkdir response ");
 	return Serialize(res);
 }
 
@@ -82,8 +82,10 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
-	CreateResponseProto res;
-	zk.create_file(req, res);
+	CreateResponseProto res = CreateResponseProto::default_instance();
+	if (zk.create_file(req, res))
+		lease_manager.addLease(req.clientname(), req.src());
+	logMessage(res, "Create response ");
     	return Serialize(res);
 }
 
@@ -131,19 +133,16 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	CompleteRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Complete ");
-	const std::string& src = req.src();
-	const std::string& clientname = req.clientname();
+	CompleteResponseProto res;
 	// TODO some optional fields need to be read
+	zk.complete(req, res); 
 	// remove the lease from this file  
-	bool succ = lease_manager.removeLease(clientname, src);
+	bool succ = lease_manager.removeLease(req.clientname(), req.src());
 	if (!succ) {
 		LOG(ERROR) << "A client tried to close a file which is not theirs";
 	}
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
 	// for now, we claim to succeed.
-	bool result = true;
-	CompleteResponseProto res;
-	res.set_result(result);
 	return Serialize(res);
 }
 
@@ -284,7 +283,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
     // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
-	server.register_handler("mkdir", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
+	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
 	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
 	server.register_handler("destroy", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
