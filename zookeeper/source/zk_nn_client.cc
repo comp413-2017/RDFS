@@ -12,6 +12,9 @@
 #include <google/protobuf/message.h>
 #include <ConfigReader.h>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+
 namespace zkclient{
 
 	using namespace hadoop::hdfs;
@@ -417,6 +420,31 @@ namespace zkclient{
 			elems.push_back(item);
 		}
 		return elems;
+	}
+
+	bool ZkNnClient::addBlock(const std::string& fileName, std::vector<std::string> & dataNodes) const {
+
+		// TODO: Check if file is still under construction
+		// TODO: Check the replication factor
+		// TODO: Find datanodes
+		// TODO: Generate UUID and create sequential node
+		// TODO: Create ack node
+
+		return true;
+	}
+
+	bool ZkNnClient::generateBlockUUID(std::vector<uint8_t>& uuid_vec) const {
+		uuid_vec.resize(16);
+		auto uuid = boost::uuids::random_generator()();
+		memcpy(uuid_vec.data(), &uuid, 16);
+		return true;
+	}
+
+	bool ZkNnClient::findDataNodeForBlock(const std::vector<uint8_t>& uuid, bool newBlock) const {
+		std::vector<std::string> datanodes;
+		// zk->getChildren();
+		// TODO: Perform a search for datanodes, possibly cached
+		return true;
 	}
 }
 

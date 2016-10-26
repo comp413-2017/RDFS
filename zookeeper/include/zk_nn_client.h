@@ -52,6 +52,8 @@ class ZkNnClient : public ZkClientCommon {
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 
+		bool addBlock(const std::string& fileName, std::vector<std::string> & dataNodes) const;
+
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls 
 		 */ 	
@@ -95,6 +97,9 @@ class ZkNnClient : public ZkClientCommon {
 		void read_file_znode(FileZNode& znode_data, const std::string& path);
 
 		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
+
+		bool generateBlockUUID(std::vector<uint8_t>& uuid) const;
+		bool findDataNodeForBlock(const std::vector<uint8_t>& uuid_vec, bool newBlock = false) const;
 };
 
 } // namespace
