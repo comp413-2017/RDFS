@@ -50,7 +50,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
 	std::string response_string;
-	buildReadResponse(&response_string);
+	buildReadResponse(response_string);
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
@@ -101,7 +101,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	}
 }
 
-void TransferServer::buildReadResponse(std::string* response_string) {
+void TransferServer::buildReadResponse(std::string& response_string) {
 	BlockOpResponseProto response;
 	response.set_status(SUCCESS);
 	OpBlockChecksumResponseProto* checksum_res = response.mutable_checksumresponse();
@@ -113,8 +113,8 @@ void TransferServer::buildReadResponse(std::string* response_string) {
 	ChecksumProto* checksum = checksum_info->mutable_checksum();
 	checksum->set_type(CHECKSUM_NULL);
 	checksum->set_bytesperchecksum(17);
-	response.SerializeToString(response_string);
-	LOG(INFO) << std::endl << response_string;
+	response.SerializeToString(&response_string);
+	LOG(INFO) << std::endl << response.DebugString();
 }
 
 void TransferServer::serve(asio::io_service& io_service) {

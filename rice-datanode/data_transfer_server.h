@@ -17,6 +17,6 @@ class TransferServer {
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
 		void handle_connection(tcp::socket sock);
 		void processReadRequest(tcp::socket& sock);
-		void buildReadResponse(std::string* response_string);
+		void buildReadResponse(std::string& response_string);
 };
 
