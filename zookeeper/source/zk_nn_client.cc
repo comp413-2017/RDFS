@@ -321,7 +321,7 @@ namespace zkclient{
 		}
 		return true; 
 	}
-
+	
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 		const std::string &src = req.src();
 		google::protobuf::uint64 offset = req.offset();

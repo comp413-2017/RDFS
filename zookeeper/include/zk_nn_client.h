@@ -18,12 +18,12 @@ typedef struct
 {       
 	int replication;
 	int blocksize;
-	int under_construction;
-	int filetype; 
-	std::uint64_t length;
+	int under_construction; // 1 for under construction, 0 for complete
+	int filetype; // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported) 
+	std::uint64_t length; 
 	std::uint64_t access_time;
 	std::uint64_t modification_time;
-	char owner[256];
+	char owner[256]; // the client who created the file 
 	char group[256];
 }FileZNode;
 
@@ -92,8 +92,14 @@ class ZkNnClient : public ZkClientCommon {
 		 */ 
 		bool mkdir_helper(const std::string &path, bool create_parent);
 
+		/**
+		 * Read a znode corresponding to a file into znode_data
+		 */
 		void read_file_znode(FileZNode& znode_data, const std::string& path);
 
+		/**
+		 * Serialize a znode struct representation to a byte array to feed into zookeeper
+		 */
 		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
 };
 
