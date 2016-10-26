@@ -35,17 +35,36 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		} else {
 			ERROR_AND_RETURN("Failed to receive header.");
 		}
-		// TODO: switch proto based on type for all types in header
+		// TODO: implement proto handlers based on type
 		switch (type) {
 			case (WRITE_BLOCK):
-				ERROR_AND_RETURN("Handler for write not written yet.");
+				ERROR_AND_RETURN("Handler for write-block not written yet.");
 			case (READ_BLOCK):
-				//Read Block
 				processReadRequest(sock);
 				break;
+            case (READ_METADATA):
+                ERROR_AND_RETURN("Handler for read-metadata not written yet.");
+            case (REPLACE_BLOCK):
+                ERROR_AND_RETURN("Handler for replace-block not written yet.");
+            case (COPY_BLOCK):
+                ERROR_AND_RETURN("Handler for copy-block not written yet.");
+            case (BLOCK_CHECKSUM):
+                ERROR_AND_RETURN("Handler for block-checksum not written yet.");
+            case (TRANSFER_BLOCK):
+                ERROR_AND_RETURN("Handler for transfer-block not written yet.");
+            case (REQUEST_SHORT_CIRCUIT_FDS):
+                ERROR_AND_RETURN("Handler for request-short-circuit-fds not written yet.");
+            case (RELEASE_SHORT_CIRCUIT_FDS):
+                ERROR_AND_RETURN("Handler for release-short-circuit-fds not written yet."); 
+            case (REQUEST_SHORT_CIRCUIT_SHM):
+                ERROR_AND_RETURN("Handler for request-short-circuit-shm not written yet."); 
+            case (BLOCK_GROUP_CHECKSUM):
+                ERROR_AND_RETURN("Handler for block-group-checksum not written yet.");
+            case (CUSTOM):
+                ERROR_AND_RETURN("Handler for custom-op not written yet.");
 			default:
-				//Other block ops
-				ERROR_AND_RETURN("Unimplemented.");
+				//Error
+				ERROR_AND_RETURN("Unknown operation type specified.");
 		}
 		sleep(5);
 	}
