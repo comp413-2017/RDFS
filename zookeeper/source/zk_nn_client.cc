@@ -137,24 +137,24 @@ namespace zkclient{
 
 	void ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
 		const std::string& path = request.src();
+		std::vector<std::uint8_t> vec;
 		if (!file_exists(path)) {
-			std::vector<std::uint8_t> vec;
 			zk->create(ZookeeperPath(path), vec);
-			HdfsFileStatusProto* status = response.mutable_fs();
-			FsPermissionProto* permission = status->mutable_permission();
-			// Shorcut to set permission to 777.
-			permission->set_perm(~0);
-			// Set it to be a file with length 1, "foo" owner and group, 0
-			// modification/access time, "0" path inode.
-			status->set_filetype(HdfsFileStatusProto::IS_FILE);
-			status->set_path(path);
-			status->set_length(1);
-			status->set_owner("foo");
-			status->set_group("foo");
-			status->set_modification_time(0);
-			status->set_access_time(0);
-			// Other fields are optional, skip for now.
 		}
+		HdfsFileStatusProto* status = response.mutable_fs();
+		FsPermissionProto* permission = status->mutable_permission();
+		// Shorcut to set permission to 777.
+		permission->set_perm(~0);
+		// Set it to be a file with length 1, "foo" owner and group, 0
+		// modification/access time, "0" path inode.
+		status->set_filetype(HdfsFileStatusProto::IS_FILE);
+		status->set_path(path);
+		status->set_length(1);
+		status->set_owner("foo");
+		status->set_group("foo");
+		status->set_modification_time(0);
+		status->set_access_time(0);
+		// Other fields are optional, skip for now.
 	}
 
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
