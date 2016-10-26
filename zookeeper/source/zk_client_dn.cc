@@ -2,7 +2,8 @@
 #define RDFS_ZK_CLIENT_DN_CC
 
 #include "zk_client_dn.h"
-
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace zkclient{
 
@@ -30,6 +31,30 @@ namespace zkclient{
             // TODO: Handle error
         }
 	}
+
+    bool ZkClientDn::addBlock(const std::string& fileName, std::vector<std::string> & dataNodes) const {
+
+        // TODO: Check if file is still under construction
+        // TODO: Check the replication factor
+        // TODO: Find datanodes
+        // TODO: Generate UUID and create sequential node
+        // TODO: Create ack node
+
+        return true;
+    }
+
+    bool ZkClientDn::generateBlockUUID(std::vector<uint8_t>& uuid_vec) const {
+        uuid_vec.resize(16);
+        auto uuid = boost::uuids::random_generator()();
+        memcpy(uuid_vec.data(), &uuid, 16);
+        return true;
+    }
+
+    bool ZkClientDn::findDataNodeForBlock(const std::vector<uint8_t> uuid, bool newBlock) const {
+        // TODO: Perform a search for datanodes, possibly cached
+        return true;
+    }
+
 
 	ZkClientDn::~ZkClientDn() {
 		zk->close();
