@@ -87,7 +87,7 @@ make
 cp *.a /usr/lib
 
 # Add Google Test
-apt-get install libgtest-dev
+apt-get install -y libgtest-dev
 cd /usr/src/gtest
 cmake CMakeLists.txt
 make
@@ -95,7 +95,7 @@ cp *.a /usr/lib
 cd /home/vagrant
 
 # Add Valgrind
-sudo apt-get install libc6-dbg
+sudo apt-get install -y libc6-dbg
 mkdir valgrindtemp
 cd valgrindtemp
 wget --quiet http://valgrind.org/downloads/valgrind-3.11.0.tar.bz2
