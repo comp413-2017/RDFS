@@ -18,6 +18,7 @@ using namespace client_namenode_translator;
 int main(int argc, char* argv[]) {
 	el::Configurations conf(LOG_CONFIG_FILE);
 	el::Loggers::reconfigureAllLoggers(conf);
+	el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
 
 	asio::io_service io_service;
 	short port = 5351;
