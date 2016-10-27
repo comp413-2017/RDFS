@@ -1,6 +1,7 @@
 #include <iostream>
 #include <asio.hpp>
 #include <thread>
+#include <vector>
 
 #include <datatransfer.pb.h>
 
@@ -74,6 +75,48 @@ void TransferServer::handle_connection(tcp::socket sock) {
 
 void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// TODO: Consume 1 delimited OpWriteBlockProto
+	OpWriteBlockProto proto;
+	if (rpcserver::read_proto(sock, proto)) {
+		LOG(INFO) << "Op a write block proto";
+		LOG(INFO) << proto.DebugString();
+	} else {
+		ERROR_AND_RETURN("Failed to op the write block proto.");
+	}
+	std::string response_string;
+	buildBlockOpResponse(response_string);
+	
+	const ClientOperationHeaderProto header = proto.header();
+	std::vector<DatanodeInfoProto> targets;
+	for (int i = 0; i < proto.targets_size(); i++) {
+		targets.push_back(proto.targets(i));
+	}
+
+	const DatanodeInfoProto src = proto.source();
+	const OpWriteBlockProto_BlockConstructionStage stage = proto.stage();
+	int pipelineSize = proto.pipelinesize();
+	//num bytes in block
+	::google::protobuf::uint64 bytesInBlock = proto.minbytesrcvd();
+	//num bytes sent
+	::google::protobuf::uint64 bytesSent = proto.maxbytesrcvd();
+
+	if (rpcserver::write_delimited_proto(sock, response_string)) {
+		LOG(INFO) << "Successfully sent response to client";
+	} else {
+		LOG(INFO) << "Could not send response to client";
+	}
+
+	//TODO read packets of block from client
+	//TODO send acks
+		
+
+	//TODO write out to block
+	
+
+	//TODO set proto source to this DataNode, remove this DataNode from
+	//	the proto targets, and send this proto along to other
+	//	DataNodes in targets
+	//TODO read in a response (?)
+	//TODO send packets to targets
 }
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
@@ -85,7 +128,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
 	std::string response_string;
-	buildReadResponse(response_string);
+	buildBlockOpResponse(response_string);
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
@@ -136,7 +179,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	}
 }
 
-void TransferServer::buildReadResponse(std::string& response_string) {
+void TransferServer::buildBlockOpResponse(std::string& response_string) {
 	BlockOpResponseProto response;
 	response.set_status(SUCCESS);
 	OpBlockChecksumResponseProto* checksum_res = response.mutable_checksumresponse();

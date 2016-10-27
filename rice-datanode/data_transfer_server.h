@@ -34,6 +34,6 @@ class TransferServer {
 		void handle_connection(tcp::socket sock);
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
-		void buildReadResponse(std::string& response_string);
+		void buildBlockOpResponse(std::string& response_string);
 };
 
