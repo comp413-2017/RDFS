@@ -57,6 +57,11 @@ make
 in the test/ directory.
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 
+A githook has been added at rdfs/test/pre-commit.  It's a shell script that will build and run 
+the unit tests.  To use it, copy the file to rdfs/.git/hooks.  Then, before each commit is made
+the tests will run, and a failure will halt the commit.  If this is too restrictive, renaming
+the file to pre-push will do the same thing only when you try to push.
+
 Namenode:
 Run the namenode executable from build/rice-namenode. 
 Then run something like `hdfs dfs -fs hdfs://localhost:port/ -mkdir foo`

@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# A basic githook to run the tests
+
+
+echo "Running unit tests..."
+
+cd /home/vagrant/rdfs/test
+cmake CMakeLists.txt
+make
+
+echo "Finished making tests..."
+
+./runTests
+if ./runTests | grep -q "FAILED"; then
+        echo "1 or more tests failed, not committing"
+        return 1
+fi
+
+echo "Tests ran successfully, committing"
+return 0
+
