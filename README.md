@@ -72,6 +72,15 @@ Run the datanode executable from build/rice-datanode.
 Then run something like `hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/`
 where port is the port used by the datanode (it will print the port used)
 
+If you want to do a quick end-to-end test, try the following to cat out the character "r":
+
+1. Pull the code and build (as explained above).
+2. Run zookeeper (from ~, it’s `sudo zookeeper/bin/zkServer.sh start`). This will run in the background.
+3. Run namenode (`rdfs/build/rice-namenode/namenode`). This will run in the foreground.
+4. Run datanode (`rdfs/build/rice-datanode/datanode`). This will run in the foreground.
+5. Create a file with `hdfs dfs -fs hdfs://localhost:5351 -touchz /filename`
+6. Try to cat that file with `hdfs dfs -fs hdfs://localhost:5351 -cat /filename`
+
 # Mocking
 
 Whether you use Google Mock in conjunction with Google Test is up to you.
