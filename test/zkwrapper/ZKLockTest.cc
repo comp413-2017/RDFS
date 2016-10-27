@@ -16,7 +16,9 @@ namespace {
             // Code here will be called immediately after the constructor (right
             // before each test).
             system("sudo ~/zookeeper/bin/zkServer.sh start");
-            zkWrapper = new ZKWrapper("localhost:2181");
+            int errorCode;
+            zkWrapper = new ZKWrapper("localhost:2181", errorCode);
+            assert(errorCode == 0); // ZOK
         }
 
         virtual void TearDown() {

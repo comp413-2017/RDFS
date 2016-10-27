@@ -6,18 +6,26 @@
 #include <iostream>
 #include <memory>
 #include <cstring>
+#include <map>
 #include <zookeeper.h>
 
+enum ZK_ERRORS {
+    OK = 0,
+    PATH_NOT_FOUND = -1
+    // TODO: Add more errors as needed
+};
+
 /**
- * Class representing a ZooKeeper op. Performs manual memory management on the data it contains: issues with
- * string.c_str()
+ * Class representing a ZooKeeper op. Performs manual memory management on the
+ * data it contains: issues with string.c_str()
  */
 class ZooOp {
-public:
+    public:
 
-    ZooOp(const std::string& path_in, const std::vector<std::uint8_t>& data_in) {
-        this->path = new char [path_in.size() + 1];
-        strcpy (this->path, path_in.c_str());
+    ZooOp(const std::string &path_in,
+          const std::vector <std::uint8_t> &data_in) {
+        this->path = new char[path_in.size() + 1];
+        strcpy(this->path, path_in.c_str());
         if (data_in.size() != 0) { // Only save non-empty data
             this->num_bytes = data_in.size();
             this->data = new char[this->num_bytes];
@@ -34,101 +42,299 @@ public:
         delete op;
     }
 
-    zoo_op_t * op = nullptr;
-    char * path = nullptr;
-    char * data = nullptr;
+    zoo_op_t *op = nullptr;
+    char *path = nullptr;
+    char *data = nullptr;
     int num_bytes = 0;
 };
 
 class ZKWrapper {
-	public:
-		ZKWrapper(std::string host);
+    public:
+    /**
+     * Initializes zookeeper
+     *
+     * @param host The location of where Zookeeper is running. For local
+     *        development this will usually be 'localhost:2181'
+     * @param error_code Integer reference, set to a value in ZK_ERRORS
+     *        Otherwise, an error code is returned. The meaning of an error code
+     *        can be retrieved from translate_error()
+     */
+    ZKWrapper(std::string host, int &error_code);
 
-		int create(const std::string &path, const std::vector<std::uint8_t> &data, int flag = 0) const;
+    /**
+     * Translate numerical error code to zookeeper error string
+     *
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return A string translation of the error code
+     */
+    std::string translate_error(int error_code);
 
-        int create_sequential(const std::string &path, const std::vector<std::uint8_t> &data,
-                                         std::string &new_path, bool ephemeral) const;
 
-		int recursive_create(const std::string &path, const std::vector<std::uint8_t> &data) const;
+    /**
+     * Create a znode in zookeeper
+     *
+     * @param path The location of the new znode within the zookeeper structure
+     * @param data The data contained in this znode
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool create(const std::string &path,
+                const std::vector <std::uint8_t> &data,
+                int &error_code) const;
 
-		int exists(const std::string &path, const int watch) const;
+    /**
+     * Creates a sequential znode
+     *
+     * @param path The path to the new sequential znode. The last component must
+     *        end in "-" like: '/foo/bar-'. When the node is created, a 10 digit
+     *        sequential ID unique to the parent node will be appended to the name.
+     * @param data The data contained in this znode
+     * @param new_path Will contain the value of the newly created path
+     * @param ephemeral If true, the created node will ephemeral
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool create_sequential(const std::string &path,
+                           const std::vector <std::uint8_t> &data,
+                           std::string &new_path,
+                           bool ephemeral,
+                           int &error_code) const;
 
-		int wexists(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+    /**
+     * Recursively creates a new znode, non-existent znodes in the specified path
+     * will be created
+     *
+     * @param path The path to create
+     * @param data The data to store in the new znode
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool recursive_create(const std::string &path,
+                          const std::vector <std::uint8_t> &data,
+                          int &error_code) const;
 
-		int delete_node(const std::string &path) const;
+    /**
+     * Checks if a znode exists or not.
+     *
+     * @param path The path to the node
+     * @param exist Set to true if a znode exists at the given path, false otherwise
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool exists(const std::string &path, bool &exist, int &error_code) const;
 
-        /**
-         * Recursively deletes the znode directory rooted at path. If the path ends with "/" then it only deletes
-         * the children of the paths, else it deletes the znode at the defined path itself.
-         * @param path
-         * @return
-         */
-        int recursive_delete(const std::string path) const;
+    /**
+     * This function is similar to 'exists' except it allows the caller to
+     * specify a watcher object rather than a boolean watch flag.
+     *
+     * @param path The path to the znode that needs to be checked
+     * @param exist Set to true if a znode exists at the given path, false otherwise
+     * @param watch A watcher function
+     * @param watcherCtx User specific data, will be passed to the watcher callback.
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool wexists(const std::string &path,
+                 bool &exist,
+                 watcher_fn watch,
+                 void *watcherCtx,
+                 int &error_code) const;
 
-		std::vector <std::string> get_children(const std::string &path, const int watch) const;
+    /**
+     * Deletes a znode from zookeeper
+     *
+     * @param path The path to the znode that should be deleted
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool delete_node(const std::string &path, int &error_code) const;
 
-        /* This function is similar to zoo_getchildren except it allows one specify
-         * a watcher object rather than a boolean watch flag.
-         */
-		std::vector <std::string> wget_children(const std::string &path, watcher_fn  watch, void* watcherCtx) const;
+    /**
+     * Recursively deletes the znode specified in the path and any children of that path
+     *
+     * @param path The path the znode (and its children) which will be deleted
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool recursive_delete(const std::string &path, int &error_code) const;
 
-		std::vector<std::uint8_t> get(const std::string &path, const int watch) const;
+    /**
+     * This function gets a list of children of the znode specified by the path
+     *
+     * @param path The path of parent node
+     * @param children Reference to a vector which will be populated with the
+     *        names of the children znodes of the given path
+     *        TODO: How large should this vector be when passed in?
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool get_children(const std::string &path,
+                      std::vector <std::string> &children,
+                      int &error_code) const;
 
-		std::vector<std::uint8_t> wget(const std::string &path, watcher_fn watch, void* watcherCtx) const;
+    /**
+     * Similar to 'get_children', except it allows one to specify
+     * a watcher object rather than a boolean watch flag.
+     *
+     * @param path The path to get children of and the node to place the watch on
+     * @param children Reference to a vector which will be populated with the
+     *        names of the children znodes of the given path
+     *        TODO: How large should this vector be when passed in?
+     * @param watch A watcher function
+     * @param watcherCtx User specific data, will be passed to the watcher callback.
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool wget_children(const std::string &path,
+                       std::vector <std::string> &children,
+                       watcher_fn watch,
+                       void *watcherCtx,
+                       int &error_code) const;
 
-        int set(const std::string &path, const std::vector<std::uint8_t> &data, int version = -1) const;
+    /**
+     * Gets the data associated with a node
+     *
+     * @param path The path to the node
+     * @param data Reference to a vector which will be filled with the znode data
+     *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool get(const std::string &path,
+             std::vector <std::uint8_t> &data,
+             int &error_code) const;
 
-        /**
-         * @param path path of znode
-         * @param data data to initialize the node with. Set to the empty string to create an empty ZNode
-         * @param flags node flags: ZOO_EPHEMERAL, ZOO_SEQUENCE, ZOO_EPHEMERAL || ZOO_SEQUENCE
-         * @return a ZooOp to be used in execute_multi
-         */
-        // TODO: Create a path buffer for returning sequential path names
-        std::shared_ptr<ZooOp> build_create_op(const std::string& path, const std::vector<std::uint8_t> &data, const int flags = 0) const;
+    /**
+     * This function is similar to 'get' except it allows one to specify
+     * a watcher object rather than a boolean watch flag.
+     *
+     * @param path The path to the node
+     * @param data Reference to a vector which will be filled with the znode data
+     *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
+     * @param watch A watcher function
+     * @param watcherCtx User specific data, will be passed to the watcher callback.
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool wget(const std::string &path,
+              std::vector <std::uint8_t> &data,
+              watcher_fn watch,
+              void *watcherCtx,
+              int &error_code) const;
 
-        /**
-         * @param path of znode
-         * @param version Checks the version of the znode before deleting. Defaults to -1, which does not perform the
-         *                check.
-         * @return a ZooOp to be used in execute_multi
-         */
-        std::shared_ptr<ZooOp> build_delete_op(const std::string& path, int version = -1) const;
+    /**
+     * Sets the data in a given znode
+     *
+     * @param path The path to the znode
+     * @param data The data that this znode should contain
+     * @param version A version number indicating changes to the data at this node
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     * 		   False otherwise (caller should check 'error_code' value)
+     */
+    bool set(const std::string &path,
+             const std::vector <std::uint8_t> &data,
+             int &error_code,
+             int version = -1)const;
 
-        /**
-         * @param path
-         * @param data
-         * @param version
-         * @return
-         */
-        std::shared_ptr<ZooOp> build_set_op(const std::string& path, const std::vector<std::uint8_t> &data, int version = -1) const;
+    /**
+     * @param path path of znode
+     * @param data data to initialize the node with. Set to the empty string to
+     *        create an empty znode
+     * @param flags node flags: ZOO_EPHEMERAL, ZOO_SEQUENCE, ZOO_EPHEMERAL || ZOO_SEQUENCE
+     * @return a ZooOp to be used in execute_multi
+     */
+    // TODO: Create a path buffer for returning sequential path names
+    std::shared_ptr <ZooOp> build_create_op(const std::string &path,
+                                            const std::vector <std::uint8_t> &data,
+                                            const int flags = 0) const;
 
-        /**
-         * Runs all of the zookeeper operations within the operations vector atomically (without ordering).
-         * Atomic execution mean that either all of the operations will succeed, else they will all
-         * be rolled back.
-         *
-         * @param operations a vector of operations to be executed
-         * @param results a vector that maps to the results of each of the executed operations
-         * @return the ZOO_API return code. Expect a 0 for non-error.
-         */
-        int execute_multi(const std::vector<std::shared_ptr<ZooOp>> operations, std::vector<zoo_op_result>& results) const;
+    /**
+     * @param path of znode
+     * @param version Checks the version of the znode before deleting. Defaults to -1, which does not perform the
+     *                check.
+     * @return a ZooOp to be used in execute_multi
+     */
+    std::shared_ptr <ZooOp> build_delete_op(const std::string &path,
+                                            int version = -1) const;
 
-		void close();
+    /**
+     * @param path
+     * @param data
+     * @param version
+     * @return
+     */
+    std::shared_ptr <ZooOp> build_set_op(const std::string &path,
+                                         const std::vector <std::uint8_t> &data,
+                                         int version = -1) const;
 
-        static std::vector<uint8_t> get_byte_vector(const std::string &string);
+    /**
+     * Runs all of the zookeeper operations within the operations vector atomically (without ordering).
+     * Atomic execution mean that either all of the operations will succeed, else they will all
+     * be rolled back.
+     *
+     * @param operations a vector of operations to be executed
+     * @param results a vector that maps to the results of each of the executed operations
+     * @return the ZOO_API return code. Expect a 0 for non-error.
+     */
+    int execute_multi(const std::vector <std::shared_ptr<ZooOp>> operations,
+                      std::vector <zoo_op_result> &results) const;
 
-        static const std::vector<std::uint8_t> EMPTY_VECTOR;
+    void close();
 
-	private:
-		zhandle_t *zh;
+    static std::vector <uint8_t> get_byte_vector(const std::string &string);
 
-		friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
-				void *watcherCtx);
+    static const std::vector <std::uint8_t> EMPTY_VECTOR;
 
-        const static std::uint32_t MAX_PAYLOAD = 65536;
-        const static std::uint32_t MAX_PATH_LEN = 512;
+    private:
+    zhandle_t *zh;
+
+    friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
+                        void *watcherCtx);
+
+    const static std::uint32_t MAX_PAYLOAD = 65536;
+    const static std::uint32_t MAX_PATH_LEN = 512;
+
+    const std::map<int, std::string> error_message = {
+        {0, "ZOK"},
+        {-1, "ZSYSTEMERROR"},
+        {-2, "ZRUNTIMEINCONSISTENCY"},
+        {-3, "ZDATAINCONSISTENCY"},
+        {-4, "ZCONNECTIONLOSS"},
+        {-5, "ZMARSHALLINGERROR"},
+        {-6, "ZUNIMPLEMENTED"},
+        {-7, "ZOPERATIONTIMEOUT"},
+        {-8, "ZBADARGUMENTS"},
+        {-9, "ZINVALIDSTATE"},
+        {-100, "ZAPIERROR"},
+        {-101, "ZNONODE"},
+        {-102, "ZNOAUTH"},
+        {-103, "ZBADVERSION"},
+        {-108, "ZNOCHILDRENFOREPHEMERALS"},
+        {-110, "ZNODEEXISTS"},
+        {-111, "ZNOTEMPTY"},
+        {-112, "ZSESSIONEXPIRED"},
+        {-113, "ZINVALIDCALLBACK"},
+        {-114, "ZINVALIDACL"},
+        {-115, "ZAUTHFAILED"},
+        {-116, "ZCLOSING"},
+        {-117, "ZNOTHING"},
+        {-118, "ZSESSIONMOVED"},
+        {-120, "ZNEWCONFIGNOQUORUM"},
+        {-121, "ZRECONFIGINPROGRESS"},
+    	{-999, "ZKWRAPPERDEFAULTERROR"},
+	};
 };
-
 
 #endif //RDFS_ZKWRAPPER_H

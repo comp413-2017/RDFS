@@ -27,13 +27,11 @@
  */
 namespace client_namenode_translator {
 
+
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
 const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
-
-// config
-std::map <std::string, std::string> config;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
 	: port(port_arg), server(port), zk(zk_arg) {
@@ -51,7 +49,7 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	logMessage(req, "GetFileInfo ");
 	GetFileInfoResponseProto res;
 	zk.get_info(req, res);
-	LOG(INFO) << res.DebugString();
+	logMessage(res, "GetFileInfo response ");
 	return Serialize(res);
 }
 
@@ -59,13 +57,9 @@ std::string ClientNamenodeTranslator::mkdir(std::string input) {
 	MkdirsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Mkdir ");
-	const std::string& src = req.src();
-	const hadoop::hdfs::FsPermissionProto& permission_msg = req.masked();
-	bool create_parent = req.createparent();
-	std::string out;
 	MkdirsResponseProto res;
 	// TODO for now, just say the mkdir command failed
-	res.set_result(false);
+	zk.mkdir(req, res);
 	return Serialize(res);
 }
 
@@ -75,10 +69,8 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	logMessage(req, "Delete ");
 	const std::string& src = req.src();
 	const bool recursive = req.recursive();
-	std::string out;
 	DeleteResponseProto res;
-	// TODO for now, just say the delete command failed
-	res.set_result(false);
+	zk.destroy(req, res);
 	return Serialize(res);
 }
 
@@ -87,6 +79,8 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
 	CreateResponseProto res;
+	if (zk.create_file(req, res))
+		lease_manager.addLease(req.clientname(), req.src());
 	zk.create_file(req, res);
 	LOG(INFO) << res.DebugString();
     return Serialize(res);
@@ -106,7 +100,6 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	GetServerDefaultsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetServerDefaults ");
-	std::string out;
 	GetServerDefaultsResponseProto res;
 	FsServerDefaultsProto* def = res.mutable_serverdefaults();
 	// read all this config info
@@ -116,7 +109,7 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	def->set_replication(getDefaultInt("dfs.replication"));
 	def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
 	def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
-	// TODO ChecksumTypeProto (optional)	
+	// TODO ChecksumTypeProto (optional)
 	return Serialize(res);
 }
 
@@ -135,36 +128,16 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	CompleteRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Complete ");
-	const std::string& src = req.src();
-	const std::string& clientname = req.clientname();
+	CompleteResponseProto res;
 	// TODO some optional fields need to be read
+	zk.complete(req, res); 
 	// remove the lease from this file  
-	bool succ = lease_manager.removeLease(clientname, src);
+	bool succ = lease_manager.removeLease(req.clientname(), req.src());
 	if (!succ) {
 		LOG(ERROR) << "A client tried to close a file which is not theirs";
 	}
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
 	// for now, we claim to succeed.
-	bool result = true;
-	CompleteResponseProto res;
-	res.set_result(result);
-	return Serialize(res);
-}
-
-/**
- * The actual block replication is not expected to be performed during  
- * this method call. The blocks will be populated or removed in the 
- * background as the result of the routine block maintenance procedures.
- */
-std::string ClientNamenodeTranslator::setReplication(std::string input) {
-	SetReplicationRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "SetReplication ");
-	const std::string& src = req.src();
-	google::protobuf::uint32 replication = req.replication();
-	// TODO verify file exists, set its replication, for now, we fail 
-	SetReplicationResponseProto res;
-	res.set_result(false);
 	return Serialize(res);
 }
 
@@ -201,6 +174,20 @@ std::string ClientNamenodeTranslator::addBlock(std::string input) {
 }
 
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
+
+/**
+ * The actual block replication is not expected to be performed during  
+ * this method call. The blocks will be populated or removed in the 
+ * background as the result of the routine block maintenance procedures.
+ */
+std::string ClientNamenodeTranslator::setReplication(std::string input) {
+	SetReplicationRequestProto req;
+	req.ParseFromString(input);
+	logMessage(req, "SetReplication ");
+	SetReplicationResponseProto res;
+	res.set_result(false);
+	return Serialize(res);
+}
 
 std::string ClientNamenodeTranslator::rename(std::string input) {
 	RenameResponseProto res;
@@ -266,6 +253,7 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
  */
 std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) {
 	std::string out;
+	logMessage(res, "Responding with ");
 	if (!res.SerializeToString(&out)) {
 		// TODO handle error
 	}
@@ -298,11 +286,11 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
 
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
-    // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+    	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
-	server.register_handler("mkdir", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
+	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
 	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
-	server.register_handler("destroy", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
+	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
 	server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 	server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));

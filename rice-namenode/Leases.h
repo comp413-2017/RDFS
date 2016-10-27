@@ -30,8 +30,8 @@ class Lease {
 class LeaseManager {
 	public:
 		LeaseManager();
-		bool addLease(std::string, std::string);
-		bool removeLease(std::string, std::string);
+		bool addLease(const std::string&, const std::string&);
+		bool removeLease(const std::string&, const std::string&);
 		void renewLeases(std::string);
 		std::vector<std::string> checkLeases(int);
 

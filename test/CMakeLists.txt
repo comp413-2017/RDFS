@@ -16,6 +16,12 @@ add_executable(runTests tests.cc)
 include_directories(/usr/local/include/zookeeper)
 include_directories(../zkwrapper)
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
+
+add_executable(ZKWrapperTest zkwrapper/ZKWrapperTest.cc ../zkwrapper/zkwrapper.h)
+target_link_libraries(ZKWrapperTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(ZKWrapperTest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(ZKWrapperTest ${GTEST})
+
 add_executable(ZKLockTest zkwrapper/ZKLockTest.cc ../zkwrapper/zk_lock.h)
 target_link_libraries(ZKLockTest zk_lock zkwrapper /usr/local/lib/libzookeeper_mt.so)
 target_link_libraries(ZKLockTest ${GTEST_LIBRARIES} pthread)

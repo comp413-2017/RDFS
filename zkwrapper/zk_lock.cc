@@ -32,23 +32,44 @@ int ZKLock::lock() {
     std::mutex mtx;
     std::condition_variable cv;
     std::replace(path_to_lock.begin(), path_to_lock.end(), '/', ':');
-    if (zkWrapper.exists(lock_path, 0) < 0) {
-        zkWrapper.create(lock_path, ZKWrapper::EMPTY_VECTOR, 0);
+
+    bool exists;
+    int error_code;
+
+    if (zkWrapper.exists(lock_path, exists, error_code)) {
+        if (!exists) {
+            // TODO: No watcher
+            if (!zkWrapper.create(lock_path, ZKWrapper::EMPTY_VECTOR, error_code)) {
+                // TODO: Handle error
+            }
+        }
+    } else {
+        // TODO: Handle error
     }
     std::string my_locknode(lock_path + "/" + path_to_lock);
-    if (zkWrapper.exists(my_locknode, 0) < 0) {
-        zkWrapper.create(my_locknode, ZKWrapper::EMPTY_VECTOR, 0);
+    if (zkWrapper.exists(my_locknode, exists, error_code)) {
+        if (!exists) {
+            // TODO: No watcher
+
+            if (!zkWrapper.create(my_locknode, ZKWrapper::EMPTY_VECTOR, error_code)) {
+                // TODO: Handle error
+            }
+        }
+    } else {
+        // TODO: Handle error
     }
     std::string my_lock(my_locknode + "/lock-");
-
-    auto rc = zkWrapper.create_sequential(my_lock, ZKWrapper::EMPTY_VECTOR, locknode_with_seq, true);
-    if (rc != ZOK) {
-        return -1;
+    if (!zkWrapper.create_sequential(my_lock, ZKWrapper::EMPTY_VECTOR, locknode_with_seq, true, error_code)) {
+        // TODO: Handle error
     }
+
     auto splitted = split(locknode_with_seq, '/');
 
     while (true) {
-        auto children = zkWrapper.get_children(my_locknode, 0);
+        std::vector<std::string> children = std::vector<std::string>();
+        if (!zkWrapper.get_children(my_locknode, children, error_code)) {
+            // TODO: Handle error
+        }
         std::sort(children.begin(), children.end());
         auto it = std::find(children.begin(), children.end(), splitted[splitted.size() - 1]);
         auto eq = splitted[splitted.size() - 1].compare(children[0]);
@@ -67,17 +88,24 @@ int ZKLock::lock() {
             auto cvar = reinterpret_cast<std::condition_variable *>(watcherCtx);
             cvar->notify_all();
         };
-        auto exists = zkWrapper.wexists(my_locknode + "/" + children[0], notify, &cv);
+        std::string currentLockOwner = my_locknode + "/" + children[0];
+        if (!zkWrapper.wexists(currentLockOwner, exists, notify, &cv, error_code)) {
+            // TODO: Handle error
+        }
+
         if (exists){
             std::unique_lock<std::mutex> lck(mtx);
-            cv.wait(lck);
+            cv.wait_for(lck , std::chrono::milliseconds(10) /*, [&, currentLockOwner](){return zkWrapper.exists(currentLockOwner, 0); } */);
         }
     }
 }
 
 int ZKLock::unlock(){
+    // TODO: Possibly pass in an error_code& so that we can let the calling user know how it failed
+    int error_code;
     if (locknode_with_seq.size() == 0){
         return -1;
     }
-    return zkWrapper.delete_node(locknode_with_seq);
+    zkWrapper.delete_node(locknode_with_seq, error_code);
+    return error_code;
 }
