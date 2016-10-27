@@ -15,6 +15,8 @@ set(GTEST "/usr/src/gtest/libgtest.a" "/usr/src/gmock/libgmock.a")
 add_executable(runTests tests.cc)
 include_directories(/usr/local/include/zookeeper)
 include_directories(../zkwrapper)
+include_directories(../utility/logging)
+
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
 add_executable(ZKWrapperTest zkwrapper/ZKWrapperTest.cc ../zkwrapper/zkwrapper.h)

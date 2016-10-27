@@ -2,6 +2,10 @@
 #include <cstring>
 #include <gtest/gtest.h>
 
+#include <easylogging++.h>
+
+INITIALIZE_EASYLOGGINGPP
+
 namespace {
 
     class ZKWrapperTest : public ::testing::Test {
