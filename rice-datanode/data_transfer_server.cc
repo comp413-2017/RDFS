@@ -3,13 +3,8 @@
 #include <thread>
 #include <vector>
 
-#include <datatransfer.pb.h>
-
 #include <easylogging++.h>
 
-#include "socket_reads.h"
-#include "socket_writes.h"
-#include "rpcserver.h"
 #include "data_transfer_server.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
@@ -18,6 +13,8 @@
 using asio::ip::tcp;
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
+
+const size_t PACKET_PAYLOAD_BYTES = 4096;
 
 TransferServer::TransferServer(int p) : port{p} {}
 
@@ -134,40 +131,46 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	} else {
 		LOG(INFO) << "Could not send response to client";
 	}
-	// TODO: write the packet header. see PacketReceiver.java#doRead
-	//rpcserver::write_int32(sock, 19);
-	uint32_t i = 0;
-	::google::protobuf::int64 offset = 0;
-	int num_packets = 1;
+	// TODO once we read blocks: len must be <= remaining size of block.
+	uint64_t len = proto.len();
+	uint64_t offset = proto.offset();
+	uint64_t seq = 0;
 	char data[] = "abcd";
-	while (i < num_packets + 1) {
+	while (len > 0) {
 		PacketHeaderProto p_head;
 		p_head.set_offsetinblock(offset);
-		p_head.set_seqno(i);
-		if (i == num_packets) {
-			p_head.set_lastpacketinblock(true);
-			p_head.set_datalen(0);
-		} else {
-			p_head.set_lastpacketinblock(false);
-			p_head.set_datalen(4);
-		}
-		std::string p_head_str;
-		p_head.SerializeToString(&p_head_str);
-		LOG(INFO) << std::endl << p_head_str;
+		p_head.set_seqno(seq);
+		p_head.set_lastpacketinblock(false);
+		p_head.set_datalen(4);
+		// The payload to write can be no more than what fits in the packet, or
+		// remaining requested length.
+		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
+		std::string payload(payload_size, 'r');
 
-		uint16_t header_len = p_head_str.length();
-		uint32_t payload_len = 8;
-
-		rpcserver::write_int32(sock, payload_len);
-		rpcserver::write_int16(sock, header_len);
-		if (rpcserver::write_proto(sock, p_head_str)) {
-			LOG(INFO) << "Successfully sent packet header to client";
+		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
+			LOG(INFO) << "Successfully sent packet " << seq << " to client";
+			LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
+			LOG(INFO) << payload;
 		} else {
-			LOG(INFO) << "Could not send packet header to client";
+			LOG(ERROR) << "Could not send packet " << seq << " to client";
 		}
-		sock.write_some(asio::buffer(data, 4));
-		offset += 4;
-		i++;
+		offset += payload_size;
+		// Decrement len, cannot underflow because payload size <= len.
+		len -= payload_size;
+		seq++;
+	}
+
+	// Finish by writing the last empty packet.
+	PacketHeaderProto p_head;
+	p_head.set_offsetinblock(offset);
+	p_head.set_seqno(seq);
+	p_head.set_lastpacketinblock(true);
+	p_head.set_datalen(0);
+	// No payload, so empty string.
+	if (writePacket(sock, p_head, asio::buffer(std::string()))) {
+		LOG(INFO) << "Successfully sent final packet to client";
+	} else {
+		LOG(ERROR) << "Could not send final packet to client";
 	}
 	// Receive a status code from the client.
 	ClientReadStatusProto status_proto;

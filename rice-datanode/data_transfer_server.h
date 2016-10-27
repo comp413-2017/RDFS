@@ -1,7 +1,12 @@
-#include <unordered_map>
 #include <functional>
 
 #include <asio.hpp>
+
+#include <datatransfer.pb.h>
+
+#include "socket_reads.h"
+#include "socket_writes.h"
+#include "rpcserver.h"
 
 #pragma once
 
@@ -22,6 +27,7 @@
 #define CUSTOM 127
 
 using asio::ip::tcp;
+using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
@@ -35,5 +41,22 @@ class TransferServer {
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
 		void buildBlockOpResponse(std::string& response_string);
+
+		template <typename BufType>
+		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);
 };
 
+// Templated method to be generic across any asio buffer type.
+template <typename BufType>
+bool TransferServer::writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload) {
+	std::string p_head_str;
+	p_head.SerializeToString(&p_head_str);
+	const uint16_t header_len = p_head_str.length();
+	// Add 4 to account for the size of uint32_t.
+	const uint32_t payload_len = 4 + asio::buffer_size(payload);
+	// Write payload length, header length, header, payload.
+	return (rpcserver::write_int32(sock, payload_len) &&
+			rpcserver::write_int16(sock, header_len) &&
+			rpcserver::write_proto(sock, p_head_str) &&
+			payload_len - 4 == sock.write_some(payload));
+}
