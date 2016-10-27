@@ -14,6 +14,7 @@ using asio::ip::tcp;
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
+// Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
 TransferServer::TransferServer(int p) : port{p} {}
@@ -135,17 +136,16 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	uint64_t len = proto.len();
 	uint64_t offset = proto.offset();
 	uint64_t seq = 0;
-	char data[] = "abcd";
 	while (len > 0) {
 		PacketHeaderProto p_head;
 		p_head.set_offsetinblock(offset);
 		p_head.set_seqno(seq);
 		p_head.set_lastpacketinblock(false);
-		p_head.set_datalen(4);
 		// The payload to write can be no more than what fits in the packet, or
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
 		std::string payload(payload_size, 'r');
+		p_head.set_datalen(payload_size);
 
 		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
 			LOG(INFO) << "Successfully sent packet " << seq << " to client";
@@ -178,7 +178,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		LOG(INFO) << "Received read status from client.";
 		LOG(INFO) << status_proto.DebugString();
 	} else {
-		LOG(INFO) << "Could not read status from client.";
+		LOG(ERROR) << "Could not read status from client.";
 	}
 }
 
