@@ -153,6 +153,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 			LOG(INFO) << payload;
 		} else {
 			LOG(ERROR) << "Could not send packet " << seq << " to client";
+			break;
 		}
 		offset += payload_size;
 		// Decrement len, cannot underflow because payload size <= len.
@@ -160,25 +161,27 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		seq++;
 	}
 
-	// Finish by writing the last empty packet.
-	PacketHeaderProto p_head;
-	p_head.set_offsetinblock(offset);
-	p_head.set_seqno(seq);
-	p_head.set_lastpacketinblock(true);
-	p_head.set_datalen(0);
-	// No payload, so empty string.
-	if (writePacket(sock, p_head, asio::buffer(std::string()))) {
-		LOG(INFO) << "Successfully sent final packet to client";
-	} else {
-		LOG(ERROR) << "Could not send final packet to client";
-	}
-	// Receive a status code from the client.
-	ClientReadStatusProto status_proto;
-	if (rpcserver::read_proto(sock, status_proto)) {
-		LOG(INFO) << "Received read status from client.";
-		LOG(INFO) << status_proto.DebugString();
-	} else {
-		LOG(ERROR) << "Could not read status from client.";
+	if (len == 0) {
+		// Finish by writing the last empty packet, if we finished.
+		PacketHeaderProto p_head;
+		p_head.set_offsetinblock(offset);
+		p_head.set_seqno(seq);
+		p_head.set_lastpacketinblock(true);
+		p_head.set_datalen(0);
+		// No payload, so empty string.
+		if (writePacket(sock, p_head, asio::buffer(std::string()))) {
+			LOG(INFO) << "Successfully sent final packet to client";
+		} else {
+			LOG(ERROR) << "Could not send final packet to client";
+		}
+		// Receive a status code from the client.
+		ClientReadStatusProto status_proto;
+		if (rpcserver::read_proto(sock, status_proto)) {
+			LOG(INFO) << "Received read status from client.";
+			LOG(INFO) << status_proto.DebugString();
+		} else {
+			LOG(ERROR) << "Could not read status from client.";
+		}
 	}
 }
 
