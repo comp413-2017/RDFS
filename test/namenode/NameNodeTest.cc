@@ -17,16 +17,17 @@ namespace {
             system("sudo ~/zookeeper/bin/zkServer.sh stop");
             system("sudo ~/zookeeper/bin/zkServer.sh start");
             int error_code;
-            zk = new ZKWrapper("localhost:2181", error_code);
+            auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
             assert(error_code == 0); // Z_OK
-            client = new zkclient::ZkNnClient("localhost:2181");
+            client = new zkclient::ZkNnClient(zk_shared);
+            zk = new ZKWrapper("localhost:2181", error_code, "/testing");
         }
 
         virtual void TearDown() {
 
             // Code here will be called immediately after each test (right
             // before the destructor).
-            // std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /");
+            std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
             // system(command.data());
             system("sudo ~/zookeeper/bin/zkServer.sh stop");
         }

@@ -15,6 +15,10 @@ namespace zkclient {
         init();
     }
 
+    ZkClientCommon::ZkClientCommon(std::shared_ptr <ZKWrapper> zk_in) : zk(zk_in) {
+        init();
+    }
+
     void ZkClientCommon::init() {
         /* return 0 if path exists, 1 otherwise. */
         LOG(INFO) << "Initializing ZkClientCommon";

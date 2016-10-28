@@ -37,6 +37,14 @@ class ZkNnClient : public ZkClientCommon {
 
 	public:
 		ZkNnClient(std::string zkIpAndAddress);
+
+        /**
+         * Use this constructor to build ZkNnClient with a custom ZKWrapper. Which will allow you to set a root
+         * directory for all operations on this client
+         * @param zk_in shared pointer to a ZKWrapper
+         * @return ZkNnClient
+         */
+		ZkNnClient(std::shared_ptr <ZKWrapper> zk_in);
 		void register_watches();
 		
 		//void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);

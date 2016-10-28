@@ -24,7 +24,11 @@ namespace zkclient{
 
 	ZkNnClient::ZkNnClient(std::string zkIpAndAddress) : ZkClientCommon(zkIpAndAddress) {
 
-	}	
+	}
+
+	ZkNnClient::ZkNnClient(std::shared_ptr <ZKWrapper> zk_in) : ZkClientCommon(zk_in) {
+
+	}
 
 	/*
 	 * A simple print function that will be triggered when 
