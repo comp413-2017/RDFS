@@ -65,24 +65,47 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root) : root
 		error_code = -999;
 	}
 	init = 1;
+    if (root.size() != 0) {
+        bool root_exists;
+        if (!exists(root, root_exists, error_code, false)){
+            LOG(ERROR) << "Failed to check if root directory " << root << " exists " << error_code;
+            return;
+        }
+        if (!root_exists) {
+            if (!create(root, EMPTY_VECTOR, error_code, false)) {
+                LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
+            }
+        }
+    }
+}
+
+std::string ZKWrapper::prepend_zk_root(const std::string& path) const {
+    if (root.size() == 0) {
+        return path;
+    }
+    if (path == "/") {
+        return root;
+    }
+    return root + path;
+}
+
+std::string ZKWrapper::removeZKRoot(const std::string& path) const {
+    return path.substr(root.size());
 }
 
 /* Wrapper Implementation of Zookeeper Functions */
 
-std::string ZKWrapper::buildZKPath(const std::string& path) {
-    return root + path;
-}
-
 bool ZKWrapper::create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
-		int &error_code) const {
+		int &error_code, bool prepend_root) const {
 	if (!init) {
 		LOG(ERROR) << "Attempt to create before init!";
 		error_code = -999;
 		return false;
 	}
+
 	int rc = zoo_create(zh,
-			path.c_str(),
+            prepend_root ? prepend_zk_root(path).c_str() : path.c_str(),
 			reinterpret_cast<const char *>(data.data()),
 			data.size(),
 			&ZOO_OPEN_ACL_UNSAFE,
@@ -95,6 +118,7 @@ bool ZKWrapper::create(const std::string &path,
 	return false;
 }
 
+// TODO: Modify this
 bool ZKWrapper::create_sequential(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		std::string &new_path,
@@ -111,10 +135,10 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		flag = flag | ZOO_EPHEMERAL;
 	}
 	LOG(INFO) << "Attempting to generate new path" << new_path;
-	int len = path.size();
+	int len = prepend_zk_root(path).size();
 	new_path.resize(MAX_PATH_LEN);
 	int rc = zoo_create(zh,
-			path.c_str(),
+			prepend_zk_root(path).c_str(),
 			reinterpret_cast<const char *>(data.data()),
 			data.size(),
 			&ZOO_OPEN_ACL_UNSAFE,
@@ -129,13 +153,16 @@ bool ZKWrapper::create_sequential(const std::string &path,
 	int i = 0;
 	LOG(INFO) << "NEW path is " << new_path;
 	new_path.resize(len+10);
+    new_path = removeZKRoot(new_path);
 	LOG(INFO) << "NEW path is now this" << new_path;
 	return true;
 }
 
+// TODO: Modify this
 bool ZKWrapper::recursive_create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		int &error_code) const {
+
 	bool exist;
 	exists(path, exist, error_code);
 
@@ -163,7 +190,7 @@ bool ZKWrapper::wget(const std::string &path,
 	int len = 0;
 	struct Stat stat;
 	error_code = zoo_wget(zh,
-			path.c_str(),
+            prepend_zk_root(path).c_str(),
 			watch,
 			watcherCtx,
 			reinterpret_cast<char *>(data.data()),
@@ -188,7 +215,7 @@ bool ZKWrapper::get(const std::string &path,
 	data.resize(len);
 	// LOG(INFO) << "Data resizing to 1;" << data.size();
 	error_code = zoo_get(zh,
-			path.c_str(),
+            prepend_zk_root(path).c_str(),
 			0,
 			reinterpret_cast<char *>(data.data()),
 			&len,
@@ -206,7 +233,7 @@ bool ZKWrapper::set(const std::string &path,
 		int version) const {
 
 	error_code = zoo_set(zh,
-			path.c_str(),
+            prepend_zk_root(path).c_str(),
 			reinterpret_cast<const char *>(data.data()),
 			data.size(),
 			version);
@@ -218,9 +245,10 @@ bool ZKWrapper::set(const std::string &path,
 
 bool ZKWrapper::exists(const std::string &path,
 		bool &exist,
-		int &error_code) const {
+		int &error_code,
+        bool prepend_root) const {
 	// TODO: for now watch argument is set to 0, need more error checking
-	int rc = zoo_exists(zh, path.c_str(), 0, 0);
+	int rc = zoo_exists(zh, prepend_root ? prepend_zk_root(path).c_str() : path.c_str(), 0, 0);
 	error_code = rc;
 	if (rc == ZOK) {
 		exist = true;
@@ -240,7 +268,7 @@ bool ZKWrapper::wexists(const std::string &path,
 		void *watcherCtx,
 		int &error_code) const {
 	struct Stat stat;
-	int rc = zoo_wexists(zh, path.c_str(), watch, watcherCtx, &stat);
+	int rc = zoo_wexists(zh, prepend_zk_root(path).c_str(), watch, watcherCtx, &stat);
 	error_code = rc;
 	if (rc == ZOK) {
 		exist = true;
@@ -256,13 +284,14 @@ bool ZKWrapper::wexists(const std::string &path,
 
 bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
 	// NOTE: use -1 for version, check will not take place.
-	error_code = zoo_delete(zh, path.c_str(), -1);
+	error_code = zoo_delete(zh, prepend_zk_root(path).c_str(), -1);
 	if (error_code != ZOK) {
 		return false;
 	}
 	return true;
 }
 
+// TODO: Modify
 bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const {
 	bool root = ("/" == path);
 	bool directory = path[path.size() - 1] == '/';
@@ -295,7 +324,7 @@ bool ZKWrapper::get_children(const std::string &path,
 
 	struct String_vector stvector;
 	struct String_vector *vector = &stvector;
-	error_code = zoo_get_children(zh, path.c_str(), 0, vector);
+	error_code = zoo_get_children(zh, prepend_zk_root(path).c_str(), 0, vector);
 	if (error_code != ZOK) {
 		return false;
 	}
@@ -315,7 +344,7 @@ bool ZKWrapper::wget_children(const std::string &path,
 
 	struct String_vector stvector;
 	struct String_vector *vector = &stvector;
-	error_code = zoo_wget_children(zh, path.c_str(), watch, watcherCtx, vector);
+	error_code = zoo_wget_children(zh, prepend_zk_root(path).c_str(), watch, watcherCtx, vector);
 	if (error_code != ZOK) {
 		return false;
 	}
@@ -332,7 +361,7 @@ bool ZKWrapper::wget_children(const std::string &path,
 std::shared_ptr <ZooOp> ZKWrapper::build_create_op(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		const int flags) const {
-	auto op = std::make_shared<ZooOp>(path, data);
+	auto op = std::make_shared<ZooOp>(prepend_zk_root(path), data);
 	zoo_create_op_init(op->op,
 			op->path,
 			op->data,
@@ -346,7 +375,7 @@ std::shared_ptr <ZooOp> ZKWrapper::build_create_op(const std::string &path,
 
 std::shared_ptr <ZooOp> ZKWrapper::build_delete_op(const std::string &path,
 		int version) const {
-	auto op = std::make_shared<ZooOp>(path, ZKWrapper::EMPTY_VECTOR);
+	auto op = std::make_shared<ZooOp>(prepend_zk_root(path), ZKWrapper::EMPTY_VECTOR);
 	zoo_delete_op_init(op->op, op->path, version);
 	return op;
 }
@@ -354,7 +383,7 @@ std::shared_ptr <ZooOp> ZKWrapper::build_delete_op(const std::string &path,
 std::shared_ptr <ZooOp> ZKWrapper::build_set_op(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		int version) const {
-	auto op = std::make_shared<ZooOp>(path, data);
+	auto op = std::make_shared<ZooOp>(prepend_zk_root(path), data);
 	zoo_set_op_init(op->op,
 			op->path,
 			op->data,

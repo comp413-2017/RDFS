@@ -14,60 +14,38 @@ namespace {
             // Code here will be called immediately after the constructor (right
             // before each test).
             system("sudo ~/zookeeper/bin/zkServer.sh start");
-            int error_code;
-            zk = new ZKWrapper("localhost:2181", error_code);
+            int error_code = 0;
+            zk = new ZKWrapper("localhost:2181", error_code, "/banana");
             assert(error_code == 0); // Z_OK
+
+            bool exists;
+            assert(zk->exists("/testing", exists, error_code));
+            if (exists) {
+                assert(zk->recursive_delete("/testing/", error_code));
+            } else {
+                zk->create("/testing", ZKWrapper::EMPTY_VECTOR, error_code);
+            }
         }
 
         virtual void TearDown() {
             // Code here will be called immediately after each test (right
             // before the destructor).
-            std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
+            std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /banana");
             system(command.data());
             system("sudo ~/zookeeper/bin/zkServer.sh stop");
-        }
-
-        static int preTest(ZKWrapper& zk) {
-            int error_code;
-            bool exists;
-            assert(zk.exists("/testing", exists, error_code));
-            if (exists) {
-                assert(zk.recursive_delete("/testing/", error_code));
-                // assert(zk.get_children("/testing", 0).size() == 0);
-            } else {
-                assert(zk.create("/testing", ZKWrapper::EMPTY_VECTOR, error_code));
-            }
-
         }
 
         // Objects declared here can be used by all tests in the test case for Foo.
         ZKWrapper *zk;
     };
 
-    
-    TEST_F(ZKWrapperTest, translate_error){
-        ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
-    }
-    TEST_F(ZKWrapperTest, create){
-        preTest(* zk);
-        int error = 0;
-        bool result = zk->create("/testing/testcreate", ZKWrapper::EMPTY_VECTOR, error);
-        ASSERT_EQ(true, result);
-        ASSERT_EQ("ZOK", zk->translate_error(error));
-
-        result = zk->create("/testing/testcreate", ZKWrapper::EMPTY_VECTOR, error);
-
-        ASSERT_EQ(false, result);
-        ASSERT_EQ("ZNODEEXISTS", zk->translate_error(error));
-    }
     TEST_F(ZKWrapperTest, create_sequential){
-        preTest(* zk);
         std::string new_path;
         int error = 0;
         bool result = zk->create_sequential("/testing/sequential-", ZKWrapper::EMPTY_VECTOR, new_path, false, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-        std::string expected("/testing/sequential-0000000000"); 
+        std::string expected("/testing/sequential-0000000000");
 		ASSERT_EQ(expected, new_path);
 
         std::string new_path2;
@@ -77,19 +55,18 @@ namespace {
         ASSERT_EQ("ZOK", zk->translate_error(error));
         std::string expected2("/testing/sequential-0000000001");
 		ASSERT_EQ(expected2, new_path2);
-
     }
+
     TEST_F(ZKWrapperTest, recursive_create){
-        preTest(* zk);
         int error = 0;
         bool result = zk->recursive_create("/testing/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-		
+
 		/* create same path, should fail */
 		result = zk->recursive_create("/testing/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
 		ASSERT_EQ(false, result);
-	
+
 	   std::vector <std::uint8_t> retrieved_data(65536);
 	   auto data = ZKWrapper::get_byte_vector("hello");
        result = zk->recursive_create("/testing/testrecur/test2", data, error);
@@ -99,14 +76,14 @@ namespace {
 	   ASSERT_EQ(5, retrieved_data.size());
 	   result = zk->get("/testing/testrecur", retrieved_data, error);
 	   ASSERT_EQ(true, result);
-	   ASSERT_EQ(0, retrieved_data.size());		
+	   ASSERT_EQ(0, retrieved_data.size());
 
         result = zk->recursive_create("/testing/testrecur/test2/test3/test4", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
     }
+
     TEST_F(ZKWrapperTest, exists){
-        preTest(* zk);
         int error = 0;
         bool exist = false;
 
@@ -129,9 +106,8 @@ namespace {
     TEST_F(ZKWrapperTest, wexists){
         ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
     }
-    
+
     TEST_F(ZKWrapperTest, get_children){
-        preTest(* zk);
         int error = 0;
         std::vector <std::string> children;
         bool result = zk->get_children("/", children, error);
@@ -145,7 +121,6 @@ namespace {
         ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
     }
     TEST_F(ZKWrapperTest, get){
-        preTest(* zk);
         int error = 0;
         bool result = zk->create("/testing/testget", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
@@ -174,7 +149,6 @@ namespace {
         ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
     }
     TEST_F(ZKWrapperTest, set){
-        preTest(* zk);
         int error = 0;
         auto data = ZKWrapper::get_byte_vector("hello");
 
@@ -194,7 +168,6 @@ namespace {
     }
 
     TEST_F(ZKWrapperTest, delete_node){
-        preTest(* zk);
         int error = 0;
 
         bool result = zk->create("/testing/testcreate", ZKWrapper::EMPTY_VECTOR, error);
@@ -209,9 +182,8 @@ namespace {
         ASSERT_EQ(false, result);
         ASSERT_EQ("ZNONODE", zk->translate_error(error));
     }
-    
+
     TEST_F(ZKWrapperTest, RecursiveDelete) {
-        preTest(* zk);
 
         int error_code;
 
@@ -240,7 +212,6 @@ namespace {
     }
 
     TEST_F(ZKWrapperTest, MultiOperation) {
-        preTest(* zk);
 
         int error_code;
 

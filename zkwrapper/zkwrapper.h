@@ -63,6 +63,15 @@ class ZKWrapper {
     ZKWrapper(std::string host, int &error_code, std::string root = "");
 
     /**
+     * Prepends the ZooKeeper root to all paths passed in
+     * @param path the original path
+     * @return the updated path
+     */
+    std::string prepend_zk_root(const std::string& path) const;
+
+    std::string removeZKRoot(const std::string& path) const;
+
+    /**
      * Translate numerical error code to zookeeper error string
      *
      * @param error_code Int reference, set to a value in ZK_ERRORS
@@ -77,12 +86,13 @@ class ZKWrapper {
      * @param path The location of the new znode within the zookeeper structure
      * @param data The data contained in this znode
      * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @param prepend_root Whether to prepend the ZKWrapper root to the path name. Defaults to true. Only used internally
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
     bool create(const std::string &path,
                 const std::vector <std::uint8_t> &data,
-                int &error_code) const;
+                int &error_code, bool prependRoot = true) const;
 
     /**
      * Creates a sequential znode
@@ -123,10 +133,11 @@ class ZKWrapper {
      * @param path The path to the node
      * @param exist Set to true if a znode exists at the given path, false otherwise
      * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @param prepend_root Whether to prepend the ZKWrapper root to the path name. Defaults to true. Only used internally
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
-    bool exists(const std::string &path, bool &exist, int &error_code) const;
+    bool exists(const std::string &path, bool &exist, int &error_code, bool prependRoot = true) const;
 
     /**
      * This function is similar to 'exists' except it allows the caller to
