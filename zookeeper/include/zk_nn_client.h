@@ -34,6 +34,7 @@ using namespace hadoop::hdfs;
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper. 
  */
 class ZkNnClient : public ZkClientCommon {
+
 	public:
 		ZkNnClient(std::string zkIpAndAddress);
 		void register_watches();
@@ -53,13 +54,17 @@ class ZkNnClient : public ZkClientCommon {
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 
-		bool addBlock(const std::string& fileName, std::vector<std::string> & dataNodes) const;
-
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls 
 		 */ 	
 		bool file_exists(const std::string& path);
-	private:
+
+        // TODO: Move back to private
+        bool addBlock(const std::string& fileName, std::vector<std::string> & dataNodes, int replication_factor);
+        bool generateBlockUUID(u_int64_t& blockId);
+        bool findDataNodeForBlock(std::vector<std::string>& datanodes, const u_int64_t blockId, int replication_factor, bool newBlock = false);
+
+private:
 		int errorcode;
 		/**
 		 * Set the file status proto with information from the znode struct and the path
@@ -105,10 +110,7 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
 
-		bool generateBlockUUID(std::vector<uint8_t>& uuid) const;
-
-		bool findDataNodeForBlock(const std::vector<uint8_t>& uuid_vec, bool newBlock = false) const;
-		/**
+        /**
 		 * Try to delete a node and log error if we couldnt and set response to false
 		 */
 		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);

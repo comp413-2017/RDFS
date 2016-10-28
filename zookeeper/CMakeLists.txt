@@ -14,4 +14,6 @@ target_link_libraries(zk_client_dn easylogging++)
 add_library(zk_client_nn source/zk_nn_client.cc)
 target_link_libraries(zk_client_nn zk_client_common)
 target_link_libraries(zk_client_nn easylogging++)
+target_link_libraries(zk_client_nn protobuf)
+target_link_libraries(zk_client_nn config)
 

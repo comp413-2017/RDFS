@@ -323,6 +323,9 @@ namespace zkclient{
 	}
 
 	void ZkNnClient::complete(CompleteRequestProto& req, CompleteResponseProto& res) {
+
+        // TODO: Completion makes a few guarantees that we should handle
+
 		// change the under construction bit
 		const std::string& src = req.src();
 		FileZNode znode_data;
@@ -507,28 +510,89 @@ namespace zkclient{
 		return elems;
 	}
 
-	bool ZkNnClient::addBlock(const std::string& fileName, std::vector<std::string> & dataNodes) const {
+	bool ZkNnClient::addBlock(const std::string& file_path, std::vector<std::string> & dataNodes, int replicationFactor) {
 
-		// TODO: Check if file is still under construction
-		// TODO: Check the replication factor
-		// TODO: Find datanodes
-		// TODO: Generate UUID and create sequential node
-		// TODO: Create ack node
+        if (!file_exists(file_path)) {
+            LOG(ERROR) << "Cannot add block to non-existent file" << file_path;
+            return false;
+        }
 
+        FileZNode znode_data;
+        read_file_znode(znode_data, file_path);
+        if (znode_data.under_construction) { // TODO: This is a faulty check
+            LOG(WARNING) << "Last block for " << file_path << " still under construction";
+        }
+        // TODO: Check the replication factor
+
+        u_int64_t block_id;
+        std::string block_id_str;
+
+        generateBlockUUID(block_id);
+        block_id_str = std::to_string(block_id);
+        LOG(INFO) << "Generated block id " << block_id_str;
+
+        std::vector<std::string> datanodes = std::vector<std::string>();
+        if (!findDataNodeForBlock(datanodes, block_id, true)) {
+            return false;
+        }
+
+        // Generate the massive multi-op for creating the block
+
+        std::vector<std::uint8_t> data;
+        data.resize(sizeof(u_int64_t));
+        memcpy(&data[0], &block_id, sizeof(u_int64_t));
+
+        // ZooKeeper multi-op to
+        auto seq_file_block_op = zk->build_create_op(ZookeeperPath(file_path), data, ZOO_SEQUENCE);
+        auto ack_op = zk->build_create_op("/work_queues/wait_for_acks/" + block_id_str, data);
+        auto block_location_op = zk->build_create_op("/block_locations/" + block_id_str, data);
+
+        std::vector<std::shared_ptr<ZooOp>> ops = {seq_file_block_op, ack_op, block_location_op};
+
+        auto results = std::vector <zoo_op_result>();
+        // TODO: Perhaps we have to perform a more fine grained analysis of the results
+        if (!zk->execute_multi(ops, results)) {
+            LOG(ERROR) << "Failed to write the addBlock multiop, ZK state was not changed";
+            return false;
+        }
 		return true;
 	}
 
-	bool ZkNnClient::generateBlockUUID(std::vector<uint8_t>& uuid_vec) const {
-		uuid_vec.resize(16);
+	bool ZkNnClient::generateBlockUUID(u_int64_t& blockId) {
+		// TODO: As of now we will just generate an incremented long
 		auto uuid = boost::uuids::random_generator()();
-		memcpy(uuid_vec.data(), &uuid, 16);
+		memcpy((&blockId), &uuid, sizeof(u_int64_t) / sizeof(u_char));
 		return true;
 	}
 
-	bool ZkNnClient::findDataNodeForBlock(const std::vector<uint8_t>& uuid, bool newBlock) const {
-		std::vector<std::string> datanodes;
-		// zk->getChildren();
-		// TODO: Perform a search for datanodes, possibly cached
+	bool ZkNnClient::findDataNodeForBlock(std::vector<std::string>& datanodes, const u_int64_t blockId, int replication_factor, bool newBlock) {
+        // TODO: Actually perform this action
+        // TODO: Perhaps we should keep a cached list of nodes
+
+        std::vector<std::string> children = std::vector<std::string>();
+        int errorCode;
+
+        if (!zk->get_children("/health", children, errorCode)) {
+            LOG(ERROR) << "Failed to get list of datanodes at /health: " << errorCode;
+            return false;
+        }
+
+        // TODO: Read strategy from config, but as of now select the first few blocks that are valid
+
+        for (auto datanode : children) {
+            if (newBlock) {
+                datanodes.push_back(datanode);
+            } else {
+                // TODO: Check if the datanode currently already contains this block
+            }
+            if (datanodes.size() == replication_factor) {
+                break;
+            }
+        }
+        if (datanodes.size() > replication_factor) {
+            LOG(ERROR) << "Failed to find at least " << replication_factor << " datanodes at /health";
+            return false;
+        }
 		return true;
 	}
 }
