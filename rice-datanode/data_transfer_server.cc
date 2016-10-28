@@ -93,9 +93,9 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	const OpWriteBlockProto_BlockConstructionStage stage = proto.stage();
 	int pipelineSize = proto.pipelinesize();
 	//num bytes in block
-	::google::protobuf::uint64 bytesInBlock = proto.minbytesrcvd();
+	uint64_t bytesInBlock = proto.minbytesrcvd();
 	//num bytes sent
-	::google::protobuf::uint64 bytesSent = proto.maxbytesrcvd();
+	uint64_t bytesSent = proto.maxbytesrcvd();
 
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
@@ -104,8 +104,36 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	}
 
 	//TODO read packets of block from client
+	bool last_packet = false;
+	while (!last_packet) {
+		PacketHeaderProto p_head;
+		rpcserver::read_proto(sock, p_head);
+		last_packet = p_head.lastpacketinblock();
+		uint64_t data_len = p_head.datalen();
+		std::string data (data_len, 0);
+		asio::error_code error;
+		size_t len = sock.read_some(asio::buffer(&data[0], data_len), error);
+		if (len != data_len || !error) {
+			LOG(ERROR) << "Failed to read packet " << p_head.seqno();
+			break;
+		}
+		if (!last_packet || data_len != 0) {
+			LOG(INFO) << "Writing data to disk: " << data;
+		}
+		PipelineAckProto ack;
+		ack.set_seqno(p_head.seqno());
+		ack.add_reply(SUCCESS);
+		std::string ack_string;
+		ack.SerializeToString(&ack_string);
+		if (rpcserver::write_delimited_proto(sock, ack_string)) {
+			LOG(INFO) << "Successfully sent ack to client";
+		} else {
+			LOG(INFO) << "Could not send ack to client";
+		}
+	}
+	
 	//TODO send acks
-		
+	
 
 	//TODO write out to block
 	
