@@ -26,10 +26,10 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
-wget --quiet http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
-tar -xf hadoop-2.7.3.tar.gz
-mv hadoop-2.7.3 /home/vagrant/hadoop
-rm hadoop-2.7.3.tar.gz
+wget --quiet http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-3.0.0-alpha1/hadoop-3.0.0-alpha1.tar.gz
+tar -xf hadoop-3.0.0-alpha1.tar.gz
+mv hadoop-3.0.0-alpha1 /home/vagrant/hadoop
+rm hadoop-3.0.0-alpha1.tar.gz
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
 cat > /home/vagrant/hadoop/etc/core-site.xml <<EOF
