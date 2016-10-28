@@ -58,8 +58,9 @@ class ZKWrapper {
      * @param error_code Integer reference, set to a value in ZK_ERRORS
      *        Otherwise, an error code is returned. The meaning of an error code
      *        can be retrieved from translate_error()
+     * @param root
      */
-    ZKWrapper(std::string host, int &error_code);
+    ZKWrapper(std::string host, int &error_code, std::string root = "");
 
     /**
      * Translate numerical error code to zookeeper error string
@@ -303,6 +304,7 @@ class ZKWrapper {
     friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
                         void *watcherCtx);
 
+    const std::string root;
     const static std::uint32_t MAX_PAYLOAD = 65536;
     const static std::uint32_t MAX_PATH_LEN = 512;
 

@@ -57,7 +57,7 @@ std::string ZKWrapper::translate_error(int errorcode) {
 	return message;
 }
 
-ZKWrapper::ZKWrapper(std::string host, int &error_code) {
+ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root) : root(root) {
 	// TODO: Move these default values to some readable CONSTANT value
 	zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
 	if (!zh) {
@@ -68,6 +68,10 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code) {
 }
 
 /* Wrapper Implementation of Zookeeper Functions */
+
+std::string ZKWrapper::buildZKPath(const std::string& path) {
+    return root + path;
+}
 
 bool ZKWrapper::create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
