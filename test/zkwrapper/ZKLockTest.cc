@@ -8,6 +8,10 @@
 #include <chrono>
 #include "zk_lock.h"
 
+#include <easylogging++.h>
+
+INITIALIZE_EASYLOGGINGPP
+
 namespace {
     const std::string zk_dir = "/a";
     class ZKLockTest : public ::testing::Test {

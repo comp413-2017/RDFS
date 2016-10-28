@@ -18,12 +18,13 @@ typedef struct
 {       
 	int replication;
 	int blocksize;
-	int under_construction;
-	int filetype; 
-	std::uint64_t length;
+	int under_construction; // 1 for under construction, 0 for complete
+	int filetype; // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported) 
+	std::uint64_t length; 
+	// https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/FileSystem.html#setOwner(org.apache.hadoop.fs.Path, java.lang.String, java.lang.String)
 	std::uint64_t access_time;
 	std::uint64_t modification_time;
-	char owner[256];
+	char owner[256]; // the client who created the file 
 	char group[256];
 }FileZNode;
 
@@ -59,7 +60,7 @@ class ZkNnClient : public ZkClientCommon {
 		 */ 	
 		bool file_exists(const std::string& path);
 	private:
-		int* errorcode;
+		int errorcode;
 		/**
 		 * Set the file status proto with information from the znode struct and the path
 		 */
@@ -94,12 +95,27 @@ class ZkNnClient : public ZkClientCommon {
 		 */ 
 		bool mkdir_helper(const std::string &path, bool create_parent);
 
+		/**
+		 * Read a znode corresponding to a file into znode_data
+		 */
 		void read_file_znode(FileZNode& znode_data, const std::string& path);
 
+		/**
+		 * Serialize a znode struct representation to a byte array to feed into zookeeper
+		 */
 		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
 
 		bool generateBlockUUID(std::vector<uint8_t>& uuid) const;
+
 		bool findDataNodeForBlock(const std::vector<uint8_t>& uuid_vec, bool newBlock = false) const;
+		/**
+		 * Try to delete a node and log error if we couldnt and set response to false
+		 */
+		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
+
+		const int UNDER_CONSTRUCTION = 1;
+		const int FILE_COMPLETE = 0;
+		const int UNDER_DESTRUCTION = 2; 
 };
 
 } // namespace

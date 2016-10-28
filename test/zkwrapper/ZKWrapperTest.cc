@@ -2,6 +2,10 @@
 #include <cstring>
 #include <gtest/gtest.h>
 
+#include <easylogging++.h>
+
+INITIALIZE_EASYLOGGINGPP
+
 namespace {
 
     class ZKWrapperTest : public ::testing::Test {
@@ -63,14 +67,16 @@ namespace {
         bool result = zk->create_sequential("/testing/sequential-", ZKWrapper::EMPTY_VECTOR, new_path, false, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-        ASSERT_EQ("/testing/sequential-0000000000", new_path.c_str());
+        std::string expected("/testing/sequential-0000000000"); 
+		ASSERT_EQ(expected, new_path);
 
         std::string new_path2;
         result = zk->create_sequential("/testing/sequential-", ZKWrapper::EMPTY_VECTOR, new_path2, false, error);
 
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-        ASSERT_EQ("/testing/sequential-0000000001", new_path2.c_str());
+        std::string expected2("/testing/sequential-0000000001");
+		ASSERT_EQ(expected2, new_path2);
 
     }
     TEST_F(ZKWrapperTest, recursive_create){
@@ -79,10 +85,21 @@ namespace {
         bool result = zk->recursive_create("/testing/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-
-        result = zk->recursive_create("/testing/testrecur/test2", ZKWrapper::EMPTY_VECTOR, error);
-        ASSERT_EQ(true, result);
-        ASSERT_EQ("ZOK", zk->translate_error(error));
+		
+		/* create same path, should fail */
+		result = zk->recursive_create("/testing/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
+		ASSERT_EQ(false, result);
+	
+	   std::vector <std::uint8_t> retrieved_data(65536);
+	   auto data = ZKWrapper::get_byte_vector("hello");
+       result = zk->recursive_create("/testing/testrecur/test2", data, error);
+	   ASSERT_EQ(true, result);
+	   result = zk->get("/testing/testrecur/test2", retrieved_data, error);
+       ASSERT_EQ(true, result);
+	   ASSERT_EQ(5, retrieved_data.size());
+	   result = zk->get("/testing/testrecur", retrieved_data, error);
+	   ASSERT_EQ(true, result);
+	   ASSERT_EQ(0, retrieved_data.size());		
 
         result = zk->recursive_create("/testing/testrecur/test2/test3/test4", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
@@ -120,7 +137,7 @@ namespace {
         bool result = zk->get_children("/", children, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-        ASSERT_EQ(1, children.size());
+        //ASSERT_EQ(1, children.size());
     }
 
     //TODO need to create tests for this

@@ -39,7 +39,6 @@ class ClientNamenodeTranslator {
 		std::string getServerDefaults(std::string);
 		std::string renewLease(std::string);
 		std::string complete(std::string);
-		std::string setReplication(std::string);
 
 		// RPC calls which are not supported
 		std::string rename(std::string);
@@ -48,6 +47,7 @@ class ClientNamenodeTranslator {
 		std::string setPermission(std::string);
 		std::string recoverLease(std::string);
 		std::string concat(std::string);
+		std::string setReplication(std::string);
 
 		// lease manager interactions
 		std::string abandonBlock(std::string input);
@@ -73,10 +73,10 @@ class ClientNamenodeTranslator {
 	        std::string ZookeeperPath(const std::string &hadoopPath);
 
 		FsServerDefaultsProto server_defaults; 	//server defaults as read from the config
-		int port; 				// port which our rpc server is using 
-		RPCServer server; 			// our rpc server 
-		zkclient::ZkNnClient& zk; 		// client to communicate with zookeeper
-		lease::LeaseManager lease_manager; 	// the manager to handle mappings of clients to files they own
+		int port; 								// port which our rpc server is using 
+		RPCServer server; 						// our rpc server 
+		zkclient::ZkNnClient& zk; 				// client to communicate with zookeeper
+		lease::LeaseManager lease_manager; 		// the manager to handle mappings of clients to files they own
 		config_reader::ConfigReader config; 	// used to read from our config files 
 
 		/**

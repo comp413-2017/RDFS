@@ -6,11 +6,14 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <chrono>
+#include <sys/time.h>
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <google/protobuf/message.h>
 #include <ConfigReader.h>
+#include <easylogging++.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -21,9 +24,7 @@ namespace zkclient{
 
 	ZkNnClient::ZkNnClient(std::string zkIpAndAddress) : ZkClientCommon(zkIpAndAddress) {
 
-	}
-
-	
+	}	
 
 	/*
 	 * A simple print function that will be triggered when 
@@ -37,7 +38,7 @@ namespace zkclient{
 	 * Watcher for health child node (/health/datanode_)
 	 */
 	void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-		std::cout << "[health child] Watcher triggered on path '" << path << "'" << std::endl;
+		LOG(INFO) << "[health child] Watcher triggered on path '" << path;
 		char health[] = "/health/datanode_";
 		printf("[health child] Receive a heartbeat. A child has been added under path %s\n", path);
 
@@ -66,7 +67,7 @@ namespace zkclient{
 		struct String_vector *vector = &stvector;
 		/* reinstall watcher */
 		int rc = zoo_wget_children(zzh, path, watcher_health, nullptr, vector);
-		std::cout << "[rc] health:" << rc << std::endl;
+		LOG(INFO) << "[rc] health:" << rc;
 		int i;
 		std::vector <std::string> children;
 		for (i = 0; i < stvector.count; i++) {
@@ -78,7 +79,7 @@ namespace zkclient{
 		}
 
 		for (int i = 0; i < children.size(); i++) {
-			std::cout << "[In watcher_health] Attaching child to " << children[i] << std::endl;
+			LOG(INFO) << "[In watcher_health] Attaching child to " << children[i];
 			int rc = zoo_wget_children(zzh, ("/health/" + children[i]).c_str(), watcher_health_child, nullptr, vector);
 			int k=0;
 			while (k < vector->count) {
@@ -90,48 +91,47 @@ namespace zkclient{
 
 	void ZkNnClient::register_watches() {
 
-        	int error_code;
-        	// TODO: Do we have to free the returned children?
-        	std::vector <std::string> children = std::vector <std::string>();
+        // TODO: Do we have to free the returned children?
+        std::vector <std::string> children = std::vector <std::string>();
 
 		/* Place a watch on the health subtree */
-		if (!zk->wget_children("/health", children, watcher_health, nullptr, error_code)) {
+		if (!zk->wget_children("/health", children, watcher_health, nullptr, errorcode)) {
 	            // TODO: Handle error
-        	}
+		}
 
 		for (int i = 0; i < children.size(); i++) {
-			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
+			LOG(INFO) << "[In register_watches] Attaching child to " << children[i] << ", ";
 			std::vector <std::string> ephem = std::vector <std::string>();
-            		if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code)) {
-                		// TODO: Handle error
-            		}
+			if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, errorcode)) {
+				// TODO: Handle error
+            }
 			/*
 			   if (ephem.size() > 0) {
-			   std::cout << "Found ephem " << ephem[0] << std::endl;
+			   LOG(INFO) << "Found ephem " << ephem[0];
 			   } else {
-			   std::cout << "No ephem found for " << children[i] << std::endl;
+			   LOG(INFO) << "No ephem found for " << children[i];
 			   }
 			 */
 		}
 	}
 
 	bool ZkNnClient::file_exists(const std::string& path) {
-        	int error_code;
-        	bool exists;
-        	if (zk->exists(ZookeeperPath(path), exists, error_code)) {
-            		return exists;
-        	} else {
-            	// TODO: Handle error
-        	}
+        bool exists;
+		if (zk->exists(ZookeeperPath(path), exists, errorcode)) {
+			return exists;
+		} else {
+			// TODO: Handle error
+        }
 	}
 
 
 	// --------------------------- PROTOCOL CALLS ---------------------------------------
 
 	void ZkNnClient::read_file_znode(FileZNode& znode_data, const std::string& path) {
-		int errorcode;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
-		zk->get(ZookeeperPath(path), data, errorcode);
+		if (!zk->get(ZookeeperPath(path), data, errorcode)) {
+			// TODO handle error
+		}
 		std::uint8_t *buffer = &data[0];
 		memcpy(&znode_data, buffer, sizeof(znode_data));
 	}
@@ -148,12 +148,12 @@ namespace zkclient{
 			FileZNode znode_data;
 			set_mkdir_znode(&znode_data);
 			set_file_info(status, path, znode_data);
-			std::cout << "Got info for root" << std::endl;	
+			LOG(INFO) << "Got info for root";	
 			return;
 		}
 		
 		if (file_exists(path)) {
-			std::cout << "File exists" << std::endl;
+			LOG(INFO) << "File exists";
 			// read the node into the file node struct
 			FileZNode znode_data;
 			read_file_znode(znode_data, path);		
@@ -161,11 +161,10 @@ namespace zkclient{
 			// set the file status in the get file info response res
 			HdfsFileStatusProto* status = res.mutable_fs();
 			set_file_info(status, path, znode_data);	
-			std::cout << "Got info for file " << std::endl;
-			std::flush(std::cout);
+			LOG(INFO) << "Got info for file ";
 			return;
 		}
-		std::cout << "No file to get info for" << std::endl;
+		LOG(INFO) << "No file to get info for";
 	}
 
 	/**
@@ -173,28 +172,101 @@ namespace zkclient{
 	 */
 	int ZkNnClient::create_file_znode(const std::string& path, FileZNode* znode_data) {
 		if (!file_exists(path)) {	
-			std::cout<< "Creating znode at " << path << std::endl; 
+			LOG(INFO)<< "Creating file znode at " << path; 
 			{
-				std::cout << znode_data->replication << std::endl;
-				std::cout << znode_data->owner << std::endl;
-				std::cout << "size of znode is " << sizeof(*znode_data) << std::endl;
+				LOG(INFO) << znode_data->replication;
+				LOG(INFO) << znode_data->owner;
+				LOG(INFO) << "size of znode is " << sizeof(*znode_data);
 			}
 			// serialize struct to byte vector 
 			std::vector<std::uint8_t> data(sizeof(*znode_data));
 			file_znode_struct_to_vec(znode_data, data);	
 			// crate the node in zookeeper 
-			int errorcode;
-			zk->create(ZookeeperPath(path), data, errorcode);
+			if (!zk->create(ZookeeperPath(path), data, errorcode)) {
+				LOG(INFO) << "Create failed";
+				return 0;
+				// TODO : handle error
+			}
 			return 1; 
 		}
 		return 0;
+	}
+
+	void ZkNnClient::delete_node_wrapper(std::string& path, DeleteResponseProto& response) {
+		if (!zk->delete_node(ZookeeperPath(path), errorcode)) {
+			response.set_result(false);
+			LOG(ERROR) << "Error deleting node at " << path << " because of error = " << errorcode;
+			return;
+		}
+		LOG(INFO) << "Successfully deletes znode";
+	}
+
+
+	/**
+	 * Go down directories recursively. If a child is a file, then put its deletion on a queue.
+	 * Files delete themselves, but directories are deleted by their parent (so root can't be deleted) 
+	 */	
+	void ZkNnClient::destroy(DeleteRequestProto& request, DeleteResponseProto& response) {
+		const std::string& path = request.src();
+		bool recursive = request.recursive();
+		response.set_result(true);
+		if (!file_exists(path)) {
+			return response.set_result(false);
+		}
+		FileZNode znode_data;
+		read_file_znode(znode_data, path);	
+		if (recursive) {
+			// we cannot have a file if we are deleting recursively
+			if (znode_data.filetype != 1 || znode_data.filetype != 0) {
+				return response.set_result(false);		
+			}
+			// get the kids
+			std::vector<std::string> children;
+			if (!zk->get_children(path, children, errorcode)) {
+				LOG(ERROR) << "Could not get children for " << path << " because of error = " << errorcode;
+				response.set_result(false);
+				return;
+			}
+			// delete the kids
+			for (auto src : children) {
+				FileZNode znode_data_child;
+				read_file_znode(znode_data, src);
+				DeleteRequestProto request_child;
+				DeleteResponseProto response_child;
+				request.set_src(src);
+				if (znode_data_child.filetype == 2) {
+					request.set_recursive(false);
+				}  
+				else if (znode_data_child.filetype == 1) {
+					request.set_recursive(true);
+				} else {
+					// TODO handle error
+				}
+				destroy(request_child, response_child);
+				if (response_child.result() == false) { // propogate failures updwards
+					response.set_result(false);
+				}
+				if (znode_data_child.filetype == 1) { // the child is a dir, so delete it
+					delete_node_wrapper(src, response);
+				}	
+			}
+		} else {
+			LOG(INFO) << "Deleting znode";
+			// we cannot have a directory if we are not recursively deleting 
+			if (znode_data.filetype != 2) {
+				return response.set_result(false);
+			}
+			std::string copy = path;
+			// delete then dude then TODO delete his blocks
+			delete_node_wrapper(copy, response);
+		}
 	}
 
 	/**
 	 * Create a file in zookeeper 
 	 */ 
 	int ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
-
+		LOG(INFO) << "Gonna try and create a file on zookeeper";
 		const std::string& path = request.src();
 		const std::string& owner = request.clientname();
 		bool create_parent = request.createparent();
@@ -202,13 +274,17 @@ namespace zkclient{
 		std::uint32_t replication = request.replication();
 		std::uint32_t createflag = request.createflag();
 
-		if (file_exists(path))
+		if (file_exists(path)) {
+			// TODO solve this issue of  
+			LOG(ERROR) << "File already exists";
 			return 0;
+		}
 
 		// If we need to create directories, do so 
 		if (create_parent) {
 			std::string directory_paths = ""; 
 			auto split_path = split(path, '/');
+			LOG(INFO) << split_path.size();
 			for (int i = 0; i < split_path.size() - 1; i++) {
 				directory_paths += split_path[i];
 			}
@@ -221,11 +297,15 @@ namespace zkclient{
 		if (!file_exists(path)) {
 			// create the znode
 			FileZNode znode_data;
-			
+			LOG(INFO) << "sup";			
 			znode_data.length = 0;
-			znode_data.under_construction = 1; // TODO where are these enums
-			znode_data.access_time = 0;
-			znode_data.modification_time = 0;
+			znode_data.under_construction = UNDER_CONSTRUCTION;
+			// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+			struct timeval tp;
+			gettimeofday(&tp, NULL);
+			uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+			znode_data.access_time = mslong; 
+			znode_data.modification_time = mslong;
 			strcpy(znode_data.owner, owner.c_str());
 			strcpy(znode_data.group, owner.c_str());
 			znode_data.replication = replication;
@@ -247,11 +327,12 @@ namespace zkclient{
 		const std::string& src = req.src();
 		FileZNode znode_data;
 		read_file_znode(znode_data, src);
-		znode_data.under_construction = 0;
+		znode_data.under_construction = FILE_COMPLETE;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		file_znode_struct_to_vec(&znode_data, data);
-		int error;	
-		zk->set(ZookeeperPath(src), data, error);
+		if (!zk->set(ZookeeperPath(src), data, errorcode)) {
+			// TODO : handle erro
+		}
 		res.set_result(true);		
 	}
 
@@ -262,8 +343,12 @@ namespace zkclient{
 	 */ 
 	void ZkNnClient::set_mkdir_znode(FileZNode* znode_data) {
 		znode_data->length = 0;
-		znode_data->access_time = 0;
-		znode_data->modification_time = 0;
+		struct timeval tp;
+		gettimeofday(&tp, NULL);
+		// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+		uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		znode_data->access_time = mslong; // TODO what are these
+		znode_data->modification_time = mslong;
 		znode_data->blocksize = 0;
 		znode_data->replication = 0;
 		znode_data->filetype = 1;
@@ -316,7 +401,7 @@ namespace zkclient{
 		}
 		return true; 
 	}
-
+	
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 		const std::string &src = req.src();
 		google::protobuf::uint64 offset = req.offset();
@@ -372,7 +457,7 @@ namespace zkclient{
 
 	void ZkNnClient::set_file_info(HdfsFileStatusProto* status, const std::string& path, FileZNode& znode_data) {
 		HdfsFileStatusProto_FileType filetype;
-		std::cout << znode_data.filetype << " HEY " << std::endl;
+		LOG(INFO) << znode_data.filetype << " HEY ";
 		// get the filetype, since we do not want to serialize an enum	
 		switch(znode_data.filetype) {
 			case(0):
@@ -405,7 +490,7 @@ namespace zkclient{
 		
 		status->set_modification_time(znode_data.modification_time);
 		status->set_access_time(znode_data.access_time);
-		std::cout << "Set file info " << std::endl;
+		LOG(INFO) << "Set file info ";
 	}
 
 	/**

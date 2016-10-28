@@ -5,6 +5,10 @@
 #include "zk_queue.h"
 #include <gtest/gtest.h>
 
+#include <easylogging++.h>
+
+INITIALIZE_EASYLOGGINGPP
+
 namespace {
 
     class ZKQueueTest : public ::testing::Test {

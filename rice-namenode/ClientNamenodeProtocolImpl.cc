@@ -61,7 +61,6 @@ std::string ClientNamenodeTranslator::mkdir(std::string input) {
 	MkdirsResponseProto res;
 	// TODO for now, just say the mkdir command failed
 	zk.mkdir(req, res);
-	logMessage(res, "Mkdir response ");
 	return Serialize(res);
 }
 
@@ -71,10 +70,8 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	logMessage(req, "Delete ");
 	const std::string& src = req.src();
 	const bool recursive = req.recursive();
-	std::string out;
 	DeleteResponseProto res;
-	// TODO for now, just say the delete command failed
-	res.set_result(false);
+	zk.destroy(req, res);
 	return Serialize(res);
 }
 
@@ -82,10 +79,9 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
-	CreateResponseProto res = CreateResponseProto::default_instance();
+	CreateResponseProto res;
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
-	logMessage(res, "Create response ");
     	return Serialize(res);
 }
 
@@ -103,18 +99,16 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	GetServerDefaultsRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "GetServerDefaults ");
-	std::string out;
 	GetServerDefaultsResponseProto res;
-	FsServerDefaultsProto def;
+	FsServerDefaultsProto* def = res.mutable_serverdefaults();
 	// read all this config info
-	def.set_blocksize(getDefaultInt("dfs.blocksize"));
-	def.set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
-	def.set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
-	def.set_replication(getDefaultInt("dfs.replication"));
-	def.set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
-	def.set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
-	// TODO ChecksumTypeProto (optional)	
-	res.set_allocated_serverdefaults(&def);
+	def->set_blocksize(getDefaultInt("dfs.blocksize"));
+	def->set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
+	def->set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
+	def->set_replication(getDefaultInt("dfs.replication"));
+	def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
+	def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
+	// TODO ChecksumTypeProto (optional)
 	return Serialize(res);
 }
 
@@ -147,23 +141,6 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 }
 
 /**
- * The actual block replication is not expected to be performed during  
- * this method call. The blocks will be populated or removed in the 
- * background as the result of the routine block maintenance procedures.
- */
-std::string ClientNamenodeTranslator::setReplication(std::string input) {
-	SetReplicationRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "SetReplication ");
-	const std::string& src = req.src();
-	google::protobuf::uint32 replication = req.replication();
-	// TODO verify file exists, set its replication, for now, we fail 
-	SetReplicationResponseProto res;
-	res.set_result(false);
-	return Serialize(res);
-}
-
-/**
  * The client can give up on a block by calling abandonBlock().
  * The client can then either obtain a new block, or complete or
  * abandon the file. Any partial writes to the block will be discarded.
@@ -184,6 +161,20 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 }
 
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
+
+/**
+ * The actual block replication is not expected to be performed during  
+ * this method call. The blocks will be populated or removed in the 
+ * background as the result of the routine block maintenance procedures.
+ */
+std::string ClientNamenodeTranslator::setReplication(std::string input) {
+	SetReplicationRequestProto req;
+	req.ParseFromString(input);
+	logMessage(req, "SetReplication ");
+	SetReplicationResponseProto res;
+	res.set_result(false);
+	return Serialize(res);
+}
 
 std::string ClientNamenodeTranslator::rename(std::string input) {
 	RenameResponseProto res;
@@ -249,6 +240,7 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
  */
 std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) {
 	std::string out;
+	logMessage(res, "Responding with ");
 	if (!res.SerializeToString(&out)) {
 		// TODO handle error
 	}
@@ -281,11 +273,11 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
 
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
-    // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+    	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
 	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
 	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
-	server.register_handler("destroy", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
+	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
 	server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 	server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));

@@ -2,8 +2,7 @@
 #define RDFS_ZK_CLIENT_DN_CC
 
 #include "zk_client_dn.h"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+#include <easylogging++.h>
 
 namespace zkclient{
 
