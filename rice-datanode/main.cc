@@ -16,11 +16,11 @@ INITIALIZE_EASYLOGGINGPP
 using namespace client_datanode_translator;
 
 int main(int argc, char* argv[]) {
-	//el::Configurations conf(LOG_CONFIG_FILE);
-	//el::Loggers::reconfigureAllLoggers(conf);
+	el::Configurations conf(LOG_CONFIG_FILE);
+	el::Loggers::reconfigureAllLoggers(conf);
 
 	asio::io_service io_service;
-	short port = 5544;
+	unsigned short port = 5544;
 	if (argc == 2) {
 		port = std::atoi(argv[1]);
 	}
