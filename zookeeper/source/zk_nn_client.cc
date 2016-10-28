@@ -95,15 +95,17 @@ namespace zkclient{
         	std::vector <std::string> children = std::vector <std::string>();
 
 		/* Place a watch on the health subtree */
-		if (!zk->wget_children("/health", children, watcher_health, nullptr, error_code)) {
+		if (!(zk->wget_children("/health", children, watcher_health, nullptr, error_code))) {
 	            // TODO: Handle error
+				std::cout << "[In register_watchers], wget failed " << error_code << std::endl; 
         	}
 
 		for (int i = 0; i < children.size(); i++) {
 			std::cout << "[In register_watches] Attaching child to " << children[i] << ", " << std::endl;
 			std::vector <std::string> ephem = std::vector <std::string>();
-            		if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code)) {
+            		if(!(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code))) {
                 		// TODO: Handle error
+						std::cout << "[In register_watchers], wget failed " << error_code << std::endl;
             		}
 			/*
 			   if (ephem.size() > 0) {
@@ -124,6 +126,7 @@ namespace zkclient{
             	// TODO: Handle error
         	}
 	}
+
 
 
 	// --------------------------- PROTOCOL CALLS ---------------------------------------
@@ -440,9 +443,39 @@ namespace zkclient{
 		return true;
 	}
 
-	bool ZkNnClient::findDataNodeForBlock(const std::vector<uint8_t>& uuid, bool newBlock) const {
-		std::vector<std::string> datanodes;
-		// zk->getChildren();
+	/* Return true when num_replicate datanodes are found, return 
+	*  false if (1) an error is occurred, (2) can't find enough
+	*  datanodes.
+	*/
+	bool ZkNnClient::findDataNodeForBlock(std::vector<std::string>& datanodes, bool newBlock) const {
+		std::cout << "[findDataNodeForBlock] is triggered " << std::endl;
+		std::vector<std::string> health_nodes = std::vector <std::string>();
+	    int error_code;	
+		
+		if (zk->get_children("/health", health_nodes, error_code)){
+			std::cout << "size of health nodes " << health_nodes.size() << std::endl;
+			/* for each child, check if the ephemeral node exists */
+			for(std::vector<std::string>::size_type i = 0; i != health_nodes.size(); i++) {
+				    std::cout << health_nodes[i] << std::endl;
+					std::vector<std::string> subtree_nodes;
+					if (zk->get_children("/health/"+health_nodes[i], subtree_nodes, error_code)){
+						/* TODO: use more advanced child selection heruistic */
+						//datanodes.push_back(health_nodes[i]);
+						if (subtree_nodes.size() > 0){
+							datanodes.push_back(health_nodes[i]);
+						}
+					}
+					if (datanodes.size() == 1){
+						std::cout << "find enough datanode, break" << std::endl;
+						break;
+					}
+			}
+		}
+		else{
+			std::cout << "findnode failed " << error_code << std::endl;
+		}
+		if (error_code != 0)
+			return false;
 		// TODO: Perform a search for datanodes, possibly cached
 		return true;
 	}

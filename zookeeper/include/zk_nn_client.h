@@ -58,6 +58,7 @@ class ZkNnClient : public ZkClientCommon {
 		 * Information that the protocol might need to respond to individual rpc calls 
 		 */ 	
 		bool file_exists(const std::string& path);
+ 		bool findDataNodeForBlock(std::vector<std::string>& datanodes, bool newBlock = false) const;
 	private:
 		int* errorcode;
 		/**
@@ -99,7 +100,6 @@ class ZkNnClient : public ZkClientCommon {
 		void file_znode_struct_to_vec(FileZNode* znode_data, std::vector<std::uint8_t> &data);
 
 		bool generateBlockUUID(std::vector<uint8_t>& uuid) const;
-		bool findDataNodeForBlock(const std::vector<uint8_t>& uuid_vec, bool newBlock = false) const;
 };
 
 } // namespace
