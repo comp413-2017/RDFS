@@ -91,19 +91,23 @@ namespace zkclient{
 
 	void ZkNnClient::register_watches() {
 
+        int error_code;
         // TODO: Do we have to free the returned children?
         std::vector <std::string> children = std::vector <std::string>();
 
 		/* Place a watch on the health subtree */
-		if (!zk->wget_children("/health", children, watcher_health, nullptr, errorcode)) {
+
+		if (!(zk->wget_children("/health", children, watcher_health, nullptr, error_code))) {
 	            // TODO: Handle error
-		}
+				LOG(ERROR) << "[In register_watchers], wget failed " << error_code;
+        	}
 
 		for (int i = 0; i < children.size(); i++) {
 			LOG(INFO) << "[In register_watches] Attaching child to " << children[i] << ", ";
 			std::vector <std::string> ephem = std::vector <std::string>();
-			if(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, errorcode)) {
-				// TODO: Handle error
+            if(!(zk->wget_children("/health/" + children[i], ephem, watcher_health_child, nullptr, error_code))) {
+                // TODO: Handle error
+                LOG(ERROR) << "[In register_watchers], wget failed " << error_code;
             }
 			/*
 			   if (ephem.size() > 0) {
@@ -117,7 +121,8 @@ namespace zkclient{
 
 	bool ZkNnClient::file_exists(const std::string& path) {
         bool exists;
-		if (zk->exists(ZookeeperPath(path), exists, errorcode)) {
+        int error_code;
+		if (zk->exists(ZookeeperPath(path), exists, error_code)) {
 			return exists;
 		} else {
 			// TODO: Handle error
@@ -125,11 +130,13 @@ namespace zkclient{
 	}
 
 
+
 	// --------------------------- PROTOCOL CALLS ---------------------------------------
 
 	void ZkNnClient::read_file_znode(FileZNode& znode_data, const std::string& path) {
+        int error_code;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
-		if (!zk->get(ZookeeperPath(path), data, errorcode)) {
+		if (!zk->get(ZookeeperPath(path), data, error_code)) {
 			// TODO handle error
 		}
 		std::uint8_t *buffer = &data[0];
@@ -171,6 +178,7 @@ namespace zkclient{
 	 * Create a node in zookeeper corresponding to a file 
 	 */
 	int ZkNnClient::create_file_znode(const std::string& path, FileZNode* znode_data) {
+        int error_code;
 		if (!file_exists(path)) {	
 			LOG(INFO)<< "Creating file znode at " << path; 
 			{
@@ -182,7 +190,7 @@ namespace zkclient{
 			std::vector<std::uint8_t> data(sizeof(*znode_data));
 			file_znode_struct_to_vec(znode_data, data);	
 			// crate the node in zookeeper 
-			if (!zk->create(ZookeeperPath(path), data, errorcode)) {
+			if (!zk->create(ZookeeperPath(path), data, error_code)) {
 				LOG(INFO) << "Create failed";
 				return 0;
 				// TODO : handle error
@@ -193,9 +201,10 @@ namespace zkclient{
 	}
 
 	void ZkNnClient::delete_node_wrapper(std::string& path, DeleteResponseProto& response) {
-		if (!zk->delete_node(ZookeeperPath(path), errorcode)) {
+        int error_code;
+		if (!zk->delete_node(ZookeeperPath(path), error_code)) {
 			response.set_result(false);
-			LOG(ERROR) << "Error deleting node at " << path << " because of error = " << errorcode;
+			LOG(ERROR) << "Error deleting node at " << path << " because of error = " << error_code;
 			return;
 		}
 		LOG(INFO) << "Successfully deletes znode";
@@ -207,6 +216,7 @@ namespace zkclient{
 	 * Files delete themselves, but directories are deleted by their parent (so root can't be deleted) 
 	 */	
 	void ZkNnClient::destroy(DeleteRequestProto& request, DeleteResponseProto& response) {
+        int error_code;
 		const std::string& path = request.src();
 		bool recursive = request.recursive();
 		response.set_result(true);
@@ -222,8 +232,8 @@ namespace zkclient{
 			}
 			// get the kids
 			std::vector<std::string> children;
-			if (!zk->get_children(path, children, errorcode)) {
-				LOG(ERROR) << "Could not get children for " << path << " because of error = " << errorcode;
+			if (!zk->get_children(path, children, error_code)) {
+				LOG(ERROR) << "Could not get children for " << path << " because of error = " << error_code;
 				response.set_result(false);
 				return;
 			}
@@ -326,6 +336,7 @@ namespace zkclient{
 
         // TODO: Completion makes a few guarantees that we should handle
 
+        int error_code;
 		// change the under construction bit
 		const std::string& src = req.src();
 		FileZNode znode_data;
@@ -333,7 +344,7 @@ namespace zkclient{
 		znode_data.under_construction = FILE_COMPLETE;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		file_znode_struct_to_vec(&znode_data, data);
-		if (!zk->set(ZookeeperPath(src), data, errorcode)) {
+		if (!zk->set(ZookeeperPath(src), data, error_code)) {
 			// TODO : handle erro
 		}
 		res.set_result(true);		
@@ -569,26 +580,35 @@ namespace zkclient{
         // TODO: Actually perform this action
         // TODO: Perhaps we should keep a cached list of nodes
 
-        std::vector<std::string> children = std::vector<std::string>();
-        int errorCode;
+        std::vector<std::string> live_data_nodes = std::vector <std::string>();
+        int error_code;
 
-        if (!zk->get_children("/health", children, errorCode)) {
-            LOG(ERROR) << "Failed to get list of datanodes at /health: " << errorCode;
+        if (zk->get_children("/health", live_data_nodes, error_code)) {
+            /* for each child, check if the ephemeral node exists */
+            for(auto datanode : live_data_nodes) {
+                bool isAlive;
+                if (!zk->exists("/health/" + datanode + "/health", isAlive, error_code)) {
+                    LOG(ERROR) << "Failed to check if datanode: " + datanode << " is alive: " << error_code;
+                }
+                if (isAlive) {
+                    // TODO: use more advanced child selection heruistic
+                    if (newBlock) {
+                        datanodes.push_back(datanode);
+                    } else {
+                        // TODO: Check if the datanode currently contains a replica
+                    }
+                }
+                if (datanodes.size() == replication_factor) {
+                    break;
+                }
+            }
+        } else {
+            LOG(ERROR) << "Failed to get list of datanodes at /health: " << error_code;
             return false;
         }
 
         // TODO: Read strategy from config, but as of now select the first few blocks that are valid
 
-        for (auto datanode : children) {
-            if (newBlock) {
-                datanodes.push_back(datanode);
-            } else {
-                // TODO: Check if the datanode currently already contains this block
-            }
-            if (datanodes.size() == replication_factor) {
-                break;
-            }
-        }
         if (datanodes.size() > replication_factor) {
             LOG(ERROR) << "Failed to find at least " << replication_factor << " datanodes at /health";
             return false;

@@ -36,7 +36,7 @@ namespace {
         zkclient::ZkNnClient *client;
     };
 
-    
+
     TEST_F(NamenodeTest, create){
         // ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
     }
@@ -45,7 +45,9 @@ namespace {
 
         int error;
         zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
+        zk->create("/health/localhost:2181/health", ZKWrapper::EMPTY_VECTOR, error);
         zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
+        zk->create("/health/localhost:2182/health", ZKWrapper::EMPTY_VECTOR, error);
 
         auto datanodes = std::vector<std::string>();
         u_int64_t block_id;
@@ -62,6 +64,7 @@ namespace {
     TEST_F(NamenodeTest, findDataNodesWithReplicas){
         // Check if we can find datanodes, without overlapping with ones that already contain a replica
     }
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

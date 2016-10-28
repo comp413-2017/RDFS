@@ -22,7 +22,6 @@ namespace zkclient {
 
         bool exists;
         int error_code;
-
         // TODO: Add in error handling for failures
         if (zk->exists("/health", exists, error_code)) {
             if (!exists) {

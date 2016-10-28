@@ -18,7 +18,7 @@ namespace zkclient{
         bool exists;
 
         // TODO: Add a watcher on the health node
-		if (zk->exists("/health/datanode_" + id, exists, error_code)) {
+		if (zk->exists("/health/" + id, exists, error_code)) {
             if (!exists) {
                 if (!zk->create("/health/datanode_" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
                     // TODO: Handle error
@@ -26,7 +26,7 @@ namespace zkclient{
             }
 		}
         // TODO: Make ephemeral
-		if (!zk->create("/health/datanode_" + id + "/health", ZKWrapper::EMPTY_VECTOR, error_code)) {
+		if (!zk->create("/health/" + id + "/health", ZKWrapper::EMPTY_VECTOR, error_code)) {
             // TODO: Handle error
         }
 	}

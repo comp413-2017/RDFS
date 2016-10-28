@@ -64,8 +64,8 @@ class ZkNnClient : public ZkClientCommon {
         bool generateBlockUUID(u_int64_t& blockId);
         bool findDataNodeForBlock(std::vector<std::string>& datanodes, const u_int64_t blockId, int replication_factor, bool newBlock = false);
 
-private:
-		int errorcode;
+	private:
+
 		/**
 		 * Set the file status proto with information from the znode struct and the path
 		 */
@@ -117,7 +117,7 @@ private:
 
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
-		const int UNDER_DESTRUCTION = 2; 
+		const int UNDER_DESTRUCTION = 2;
 };
 
 } // namespace
