@@ -5,36 +5,44 @@
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include "native-filesystem.h"
 
+namespace nativefs {
 
-// Maps block id to filename where it's being stored
-std::map<long, std::string> blockMap;
+NativeFS::NativeFS() {}
 
-// Given an ID, allocate a block. Returns a status message
-int allocateBlock(long id, unsigned char* blk)
+/**
+ * Given an ID, allocate a block. Returns true/false on success/failure.
+ **/
+bool NativeFS::allocateBlock(long id, std::string blk)
 {
 
 	if (!blockMap[id].empty()) {
-		return -1;
+		return false;
 	}
 
 	std::ostringstream oss;
 	oss << id;
 	std::string filename = "block" + oss.str() + ".txt";
-
-	blockMap[id] = filename;
 	std::ofstream myfile (filename);
+
+	// There was an error creating the file
+	if (myfile.fail()){
+		return false;
+	}
 
 	myfile << blk;
 	myfile.close();
 
-	return 0;
+	blockMap[id] = filename;
+
+	return true;
 
 }
-// TODO: Potentially return value if error reading file/allocating space
-// TODO: Decide where we're storing files
-// Given an ID, returns a block buffer
-unsigned char* getBlock(long id)
+/**
+ * Given an ID, returns a block buffer
+**/
+unsigned char* NativeFS::getBlock(long id)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
@@ -68,9 +76,10 @@ unsigned char* getBlock(long id)
 	// Return buffer
 	return blk;
 }
-
-// Given an ID, deletes a block. Returns -1 on error, 0 otherwise
-int rmBlock(long id)
+/**
+ * Given an ID, deletes a block. Returns false on error, true otherwise
+**/
+bool NativeFS::rmBlock(long id)
 {
 	std::string fileName;
 
@@ -78,7 +87,7 @@ int rmBlock(long id)
 	auto iter = blockMap.find(id);
 	if(iter == blockMap.end()){
 		fputs("Error: block not found\n", stderr);
-		return -1;
+		return false;
 	}
 	fileName = iter->second;
 
@@ -89,8 +98,9 @@ int rmBlock(long id)
 	// Delete the corresponding file
 	if( remove(fileNameFmtd) != 0 ){
 		fputs("Error deleting file\n", stderr);
-		return -1;
+		return false;
 	}
-	return 0;
+	return true;
 
+}
 }

@@ -19,7 +19,7 @@ add_subdirectory(utility)
 add_subdirectory(rpcserver)
 add_subdirectory(rice-namenode)
 add_subdirectory(rice-datanode)
-add_subdirectory(dummy-filesystem)
+add_subdirectory(native-filesystem)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
 	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utility/config-reader/)
