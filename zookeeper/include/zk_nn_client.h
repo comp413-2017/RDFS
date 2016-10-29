@@ -16,8 +16,8 @@ namespace zkclient {
  */
 typedef struct
 {
-	int replication;
-	int blocksize;
+    uint32_t replication;
+	uint64_t blocksize;
 	int under_construction; // 1 for under construction, 0 for complete
 	int filetype; // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported) 
 	std::uint64_t length;
@@ -72,9 +72,9 @@ class ZkNnClient : public ZkClientCommon {
 		bool file_exists(const std::string& path);
 
         // TODO: Move back to private
-        bool addBlock(const std::string& fileName, std::vector<std::string> & dataNodes, int replication_factor);
-        bool generateBlockUUID(u_int64_t& blockId);
-        bool findDataNodeForBlock(std::vector<std::string>& datanodes, const u_int64_t blockId, int replication_factor, bool newBlock = false);
+        bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
+        bool generate_block_UUID(u_int64_t& blockId);
+        bool find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock = false);
 
 	private:
 

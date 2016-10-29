@@ -53,8 +53,8 @@ namespace {
         auto datanodes = std::vector<std::string>();
         u_int64_t block_id;
         LOG(INFO) << "Finding dn's for block " << block_id;
-        client->generateBlockUUID(block_id);
-        client->findDataNodeForBlock(datanodes, block_id, 1, true);
+        client->generate_block_UUID(block_id);
+        client->find_datanode_for_block(datanodes, block_id, 1, true);
 
         for (auto datanode : datanodes) {
             LOG(INFO) << "Returned datanode " << datanode;

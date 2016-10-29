@@ -8,6 +8,7 @@
 #include <easylogging++.h>
 #include "ClientDatanodeProtocolImpl.h"
 #include "data_transfer_server.h"
+#include "zk_client_dn.h"
 
 // initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
@@ -29,6 +30,7 @@ int main(int argc, char* argv[]) {
 	if (argc >= 3) {
 		ipcPort = std::atoi(argv[2]);
 	}
+	zkclient::ZkClientDn dncli("localhost:50020", "localhost:2181"); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
 	TransferServer transfer_server(xferPort);
 	transfer_server.serve(io_service);

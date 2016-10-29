@@ -7,7 +7,7 @@
 namespace zkclient{
 
 	ZkClientDn::ZkClientDn(const std::string& id, const std::string& zkAddress) : id(id), ZkClientCommon(zkAddress) {
-
+        registerDataNode();
 	}
 
 	void ZkClientDn::registerDataNode() {
@@ -20,7 +20,7 @@ namespace zkclient{
         // TODO: Add a watcher on the health node
 		if (zk->exists("/health/" + id, exists, error_code)) {
             if (!exists) {
-                if (!zk->create("/health/datanode_" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
+                if (!zk->create("/health/" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
                     // TODO: Handle error
                 }
             }

@@ -37,20 +37,30 @@ namespace zkclient {
         if (zk->exists("/fileSystem", exists, error_code)) {
             if (!exists) {
                 zk->create("/fileSystem", vec, error_code);
+            } else {
             }
         } else {
             // TODO: Handle error
         }
+        if (!zk->recursive_create("/work_queues/wait_for_acks", ZKWrapper::EMPTY_VECTOR, error_code)) {
+            LOG(ERROR) << "Failed creating /work_queues/wait_for_acks: " << error_code;
+        }
+        /*
         if (zk->exists("/work_queues",  exists, error_code)) {
             if (!exists) {
                 zk->create("/work_queues", vec, error_code);
             }
+            if (zk->exists("/work_queues/wait_for_acks",  exists, error_code)) {
+
+            }
+
         } else {
             // TODO: Handle error
         }
-        if (zk->exists("/blockMap", exists, error_code)) {
+         */
+        if (zk->exists("/block_locations", exists, error_code)) {
             if (!exists) {
-                zk->create("/blockMap", vec, error_code);
+                zk->create("/block_locations", vec, error_code);
             }
         } else {
             // TODO: Handle error
