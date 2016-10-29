@@ -35,9 +35,6 @@ sudo apt-get install libasio-dev
 mkdir build
 cd build
 
-sudo apt-get install libboost-all-dev
-sudo apt-get install libasio-dev 
-
 cmake ..
 make
 ```
@@ -60,6 +57,11 @@ make
 in the test/ directory.
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 
+A githook has been added at rdfs/test/pre-commit.  It's a shell script that will build and run 
+the unit tests.  To use it, copy the file to rdfs/.git/hooks.  Then, before each commit is made
+the tests will run, and a failure will halt the commit.  If this is too restrictive, renaming
+the file to pre-push will do the same thing only when you try to push.
+
 Namenode:
 Run the namenode executable from build/rice-namenode. 
 Then run something like `hdfs dfs -fs hdfs://localhost:port/ -mkdir foo`
@@ -69,6 +71,15 @@ Datanode:
 Run the datanode executable from build/rice-datanode. 
 Then run something like `hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/`
 where port is the port used by the datanode (it will print the port used)
+
+If you want to do a quick end-to-end test, try the following to cat out the character "r":
+
+1. Pull the code and build (as explained above).
+2. Run zookeeper (from ~, it’s `sudo zookeeper/bin/zkServer.sh start`). This will run in the background.
+3. Run namenode (`rdfs/build/rice-namenode/namenode`). This will run in the foreground.
+4. Run datanode (`rdfs/build/rice-datanode/datanode`). This will run in the foreground.
+5. Create a file with `hdfs dfs -fs hdfs://localhost:5351 -touchz /filename`
+6. Try to cat that file with `hdfs dfs -fs hdfs://localhost:5351 -cat /filename`
 
 # Mocking
 
@@ -84,12 +95,17 @@ verification of expectations.
 The typical flow is:
 1. Import the Google Mock names you need to use. All Google Mock names are
 in the `testing` namespace unless they are macros or otherwise noted.
+
 2. Create the mock objects.
+
 3. Optionally, set the default actions of the mock objects.
+
 4. Set your expectations on the mock objects (How will they be called? What
 will they do?).
+
 5. Exercise code that uses the mock objects; if necessary, check the result
 using [Google Test](../../googletest/) assertions.
+
 6. When a mock objects is destructed, Google Mock automatically verifies
 that all expectations on it have been satisfied.
 

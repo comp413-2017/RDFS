@@ -22,46 +22,40 @@
  * for what changes are allowed for a *stable* .proto interface.
  */
 
-// This file contains protocol buffers that are used throughout HDFS -- i.e.
-// by the client, server, and data transfer protocols.
-
-
-option java_package = "org.apache.hadoop.hdfs.protocol.proto";
-option java_outer_classname = "EncryptionZonesProtos";
+option java_package = "org.apache.hadoop.ipc.proto";
+option java_outer_classname = "GenericRefreshProtocolProtos";
+option java_generic_services = true;
 option java_generate_equals_and_hash = true;
-package hadoop.hdfs;
+package hadoop.common;
 
-import "hdfs.proto";
-
-message CreateEncryptionZoneRequestProto {
-  required string src = 1;
-  optional string keyName = 2;
+/**
+ *  Refresh request.
+ */
+message GenericRefreshRequestProto {
+    optional string identifier = 1;
+    repeated string args = 2;
 }
 
-message CreateEncryptionZoneResponseProto {
+/**
+ * A single response from a refresh handler.
+ */
+message GenericRefreshResponseProto {
+    optional int32 exitStatus = 1; // unix exit status to return
+    optional string userMessage = 2; // to be displayed to the user
+    optional string senderName = 3; // which handler sent this message
 }
 
-message ListEncryptionZonesRequestProto {
-  required int64 id = 1;
+/**
+ * Collection of responses from zero or more handlers.
+ */
+message GenericRefreshResponseCollectionProto {
+    repeated GenericRefreshResponseProto responses = 1;
 }
 
-message EncryptionZoneProto {
-  required int64 id = 1;
-  required string path = 2;
-  required CipherSuiteProto suite = 3;
-  required CryptoProtocolVersionProto cryptoProtocolVersion = 4;
-  required string keyName = 5;
-}
-
-message ListEncryptionZonesResponseProto {
-  repeated EncryptionZoneProto zones = 1;
-  required bool hasMore = 2;
-}
-
-message GetEZForPathRequestProto {
-    required string src = 1;
-}
-
-message GetEZForPathResponseProto {
-    optional EncryptionZoneProto zone = 1;
+/**
+ * Protocol which is used to refresh a user-specified feature.
+ */
+service GenericRefreshProtocolService {
+  rpc refresh(GenericRefreshRequestProto)
+      returns(GenericRefreshResponseCollectionProto);
 }

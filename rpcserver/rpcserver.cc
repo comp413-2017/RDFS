@@ -8,8 +8,8 @@
 
 #include <easylogging++.h>
 
-#include "socket_writes.cc"
-#include "socket_reads.cc"
+#include "socket_writes.h"
+#include "socket_reads.h"
 #include "rpcserver.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
@@ -40,6 +40,8 @@ bool RPCServer::receive_handshake(tcp::socket& sock, short* version, short* serv
             *auth_protocol = data[6];
             return true;
         }
+    } else {
+        LOG(ERROR) << "Received " << rec_len << " bytes and expected 7, error code " << error << ".";
     }
     return false;
 }
@@ -122,7 +124,11 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             ERROR_AND_RETURN("Failed to receive request.");
         }
         auto iter = this->dispatch_table.find(request_header.methodname());
-        if (iter != this->dispatch_table.end()) {
+        std::cout << std::endl;
+	std::cout << "RPC_METHOD_FOUND: [[" << request_header.methodname()
+		<< "]]" << std::endl << std::endl;
+
+	if (iter != this->dispatch_table.end()) {
             LOG(INFO) << "dispatching handler for " << request_header.methodname();
             // Send the response back on the socket.
             hadoop::common::RpcResponseHeaderProto response_header;
@@ -137,7 +143,7 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                 write_delimited_proto(sock, response)) {
                 LOG(INFO)  << "successfully wrote response to client.";
             } else {
-                LOG(INFO) << "failed to write response to client.";
+                LOG(ERROR) << "failed to write response to client.";
             }
         } else {
             LOG(INFO) << "no handler found for " << request_header.methodname();

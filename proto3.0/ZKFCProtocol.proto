@@ -22,46 +22,38 @@
  * for what changes are allowed for a *stable* .proto interface.
  */
 
-// This file contains protocol buffers that are used throughout HDFS -- i.e.
-// by the client, server, and data transfer protocols.
-
-
-option java_package = "org.apache.hadoop.hdfs.protocol.proto";
-option java_outer_classname = "EncryptionZonesProtos";
+option java_package = "org.apache.hadoop.ha.proto";
+option java_outer_classname = "ZKFCProtocolProtos";
+option java_generic_services = true;
 option java_generate_equals_and_hash = true;
-package hadoop.hdfs;
+package hadoop.common;
 
-import "hdfs.proto";
-
-message CreateEncryptionZoneRequestProto {
-  required string src = 1;
-  optional string keyName = 2;
+message CedeActiveRequestProto {
+  required uint32 millisToCede = 1;
 }
 
-message CreateEncryptionZoneResponseProto {
+message CedeActiveResponseProto {
 }
 
-message ListEncryptionZonesRequestProto {
-  required int64 id = 1;
+message GracefulFailoverRequestProto {
 }
 
-message EncryptionZoneProto {
-  required int64 id = 1;
-  required string path = 2;
-  required CipherSuiteProto suite = 3;
-  required CryptoProtocolVersionProto cryptoProtocolVersion = 4;
-  required string keyName = 5;
+message GracefulFailoverResponseProto {
 }
 
-message ListEncryptionZonesResponseProto {
-  repeated EncryptionZoneProto zones = 1;
-  required bool hasMore = 2;
-}
 
-message GetEZForPathRequestProto {
-    required string src = 1;
-}
+/**
+ * Protocol provides manual control of the ZK Failover Controllers
+ */
+service ZKFCProtocolService {
+  /**
+   * Request that the service cede its active state, and quit the election
+   * for some amount of time
+   */
+  rpc cedeActive(CedeActiveRequestProto)
+      returns(CedeActiveResponseProto);
 
-message GetEZForPathResponseProto {
-    optional EncryptionZoneProto zone = 1;
+
+  rpc gracefulFailover(GracefulFailoverRequestProto)
+      returns(GracefulFailoverResponseProto);
 }

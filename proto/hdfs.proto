@@ -97,6 +97,7 @@ message DatanodeInfoProto {
   optional AdminState adminState = 10 [default = NORMAL];
   optional uint64 cacheCapacity = 11 [default = 0];
   optional uint64 cacheUsed = 12 [default = 0];
+  optional uint64 lastUpdateMonotonic = 13 [default = 0];
 }
 
 /**
@@ -133,6 +134,20 @@ message ContentSummaryProto {
   required uint64 quota = 4;
   required uint64 spaceConsumed = 5;
   required uint64 spaceQuota = 6;
+  optional StorageTypeQuotaInfosProto typeQuotaInfos = 7;
+}
+
+/**
+ * Storage type quota and usage information of a file or directory
+ */
+message StorageTypeQuotaInfosProto {
+  repeated StorageTypeQuotaInfoProto typeQuotaInfo = 1;
+}
+
+message StorageTypeQuotaInfoProto {
+  required StorageTypeProto type = 1;
+  required uint64 quota = 2;
+  required uint64 consumed = 3;
 }
 
 /**
@@ -158,6 +173,8 @@ message FsPermissionProto {
 enum StorageTypeProto {
   DISK = 1;
   SSD = 2;
+  ARCHIVE = 3;
+  RAM_DISK = 4;
 }
 
 /**
@@ -165,6 +182,20 @@ enum StorageTypeProto {
  */
 message StorageTypesProto {
   repeated StorageTypeProto storageTypes = 1;
+}
+
+/**
+ * Block replica storage policy.
+ */
+message BlockStoragePolicyProto {
+  required uint32 policyId = 1;
+  required string name = 2;
+  // a list of storage types for storing the block replicas when creating a
+  // block.
+  required StorageTypesProto creationPolicy = 3;
+  // A list of storage types for creation fallback storage.
+  optional StorageTypesProto creationFallbackPolicy = 4;
+  optional StorageTypesProto replicationFallbackPolicy = 5;
 }
 
 /**
@@ -203,19 +234,60 @@ message DataEncryptionKeyProto {
 /**
  * Cipher suite.
  */
-enum CipherSuite {
+enum CipherSuiteProto {
     UNKNOWN = 1;
     AES_CTR_NOPADDING = 2;
+}
+
+/**
+ * Crypto protocol version used to access encrypted files.
+ */
+enum CryptoProtocolVersionProto {
+    UNKNOWN_PROTOCOL_VERSION = 1;
+    ENCRYPTION_ZONES = 2;
 }
 
 /**
  * Encryption information for a file.
  */
 message FileEncryptionInfoProto {
-  required CipherSuite suite = 1;
-  required bytes key = 2;
-  required bytes iv = 3;
-  required string ezKeyVersionName = 4;
+  required CipherSuiteProto suite = 1;
+  required CryptoProtocolVersionProto cryptoProtocolVersion = 2;
+  required bytes key = 3;
+  required bytes iv = 4;
+  required string keyName = 5;
+  required string ezKeyVersionName = 6;
+}
+
+/**
+ * Encryption information for an individual
+ * file within an encryption zone
+ */
+message PerFileEncryptionInfoProto {
+  required bytes key = 1;
+  required bytes iv = 2;
+  required string ezKeyVersionName = 3;
+}
+
+/**
+ * Encryption information for an encryption
+ * zone
+ */
+message ZoneEncryptionInfoProto {
+  required CipherSuiteProto suite = 1;
+  required CryptoProtocolVersionProto cryptoProtocolVersion = 2;
+  required string keyName = 3;
+}
+
+/**
+ * Cipher option
+ */
+message CipherOptionProto {
+  required CipherSuiteProto suite = 1;
+  optional bytes inKey = 2;
+  optional bytes inIv = 3;
+  optional bytes outKey = 4;
+  optional bytes outIv = 5;
 }
 
 /**
@@ -260,9 +332,10 @@ message HdfsFileStatusProto {
   // Optional field for fileId
   optional uint64 fileId = 13 [default = 0]; // default as an invalid id
   optional int32 childrenNum = 14 [default = -1];
-
   // Optional field for file encryption
   optional FileEncryptionInfoProto fileEncryptionInfo = 15;
+
+  optional uint32 storagePolicy = 16 [default = 0]; // block storage policy id
 } 
 
 /**
@@ -459,6 +532,7 @@ message NamespaceInfoProto {
   required string blockPoolID = 3;          // block pool used by the namespace
   required StorageInfoProto storageInfo = 4;// Node information
   required string softwareVersion = 5;      // Software version number (e.g. 2.0.0)
+  optional uint64 capabilities = 6 [default = 0]; // feature flags
 }
 
 /**
@@ -496,8 +570,9 @@ enum ReplicaStateProto {
  * Block that needs to be recovered with at a given location
  */
 message RecoveringBlockProto {
-  required uint64 newGenStamp = 1;      // New genstamp post recovery
-  required LocatedBlockProto block = 2; // Block to be recovered
+  required uint64 newGenStamp = 1;        // New genstamp post recovery
+  required LocatedBlockProto block = 2;   // Block to be recovered
+  optional BlockProto truncateBlock = 3;  // New block for recovery (truncate)
 }
 
 /**
@@ -532,4 +607,5 @@ message SnapshotInfoProto {
  */
 message RollingUpgradeStatusProto {
   required string blockPoolId = 1;
+  optional bool finalized = 2 [default = false];
 }

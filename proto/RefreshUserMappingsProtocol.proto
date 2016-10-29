@@ -22,46 +22,49 @@
  * for what changes are allowed for a *stable* .proto interface.
  */
 
-// This file contains protocol buffers that are used throughout HDFS -- i.e.
-// by the client, server, and data transfer protocols.
-
-
-option java_package = "org.apache.hadoop.hdfs.protocol.proto";
-option java_outer_classname = "EncryptionZonesProtos";
+option java_package = "org.apache.hadoop.security.proto";
+option java_outer_classname = "RefreshUserMappingsProtocolProtos";
+option java_generic_services = true;
 option java_generate_equals_and_hash = true;
-package hadoop.hdfs;
+package hadoop.common;
 
-import "hdfs.proto";
-
-message CreateEncryptionZoneRequestProto {
-  required string src = 1;
-  optional string keyName = 2;
+/**
+ *  Refresh user to group mappings request.
+ */
+message RefreshUserToGroupsMappingsRequestProto {
 }
 
-message CreateEncryptionZoneResponseProto {
+/**
+ * void response
+ */
+message RefreshUserToGroupsMappingsResponseProto {
 }
 
-message ListEncryptionZonesRequestProto {
-  required int64 id = 1;
+/**
+ * Refresh superuser configuration request.
+ */
+message RefreshSuperUserGroupsConfigurationRequestProto {
 }
 
-message EncryptionZoneProto {
-  required int64 id = 1;
-  required string path = 2;
-  required CipherSuiteProto suite = 3;
-  required CryptoProtocolVersionProto cryptoProtocolVersion = 4;
-  required string keyName = 5;
+/**
+ * void response
+ */
+message RefreshSuperUserGroupsConfigurationResponseProto {
 }
 
-message ListEncryptionZonesResponseProto {
-  repeated EncryptionZoneProto zones = 1;
-  required bool hasMore = 2;
-}
+/**
+ * Protocol to refresh the user mappings.
+ */
+service RefreshUserMappingsProtocolService {
+  /**
+   * Refresh user to group mappings.
+   */
+  rpc refreshUserToGroupsMappings(RefreshUserToGroupsMappingsRequestProto)
+      returns(RefreshUserToGroupsMappingsResponseProto);
 
-message GetEZForPathRequestProto {
-    required string src = 1;
-}
-
-message GetEZForPathResponseProto {
-    optional EncryptionZoneProto zone = 1;
+  /**
+   * Refresh superuser proxy group list.
+   */
+  rpc refreshSuperUserGroupsConfiguration(RefreshSuperUserGroupsConfigurationRequestProto)
+      returns(RefreshSuperUserGroupsConfigurationResponseProto);
 }

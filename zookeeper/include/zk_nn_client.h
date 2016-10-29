@@ -13,14 +13,14 @@ namespace zkclient {
 
 /**
  * This is the basic znode to describe a file 
- */ 
+ */
 typedef struct
-{       
+{
 	int replication;
 	int blocksize;
 	int under_construction; // 1 for under construction, 0 for complete
 	int filetype; // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported) 
-	std::uint64_t length; 
+	std::uint64_t length;
 	// https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/FileSystem.html#setOwner(org.apache.hadoop.fs.Path, java.lang.String, java.lang.String)
 	std::uint64_t access_time;
 	std::uint64_t modification_time;
@@ -61,6 +61,10 @@ class ZkNnClient : public ZkClientCommon {
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);	
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
+		/**
+		 * Add block.
+		 */
+		void add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
 
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls 

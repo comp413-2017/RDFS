@@ -22,46 +22,31 @@
  * for what changes are allowed for a *stable* .proto interface.
  */
 
-// This file contains protocol buffers that are used throughout HDFS -- i.e.
-// by the client, server, and data transfer protocols.
-
-
-option java_package = "org.apache.hadoop.hdfs.protocol.proto";
-option java_outer_classname = "EncryptionZonesProtos";
+option java_package = "org.apache.hadoop.security.proto";
+option java_outer_classname = "RefreshAuthorizationPolicyProtocolProtos";
+option java_generic_services = true;
 option java_generate_equals_and_hash = true;
-package hadoop.hdfs;
+package hadoop.common;
 
-import "hdfs.proto";
-
-message CreateEncryptionZoneRequestProto {
-  required string src = 1;
-  optional string keyName = 2;
+/**
+ *  Refresh service acl request.
+ */
+message RefreshServiceAclRequestProto {
 }
 
-message CreateEncryptionZoneResponseProto {
+/**
+ * void response
+ */
+message RefreshServiceAclResponseProto {
 }
 
-message ListEncryptionZonesRequestProto {
-  required int64 id = 1;
-}
-
-message EncryptionZoneProto {
-  required int64 id = 1;
-  required string path = 2;
-  required CipherSuiteProto suite = 3;
-  required CryptoProtocolVersionProto cryptoProtocolVersion = 4;
-  required string keyName = 5;
-}
-
-message ListEncryptionZonesResponseProto {
-  repeated EncryptionZoneProto zones = 1;
-  required bool hasMore = 2;
-}
-
-message GetEZForPathRequestProto {
-    required string src = 1;
-}
-
-message GetEZForPathResponseProto {
-    optional EncryptionZoneProto zone = 1;
+/**
+ * Protocol which is used to refresh the authorization policy in use currently.
+ */
+service RefreshAuthorizationPolicyProtocolService {
+  /**
+   * Refresh the service-level authorization policy in-effect.
+   */
+  rpc refreshServiceAcl(RefreshServiceAclRequestProto)
+      returns(RefreshServiceAclResponseProto);
 }

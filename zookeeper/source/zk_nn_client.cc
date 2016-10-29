@@ -22,6 +22,33 @@ namespace zkclient{
 
 	using namespace hadoop::hdfs;
 
+	void build_dummy_block(LocatedBlockProto* block) {
+		block->set_offset(0);
+		block->set_corrupt(false);
+		ExtendedBlockProto* eb = block->mutable_b();
+		eb->set_poolid("0");
+		eb->set_blockid(0);
+		eb->set_generationstamp(1);
+		eb->set_numbytes(8);
+		DatanodeInfoProto* dn_info = block->add_locs();
+		DatanodeIDProto* id = dn_info->mutable_id();
+		id->set_ipaddr("127.0.0.1");
+		id->set_hostname("localhost");
+		id->set_datanodeuuid("1234");
+		// TODO: fill in from config
+		id->set_xferport(50010);
+		id->set_infoport(50020);
+		id->set_ipcport(50030);
+
+		// Construct security token.
+		hadoop::common::TokenProto* token = block->mutable_blocktoken();
+		// TODO what do these mean
+		token->set_identifier("open");
+		token->set_password("sesame");
+		token->set_kind("foo");
+		token->set_service("bar");
+	}
+
 	ZkNnClient::ZkNnClient(std::string zkIpAndAddress) : ZkClientCommon(zkIpAndAddress) {
 
 	}
@@ -151,6 +178,10 @@ namespace zkclient{
 		memcpy(&data[0], znode_data, sizeof(*znode_data));
 	}
 
+	void ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
+		build_dummy_block(res.mutable_block());
+	}
+
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
 		const std::string& path = req.src();
 		// special casee the root
@@ -171,6 +202,7 @@ namespace zkclient{
 	
 			// set the file status in the get file info response res
 			HdfsFileStatusProto* status = res.mutable_fs();
+
 			set_file_info(status, path, znode_data);	
 			LOG(INFO) << "Got info for file ";
 			return;
@@ -423,38 +455,14 @@ namespace zkclient{
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 		const std::string &src = req.src();
 		google::protobuf::uint64 offset = req.offset();
-		google::protobuf::uint64 length = req.offset();
+		google::protobuf::uint64 length = req.length();
 		LocatedBlocksProto* blocks = res.mutable_locations();
 		// TODO: get the actual data from zookeeper.
 		blocks->set_filelength(1);
 		blocks->set_underconstruction(false);
 		blocks->set_islastblockcomplete(true);
 		for (int i = 0; i < 1; i++) {
-			LocatedBlockProto* block = blocks->add_blocks();
-			block->set_offset(0);
-			block->set_corrupt(false);
-			// Construct extended block proto.
-			ExtendedBlockProto* eb = block->mutable_b();
-			eb->set_poolid("0");
-			eb->set_blockid(0);
-			eb->set_generationstamp(1);
-			// Construct security token.
-			hadoop::common::TokenProto* token = block->mutable_blocktoken();
-			// TODO what do these mean
-			token->set_identifier("open");
-			token->set_password("sesame");
-			token->set_kind("foo");
-			token->set_service("bar");
-			// Construct data node info objects.
-			DatanodeInfoProto* dn_info = block->add_locs();
-			DatanodeIDProto* id = dn_info->mutable_id();
-			id->set_ipaddr("localhost");
-			id->set_hostname("localhost");
-			id->set_datanodeuuid("1234");
-			// TODO: fill in from config
-			id->set_xferport(50010);
-			id->set_infoport(50020);
-			id->set_ipcport(50030);
+			build_dummy_block(blocks->add_blocks());
 		}
 	}
 
