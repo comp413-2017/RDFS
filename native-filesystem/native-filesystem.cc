@@ -28,7 +28,7 @@ bool NativeFS::allocateBlock(long id, std::string blk)
 
 	// There was an error creating the file
 	if (myfile.fail()){
-		LOG(ERROR) << "Error creating file";
+		std::cout << "Error creating file" << std::endl;
 		return false;
 	}
 
@@ -61,7 +61,7 @@ unsigned char* NativeFS::getBlock(long id)
 	unsigned char* blk = (unsigned char*) malloc(sizeof(unsigned char)*blockSize);
 	if (blk == NULL) {
 		fclose(file);
-		LOG(ERROR) << "Error allocating memory";
+		std::cout << "Error allocating memory" << std::endl;
 		return NULL;
 	}
 
@@ -70,7 +70,7 @@ unsigned char* NativeFS::getBlock(long id)
 	if (bytesRead == 0) {
 		free(blk);
 		fclose(file);
-		LOG(ERROR) << "Error reading in file";
+		std::cout << "Error reading in file" << std::endl;
 		return NULL;
 	}
 
@@ -90,7 +90,7 @@ bool NativeFS::rmBlock(long id)
 	// Find and delete block in mapping
 	auto iter = blockMap.find(id);
 	if(iter == blockMap.end()){
-		LOG(ERROR) << "Error: block not found";
+		std::cout << "Error: block not found" << std::endl;
 		return false;
 	}
 	fileName = iter->second;
@@ -100,7 +100,7 @@ bool NativeFS::rmBlock(long id)
 
 	// Delete the corresponding file
 	if(remove(fileNameFmtd) != 0 ){
-		LOG(ERROR) << "Error deleting file";
+		std::cout << "Error deleting file" << std::endl;
 		return false;
 	}
 
