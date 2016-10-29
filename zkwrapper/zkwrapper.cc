@@ -72,7 +72,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root) : root
             return;
         }
         if (!root_exists) {
-            if (!create(root, EMPTY_VECTOR, error_code, false)) {
+            if (!recursive_create(root, EMPTY_VECTOR, error_code, false)) {
                 LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
             }
         }
@@ -147,6 +147,7 @@ bool ZKWrapper::create_sequential(const std::string &path,
 			MAX_PATH_LEN);
 	error_code = rc;
 	if (rc) { // Z_OK is 0, so if we receive anything else fail
+        LOG(ERROR) << "Create for " << prepend_zk_root(path) << " failed " << rc;
 		// TODO: Report the proper error
 		return false;
 	}
@@ -158,18 +159,14 @@ bool ZKWrapper::create_sequential(const std::string &path,
 	return true;
 }
 
-// TODO: Modify this
 bool ZKWrapper::recursive_create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
-		int &error_code) const {
+		int &error_code, bool prepend_root) const {
 
-	bool exist;
-	exists(path, exist, error_code);
-
-	
 	for (int i=1; i<path.length(); ++i){
 		if (path[i] == '/'){
-			if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code)){
+            LOG(INFO) << "Generating " << path.substr(0, i);
+			if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code, prepend_root)){
 				if (error_code != ZNODEEXISTS){
 					return false;
 				}
@@ -177,7 +174,8 @@ bool ZKWrapper::recursive_create(const std::string &path,
 			error_code = ZOK;
 		}
 	}
-	return create(path, data, error_code);
+    LOG(INFO) << "Generating " << path;
+	return create(path, data, error_code, prepend_root);
 
 }
 

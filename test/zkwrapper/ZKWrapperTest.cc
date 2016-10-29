@@ -14,24 +14,16 @@ namespace {
             // Code here will be called immediately after the constructor (right
             // before each test).
             system("sudo ~/zookeeper/bin/zkServer.sh start");
+            system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
             int error_code = 0;
-            zk = new ZKWrapper("localhost:2181", error_code, "/banana");
+            zk = new ZKWrapper("localhost:2181", error_code, "/testing");
             assert(error_code == 0); // Z_OK
-
-            bool exists;
-            assert(zk->exists("/testing", exists, error_code));
-            if (exists) {
-                assert(zk->recursive_delete("/testing/", error_code));
-            } else {
-                zk->create("/testing", ZKWrapper::EMPTY_VECTOR, error_code);
-            }
         }
 
         virtual void TearDown() {
             // Code here will be called immediately after each test (right
             // before the destructor).
-            std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /banana");
-            system(command.data());
+            system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
             system("sudo ~/zookeeper/bin/zkServer.sh stop");
         }
 
@@ -42,43 +34,43 @@ namespace {
     TEST_F(ZKWrapperTest, create_sequential){
         std::string new_path;
         int error = 0;
-        bool result = zk->create_sequential("/testing/sequential-", ZKWrapper::EMPTY_VECTOR, new_path, false, error);
+        bool result = zk->create_sequential("/sequential-", ZKWrapper::EMPTY_VECTOR, new_path, false, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-        std::string expected("/testing/sequential-0000000000");
+        std::string expected("/sequential-0000000000");
 		ASSERT_EQ(expected, new_path);
 
         std::string new_path2;
-        result = zk->create_sequential("/testing/sequential-", ZKWrapper::EMPTY_VECTOR, new_path2, false, error);
+        result = zk->create_sequential("/sequential-", ZKWrapper::EMPTY_VECTOR, new_path2, false, error);
 
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
-        std::string expected2("/testing/sequential-0000000001");
+        std::string expected2("/sequential-0000000001");
 		ASSERT_EQ(expected2, new_path2);
     }
 
     TEST_F(ZKWrapperTest, recursive_create){
         int error = 0;
-        bool result = zk->recursive_create("/testing/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
+        bool result = zk->recursive_create("/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
 		/* create same path, should fail */
-		result = zk->recursive_create("/testing/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
+		result = zk->recursive_create("/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
 		ASSERT_EQ(false, result);
 
 	   std::vector <std::uint8_t> retrieved_data(65536);
 	   auto data = ZKWrapper::get_byte_vector("hello");
-       result = zk->recursive_create("/testing/testrecur/test2", data, error);
+       result = zk->recursive_create("/testrecur/test2", data, error);
 	   ASSERT_EQ(true, result);
-	   result = zk->get("/testing/testrecur/test2", retrieved_data, error);
+	   result = zk->get("/testrecur/test2", retrieved_data, error);
        ASSERT_EQ(true, result);
 	   ASSERT_EQ(5, retrieved_data.size());
-	   result = zk->get("/testing/testrecur", retrieved_data, error);
+	   result = zk->get("/testrecur", retrieved_data, error);
 	   ASSERT_EQ(true, result);
 	   ASSERT_EQ(0, retrieved_data.size());
 
-        result = zk->recursive_create("/testing/testrecur/test2/test3/test4", ZKWrapper::EMPTY_VECTOR, error);
+        result = zk->recursive_create("/testrecur/test2/test3/test4", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
     }
@@ -87,16 +79,16 @@ namespace {
         int error = 0;
         bool exist = false;
 
-        bool result = zk->create("/testing/testcreate", ZKWrapper::EMPTY_VECTOR, error);
+        bool result = zk->create("/testcreate", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
-        result = zk->exists("/testing/testcreate", exist, error);
+        result = zk->exists("/testcreate", exist, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ(true, exist);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
-        result = zk->exists("/testing/not_exists", exist, error);
+        result = zk->exists("/not_exists", exist, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ(false, exist);
         ASSERT_EQ("ZNONODE", zk->translate_error(error));
@@ -122,24 +114,24 @@ namespace {
     }
     TEST_F(ZKWrapperTest, get){
         int error = 0;
-        bool result = zk->create("/testing/testget", ZKWrapper::EMPTY_VECTOR, error);
+        bool result = zk->create("/testget", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
         std::vector <std::uint8_t> data(65536);
-        result = zk->get("/testing/testget", data, error);
+        result = zk->get("/testget", data, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
         ASSERT_EQ(0, data.size());
 
         auto data_1 = ZKWrapper::get_byte_vector("hello");
 
-        result = zk->create("/testing/testget_withdata", data_1, error);
+        result = zk->create("/testget_withdata", data_1, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
         std::vector <std::uint8_t> retrieved_data(65536);
-        result = zk->get("/testing/testget_withdata", retrieved_data, error);
+        result = zk->get("/testget_withdata", retrieved_data, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
         ASSERT_EQ(5, retrieved_data.size());
@@ -152,16 +144,16 @@ namespace {
         int error = 0;
         auto data = ZKWrapper::get_byte_vector("hello");
 
-        bool result = zk->create("/testing/testget", ZKWrapper::EMPTY_VECTOR, error);
+        bool result = zk->create("/testget", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
-        result = zk->set("/testing/testget", data, error);
+        result = zk->set("/testget", data, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
         std::vector <std::uint8_t> data_get(65536);
-        result = zk->get("/testing/testget", data_get, error);
+        result = zk->get("/testget", data_get, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
         ASSERT_EQ(5, data_get.size());
@@ -170,15 +162,15 @@ namespace {
     TEST_F(ZKWrapperTest, delete_node){
         int error = 0;
 
-        bool result = zk->create("/testing/testcreate", ZKWrapper::EMPTY_VECTOR, error);
+        bool result = zk->create("/testcreate", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
-        result = zk->delete_node("/testing/testcreate", error);
+        result = zk->delete_node("/testcreate", error);
         ASSERT_EQ(true, result);
         ASSERT_EQ("ZOK", zk->translate_error(error));
 
-        result = zk->delete_node("/testing/not_exists", error);
+        result = zk->delete_node("/not_exists", error);
         ASSERT_EQ(false, result);
         ASSERT_EQ("ZNONODE", zk->translate_error(error));
     }
@@ -187,26 +179,26 @@ namespace {
 
         int error_code;
 
-        zk->create("/testing/child1", ZKWrapper::EMPTY_VECTOR, error_code);
-        zk->create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
-        zk->create("/testing/child1/child3", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child1/child3", ZKWrapper::EMPTY_VECTOR, error_code);
 
-        ASSERT_TRUE(zk->recursive_delete("/testing/child1", error_code));
+        ASSERT_TRUE(zk->recursive_delete("/child1", error_code));
 
         bool exists;
-        ASSERT_TRUE(zk->exists("/testing/child1", exists, error_code));
+        ASSERT_TRUE(zk->exists("/child1", exists, error_code));
         ASSERT_EQ(false, exists);
 
-        zk->create("/testing/child1", ZKWrapper::EMPTY_VECTOR, error_code);
-        zk->create("/testing/child2", ZKWrapper::EMPTY_VECTOR, error_code);
-        zk->create("/testing/child1/child1", ZKWrapper::EMPTY_VECTOR, error_code);
-        zk->create("/testing/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
-        zk->create("/testing/child2/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child2", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child1/child1", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
+        zk->create("/child2/child1", ZKWrapper::EMPTY_VECTOR, error_code);
 
-        zk->recursive_delete("/testing/", error_code);
+        zk->recursive_delete("/", error_code);
 
         auto children = std::vector<std::string>();
-        ASSERT_TRUE(zk->get_children("/testing", children, error_code));
+        ASSERT_TRUE(zk->get_children("", children, error_code));
         ASSERT_EQ(0, children.size());
 
     }
@@ -218,9 +210,9 @@ namespace {
         auto hello_vec = ZKWrapper::get_byte_vector("hello");
         auto jello_vec = ZKWrapper::get_byte_vector("jello");
         auto bye_vec = ZKWrapper::get_byte_vector("bye");
-        auto op = zk->build_create_op("/testing/child1", hello_vec);
-        auto op2 = zk->build_create_op("/testing/child2", jello_vec);
-        auto op3 = zk->build_create_op("/testing/toDelete", bye_vec);
+        auto op = zk->build_create_op("/child1", hello_vec);
+        auto op2 = zk->build_create_op("/child2", jello_vec);
+        auto op3 = zk->build_create_op("/toDelete", bye_vec);
 
         auto operations = std::vector<std::shared_ptr<ZooOp>>();
 
@@ -233,18 +225,18 @@ namespace {
 
         std::vector <std::uint8_t> vec = std::vector <std::uint8_t>();
 
-        zk->get("/testing/child1", vec, error_code);
+        zk->get("/child1", vec, error_code);
         ASSERT_EQ(hello_vec, vec);
-        zk->get("/testing/child2", vec, error_code);
+        zk->get("/child2", vec, error_code);
         ASSERT_EQ(jello_vec, vec);
-        zk->get("/testing/toDelete", vec, error_code);
+        zk->get("/toDelete", vec, error_code);
         ASSERT_EQ(bye_vec, vec);
 
         auto nhello_vec = ZKWrapper::get_byte_vector("new_hello");
         auto njello_vec = ZKWrapper::get_byte_vector("new_jello");
-        auto op4 = zk->build_set_op("/testing/child1", nhello_vec);
-        auto op5 = zk->build_set_op("/testing/child2", njello_vec);
-        auto op6 = zk->build_delete_op("/testing/toDelete");
+        auto op4 = zk->build_set_op("/child1", nhello_vec);
+        auto op5 = zk->build_set_op("/child2", njello_vec);
+        auto op6 = zk->build_delete_op("/toDelete");
 
         operations = std::vector<std::shared_ptr<ZooOp>>();
 
@@ -254,13 +246,13 @@ namespace {
 
         zk->execute_multi(operations, results);
 
-        zk->get("/testing/child1", vec, error_code);
+        zk->get("/child1", vec, error_code);
         ASSERT_EQ(nhello_vec, vec);
-        zk->get("/testing/child2", vec, error_code);
+        zk->get("/child2", vec, error_code);
         ASSERT_EQ(njello_vec, vec);
 
         bool exists;
-        assert(zk->exists("/testing/toDelete", exists, error_code));
+        assert(zk->exists("/toDelete", exists, error_code));
         ASSERT_TRUE(!exists);
     }
 }

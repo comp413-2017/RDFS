@@ -120,12 +120,14 @@ class ZKWrapper {
      * @param path The path to create
      * @param data The data to store in the new znode
      * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @param prependRoot Whehter to prepend the ZK root to the path
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
     bool recursive_create(const std::string &path,
                           const std::vector <std::uint8_t> &data,
-                          int &error_code) const;
+                          int &error_code,
+                          bool prepend_root = true) const;
 
     /**
      * Checks if a znode exists or not.
