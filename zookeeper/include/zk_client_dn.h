@@ -28,7 +28,7 @@ public:
                        const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
     ~ZkClientDn();
     void registerDataNode();
-    bool addBlock(const std::string& fileName, std::vector<std::string> & dataNodes) const;
+    bool blockReceived(uint64_t uuid);
 
 
 private:

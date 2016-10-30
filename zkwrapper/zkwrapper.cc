@@ -118,6 +118,29 @@ bool ZKWrapper::create(const std::string &path,
 	return false;
 }
 
+bool ZKWrapper::create_ephemeral(const std::string &path,
+		const std::vector <std::uint8_t> &data,
+		int &error_code, bool prepend_root) const {
+	if (!init) {
+		LOG(ERROR) << "Attempt to create before init!";
+		error_code = -999;
+		return false;
+	}
+
+	int rc = zoo_create(zh,
+            prepend_root ? prepend_zk_root(path).c_str() : path.c_str(),
+			reinterpret_cast<const char *>(data.data()),
+			data.size(),
+			&ZOO_OPEN_ACL_UNSAFE,
+			ZOO_EPHEMERAL,
+			nullptr,
+			0);
+	error_code = rc;
+	if (!rc)
+		return true;
+	return false;
+}
+
 // TODO: Modify this
 bool ZKWrapper::create_sequential(const std::string &path,
 		const std::vector <std::uint8_t> &data,

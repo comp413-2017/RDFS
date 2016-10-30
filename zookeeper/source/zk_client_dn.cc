@@ -21,6 +21,27 @@ namespace zkclient{
         registerDataNode();
 	}
 
+	bool ZkClientDn::blockReceived(uint64_t uuid) {
+		
+		int error_code;
+		bool exists;
+
+        std::string id = build_datanode_id(data_node_id);
+
+		// Create block
+        if (zk->exists("work_queues/wait_for_acks/" + std::to_string(uuid), exists, error_code)) {
+        	if (exists) {
+        		if(zk->create_ephemeral("work_queues/wait_for_acks/" + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
+            		return true;
+        		}
+        	}
+        	// TODO: Display error message
+		}
+
+		// TODO: Display error message
+		return false;
+	}
+
 	void ZkClientDn::registerDataNode() {
 		// TODO: Consider using startup time of the DN along with the ip and port
 		// TODO: Handle error
@@ -51,6 +72,7 @@ namespace zkclient{
         }
 
 	}
+
 
 	ZkClientDn::~ZkClientDn() {
 		zk->close();

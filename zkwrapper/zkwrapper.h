@@ -94,6 +94,11 @@ class ZKWrapper {
                 const std::vector <std::uint8_t> &data,
                 int &error_code, bool prependRoot = true) const;
 
+
+    bool create_ephemeral(const std::string &path,
+                const std::vector <std::uint8_t> &data,
+                int &error_code, bool prependRoot = true) const;
+
     /**
      * Creates a sequential znode
      *
