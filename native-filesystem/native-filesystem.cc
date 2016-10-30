@@ -43,7 +43,7 @@ bool NativeFS::allocateBlock(long id, std::string blk)
 /**
  * Given an ID, returns a block buffer
 **/
-unsigned char* NativeFS::getBlock(long id)
+std::string NativeFS::getBlock(long id)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
@@ -57,18 +57,13 @@ unsigned char* NativeFS::getBlock(long id)
 		return NULL;
 	}
 
+
 	// Find file size and allocate enough space
-	unsigned char* blk = (unsigned char*) malloc(sizeof(unsigned char)*blockSize);
-	if (blk == NULL) {
-		fclose(file);
-		std::cout << "Error allocating memory" << std::endl;
-		return NULL;
-	}
+	std::string blk(blockSize, 0);
 
 	// Copy file into buffer
-	size_t bytesRead = fread(blk, 1, blockSize, file);
+	size_t bytesRead = fread(&blk[0], sizeof(char), blockSize, file);
 	if (bytesRead == 0) {
-		free(blk);
 		fclose(file);
 		std::cout << "Error reading in file" << std::endl;
 		return NULL;

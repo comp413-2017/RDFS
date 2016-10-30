@@ -12,7 +12,7 @@ class NativeFS{
 	public:
 		NativeFS();
 		bool allocateBlock(long, std::string);
-		unsigned char* getBlock(long);
+		std::string getBlock(long);
 		bool rmBlock(long);
 
 	private:

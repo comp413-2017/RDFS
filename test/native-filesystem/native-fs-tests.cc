@@ -22,7 +22,7 @@ TEST_F(NativeFSTest, CanAllocateBlock) {
 
 TEST_F(NativeFSTest, CanGetBlock) {
 	filesystem.allocateBlock(blk_id, blk);
-	unsigned char* newBlock = filesystem.getBlock(blk_id);
+    std::string newBlock = filesystem.getBlock(blk_id);
 	ASSERT_EQ(newBlock[0], blk[0]);
 }
 
