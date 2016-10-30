@@ -65,6 +65,11 @@ namespace {
     TEST_F(NamenodeTest, findDataNodesWithReplicas){
         // Check if we can find datanodes, without overlapping with ones that already contain a replica
     }
+
+    TEST_F(NamenodeTest, checkAcks){
+        // Check if check_acks works as intended
+    }
+
 }
 
 int main(int argc, char **argv) {

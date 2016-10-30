@@ -127,9 +127,13 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
 
+        std::string get_available_dn();
+
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
 		const int UNDER_DESTRUCTION = 2;
+        const int ACK_TIMEOUT = 60; // 60 second timeout when waiting for replication acknowledgements
+        const std::string ACK_PATH = "/work_queues/wait_for_acks";
 };
 
 } // namespace

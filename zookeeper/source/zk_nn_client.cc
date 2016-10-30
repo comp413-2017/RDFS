@@ -681,15 +681,19 @@ namespace zkclient{
 
         // Generate the massive multi-op for creating the block
 
-        std::vector<std::uint8_t> data;
-        data.resize(sizeof(u_int64_t));
-        memcpy(&data[0], &block_id, sizeof(u_int64_t));
+        std::vector<std::uint8_t> file_data;
+        file_data.resize(sizeof(u_int64_t));
+        memcpy(&file_data[0], &block_id, sizeof(u_int64_t));
+
+        std::vector<std::uint8_t> block_data;
+        block_data.resize(sizeof(uint32_t));
+        memcpy(&block_data[0], &replicationFactor, sizeof(uint32_t));
 
 		LOG(INFO) << "Generating block for " << ZookeeperPath(file_path);
 
         // ZooKeeper multi-op to
-        auto seq_file_block_op = zk->build_create_op(ZookeeperPath(file_path + "/block_"), data, ZOO_SEQUENCE);
-        auto ack_op = zk->build_create_op("/work_queues/wait_for_acks/" + block_id_str, ZKWrapper::EMPTY_VECTOR);
+        auto seq_file_block_op = zk->build_create_op(ZookeeperPath(file_path + "/block_"), file_data, ZOO_SEQUENCE);
+        auto ack_op = zk->build_create_op("/work_queues/wait_for_acks/" + block_id_str, block_data);
         auto block_location_op = zk->build_create_op("/block_locations/" + block_id_str, ZKWrapper::EMPTY_VECTOR);
 
         std::vector<std::shared_ptr<ZooOp>> ops = {seq_file_block_op, ack_op, block_location_op};
@@ -761,8 +765,7 @@ namespace zkclient{
 	bool ZkNnClient::check_acks() {
         // TODO: move these somewhere more reasonable
         int MAX_SIZE = 65536;
-        REPLICATION_FACTOR = 1; // TODO: is this store in the block uuid znode itself?
-        std::string acks_path = "/work_queues/wait_for_acks";
+        int REPLICATION_FACTOR = 1; // TODO: is this stored in the block uuid znode itself?
 
         // Get the current block UUIDs that are waiting
 
@@ -770,11 +773,11 @@ namespace zkclient{
         std::vector<std::string> block_UUIDs;
 
         block_UUIDs.resize(MAX_SIZE);
-        zk->get_children(acks_path, block_UUIDs, error_code);
+        zk->get_children(ACK_PATH, block_UUIDs, error_code);
         if (error_code != ZOK) {
             // TODO: Handle error
-            std::cout << "ERROR CODE: " << error_code << " occurred in check_acks" << std::endl;
-            return false; // TODO: Is the right return val?
+            LOG(ERROR) << "ERROR CODE: " << error_code << " occurred in check_acks";
+            return false; // TODO: Is this the right return val?
         }
 
         for (int i = 0; i < block_UUIDs.size(); i++) {
@@ -809,13 +812,21 @@ namespace zkclient{
                     for (int i = 0; i < replicas_needed; i++) {
                         // The ID of the data node with will make this replica
                         std::string dn_id = get_available_dn(); // TODO
-                        std::vector<char *> block_uuid = ""; // TODO: get from the full block_path
+
+                        std::size_t last_slash = block_path.find_last_of("/\\");
+                        std::string block_uuid = block_path.substr(last_slash + 1);
+
                         // The path of the sequential node, ends in "-"
-                        std::string replica_block_path = "/work_queues/replicate/" + replica_block_path + "/block-";
+                        std::string replica_block_path = "/work_queues/replicate/" + dn_id + "/block-";
 
                         // Create an item on the replica queue for this block
                         // on the given datanode
-                        zk->create_sequential(replica_block_path, reinterpret_cast<std::uint8_t>block_uuid, error_code);
+                        std::string new_path;
+                        zk->create_sequential(replica_block_path,
+                                              std::vector<std::uint8_t>(block_uuid.begin(), block_uuid.end()),
+                                              new_path,
+                                              false,
+                                              error_code);
                         // TODO: check error code
                     }
                 }
@@ -830,6 +841,11 @@ namespace zkclient{
 
         return true;
 	}
+
+    std::string ZkNnClient::get_available_dn() {
+		// TODO
+        return "";
+    }
 }
 
 #endif
