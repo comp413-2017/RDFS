@@ -75,6 +75,7 @@ class ZkNnClient : public ZkClientCommon {
         bool generate_block_UUID(u_int64_t& blockId);
         bool find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock = false);
 
+        bool check_acks();
 	private:
 
 		/**

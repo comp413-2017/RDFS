@@ -33,7 +33,7 @@ namespace zkclient{
 	}
 
 	/*
-	 * A simple print function that will be triggered when 
+	 * A simple print function that will be triggered when
 	 * namenode loses a heartbeat
 	 */
 	void notify_delete() {
@@ -234,16 +234,16 @@ namespace zkclient{
 			FileZNode znode_data;
 			set_mkdir_znode(&znode_data);
 			set_file_info(status, path, znode_data);
-			LOG(INFO) << "Got info for root";	
+			LOG(INFO) << "Got info for root";
 			return;
 		}
-		
+
 		if (file_exists(path)) {
 			LOG(INFO) << "File exists";
 			// read the node into the file node struct
 			FileZNode znode_data;
-			read_file_znode(znode_data, path);		
-	
+			read_file_znode(znode_data, path);
+
 			// set the file status in the get file info response res
 			HdfsFileStatusProto* status = res.mutable_fs();
 
@@ -255,7 +255,7 @@ namespace zkclient{
 	}
 
 	/**
-	 * Create a node in zookeeper corresponding to a file 
+	 * Create a node in zookeeper corresponding to a file
 	 */
 	int ZkNnClient::create_file_znode(const std::string& path, FileZNode* znode_data) {
         int error_code;
@@ -266,9 +266,9 @@ namespace zkclient{
 				LOG(INFO) << znode_data->owner;
 				LOG(INFO) << "size of znode is " << sizeof(*znode_data);
 			}
-			// serialize struct to byte vector 
+			// serialize struct to byte vector
 			std::vector<std::uint8_t> data(sizeof(*znode_data));
-			file_znode_struct_to_vec(znode_data, data);	
+			file_znode_struct_to_vec(znode_data, data);
 			// crate the node in zookeeper 
 			if (!zk->create(ZookeeperPath(path), data, error_code)) {
 				LOG(ERROR) << "Create failed" << error_code;
@@ -342,8 +342,8 @@ namespace zkclient{
 	}
 
 	/**
-	 * Create a file in zookeeper 
-	 */ 
+	 * Create a file in zookeeper
+	 */
 	int ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
 		LOG(INFO) << "Gonna try and create a file on zookeeper";
 		const std::string& path = request.src();
@@ -359,9 +359,9 @@ namespace zkclient{
 			return 0;
 		}
 
-		// If we need to create directories, do so 
+		// If we need to create directories, do so
 		if (create_parent) {
-			std::string directory_paths = ""; 
+			std::string directory_paths = "";
 			auto split_path = split(path, '/');
 			LOG(INFO) << split_path.size();
 			for (int i = 0; i < split_path.size() - 1; i++) {
@@ -369,14 +369,14 @@ namespace zkclient{
 			}
 			// try and make all the parents
 			if (!mkdir_helper(directory_paths, true))
-				return 0; 
+				return 0;
 		}
 
-		// Now create the actual file which will hold blocks 	
+		// Now create the actual file which will hold blocks
 		if (!file_exists(path)) {
 			// create the znode
 			FileZNode znode_data;
-			LOG(INFO) << "sup";			
+			LOG(INFO) << "sup";
 			znode_data.length = 0;
 			znode_data.under_construction = UNDER_CONSTRUCTION;
 			// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
@@ -389,9 +389,9 @@ namespace zkclient{
 			strcpy(znode_data.group, owner.c_str());
 			znode_data.replication = replication;
 			znode_data.blocksize = blocksize;
-			znode_data.filetype = 2;	
+			znode_data.filetype = 2;
 
-			// if we failed, then do not set any status 
+			// if we failed, then do not set any status
 			if (!create_file_znode(path, &znode_data))
 				return 0;
 
@@ -422,8 +422,8 @@ namespace zkclient{
 	// ------- make a directory
 
 	/**
-	 * Set the default information for a directory znode 
-	 */ 
+	 * Set the default information for a directory znode
+	 */
 	void ZkNnClient::set_mkdir_znode(FileZNode* znode_data) {
 		znode_data->length = 0;
 		struct timeval tp;
@@ -439,20 +439,20 @@ namespace zkclient{
 
 	/**
 	 * Make a directory in zookeeper
-	 */ 
-	void ZkNnClient::mkdir(MkdirsRequestProto& request, MkdirsResponseProto& response) {	
+	 */
+	void ZkNnClient::mkdir(MkdirsRequestProto& request, MkdirsResponseProto& response) {
 		const std::string& path = request.src();
 		bool create_parent = request.createparent();
 		if (!mkdir_helper(path, create_parent)) {
 			response.set_result(false);
 		}
-		response.set_result(true); 
+		response.set_result(true);
 	}
 
 	/**
 	 * Helper for creating a direcotyr znode. Iterates over the parents and crates them
-	 * if necessary. 
-	 */ 
+	 * if necessary.
+	 */
 	bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
 		if (create_parent) {
 			auto split_path = split(path, '/');
@@ -464,25 +464,25 @@ namespace zkclient{
 				if (!file_exists(p_path)) {
 					// keep track of the path where we start creating directories
 					if (not_exist == false) {
-						unroll = p_path; 
+						unroll = p_path;
 					}
 					not_exist = true;
 					FileZNode znode_data;
-					set_mkdir_znode(&znode_data);	
+					set_mkdir_znode(&znode_data);
 					int error;
 					if ((error = create_file_znode(path, &znode_data))) {
-						// TODO unroll the created directories						
-						return false; 
+						// TODO unroll the created directories
+						return false;
 					}
 				}
 			}
-		} 
+		}
 		else {
 			FileZNode znode_data;
 			set_mkdir_znode(&znode_data);
-			return create_file_znode(path, &znode_data);	
+			return create_file_znode(path, &znode_data);
 		}
-		return true; 
+		return true;
 	}
 	
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
@@ -621,7 +621,7 @@ namespace zkclient{
 				break;
 
 		}
-		
+
 		FsPermissionProto* permission = status->mutable_permission();
 		// Shorcut to set permission to 777.
 		permission->set_perm(~0);
@@ -630,12 +630,12 @@ namespace zkclient{
 		status->set_filetype(filetype);
 		status->set_path(path);
 		status->set_length(znode_data.length);
-		
+
 		std::string owner(znode_data.owner);
 		std::string group(znode_data.group);
 		status->set_owner(owner);
 		status->set_group(group);
-		
+
 		status->set_modification_time(znode_data.modification_time);
 		status->set_access_time(znode_data.access_time);
 		LOG(INFO) << "Set file info ";
@@ -749,6 +749,86 @@ namespace zkclient{
             return false;
         }
 		return true;
+	}
+
+    /**
+     * Checks that each block UUID in the wait_for_acks dir:
+     *   1. has REPLICATION_FACTOR many children
+     *   2. if the block UUID was created more than ACK_TIMEOUT seconds ago
+     * TODO: Add to header file
+     * @return
+     */
+	bool ZkNnClient::check_acks() {
+        // TODO: move these somewhere more reasonable
+        int MAX_SIZE = 65536;
+        REPLICATION_FACTOR = 1; // TODO: is this store in the block uuid znode itself?
+        std::string acks_path = "/work_queues/wait_for_acks";
+
+        // Get the current block UUIDs that are waiting
+
+        int error_code = 0;
+        std::vector<std::string> block_UUIDs;
+
+        block_UUIDs.resize(MAX_SIZE);
+        zk->get_children(acks_path, block_UUIDs, error_code);
+        if (error_code != ZOK) {
+            // TODO: Handle error
+            std::cout << "ERROR CODE: " << error_code << " occurred in check_acks" << std::endl;
+            return false; // TODO: Is the right return val?
+        }
+
+        for (int i = 0; i < block_UUIDs.size(); i++) {
+            std::string block_path = block_UUIDs[i];
+            std::cout << block_path << std::endl;
+
+            // Get the children of the block
+            std::vector<std::string> replicas;
+            replicas.resize(MAX_SIZE);
+            zk->get_children(block_path, replicas, error_code);
+            if (error_code != ZOK) {
+                // TODO: Handle error, maybe move this into a generic error
+                // handling heler function
+                std::cout << "ERROR CODE: " << error_code << " occurred in check_acks" << std::endl;
+                return false; // TODO: Is the right return val?
+            }
+
+            if (replicas.size() == 0) {
+                // Block is not available on any DNs and cannot be replicated.
+                // Emit error and remove this block from wait_for_acks
+                zk->delete_node(block_path, error_code);
+                // TODO: check for error code
+                return false;
+
+            } else if (replicas.size() < REPLICATION_FACTOR) {
+                // Not enough replicas yet
+                int elapsed_time = 1; // TODO: actually calculate
+                if (elapsed_time > ACK_TIMEOUT) {
+                    // Block hasn't been replicated on time, requent remaining
+                    // replicas
+                    int replicas_needed = REPLICATION_FACTOR - replicas.size();
+                    for (int i = 0; i < replicas_needed; i++) {
+                        // The ID of the data node with will make this replica
+                        std::string dn_id = get_available_dn(); // TODO
+                        std::vector<char *> block_uuid = ""; // TODO: get from the full block_path
+                        // The path of the sequential node, ends in "-"
+                        std::string replica_block_path = "/work_queues/replicate/" + replica_block_path + "/block-";
+
+                        // Create an item on the replica queue for this block
+                        // on the given datanode
+                        zk->create_sequential(replica_block_path, reinterpret_cast<std::uint8_t>block_uuid, error_code);
+                        // TODO: check error code
+                    }
+                }
+            } else {
+                // Enough replicas have been made, no longer need to wait on
+                // this block
+                zk->delete_node(block_path, error_code);
+                // TODO: check for error
+            }
+
+        }
+
+        return true;
 	}
 }
 
