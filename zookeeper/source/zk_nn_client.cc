@@ -11,12 +11,14 @@
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
+#include "zk_client_dn.h"
 #include <google/protobuf/message.h>
 #include <ConfigReader.h>
 #include <easylogging++.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace zkclient{
 
@@ -156,7 +158,7 @@ namespace zkclient{
         // Build a new block for the response
 		auto block = res.mutable_block();
 
-        // TODO: Fill this out
+        // TODO: Make sure we are appending / not appending ZKPath at every step....
         const std::string file_path = req.src();
 
         LOG(INFO) << "Attempting to add block to existing file " << file_path;
@@ -191,16 +193,28 @@ namespace zkclient{
         eb->set_numbytes(block_size);
 
         for (auto data_node :data_nodes) {
-            LOG(INFO) << "PRINTING " << data_node;
+
+			int error_code;
+
+			std::vector<std::string> split_address;
+			boost::split(split_address, data_node, boost::is_any_of(":"));
+			assert(split_address.size() == 2);
+
+			auto data = std::vector<std::uint8_t>();
+			if (zk->get("/health/" + data_node + "/stats", data, error_code)) {
+				LOG(ERROR) << "Getting data node stats failed with " << error_code;
+			}
+
+			zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
+
             DatanodeInfoProto* dn_info = block->add_locs();
             DatanodeIDProto* id = dn_info->mutable_id();
-            id->set_ipaddr("127.0.0.1"); // TODO: Fill out with the proper value
-            id->set_hostname("localhost");
+            id->set_ipaddr(split_address[0]);
+            id->set_hostname("localhost"); // TODO: Fill out with the proper value
             id->set_datanodeuuid("1234");
-            // TODO: fill in from config
-            id->set_xferport(50010);
+            id->set_xferport(payload->xferPort);
             id->set_infoport(50020);
-            id->set_ipcport(50030);
+            id->set_ipcport(payload->ipcPort);
         }
 
         // Construct security token.
@@ -472,19 +486,107 @@ namespace zkclient{
 	}
 	
 	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
+
+        int error_code;
+
 		const std::string &src = req.src();
+        const std::string zk_path = ZookeeperPath(src);
+
 		google::protobuf::uint64 offset = req.offset();
 		google::protobuf::uint64 length = req.length();
-		LocatedBlocksProto* blocks = res.mutable_locations();
-		// TODO: get the actual data from zookeeper.
-		blocks->set_filelength(1);
-		blocks->set_underconstruction(false);
-		blocks->set_islastblockcomplete(true);
-        LOG(FATAL) << "get_block_locations is not implemented";
-		for (int i = 0; i < 1; i++) {
-			// build_dummy_block(blocks->add_blocks());
-		}
-	}
+
+        LocatedBlocksProto* blocks = res.mutable_locations();
+        blocks->set_filelength(1);
+        blocks->set_underconstruction(false);
+        blocks->set_islastblockcomplete(true);
+
+        FileZNode znode_data;
+        read_file_znode(znode_data, src);
+        uint64_t block_size = znode_data.blocksize;
+
+        LOG(INFO) << "Block size of " << zk_path << " is " << block_size;
+
+        auto sorted_blocks = std::vector<std::string>();
+
+        // TODO: Make more efficient
+        if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
+            LOG(ERROR) << "Failed getting children of " << zk_path << " with error: " << error_code;
+        }
+        uint64_t size = 0;
+        for (auto sorted_block : sorted_blocks) {
+            LOG(INFO) << "Considering block " << sorted_block;
+            if (size > offset + length) {
+                // at this point the start of the block is at a higher offset than the segment we want
+                LOG(INFO) << "Breaking at block " << sorted_block;
+                break;
+            }
+            if (size + block_size >= offset) {
+                auto data = std::vector<uint8_t>();
+                if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
+                    LOG(ERROR) << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
+                    return; // TODO: Signal error
+                }
+                uint64_t block_id = *(uint64_t *)(&data[0]);
+                LOG(INFO) << "Found block " << block_id << " for " << zk_path;
+
+                // TODO: This block of code should be moved to a function, repeated with add_block
+                LocatedBlockProto* located_block = blocks->add_blocks();
+                located_block->set_corrupt(0);
+                located_block->set_offset(size); // TODO: This offset may be incorrect
+
+                hadoop::common::TokenProto* token = located_block->mutable_blocktoken();
+                // TODO what do these mean
+                token->set_identifier("open");
+                token->set_password("sesame");
+                token->set_kind("foo");
+                token->set_service("bar");
+
+                ExtendedBlockProto* block_proto = located_block->mutable_b();
+
+                block_proto->set_poolid("0");
+                block_proto->set_blockid(block_id);
+                block_proto->set_generationstamp(1); // TODO: Do we have to modify this?
+                block_proto->set_numbytes(block_size);
+
+                auto data_nodes = std::vector<std::string>();
+
+                LOG(INFO) << "Getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id);
+
+                if (!zk->get_children("/block_locations/" + std::to_string(block_id), data_nodes, error_code)) {
+                    LOG(ERROR) << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
+                }
+
+                LOG(INFO) << "Found block locations " << data_nodes.size();
+                for (auto data_node :data_nodes) {
+
+                    LOG(INFO) << "Reading data node " << data_node;
+                    int error_code;
+
+                    std::vector<std::string> split_address;
+                    boost::split(split_address, data_node, boost::is_any_of(":"));
+                    assert(split_address.size() == 2);
+
+                    auto data = std::vector<std::uint8_t>();
+                    if (zk->get("/health/" + data_node + "/stats", data, error_code)) {
+                        LOG(ERROR) << "Getting data node stats failed with " << error_code;
+                    }
+
+                    zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
+
+                    DatanodeInfoProto* dn_info = located_block->add_locs();
+                    DatanodeIDProto* id = dn_info->mutable_id();
+                    id->set_ipaddr(split_address[0]);
+                    id->set_hostname("localhost"); // TODO: Fill out with the proper value
+                    id->set_datanodeuuid("1234");
+                    id->set_xferport(payload->xferPort);
+                    id->set_infoport(50020);
+                    id->set_ipcport(payload->ipcPort);
+                }
+                // Then store this block's information
+            }
+            size += block_size;
+        }
+    }
 
 
 	// ---------------------------------------- HELPERS ----------------------------------------
@@ -615,11 +717,9 @@ namespace zkclient{
         std::vector<std::string> live_data_nodes = std::vector <std::string>();
         int error_code;
 
-        LOG(INFO) << "HARHARHAR";
         if (zk->get_children("/health", live_data_nodes, error_code)) {
             /* for each child, check if the ephemeral node exists */
             for(auto datanode : live_data_nodes) {
-                LOG(INFO) << "Considering " << datanode;
                 bool isAlive;
                 if (!zk->exists("/health/" + datanode + "/health", isAlive, error_code)) {
                     LOG(ERROR) << "Failed to check if datanode: " + datanode << " is alive: " << error_code;

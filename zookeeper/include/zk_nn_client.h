@@ -10,7 +10,6 @@
 
 namespace zkclient {
 
-
 /**
  * This is the basic znode to describe a file 
  */
