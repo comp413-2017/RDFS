@@ -18,8 +18,8 @@ INITIALIZE_EASYLOGGINGPP
 using namespace client_datanode_translator;
 
 int main(int argc, char* argv[]) {
-	//el::Configurations conf(LOG_CONFIG_FILE);
-	//el::Loggers::reconfigureAllLoggers(conf);
+	el::Configurations conf(LOG_CONFIG_FILE);
+	el::Loggers::reconfigureAllLoggers(conf);
 
 	asio::io_service io_service;
 	unsigned short xferPort = 50010;

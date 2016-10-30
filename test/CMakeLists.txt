@@ -10,9 +10,8 @@ include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${GMOCK_INCLUDE_DIRS})
 
 set(GTEST "/usr/src/gtest/libgtest.a" "/usr/src/gmock/libgmock.a")
+link_directories(/home/vagrant/rdfs/build/native-filesystem)
 
-# Create an executable called runTests with the test file you want to run
-add_executable(runTests tests.cc)
 include_directories(/usr/local/include/zookeeper)
 include_directories(../zkwrapper)
 include_directories(../zookeeper/include)
@@ -44,5 +43,8 @@ target_link_libraries(ZKQueueTest zk_queue zkwrapper /usr/local/lib/libzookeeper
 target_link_libraries(ZKQueueTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ZKQueueTest ${GTEST})
 
-target_link_libraries(runTests ${GTEST_LIBRARIES} pthread)
-target_link_libraries(runTests ${GTEST})
+add_executable(NativeFsTest native-filesystem/native-fs-tests.cc)
+target_link_libraries(NativeFsTest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(NativeFsTest ${GTEST})
+target_link_libraries(NativeFsTest native-fs)
+include_directories(../native-filesystem)
