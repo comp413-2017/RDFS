@@ -74,7 +74,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
 void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// TODO: Consume 1 delimited OpWriteBlockProto
 	OpWriteBlockProto proto;
-	if (rpcserver::read_proto(sock, proto)) {
+	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a write block proto";
 		LOG(INFO) << proto.DebugString();
 	} else {
@@ -103,23 +103,35 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		LOG(INFO) << "Could not send response to client";
 	}
 
-	//TODO read packets of block from client
+	// read packets of block from client
 	bool last_packet = false;
 	while (!last_packet) {
+		asio::error_code error;
+		uint32_t payload_len;
+		rpcserver::read_int32(sock, &payload_len);
+		uint16_t header_len;
+		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
-		rpcserver::read_proto(sock, p_head);
+		rpcserver::read_proto(sock, p_head, header_len);
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
+		uint32_t checksum_len = payload_len - 4 - data_len;
+		std::string checksum (checksum_len, 0);
 		std::string data (data_len, 0);
-		asio::error_code error;
-		size_t len = sock.read_some(asio::buffer(&data[0], data_len), error);
-		if (len != data_len || !error) {
+		size_t len = sock.read_some(asio::buffer(&checksum[0], checksum_len), error);
+		if (len != checksum_len || error) {
+			LOG(ERROR) << "Failed to read checksum for packet " << p_head.seqno();
+			break;
+		}
+		len = sock.read_some(asio::buffer(&data[0], data_len), error);
+		if (len != data_len || error) {
 			LOG(ERROR) << "Failed to read packet " << p_head.seqno();
 			break;
 		}
-		if (!last_packet || data_len != 0) {
+		if (!last_packet && data_len != 0) {
 			LOG(INFO) << "Writing data to disk: " << data;
 		}
+		// ack packet
 		PipelineAckProto ack;
 		ack.set_seqno(p_head.seqno());
 		ack.add_reply(SUCCESS);
@@ -131,12 +143,6 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 			LOG(INFO) << "Could not send ack to client";
 		}
 	}
-	
-	//TODO send acks
-	
-
-	//TODO write out to block
-	
 
 	//TODO set proto source to this DataNode, remove this DataNode from
 	//	the proto targets, and send this proto along to other
@@ -147,7 +153,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
 	OpReadBlockProto proto;
-	if (rpcserver::read_proto(sock, proto)) {
+	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a read block proto";
 		LOG(INFO) << proto.DebugString();
 	} else {
@@ -204,7 +210,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		}
 		// Receive a status code from the client.
 		ClientReadStatusProto status_proto;
-		if (rpcserver::read_proto(sock, status_proto)) {
+		if (rpcserver::read_delimited_proto(sock, status_proto)) {
 			LOG(INFO) << "Received read status from client.";
 			LOG(INFO) << status_proto.DebugString();
 		} else {

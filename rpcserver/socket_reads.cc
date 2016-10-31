@@ -114,7 +114,7 @@ namespace rpcserver {
      * Return whether the parse was successful. If successful, set *consumed to the
      * number of bytes consumed by the read.
      */
-    bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto, uint64_t *consumed) {
+    bool read_delimited_proto(tcp::socket& sock, ::google::protobuf::Message& proto, uint64_t *consumed) {
         uint64_t len;
         asio::error_code error;
         size_t skip = read_varint(sock, &len);
@@ -127,13 +127,26 @@ namespace rpcserver {
         delete[] buf;
         return !error && proto.ParseFromString(proto_str);
     }
-
-
+	
+	/**
+     * Attempt to parse given protocol with given length from provided socket.
+     * Return whether the parse was successful.
+     */
+    bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto, uint64_t len) {
+        asio::error_code error;
+        char* buf = new char[len];
+        sock.read_some(asio::buffer(buf, len), error);
+        std::string proto_str(buf, len);
+        delete[] buf;
+        return !error && proto.ParseFromString(proto_str);
+    }
+	
+	
     /**
      * Attempt to parse given protocol from provided socket.
      * Return whether the parse was successful.
      */
-    bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto) {
-        return read_proto(sock, proto, NULL);
+    bool read_delimited_proto(tcp::socket& sock, ::google::protobuf::Message& proto) {
+        return read_delimited_proto(sock, proto, NULL);
     }
 }

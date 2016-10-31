@@ -630,6 +630,7 @@ namespace zkclient{
 		status->set_filetype(filetype);
 		status->set_path(path);
 		status->set_length(znode_data.length);
+		status->set_blocksize(znode_data.blocksize);
 		
 		std::string owner(znode_data.owner);
 		std::string group(znode_data.group);
