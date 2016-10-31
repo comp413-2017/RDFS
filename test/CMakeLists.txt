@@ -12,7 +12,7 @@ include_directories(${GMOCK_INCLUDE_DIRS})
 set(GTEST "/usr/src/gtest/libgtest.a" "/usr/src/gmock/libgmock.a")
 
 # Create an executable called runTests with the test file you want to run
-add_executable(runTests tests.cc)
+# add_executable(runTests tests.cc)
 include_directories(/usr/local/include/zookeeper)
 include_directories(../zkwrapper)
 include_directories(../zookeeper/include)
@@ -44,5 +44,5 @@ target_link_libraries(ZKQueueTest zk_queue zkwrapper /usr/local/lib/libzookeeper
 target_link_libraries(ZKQueueTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ZKQueueTest ${GTEST})
 
-target_link_libraries(runTests ${GTEST_LIBRARIES} pthread)
-target_link_libraries(runTests ${GTEST})
+#target_link_libraries(runTests ${GTEST_LIBRARIES} pthread)
+#target_link_libraries(runTests ${GTEST})
