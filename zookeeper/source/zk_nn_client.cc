@@ -43,64 +43,6 @@ namespace zkclient{
 		printf("No heartbeat, no childs to retrieve\n");
 	}
 
-	/*
-	 * Watcher for health child node (/health/datanode_)
-	 */
-	void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-		LOG(INFO) << ZkNnClient::CLASS_NAME << "[health child] Watcher triggered on path '" << path;
-		char health[] = "/health/datanode_";
-		LOG(INFO) << ZkNnClient::CLASS_NAME << "[health child] Receive a heartbeat. A child has been added under path" << path;
-
-		struct String_vector stvector;
-		struct String_vector *vector = &stvector;
-		int rc = zoo_wget_children(zzh, path, watcher_health_child, nullptr, vector);
-		int i = 0;
-		if (vector->count == 0){
-			notify_delete();
-			LOG(INFO) << ZkNnClient::CLASS_NAME << "no childs to retrieve";
-		}
-		while (i < vector->count) {
-			LOG(INFO) << ZkNnClient::CLASS_NAME << "Children" << vector->data[i++];
-		}
-		if (vector->count) {
-			deallocate_String_vector(vector);
-		}
-	}
-
-	/*
-	* Watcher for /health root node
-	*/
-	void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-
-		struct String_vector stvector;
-		struct String_vector *vector = &stvector;
-		/* reinstall watcher */
-		int rc = zoo_wget_children(zzh, path, watcher_health, nullptr, vector);
-		LOG(INFO) << ZkNnClient::CLASS_NAME << "[rc] health:" << rc;
-		int i;
-		std::vector <std::string> children;
-		for (i = 0; i < stvector.count; i++) {
-			children.push_back(stvector.data[i]);
-		}
-
-		if (children.size() == 0){
-			LOG(INFO) << ZkNnClient::CLASS_NAME << "no childs to retrieve";
-		}
-
-		for (int i = 0; i < children.size(); i++) {
-			LOG(INFO) << ZkNnClient::CLASS_NAME << "[In watcher_health] Attaching child to " << children[i];
-			int rc = zoo_wget_children(zzh, (ZkClientCommon::HEALTH_BACKSLASH + children[i]).c_str(),
-				watcher_health_child, nullptr,
-			vector);
-			int k=0;
-			while (k < vector->count) {
-				LOG(INFO) << ZkNnClient::CLASS_NAME << "Children of " << children[i].c_str() << " : " <<
-				vector->data[k++];
-			}
-		}
-
-	}
-
 	void ZkNnClient::register_watches() {
 
 		int error_code;
@@ -109,7 +51,8 @@ namespace zkclient{
 
 		/* Place a watch on the health subtree */
 
-		if (!(zk->wget_children(HEALTH, children, watcher_health, nullptr, error_code))) {
+
+		if (!(zk->wget_children(HEALTH, children, zk->watcher_health_factory(ZkClientCommon::HEALTH_BACKSLASH), nullptr, error_code))) {
 				// TODO: Handle error
 				LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << error_code;
 			}
@@ -117,7 +60,7 @@ namespace zkclient{
 		for (int i = 0; i < children.size(); i++) {
 			LOG(INFO) << CLASS_NAME << "[In register_watches] Attaching child to " << children[i] << ", ";
 			std::vector <std::string> ephem = std::vector <std::string>();
-			if(!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem, watcher_health_child, nullptr, error_code))) {
+			if(!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem, zk->watcher_health_child, nullptr, error_code))) {
 				// TODO: Handle error
 				LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << error_code;
 			}

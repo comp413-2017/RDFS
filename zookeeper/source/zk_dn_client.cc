@@ -61,8 +61,8 @@ namespace zkclient{
                 }
             }
 		}
-        // TODO: Make ephemeral
-		if (!zk->create(HEALTH_BACKSLASH + id + HEALTH, ZKWrapper::EMPTY_VECTOR, error_code)) {
+        // Make ephemeral (set last argument to true)
+		if (!zk->create(HEALTH_BACKSLASH + id + HEALTH, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
             // TODO: Handle error
         }
 
