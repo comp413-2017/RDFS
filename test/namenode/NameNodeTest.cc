@@ -66,8 +66,36 @@ namespace {
         // Check if we can find datanodes, without overlapping with ones that already contain a replica
     }
 
-    TEST_F(NamenodeTest, checkAcks){
+    TEST_F(NamenodeTest, basicCheckAcks){
         // Check if check_acks works as intended
+        int error;
+        zk->delete_node("/work_queues/wait_for_acks/block_uuid_1/dn-id-3", error);
+        zk->delete_node("/work_queues/wait_for_acks/block_uuid_1/dn-id-2", error);
+        zk->delete_node("/work_queues/wait_for_acks/block_uuid_1/dn-id-1", error);
+        zk->delete_node("/work_queues/wait_for_acks/block_uuid_1", error);
+        zk->recursive_create("/work_queues/wait_for_acks/block_uuid_1", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(0, error);
+        zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-1", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(0, error);
+
+        // Only one DN acknowledged, but not timed out, so should succeed
+        ASSERT_EQ(true, client->check_acks());
+
+        zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-2", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(0, error);
+        // Only two DNs acknowledged, but not timed out, so should succeed
+        ASSERT_EQ(true, client->check_acks());
+
+        zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-3", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(0, error);
+        // All three DNs acknowledged, so should succeed
+        ASSERT_EQ(true, client->check_acks());
+
+
+        // Since enough DNs acknowledged, the block_uuid_1 should have been removed from wait_for_acks
+        auto children = std::vector<std::string>();
+        zk->get_children("/work_queues/wait_for_acks", children, error);
+        ASSERT_EQ(0, children.size());
     }
 
 }

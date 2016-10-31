@@ -765,75 +765,86 @@ namespace zkclient{
 	bool ZkNnClient::check_acks() {
         // TODO: move these somewhere more reasonable
         int MAX_SIZE = 65536;
-        int REPLICATION_FACTOR = 1; // TODO: is this stored in the block uuid znode itself?
+        int REPLICATION_FACTOR = 3; // TODO: is this stored in the block uuid znode itself?
 
         // Get the current block UUIDs that are waiting
 
         int error_code = 0;
-        std::vector<std::string> block_UUIDs;
+        auto block_uuids = std::vector<std::string>();
 
-        block_UUIDs.resize(MAX_SIZE);
-        zk->get_children(ACK_PATH, block_UUIDs, error_code);
+        zk->get_children(ACK_PATH, block_uuids, error_code);
         if (error_code != ZOK) {
             // TODO: Handle error
-            LOG(ERROR) << "ERROR CODE: " << error_code << " occurred in check_acks";
+            LOG(ERROR) << "ERROR CODE: " << error_code << " occurred in check_acks when getting children for " << ACK_PATH;
             return false; // TODO: Is this the right return val?
         }
+        LOG(INFO) << "Checking acks for: " << block_uuids.size() << " blocks";
 
-        for (int i = 0; i < block_UUIDs.size(); i++) {
-            std::string block_path = block_UUIDs[i];
-            std::cout << block_path << std::endl;
+        for (auto block_uuid : block_uuids) {
+            LOG(INFO) << "Considering block: " << block_uuid;
+            std::string block_path = ACK_PATH + "/" + block_uuid;
 
             // Get the children of the block
-            std::vector<std::string> replicas;
-            replicas.resize(MAX_SIZE);
+            auto replicas = std::vector<std::string>();
             zk->get_children(block_path, replicas, error_code);
+            LOG(INFO) << "Found " << replicas.size() << " replicas of " << block_uuid;
             if (error_code != ZOK) {
                 // TODO: Handle error, maybe move this into a generic error
                 // handling heler function
-                std::cout << "ERROR CODE: " << error_code << " occurred in check_acks" << std::endl;
+                LOG(ERROR) << "ERROR CODE: " << error_code << " occurred in check_acks when getting children for " << block_path;
                 return false; // TODO: Is the right return val?
             }
 
             if (replicas.size() == 0) {
                 // Block is not available on any DNs and cannot be replicated.
                 // Emit error and remove this block from wait_for_acks
+                LOG(ERROR) << block_path << " has 0 replicas! Delete from wait_for_acks.";
                 zk->delete_node(block_path, error_code);
-                // TODO: check for error code
+                if (error_code != ZOK) {
+                    LOG(ERROR) << "Failed to delete: " << block_path;
+                    return false;
+                }
                 return false;
 
             } else if (replicas.size() < REPLICATION_FACTOR) {
+                LOG(INFO) << "Not yet enough replicas for " << block_uuid;
                 // Not enough replicas yet
                 int elapsed_time = 1; // TODO: actually calculate
                 if (elapsed_time > ACK_TIMEOUT) {
+                    LOG(INFO) << "Not enough replicas and timed out on " << block_uuid;
                     // Block hasn't been replicated on time, requent remaining
                     // replicas
                     int replicas_needed = REPLICATION_FACTOR - replicas.size();
+                    LOG(INFO) << replicas_needed << " replicas are needed";
                     for (int i = 0; i < replicas_needed; i++) {
                         // The ID of the data node with will make this replica
                         std::string dn_id = get_available_dn(); // TODO
 
-                        std::size_t last_slash = block_path.find_last_of("/\\");
-                        std::string block_uuid = block_path.substr(last_slash + 1);
-
                         // The path of the sequential node, ends in "-"
-                        std::string replica_block_path = "/work_queues/replicate/" + dn_id + "/block-";
+                        std::string replicate_block_path = "/work_queues/replicate/" + dn_id + "/block-";
 
                         // Create an item on the replica queue for this block
                         // on the given datanode
                         std::string new_path;
-                        zk->create_sequential(replica_block_path,
+                        zk->create_sequential(replicate_block_path,
                                               std::vector<std::uint8_t>(block_uuid.begin(), block_uuid.end()),
                                               new_path,
                                               false,
                                               error_code);
-                        // TODO: check error code
+                        if (error_code != ZOK) {
+                            LOG(ERROR) << "Failed to create_seq: " << replicate_block_path;
+                            return false;
+                        }
+                        LOG(INFO) << "Created: " << new_path;
                     }
                 }
             } else {
-                // Enough replicas have been made, no longer need to wait on
-                // this block
-                zk->delete_node(block_path, error_code);
+                LOG(INFO) << "Enough replicas have been made, no longer need to wait on " << block_path;
+                zk->recursive_delete(block_path, error_code);
+                if (error_code != ZOK) {
+                    LOG(ERROR) << "Failed to delete: " << block_path;
+                    return false;
+                }
                 // TODO: check for error
             }
 
