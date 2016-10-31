@@ -37,8 +37,6 @@ class ZkNnClient : public ZkClientCommon {
 	public:
 		ZkNnClient(std::string zkIpAndAddress);
 
-		static const std::string CLASS_NAME;
-
         /**
          * Use this constructor to build ZkNnClient with a custom ZKWrapper. Which will allow you to set a root
          * directory for all operations on this client
@@ -47,10 +45,6 @@ class ZkNnClient : public ZkClientCommon {
          */
 		ZkNnClient(std::shared_ptr <ZKWrapper> zk_in);
 		void register_watches();
-		
-		//void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
-
-		//void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 		
 		/**
 		 * These methods will correspond to proto calls that the client namenode protocol handles
@@ -72,10 +66,13 @@ class ZkNnClient : public ZkClientCommon {
 		 */ 	
 		bool file_exists(const std::string& path);
 
-        // TODO: Move back to private
-        bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
-        bool generate_block_UUID(u_int64_t& blockId);
-        bool find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock = false);
+		// this is public because we have not member functions in this file
+		static const std::string CLASS_NAME;
+
+		// TODO lil doc string and move to private (why does this cause compiler problems?)
+		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
+		bool generate_block_UUID(u_int64_t& blockId);
+		bool find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock = false);
 
 	private:
 
@@ -133,8 +130,8 @@ class ZkNnClient : public ZkClientCommon {
 		const int UNDER_DESTRUCTION = 2;
 
 		const int IS_FILE = 2;
-		const int IS_DIR = 0;
-		const int IS_DIR1 = 1;
+		const int IS_DIR = 1;
+		const int IS_DIR1 = 0; // TODO get rid of this weirdness eventually Stuart! - from Stu
 
 };
 

@@ -3,7 +3,7 @@
 //
 #include "zk_lock.h"
 
-const std::string ZKLock::CLASS_NAME = ": **ZkQueue** : ";
+const std::string ZKLock::CLASS_NAME = ": **ZkLock** : ";
 
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;

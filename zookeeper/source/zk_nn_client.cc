@@ -8,6 +8,7 @@
 #include <ctime>
 #include <chrono>
 #include <sys/time.h>
+#include "zk_lock.h"
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
@@ -27,11 +28,11 @@ namespace zkclient{
     const std::string ZkNnClient::CLASS_NAME = ": **ZkNnClient** : ";
 
 	ZkNnClient::ZkNnClient(std::string zkIpAndAddress) : ZkClientCommon(zkIpAndAddress) {
-
+		mkdir_helper( "/", false);
 	}
 
 	ZkNnClient::ZkNnClient(std::shared_ptr <ZKWrapper> zk_in) : ZkClientCommon(zk_in) {
-
+		mkdir_helper( "/", false);
 	}
 
 	/*
@@ -233,15 +234,6 @@ namespace zkclient{
 
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
 		const std::string& path = req.src();
-		// special casee the root
-		if (path == "/") {
-			HdfsFileStatusProto* status = res.mutable_fs();
-			FileZNode znode_data;
-			set_mkdir_znode(&znode_data);
-			set_file_info(status, path, znode_data);
-			LOG(INFO) << CLASS_NAME << "Got info for root";	
-			return;
-		}
 		
 		if (file_exists(path)) {
 			LOG(INFO) << CLASS_NAME << "File exists";
@@ -302,8 +294,6 @@ namespace zkclient{
 	 */	
 	void ZkNnClient::destroy(DeleteRequestProto& request, DeleteResponseProto& response) {
 
-        // TODO: Perform locking on every node
-
         int error_code;
 		const std::string& path = request.src();
 		bool recursive = request.recursive();
@@ -313,6 +303,12 @@ namespace zkclient{
 		}
 		FileZNode znode_data;
 		read_file_znode(znode_data, path);
+
+        ZKLock zlock = ZKLock(*zk.get(), ZookeeperPath(path));
+		if (zlock.lock() < 0) {
+			LOG(ERROR) << CLASS_NAME << "Could not aquire the lock in order to delete at " + path;
+		}
+
         // we have a directory
 		if (recursive) {
 			std::vector<std::string> children;
@@ -339,16 +335,19 @@ namespace zkclient{
 			//make sure that the directory is empty if we are not recursively deleting it
 			std::vector<std::string> children;
 			if (!zk->get_children(ZookeeperPath(path), children, error_code) || children.size() > 0) {
-				LOG(INFO) << CLASS_NAME << "Could not get children for " << path << " because of error = " << error_code;
+				LOG(INFO) << CLASS_NAME << "Could not get children for " << path << " because of error = " << error_code
+					<< " or the directory has children and the delete wasnt recursive";
 				response.set_result(false);
 				return;
 			}
 		}
         std::string copy = path;
-        // delete then dude then TODO delete his blocks
+        // delete then dude then
         delete_node_wrapper(copy, response);
         if (znode_data.filetype == IS_FILE) {
+        	// TODO delete his blocks
         }
+        zlock.unlock();
 	}
 
 	/**
@@ -364,7 +363,7 @@ namespace zkclient{
 		std::uint32_t createflag = request.createflag();
 
 		if (file_exists(path)) {
-			// TODO solve this issue of  
+			// TODO solve this issue of overwriting files
 			LOG(ERROR) << CLASS_NAME << "File already exists";
 			return 0;
 		}
@@ -383,30 +382,28 @@ namespace zkclient{
 		}
 
 		// Now create the actual file which will hold blocks 	
-		if (!file_exists(path)) {
-			// create the znode
-			FileZNode znode_data;
-			znode_data.length = 0;
-			znode_data.under_construction = UNDER_CONSTRUCTION;
-			// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
-			struct timeval tp;
-			gettimeofday(&tp, NULL);
-			uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
-			znode_data.access_time = mslong; 
-			znode_data.modification_time = mslong;
-			strcpy(znode_data.owner, owner.c_str());
-			strcpy(znode_data.group, owner.c_str());
-			znode_data.replication = replication;
-			znode_data.blocksize = blocksize;
-			znode_data.filetype = 2;	
+		FileZNode znode_data;
+		znode_data.length = 0;
+		znode_data.under_construction = UNDER_CONSTRUCTION;
+		// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+		struct timeval tp;
+		gettimeofday(&tp, NULL);
+		uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		znode_data.access_time = mslong;
+		znode_data.modification_time = mslong;
+		strcpy(znode_data.owner, owner.c_str());
+		strcpy(znode_data.group, owner.c_str());
+		znode_data.replication = replication;
+		znode_data.blocksize = blocksize;
+		znode_data.filetype = 2;
 
-			// if we failed, then do not set any status 
-			if (!create_file_znode(path, &znode_data))
-				return 0;
+		// if we failed, then do not set any status
+		if (!create_file_znode(path, &znode_data))
+			return 0;
 
-			HdfsFileStatusProto* status = response.mutable_fs();
-			set_file_info(status, path, znode_data);
-		}
+		HdfsFileStatusProto* status = response.mutable_fs();
+		set_file_info(status, path, znode_data);
+
 		return 1;
 	}
 
