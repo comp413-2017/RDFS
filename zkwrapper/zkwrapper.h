@@ -335,6 +335,7 @@ private:
     const static std::uint32_t MAX_PATH_LEN = 512;
 
     const static std::map<int, std::string> error_message;
+    static const std::string CLASS_NAME;
 };
 
 #endif //RDFS_ZKWRAPPER_H

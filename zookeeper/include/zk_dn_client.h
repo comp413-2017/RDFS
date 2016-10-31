@@ -37,6 +37,8 @@ private:
 
     DataNodeId data_node_id;
     DataNodePayload data_node_payload;
+
+    static const std::string CLASS_NAME;
 };
 
 }

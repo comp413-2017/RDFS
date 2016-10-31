@@ -19,4 +19,6 @@ class RPCServer {
         bool receive_handshake(tcp::socket& sock, short* version, short* service, short* auth_protocol);
         bool receive_prelude(tcp::socket& sock);
         void handle_rpc(tcp::socket sock);
+
+        static const std::string CLASS_NAME;
 };

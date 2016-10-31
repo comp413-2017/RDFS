@@ -6,6 +6,9 @@
 
 namespace zkclient{
 
+
+    const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
+
 	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress,
             const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
 
@@ -29,9 +32,9 @@ namespace zkclient{
         std::string id = build_datanode_id(data_node_id);
 
 		// Create block
-        if (zk->exists("work_queues/wait_for_acks/" + std::to_string(uuid), exists, error_code)) {
+        if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid), exists, error_code)) {
         	if (exists) {
-        		if(zk->create_ephemeral("work_queues/wait_for_acks/" + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
+        		if(zk->create_ephemeral(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
             		return true;
         		}
         	}
@@ -51,15 +54,15 @@ namespace zkclient{
 
         std::string id = build_datanode_id(data_node_id);
         // TODO: Add a watcher on the health node
-		if (zk->exists("/health/" + id, exists, error_code)) {
+		if (zk->exists(HEALTH_BACKSLASH + id, exists, error_code)) {
             if (!exists) {
-                if (!zk->create("/health/" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
+                if (!zk->create(HEALTH_BACKSLASH + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
                     // TODO: Handle error
                 }
             }
 		}
         // TODO: Make ephemeral
-		if (!zk->create("/health/" + id + "/health", ZKWrapper::EMPTY_VECTOR, error_code)) {
+		if (!zk->create(HEALTH_BACKSLASH + id + HEALTH, ZKWrapper::EMPTY_VECTOR, error_code)) {
             // TODO: Handle error
         }
 
@@ -67,7 +70,7 @@ namespace zkclient{
         data.resize(sizeof(DataNodePayload));
         memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
 
-        if (!zk->create("/health/" + id + "/stats", data, error_code)) {
+        if (!zk->create(HEALTH_BACKSLASH + id + STATS, data, error_code)) {
             // TODO: Handle error
         }
 

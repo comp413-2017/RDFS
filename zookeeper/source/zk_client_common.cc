@@ -8,6 +8,15 @@
 #include <iostream>
 
 namespace zkclient {
+
+    const std::string ZkClientCommon::WORK_QUEUES = "work_queues/";
+    const std::string ZkClientCommon::WAIT_FOR_ACK = "wait_for_acks/";
+    const std::string ZkClientCommon::NAMESPACE_PATH = "/fileSystem";
+    const std::string ZkClientCommon::HEALTH =  "/health";
+    const std::string ZkClientCommon::HEALTH_BACKSLASH = "/health/";
+    const std::string ZkClientCommon::STATS = "/stats";
+    const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
+
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 
         int error_code;
@@ -21,7 +30,7 @@ namespace zkclient {
 
     void ZkClientCommon::init() {
         /* return 0 if path exists, 1 otherwise. */
-        LOG(INFO) << "Initializing ZkClientCommon";
+        LOG(INFO) << CLASS_NAME <<  "Initializing ZkClientCommon";
         auto vec = ZKWrapper::get_byte_vector("");
 
         bool exists;
@@ -43,7 +52,7 @@ namespace zkclient {
             // TODO: Handle error
         }
         if (!zk->recursive_create("/work_queues/wait_for_acks", ZKWrapper::EMPTY_VECTOR, error_code)) {
-            LOG(ERROR) << "Failed creating /work_queues/wait_for_acks: " << error_code;
+            LOG(ERROR) << CLASS_NAME <<  "Failed creating /work_queues/wait_for_acks: " << error_code;
         }
         /*
         if (zk->exists("/work_queues",  exists, error_code)) {
@@ -66,7 +75,7 @@ namespace zkclient {
             // TODO: Handle error
         }
 
-        LOG(INFO) << "Finished ZkClientCommon";
+        LOG(INFO) << CLASS_NAME <<  "Finished ZkClientCommon";
 
     }
 }

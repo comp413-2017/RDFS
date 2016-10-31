@@ -37,6 +37,8 @@ class ZkNnClient : public ZkClientCommon {
 	public:
 		ZkNnClient(std::string zkIpAndAddress);
 
+		static const std::string CLASS_NAME;
+
         /**
          * Use this constructor to build ZkNnClient with a custom ZKWrapper. Which will allow you to set a root
          * directory for all operations on this client
@@ -129,6 +131,11 @@ class ZkNnClient : public ZkClientCommon {
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
 		const int UNDER_DESTRUCTION = 2;
+
+		const int IS_FILE = 2;
+		const int IS_DIR = 0;
+		const int IS_DIR1 = 1;
+
 };
 
 } // namespace

@@ -53,5 +53,7 @@ private:
     static std::vector<std::uint8_t> generate_uuid();
 
     std::string locknode_with_seq;
+
+    static const std::string CLASS_NAME;
 };
 #endif //RICE_HDFS_ZK_LOCK_H_H

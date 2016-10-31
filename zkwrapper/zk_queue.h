@@ -32,6 +32,7 @@ class ZKQueue {
         std::string peek_path;
         std::string element;
         ZKWrapper zk;
+        static const std::string CLASS_NAME;
 };
 
 #endif //RDFS_ZK_QUEUE_H
