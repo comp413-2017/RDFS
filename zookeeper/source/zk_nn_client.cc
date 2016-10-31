@@ -11,7 +11,6 @@
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
-#include "zk_client_dn.h"
 #include <google/protobuf/message.h>
 #include <ConfigReader.h>
 #include <easylogging++.h>
@@ -19,6 +18,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/algorithm/string.hpp>
+#include "zk_dn_client.h"
 
 namespace zkclient{
 
@@ -699,9 +699,11 @@ namespace zkclient{
         std::vector<std::shared_ptr<ZooOp>> ops = {seq_file_block_op, ack_op, block_location_op};
 
         auto results = std::vector <zoo_op_result>();
+        int err;
         // TODO: Perhaps we have to perform a more fine grained analysis of the results
-        if (!zk->execute_multi(ops, results)) {
+        if (!zk->execute_multi(ops, results, err)) {
             LOG(ERROR) << "Failed to write the addBlock multiop, ZK state was not changed";
+            ZKWrapper::print_error(err);
             return false;
         }
 		return true;

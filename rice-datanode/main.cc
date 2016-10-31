@@ -8,7 +8,7 @@
 #include <easylogging++.h>
 #include "ClientDatanodeProtocolImpl.h"
 #include "data_transfer_server.h"
-#include "zk_client_dn.h"
+#include "zk_dn_client.h"
 
 // initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
