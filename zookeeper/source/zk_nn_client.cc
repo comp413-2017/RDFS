@@ -303,11 +303,12 @@ namespace zkclient{
 		}
 		FileZNode znode_data;
 		read_file_znode(znode_data, path);
-
+		/**
 		ZKLock zlock = ZKLock(*zk.get(), ZookeeperPath(path));
 		if (zlock.lock() < 0) {
 			LOG(ERROR) << CLASS_NAME << "Could not aquire the lock in order to delete at " + path;
 		}
+		*/
 
 		// we have a directory
 		if (recursive) {
@@ -315,6 +316,7 @@ namespace zkclient{
 			if (!zk->get_children(ZookeeperPath(path), children, error_code)) {
 				LOG(INFO) << CLASS_NAME << "Could not get children for " << path << " because of error = " << error_code;
 				response.set_result(false);
+				// zlock.unlock();
 				return;
 			}
 			// delete the kids
@@ -338,6 +340,7 @@ namespace zkclient{
 				LOG(INFO) << CLASS_NAME << "Could not get children for " << path << " because of error = " << error_code
 					<< " or the directory has children and the delete wasnt recursive";
 				response.set_result(false);
+				// zlock.unlock();
 				return;
 			}
 		}
@@ -347,7 +350,7 @@ namespace zkclient{
 		if (znode_data.filetype == IS_FILE) {
 			// TODO delete his blocks
 		}
-		zlock.unlock();
+		// zlock.unlock();
 	}
 
 	/**
