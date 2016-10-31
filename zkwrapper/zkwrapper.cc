@@ -1,6 +1,6 @@
 //
 // Created by Prudhvi Boyapalli on 10/3/16.
-// 
+//
 //
 // Modified by Zhouhan Chen on 10/4/16.
 //
@@ -149,29 +149,6 @@ bool ZKWrapper::create(const std::string &path,
 		return true;
     LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
     print_error(error_code);
-	return false;
-}
-
-bool ZKWrapper::create_ephemeral(const std::string &path,
-		const std::vector <std::uint8_t> &data,
-		int &error_code, bool prepend_root) const {
-	if (!init) {
-		LOG(ERROR) << CLASS_NAME <<  "Attempt to create before init!";
-		error_code = -999;
-		return false;
-	}
-
-	int rc = zoo_create(zh,
-            prepend_root ? prepend_zk_root(path).c_str() : path.c_str(),
-			reinterpret_cast<const char *>(data.data()),
-			data.size(),
-			&ZOO_OPEN_ACL_UNSAFE,
-			ZOO_EPHEMERAL,
-			nullptr,
-			0);
-	error_code = rc;
-	if (!rc)
-		return true;
 	return false;
 }
 
@@ -496,5 +473,3 @@ std::vector <uint8_t> ZKWrapper::get_byte_vector(const std::string &string) {
 void ZKWrapper::close() {
 	zookeeper_close(zh);
 }
-
-

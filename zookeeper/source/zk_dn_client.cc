@@ -22,19 +22,22 @@ namespace zkclient{
         data_node_payload.xferPort = xferPort;
 
         registerDataNode();
+		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
+
 	}
 
 	bool ZkClientDn::blockReceived(uint64_t uuid) {
-		
+
 		int error_code;
 		bool exists;
 
+		LOG(INFO) << "DataNode received a block with uuid " << std::to_string(uuid);
         std::string id = build_datanode_id(data_node_id);
 
 		// Create block
         if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid), exists, error_code)) {
         	if (exists) {
-        		if(zk->create_ephemeral(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
+        		if(zk->create(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
             		return true;
         		}
         	}
@@ -88,4 +91,3 @@ namespace zkclient{
 }
 
 #endif //RDFS_ZK_CLIENT_DN_H
-
