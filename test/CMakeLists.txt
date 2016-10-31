@@ -10,7 +10,6 @@ include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${GMOCK_INCLUDE_DIRS})
 
 set(GTEST "/usr/src/gtest/libgtest.a" "/usr/src/gmock/libgmock.a")
-link_directories(/home/vagrant/rdfs/build/native-filesystem)
 
 include_directories(/usr/local/include/zookeeper)
 include_directories(../zkwrapper)
