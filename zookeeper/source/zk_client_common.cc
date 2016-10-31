@@ -9,13 +9,14 @@
 
 namespace zkclient {
 
-    const std::string ZkClientCommon::WORK_QUEUES = "work_queues/";
+    const std::string ZkClientCommon::WORK_QUEUES = "/work_queues/";
     const std::string ZkClientCommon::WAIT_FOR_ACK = "wait_for_acks/";
     const std::string ZkClientCommon::NAMESPACE_PATH = "/fileSystem";
     const std::string ZkClientCommon::HEALTH =  "/health";
     const std::string ZkClientCommon::HEALTH_BACKSLASH = "/health/";
     const std::string ZkClientCommon::STATS = "/stats";
     const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
+	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
 
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 
@@ -81,4 +82,3 @@ namespace zkclient {
 }
 
 #endif
-
