@@ -206,8 +206,8 @@ bool ZKWrapper::create(const std::string &path,
 	error_code = rc;
 	if (!rc)
 		return true;
-	LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
-	print_error(error_code);
+    LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
+    print_error(error_code);
 	return false;
 }
 
