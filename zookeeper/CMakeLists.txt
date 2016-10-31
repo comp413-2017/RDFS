@@ -7,7 +7,7 @@ add_library(zk_client_common source/zk_client_common.cc)
 target_link_libraries(zk_client_common zkwrapper)
 target_link_libraries(zk_client_common easylogging++)
 
-add_library(zk_client_dn source/zk_client_dn.cc)
+add_library(zk_client_dn source/zk_dn_client.cc)
 target_link_libraries(zk_client_dn zk_client_common)
 target_link_libraries(zk_client_dn easylogging++)
 
