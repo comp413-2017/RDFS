@@ -150,7 +150,10 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	LOG(INFO) << "Writing data to disk: " << block_data;
 	if (!fs.allocateBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
+	} else {
+		//TODO call ZkClientDn::blockReceived(block id);
 	}
+
 
 	//TODO set proto source to this DataNode, remove this DataNode from
 	//	the proto targets, and send this proto along to other
