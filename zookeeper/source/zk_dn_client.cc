@@ -1,7 +1,7 @@
 #ifndef RDFS_ZK_CLIENT_DN_CC
 #define RDFS_ZK_CLIENT_DN_CC
 
-#include "zk_client_dn.h"
+#include "zk_dn_client.h"
 #include <easylogging++.h>
 
 namespace zkclient{
