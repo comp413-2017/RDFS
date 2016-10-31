@@ -8,6 +8,7 @@
 #include <easylogging++.h>
 #include "ClientDatanodeProtocolImpl.h"
 #include "data_transfer_server.h"
+#include "native-filesystem.h"
 #include "zk_client_dn.h"
 
 // initialize the logging library (only do this once!)
@@ -30,9 +31,10 @@ int main(int argc, char* argv[]) {
 	if (argc >= 3) {
 		ipcPort = std::atoi(argv[2]);
 	}
+	nativefs::NativeFS fs;
 	zkclient::ZkClientDn dncli("127.0.0.1", "localhost", "localhost:2181"); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
-	TransferServer transfer_server(xferPort);
+	TransferServer transfer_server(xferPort, fs);
 	transfer_server.serve(io_service);
 	translator.getRPCServer().serve(io_service);
 }

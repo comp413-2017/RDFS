@@ -43,7 +43,7 @@ bool NativeFS::allocateBlock(long id, std::string blk)
 /**
  * Given an ID, returns a block buffer
 **/
-std::string NativeFS::getBlock(long id)
+std::string NativeFS::getBlock(long id, bool& success)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
@@ -54,7 +54,8 @@ std::string NativeFS::getBlock(long id)
 	file = fopen(filename, "r");
 	if (file == NULL) {
 		std::cout << "Error opening file " << filename << std::endl;
-		return NULL;
+		success = false;
+		return "";
 	}
 
 
@@ -66,8 +67,12 @@ std::string NativeFS::getBlock(long id)
 	if (bytesRead == 0) {
 		fclose(file);
 		std::cout << "Error reading in file" << std::endl;
-		return NULL;
+		success = false;
+		return "";
 	}
+
+	// No errors if we got this far
+	success = true;
 
 	// Close file
 	fclose(file);

@@ -22,8 +22,10 @@ TEST_F(NativeFSTest, CanAllocateBlock) {
 
 TEST_F(NativeFSTest, CanGetBlock) {
 	filesystem.allocateBlock(blk_id, blk);
-    std::string newBlock = filesystem.getBlock(blk_id);
+	bool success;
+	std::string newBlock = filesystem.getBlock(blk_id, success);
 	ASSERT_EQ(newBlock[0], blk[0]);
+	ASSERT_EQ(success, true);
 }
 
 TEST_F(NativeFSTest, CanRemoveBlock) {

@@ -17,7 +17,9 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
-TransferServer::TransferServer(int p) : port{p} {}
+TransferServer::TransferServer(int p, nativefs::NativeFS& fs) : port{p} {
+	this->fs = fs;
+}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -160,15 +162,27 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
 	std::string response_string;
+
 	buildBlockOpResponse(response_string);
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		LOG(INFO) << "Could not send response to client";
 	}
-	// TODO once we read blocks: len must be <= remaining size of block.
-	uint64_t len = proto.len();
+
+	uint64_t blockID = proto.header().baseheader().block().blockid();
+	bool success;
+	std::string block = this->fs.getBlock(blockID, success);
+	if (!success){
+		LOG(ERROR) << "Failure on fs.getBlock";
+	}
+
 	uint64_t offset = proto.offset();
+	uint64_t len = std::min(block.size() - offset, proto.len());
+	if (offset > block.size()) {
+		len = 0;
+	}
+	
 	uint64_t seq = 0;
 	while (len > 0) {
 		PacketHeaderProto p_head;
@@ -178,7 +192,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		// The payload to write can be no more than what fits in the packet, or
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
-		std::string payload(payload_size, 'r');
+		std::string payload = block.substr(offset, payload_size);
 		p_head.set_datalen(payload_size);
 
 		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {

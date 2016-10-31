@@ -4,6 +4,7 @@
 
 #include <datatransfer.pb.h>
 
+#include "native-filesystem.h"
 #include "socket_reads.h"
 #include "socket_writes.h"
 #include "rpcserver.h"
@@ -31,11 +32,13 @@ using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
-		TransferServer(int port);
+		TransferServer(int port, nativefs::NativeFS& fs);
 		void serve(asio::io_service& io_service);
 
 	private:
 		int port;
+		nativefs::NativeFS fs;
+
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
 		void handle_connection(tcp::socket sock);
 		void processWriteRequest(tcp::socket& sock);
