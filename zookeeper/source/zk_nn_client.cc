@@ -496,12 +496,12 @@ namespace zkclient{
 		google::protobuf::uint64 length = req.length();
 
         LocatedBlocksProto* blocks = res.mutable_locations();
-        blocks->set_filelength(1);
         blocks->set_underconstruction(false);
         blocks->set_islastblockcomplete(true);
 
         FileZNode znode_data;
         read_file_znode(znode_data, src);
+        blocks->set_filelength(znode_data.length);
         uint64_t block_size = znode_data.blocksize;
 
         LOG(INFO) << "Block size of " << zk_path << " is " << block_size;
