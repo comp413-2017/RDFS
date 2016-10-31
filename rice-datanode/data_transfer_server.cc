@@ -98,15 +98,16 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	uint64_t bytesInBlock = proto.minbytesrcvd();
 	//num bytes sent
 	uint64_t bytesSent = proto.maxbytesrcvd();
-
+	
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		LOG(INFO) << "Could not send response to client";
 	}
-
+	
 	// read packets of block from client
 	bool last_packet = false;
+	std::string block_data;
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -131,7 +132,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 			break;
 		}
 		if (!last_packet && data_len != 0) {
-			LOG(INFO) << "Writing data to disk: " << data;
+			block_data += data;
 		}
 		// ack packet
 		PipelineAckProto ack;
@@ -144,6 +145,11 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		} else {
 			LOG(INFO) << "Could not send ack to client";
 		}
+	}
+	
+	LOG(INFO) << "Writing data to disk: " << block_data;
+	if (!fs.allocateBlock(header.baseheader().block().blockid(), block_data)) {
+		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	}
 
 	//TODO set proto source to this DataNode, remove this DataNode from

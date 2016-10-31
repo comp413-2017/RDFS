@@ -8,6 +8,7 @@
 #include "socket_reads.h"
 #include "socket_writes.h"
 #include "rpcserver.h"
+#include "native-filesystem.h"
 
 #pragma once
 
