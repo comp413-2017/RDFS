@@ -64,9 +64,19 @@ namespace zkclient{
                 }
             }
 		}
-        // TODO: Make ephemeral
-		if (!zk->create(HEALTH_BACKSLASH + id + HEALTH, ZKWrapper::EMPTY_VECTOR, error_code)) {
-            // TODO: Handle error
+  //       // TODO: Make ephemeral
+		// if (!zk->create(HEALTH_BACKSLASH + id + HEALTH, ZKWrapper::EMPTY_VECTOR, error_code)) {
+  //           // TODO: Handle error
+  //       }
+
+        // Create an ephermal node at /health/datanodes/<datanode_id>/heartbeat
+        // if it doesn't already exist. Should have a ZOPERATIONTIMEOUT 
+        if (zk->exists(HEALTH_BACKSLASH + "/datanodes/" + id + "/heartbeat", exists, error_code)) {
+            if (!exists) {
+                if (!zk->create(HEALTH_BACKSLASH + "datanodes/" + id + "/heartbeat/", ZKWrapper::EMPTY_VECTOR, error_code)) {
+                    // TODO: Handle error
+                }
+            }
         }
 
         std::vector<uint8_t> data;
