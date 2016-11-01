@@ -685,9 +685,8 @@ namespace zkclient{
         file_data.resize(sizeof(u_int64_t));
         memcpy(&file_data[0], &block_id, sizeof(u_int64_t));
 
-        std::vector<std::uint8_t> block_data;
-        block_data.resize(sizeof(uint32_t));
-        memcpy(&block_data[0], &replicationFactor, sizeof(uint32_t));
+		auto block_data = std::vector<std::uint8_t>();
+		block_data.push_back(replicationFactor);
 
 		LOG(INFO) << "Generating block for " << ZookeeperPath(file_path);
 
@@ -767,7 +766,6 @@ namespace zkclient{
 	bool ZkNnClient::check_acks() {
         // TODO: move these somewhere more reasonable
         int MAX_SIZE = 65536;
-        int REPLICATION_FACTOR = 3; // TODO: is this stored in the block uuid znode itself?
 
         // Get the current block UUIDs that are waiting
 
@@ -785,6 +783,15 @@ namespace zkclient{
         for (auto block_uuid : block_uuids) {
             LOG(INFO) << "Considering block: " << block_uuid;
             std::string block_path = ACK_PATH + "/" + block_uuid;
+
+			auto data = std::vector<std::uint8_t>();
+			zk->get(block_path, data, error_code);
+			if (error_code != ZOK) {
+				LOG(ERROR) << "Error getting payload at: " << block_path;
+				return false;
+			}
+			int replication_factor = unsigned(data[0]);
+			LOG(INFO) << "Replication factor for " << block_uuid << " is " << replication_factor;
 
             // Get the children of the block
             auto replicas = std::vector<std::string>();
@@ -808,7 +815,7 @@ namespace zkclient{
                 }
                 return false;
 
-            } else if (replicas.size() < REPLICATION_FACTOR) {
+            } else if (replicas.size() < replication_factor) {
                 LOG(INFO) << "Not yet enough replicas for " << block_uuid;
                 // Not enough replicas yet
                 int elapsed_time = 1; // TODO: actually calculate
@@ -816,7 +823,7 @@ namespace zkclient{
                     LOG(INFO) << "Not enough replicas and timed out on " << block_uuid;
                     // Block hasn't been replicated on time, requent remaining
                     // replicas
-                    int replicas_needed = REPLICATION_FACTOR - replicas.size();
+                    int replicas_needed = replication_factor - replicas.size();
                     LOG(INFO) << replicas_needed << " replicas are needed";
                     for (int i = 0; i < replicas_needed; i++) {
                         // The ID of the data node with will make this replica
@@ -829,7 +836,7 @@ namespace zkclient{
                         // on the given datanode
                         std::string new_path;
                         zk->create_sequential(replicate_block_path,
-                                              std::vector<std::uint8_t>(block_uuid.begin(), block_uuid.end()),
+                                              zk->get_byte_vector(block_uuid),
                                               new_path,
                                               false,
                                               error_code);
@@ -847,7 +854,6 @@ namespace zkclient{
                     LOG(ERROR) << "Failed to delete: " << block_path;
                     return false;
                 }
-                // TODO: check for error
             }
 
         }

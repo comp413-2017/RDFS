@@ -73,8 +73,12 @@ namespace {
         zk->delete_node("/work_queues/wait_for_acks/block_uuid_1/dn-id-2", error);
         zk->delete_node("/work_queues/wait_for_acks/block_uuid_1/dn-id-1", error);
         zk->delete_node("/work_queues/wait_for_acks/block_uuid_1", error);
-        zk->recursive_create("/work_queues/wait_for_acks/block_uuid_1", ZKWrapper::EMPTY_VECTOR, error);
-        ASSERT_EQ(0, error);
+
+		auto data = std::vector<std::uint8_t>();
+		data.push_back(3);
+        zk->create("/work_queues/wait_for_acks/block_uuid_1", data, error, false);
+		ASSERT_EQ(0, error);
+
         zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-1", ZKWrapper::EMPTY_VECTOR, error);
         ASSERT_EQ(0, error);
 
