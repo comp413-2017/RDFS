@@ -510,6 +510,8 @@ namespace zkclient{
 					LOG(ERROR) << CLASS_NAME << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
 				}
 
+				// TODO: fix me this is wrong.
+				data_nodes.push_back("127.0.0.1:50020");
 				LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 				for (auto data_node :data_nodes) {
 
@@ -633,12 +635,12 @@ namespace zkclient{
 			return false;
 		}
 
-        znode_data.length += znode_data.blocksize;
+		// Add another block size to the file length and update zookeeper.
+		znode_data.length += znode_data.blocksize;
 		int error_code;
-        std::vector<std::uint8_t> data_demo(sizeof(znode_data));
-			file_znode_struct_to_vec(&znode_data, data_demo);	
-			// crate the node in zookeeper 
-			if (!zk->set(ZookeeperPath(file_path), data_demo, error_code)) {
+		std::vector<std::uint8_t> new_data(sizeof(znode_data));
+			file_znode_struct_to_vec(&znode_data, new_data);
+			if (!zk->set(ZookeeperPath(file_path), new_data, error_code)) {
 				LOG(ERROR) << "Set failed" << error_code;
 				return 0;
 				// TODO : handle error
