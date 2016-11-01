@@ -9,7 +9,7 @@
 #include "ClientDatanodeProtocolImpl.h"
 #include "data_transfer_server.h"
 #include "native-filesystem.h"
-#include "zk_client_dn.h"
+#include "zk_dn_client.h"
 
 // initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
@@ -19,8 +19,8 @@ INITIALIZE_EASYLOGGINGPP
 using namespace client_datanode_translator;
 
 int main(int argc, char* argv[]) {
-	el::Configurations conf(LOG_CONFIG_FILE);
-	el::Loggers::reconfigureAllLoggers(conf);
+	//el::Configurations conf(LOG_CONFIG_FILE);
+	//el::Loggers::reconfigureAllLoggers(conf);
 
 	asio::io_service io_service;
 	unsigned short xferPort = 50010;
@@ -32,9 +32,9 @@ int main(int argc, char* argv[]) {
 		ipcPort = std::atoi(argv[2]);
 	}
 	nativefs::NativeFS fs;
-	zkclient::ZkClientDn dncli("127.0.0.1", "localhost", "localhost:2181"); // TODO: Change the datanode id
+	zkclient::ZkClientDn dncli("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
-	TransferServer transfer_server(xferPort, fs);
+	TransferServer transfer_server(xferPort, fs, dncli);
 	transfer_server.serve(io_service);
 	translator.getRPCServer().serve(io_service);
 }

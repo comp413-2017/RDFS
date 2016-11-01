@@ -33,11 +33,14 @@ using namespace hadoop::hdfs;
 
 const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
+const std::string ClientNamenodeTranslator::CLASS_NAME = ": **ClientNamenodeTranslator** : ";
+
+
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
 	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
 	std::thread(&ClientNamenodeTranslator::leaseCheck, this).detach();
-	LOG(INFO) << "Created client namenode translator.";
+	LOG(INFO) << CLASS_NAME <<  "Created client namenode translator.";
 }
 
 
@@ -82,7 +85,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
 	zk.create_file(req, res);
-	LOG(INFO) << res.DebugString();
+	LOG(INFO) << CLASS_NAME <<  res.DebugString();
     return Serialize(res);
 }
 
@@ -134,7 +137,7 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	// remove the lease from this file  
 	bool succ = lease_manager.removeLease(req.clientname(), req.src());
 	if (!succ) {
-		LOG(ERROR) << "A client tried to close a file which is not theirs";
+		LOG(ERROR) << CLASS_NAME <<  "A client tried to close a file which is not theirs";
 	}
 	// TODO close the file (communicate with zookeeper) and do any recovery necessary
 	// for now, we claim to succeed.
@@ -273,7 +276,7 @@ int ClientNamenodeTranslator::getDefaultInt(std::string key) {
  * Initialize the rpc server
  */
 void ClientNamenodeTranslator::InitServer() {
-	LOG(INFO) << "Initializing namenode server...";
+	LOG(INFO) << CLASS_NAME <<  "Initializing namenode server...";
 	RegisterClientRPCHandlers();
 }
 
@@ -325,7 +328,7 @@ int ClientNamenodeTranslator::getPort() {
 // ------------------------------- LEASES ----------------------------
 
 void ClientNamenodeTranslator::leaseCheck() {
-	LOG(INFO) << "Lease manager check initialized";
+	LOG(INFO) << CLASS_NAME <<  "Lease manager check initialized";
 	for (;;) {
 		sleep(LEASE_CHECK_TIME); // only check every 60 seconds
 		std::vector<std::string> expiredFiles = lease_manager.checkLeases(LEASE_CHECK_TIME);
@@ -338,7 +341,7 @@ void ClientNamenodeTranslator::leaseCheck() {
 // ------------------------------- HELPERS -----------------------------
 
 void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
-	LOG(INFO) << "Got message " << req_name << ": " << req.DebugString();
+	LOG(INFO) << CLASS_NAME <<  "Got message " << req_name << ": " << req.DebugString();
 }
 
 ClientNamenodeTranslator::~ClientNamenodeTranslator() {

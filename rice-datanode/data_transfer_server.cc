@@ -17,9 +17,7 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
-TransferServer::TransferServer(int p, nativefs::NativeFS& fs) : port{p} {
-	this->fs = fs;
-}
+TransferServer::TransferServer(int p, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn) : port(p), fs(fs), dn(dn) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -151,7 +149,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	if (!fs.allocateBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
-		//TODO call ZkClientDn::blockReceived(block id);
+		dn.blockReceived(header.baseheader().block().blockid());
 	}
 
 

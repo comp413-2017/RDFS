@@ -95,6 +95,9 @@ class ClientNamenodeTranslator {
 		 */
 		int getDefaultInt(std::string);
 
-        	static const int LEASE_CHECK_TIME; 	// in seconds, how often the namenode checks all leases
+        static const int LEASE_CHECK_TIME; 	// in seconds, how often the namenode checks all leases
+
+		static const std::string CLASS_NAME;
+
 }; // class
 } // namespace

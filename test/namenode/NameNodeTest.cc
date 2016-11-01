@@ -38,8 +38,8 @@ namespace {
     };
 
 
-    TEST_F(NamenodeTest, create){
-        // ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
+    TEST_F(NamenodeTest, checkNamespace){
+        // nuffin
     }
 
     TEST_F(NamenodeTest, findDataNodes){

@@ -30,5 +30,7 @@ class ConfigReader {
 		std::unordered_map<std::string, bool> conf_bools;
 
 		void InitHDFSDefaults();
+
+		static const std::string CLASS_NAME;
 };
 }	

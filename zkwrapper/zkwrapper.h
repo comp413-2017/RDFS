@@ -8,6 +8,11 @@
 #include <cstring>
 #include <map>
 #include <zookeeper.h>
+#include <iostream>
+#include <string.h>
+#include <vector>
+#include <zookeeper.h>
+#include <easylogging++.h>
 
 enum ZK_ERRORS {
     OK = 0,
@@ -20,7 +25,7 @@ enum ZK_ERRORS {
  * data it contains: issues with string.c_str()
  */
 class ZooOp {
-    public:
+public:
 
     ZooOp(const std::string &path_in,
           const std::vector <std::uint8_t> &data_in) {
@@ -49,7 +54,7 @@ class ZooOp {
 };
 
 class ZKWrapper {
-    public:
+public:
     /**
      * Initializes zookeeper
      *
@@ -77,7 +82,7 @@ class ZKWrapper {
      * @param error_code Int reference, set to a value in ZK_ERRORS
      * @return A string translation of the error code
      */
-    std::string translate_error(int error_code);
+    static std::string translate_error(int error_code);
 
 
     /**
@@ -86,13 +91,13 @@ class ZKWrapper {
      * @param path The location of the new znode within the zookeeper structure
      * @param data The data contained in this znode
      * @param error_code Int reference, set to a value in ZK_ERRORS
-     * @param prepend_root Whether to prepend the ZKWrapper root to the path name. Defaults to true. Only used internally
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
     bool create(const std::string &path,
                 const std::vector <std::uint8_t> &data,
-                int &error_code, bool prependRoot = true) const;
+                int &error_code,
+                bool ephemeral = false) const;
 
 
     bool create_ephemeral(const std::string &path,
@@ -125,14 +130,12 @@ class ZKWrapper {
      * @param path The path to create
      * @param data The data to store in the new znode
      * @param error_code Int reference, set to a value in ZK_ERRORS
-     * @param prependRoot Whehter to prepend the ZK root to the path
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
     bool recursive_create(const std::string &path,
                           const std::vector <std::uint8_t> &data,
-                          int &error_code,
-                          bool prepend_root = true) const;
+                          int &error_code) const;
 
     /**
      * Checks if a znode exists or not.
@@ -140,11 +143,10 @@ class ZKWrapper {
      * @param path The path to the node
      * @param exist Set to true if a znode exists at the given path, false otherwise
      * @param error_code Int reference, set to a value in ZK_ERRORS
-     * @param prepend_root Whether to prepend the ZKWrapper root to the path name. Defaults to true. Only used internally
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
-    bool exists(const std::string &path, bool &exist, int &error_code, bool prependRoot = true) const;
+    bool exists(const std::string &path, bool &exist, int &error_code) const;
 
     /**
      * This function is similar to 'exists' except it allows the caller to
@@ -305,56 +307,40 @@ class ZKWrapper {
      *
      * @param operations a vector of operations to be executed
      * @param results a vector that maps to the results of each of the executed operations
-     * @return the ZOO_API return code. Expect a 0 for non-error.
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation worked successfully; false otherwise.
      */
-    int execute_multi(const std::vector <std::shared_ptr<ZooOp>> operations,
-                      std::vector <zoo_op_result> &results) const;
+    bool execute_multi(const std::vector <std::shared_ptr<ZooOp>> operations,
+                       std::vector <zoo_op_result> &results,
+                       int &error_code) const;
 
     void close();
 
     static std::vector <uint8_t> get_byte_vector(const std::string &string);
 
+    static void print_error(int error){
+        LOG(ERROR) << "Got error: " << translate_error(error);
+    }
+
     static const std::vector <std::uint8_t> EMPTY_VECTOR;
 
-    private:
+	watcher_fn watcher_health_factory(std::string path);
+
+	static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+
+private:
     zhandle_t *zh;
 
     friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
                         void *watcherCtx);
 
-    const std::string root;
+    std::string root = "";
     const static std::uint32_t MAX_PAYLOAD = 65536;
     const static std::uint32_t MAX_PATH_LEN = 512;
 
-    const std::map<int, std::string> error_message = {
-        {0, "ZOK"},
-        {-1, "ZSYSTEMERROR"},
-        {-2, "ZRUNTIMEINCONSISTENCY"},
-        {-3, "ZDATAINCONSISTENCY"},
-        {-4, "ZCONNECTIONLOSS"},
-        {-5, "ZMARSHALLINGERROR"},
-        {-6, "ZUNIMPLEMENTED"},
-        {-7, "ZOPERATIONTIMEOUT"},
-        {-8, "ZBADARGUMENTS"},
-        {-9, "ZINVALIDSTATE"},
-        {-100, "ZAPIERROR"},
-        {-101, "ZNONODE"},
-        {-102, "ZNOAUTH"},
-        {-103, "ZBADVERSION"},
-        {-108, "ZNOCHILDRENFOREPHEMERALS"},
-        {-110, "ZNODEEXISTS"},
-        {-111, "ZNOTEMPTY"},
-        {-112, "ZSESSIONEXPIRED"},
-        {-113, "ZINVALIDCALLBACK"},
-        {-114, "ZINVALIDACL"},
-        {-115, "ZAUTHFAILED"},
-        {-116, "ZCLOSING"},
-        {-117, "ZNOTHING"},
-        {-118, "ZSESSIONMOVED"},
-        {-120, "ZNEWCONFIGNOQUORUM"},
-        {-121, "ZRECONFIGINPROGRESS"},
-    	{-999, "ZKWRAPPERDEFAULTERROR"},
-	};
+    const static std::map<int, std::string> error_message;
+    static const std::string CLASS_NAME;
 };
 
 #endif //RDFS_ZKWRAPPER_H
