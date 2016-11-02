@@ -153,7 +153,30 @@ namespace zkclient{
 		memcpy(&data[0], znode_data, sizeof(*znode_data));
 	}
 
+	bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
+		int error_code;
+		std::vector<std::string> children;
+		std::string block_id_str = std::to_string(prev_id);
+		if (zk->get_children("/block_locations/" + block_id_str, children, error_code)) {
+			/* TODO: get replication factor from file variable? */
+			if (children.size() >= 1){
+				return true;
+			}
+			return false;
+		}
+		return false;
+	}
+
 	void ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
+		
+		// make sure previous addBlock operation has completed
+		auto prev_id = req.previous().blockid();
+		//uint64_t prev_id = prev.blockId();
+		if (!previousBlockComplete(prev_id)){
+			LOG(INFO) << "Previous Add Block Operation has not finished";
+			//TODO: what to return in case of failure?  continue for now
+			// no-op, will update later
+		}
 
         // Build a new block for the response
 		auto block = res.mutable_block();

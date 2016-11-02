@@ -76,6 +76,7 @@ class ZkNnClient : public ZkClientCommon {
         bool find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock = false);
 
         bool check_acks();
+		bool previousBlockComplete(uint64_t prev_id);
 	private:
 
 		/**
@@ -128,6 +129,7 @@ class ZkNnClient : public ZkClientCommon {
 		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
 
         std::string get_available_dn();
+
 
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
