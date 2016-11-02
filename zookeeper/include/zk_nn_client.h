@@ -56,6 +56,7 @@ class ZkNnClient : public ZkClientCommon {
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);	
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
+		void rename(RenameRequestProto& req, RenameResponseProto& res);
 		/**
 		 * Add block.
 		 */
@@ -73,7 +74,7 @@ class ZkNnClient : public ZkClientCommon {
 		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
 		bool generate_block_UUID(u_int64_t& blockId);
 		bool find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock = false);
-
+		bool rename_file(std::string src, std::string dst);
 	private:
 
 		/**

@@ -194,8 +194,11 @@ std::string ClientNamenodeTranslator::setReplication(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::rename(std::string input) {
+	RenameRequestProto req;
 	RenameResponseProto res;
-	res.set_result(false);
+	req.ParseFromString(input);
+	logMessage(req, "Rename ");
+	zk.rename(req, res);
 	return Serialize(res);
 }
 

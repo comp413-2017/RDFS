@@ -363,6 +363,19 @@ namespace zkclient{
 		res.set_result(true);		
 	}
 
+	/**
+	 *
+	 * @param req
+	 * @param res
+	 */
+	void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
+		// TODO: use zkwrapper to update metadata in filesystem to reflect new name
+		if(!rename_file(req.src(), req.dst())) {
+			res.set_result(false);
+		}
+		res.set_result(true);
+	}
+
 	// ------- make a directory
 
 	/**
@@ -712,6 +725,75 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME << "Failed to find at least " << replication_factor << " datanodes at " + HEALTH;
 			return false;
 		}
+		return true;
+	}
+
+	bool ZkNnClient::rename_file(std::string src, std::string dst) {
+		LOG(INFO) << "Renaming '"  << src << "' to '" << dst << "'";
+
+		int error_code = 0;
+		auto data = std::vector<std::uint8_t>();
+
+		std::string src_znode = "/fileSystem" + src;
+		std::string dst_znode = "/fileSystem" + dst;
+
+		// TODO: if one of these fails, should we try to undo? Use a multiop here?
+
+		// Get the payload from the old filesystem znode for the src
+		zk->get(src_znode, data, error_code);
+		if (error_code != ZOK) {
+			LOG(ERROR) << "Failed to get data from '" << src_znode << "' when renaming.";
+			return false;
+		}
+
+		// Create a new znode in the filesystem for the dst
+		zk->create(dst_znode, data, error_code, false);
+		if (error_code != ZOK) {
+			LOG(ERROR) << "Failed to create new znode for '" << dst_znode << "' when renaming.";
+			return false;
+		}
+
+		// Copy over the data from the children of the src_znode into new children of the dst_znode
+		auto children = std::vector<std::string>();
+		zk->get_children(src_znode, children, error_code);
+		if (error_code != ZOK) {
+			LOG(ERROR) << "Failed to get children of znode '" << src_znode << "' when renaming.";
+			return false;
+		}
+
+		for (auto child : children) {
+			// Get child's data
+			auto child_data = std::vector<std::uint8_t>();
+			zk->get(src_znode + "/" + child, child_data, error_code);
+			if (error_code != ZOK) {
+				LOG(ERROR) << "Failed to get data from '" << child << "' when renaming.";
+				return false;
+			}
+
+			// Create new child of dst_znode with this data
+			zk->create(dst_znode + "/" + child, child_data, error_code, false);
+			if (error_code != ZOK) {
+				LOG(ERROR) << "Failed to create dst_znode child for '" << dst_znode << "' when renaming.";
+				return false;
+			}
+
+			// Delete src_znode's child
+			zk->delete_node(src_znode + "/" + child, error_code);
+			if (error_code != ZOK) {
+				LOG(ERROR) << "Failed to delete src_znode child for '" << src_znode << "' when renaming.";
+				return false;
+			}
+
+		}
+
+		// Remove the old znode for the src
+		zk->delete_node(src_znode, error_code);
+		if (error_code != ZOK) {
+			LOG(ERROR) << "Failed to delete old znode '" << src_znode << "' when renaming.";
+			return false;
+		}
+
+		LOG(INFO) << "Successfully renamed '"  << src << "' to '" << dst << "'";
 		return true;
 	}
 }
