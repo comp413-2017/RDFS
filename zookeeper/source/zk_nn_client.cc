@@ -364,12 +364,9 @@ namespace zkclient{
 	}
 
 	/**
-	 *
-	 * @param req
-	 * @param res
+	 * Rename a file in the zookeeper filesystem
 	 */
 	void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
-		// TODO: use zkwrapper to update metadata in filesystem to reflect new name
 		if(!rename_file(req.src(), req.dst())) {
 			res.set_result(false);
 		}
@@ -728,6 +725,12 @@ namespace zkclient{
 		return true;
 	}
 
+	/**
+	 * Updates /fileSystem in ZK to reflect a file rename
+	 * @param src The path to the source file (not znode) within the filesystem
+	 * @param dst The path to the renamed destination file (not znode) within the filesystem
+	 * @return Boolean indicating success or failure of the rename
+	 */
 	bool ZkNnClient::rename_file(std::string src, std::string dst) {
 		LOG(INFO) << "Renaming '"  << src << "' to '" << dst << "'";
 
