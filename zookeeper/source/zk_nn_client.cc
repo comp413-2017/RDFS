@@ -246,12 +246,6 @@ namespace zkclient{
 		}
 		FileZNode znode_data;
 		read_file_znode(znode_data, path);
-		/**
-		ZKLock zlock = ZKLock(*zk.get(), ZookeeperPath(path));
-		if (zlock.lock() < 0) {
-			LOG(ERROR) << CLASS_NAME << "Could not aquire the lock in order to delete at " + path;
-		}
-		*/
 
 		// we have a directory
 		if (recursive) {
@@ -293,7 +287,6 @@ namespace zkclient{
 		if (znode_data.filetype == IS_FILE) {
 			// TODO delete his blocks
 		}
-		// zlock.unlock();
 	}
 
 	/**
@@ -511,7 +504,7 @@ namespace zkclient{
 				}
 
 				// TODO: fix me this is wrong.
-				data_nodes.push_back("127.0.0.1:50020");
+				// data_nodes.push_back("127.0.0.1:50020");
 				LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 				for (auto data_node :data_nodes) {
 
@@ -639,12 +632,12 @@ namespace zkclient{
 		znode_data.length += znode_data.blocksize;
 		int error_code;
 		std::vector<std::uint8_t> new_data(sizeof(znode_data));
-			file_znode_struct_to_vec(&znode_data, new_data);
-			if (!zk->set(ZookeeperPath(file_path), new_data, error_code)) {
-				LOG(ERROR) << "Set failed" << error_code;
-				return 0;
-				// TODO : handle error
-			}
+		file_znode_struct_to_vec(&znode_data, new_data);
+		if (!zk->set(ZookeeperPath(file_path), new_data, error_code)) {
+			LOG(ERROR) << "Set failed" << error_code;
+			return 0;
+			// TODO : handle error
+		}
 
         // Generate the massive multi-op for creating the block
 

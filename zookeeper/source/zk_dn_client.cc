@@ -42,8 +42,10 @@ namespace zkclient{
 		}
 		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
-				if(zk->create(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-					return true;
+				if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR,
+				 	error_code, true)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait for acks " << error_code;
+                    return false;
 				}
 			}
 		}
@@ -51,26 +53,31 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed unlocking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 		}
 
-
 		// Create a block_locations node for this block if there isn't one already
-		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
+		// TODO this should always exist
+		if (!zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
         	if (!exists) {
+				LOG(INFO) << "This block did not exist so we are creating it";
         		if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid> " << error_code;
             		return false;
         		}
         	}
 		}
+		LOG(INFO) << "About to create the znode for the data ip";
 
 		// Add this datanode as the block's location in block_locations
-		if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+		DataNodeZNode znode_data;
+		strcpy(znode_data.ipPort, id.c_str());
+		std::vector<std::uint8_t> data(sizeof(znode_data));
+		memcpy(&data[0], &znode_data, sizeof(znode_data));
+		LOG(INFO) << BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id;
+		if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, data, error_code, false)) {
 			LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<block_id> " << error_code;
 			return false;
 		}
 
-
-
-		return false;
+		return true;
 	}
 
 	void ZkClientDn::registerDataNode() {
