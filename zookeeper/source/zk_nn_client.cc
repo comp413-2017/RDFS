@@ -92,6 +92,7 @@ namespace zkclient{
 		int error_code;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		if (!zk->get(ZookeeperPath(path), data, error_code)) {
+			LOG(INFO) << "helllo its bad news " << path;
 			// TODO handle error
 		}
 		std::uint8_t *buffer = &data[0];
@@ -258,12 +259,10 @@ namespace zkclient{
 			}
 			// delete the kids
 			for (auto src : children) {
-				FileZNode znode_data_child;
-				read_file_znode(znode_data, src);
 				DeleteRequestProto request_child;
 				DeleteResponseProto response_child;
-				request.set_src(src);
-				request.set_recursive(true);
+				request_child.set_src(path + "/" + src);
+				request_child.set_recursive(true);
 				destroy(request_child, response_child);
 				if (response_child.result() == false) { // propogate failures updwards
 					response.set_result(false);
@@ -542,6 +541,9 @@ namespace zkclient{
 
 	std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath){
 		std::string zkpath = NAMESPACE_PATH;
+		if (hadoopPath.size() == 0) {
+			LOG(INFO) << "real real bad news";
+		}
 		if (hadoopPath.at(0) != '/'){
 			zkpath += "/";
 		}

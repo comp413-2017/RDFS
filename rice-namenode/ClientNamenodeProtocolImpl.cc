@@ -74,8 +74,7 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	const bool recursive = req.recursive();
 	DeleteResponseProto res;
 	// TODO: as of 11/1, zk.destroy has a seg fault.
-	//zk.destroy(req, res);
-	res.set_result(false);
+	zk.destroy(req, res);
 	return Serialize(res);
 }
 
