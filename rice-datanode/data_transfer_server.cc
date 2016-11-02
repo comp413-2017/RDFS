@@ -66,8 +66,6 @@ void TransferServer::handle_connection(tcp::socket sock) {
 				//Error
 				ERROR_AND_RETURN("Unknown operation type specified.");
 		}
-
-		sleep(5);
 	}
 }
 
