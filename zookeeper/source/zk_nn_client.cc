@@ -903,12 +903,18 @@ namespace zkclient{
 	 * the replicate work queue, ensuring that the new replicas are not on
 	 * an excluded datanode
 	 */
-	bool ZkNnClient::replicate_block(const std::string &block_uuid, int num_replicas, std::vector<std::string> &excluded_datanodes) {
+	bool ZkNnClient::replicate_block(const std::string &block_uuid_str, int num_replicas, std::vector<std::string> &excluded_datanodes) {
 		int error_code = 0;
+		u_int64_t block_uuid = std::strtoll(block_uuid_str.c_str(), NULL, 10);
 		auto datanodes = std::vector<std::string>();
-		if(!find_datanode_for_block(datanodes, std::strtoll(block_uuid.c_str(), NULL, 10), num_replicas, false)) {
+		if(!find_datanode_for_block(datanodes, block_uuid, num_replicas, false)) {
 			LOG(ERROR) << CLASS_NAME << "Failed to get available datanodes for replications";
 		}
+
+		// Create a payload vector containing the block_uuid
+		std::vector<std::uint8_t> data;
+		data.resize(sizeof(u_int64_t));
+		memcpy(&data[0], &block_uuid, sizeof(u_int64_t));
 
 		for (auto dn_id : datanodes) {
 			// The path of the sequential node, ends in "-"
@@ -917,7 +923,7 @@ namespace zkclient{
 			// Create an item on the replica queue for this block replica on the given datanode
 			std::string new_path;
 			if (!zk->create_sequential(replicate_block_path,
-								  zk->get_byte_vector(block_uuid),
+								  data,
 								  new_path,
 								  false,
 								  error_code)) {
