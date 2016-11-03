@@ -36,16 +36,15 @@ namespace zkclient{
         std::string id = build_datanode_id(data_node_id);
 
 		// Add acknowledgement
-		ZKLock queue_lock(*zk.get(), WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid));
+		ZKLock queue_lock(*zk.get(), WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid));
 		if (queue_lock.lock() != 0) {
 			LOG(ERROR) << CLASS_NAME <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 		}
-		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid), exists, error_code)) {
+		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
-				if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR,
-				 	error_code, true)) {
+				if(zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait for acks " << error_code;
-                    return false;
+					return true;
 				}
 			}
 		}
