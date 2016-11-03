@@ -44,7 +44,6 @@ namespace zkclient{
 			if (exists) {
 				if(zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait for acks " << error_code;
-					return true;
 				}
 			}
 		}
