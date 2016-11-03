@@ -146,6 +146,11 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		int seconds_since_creation(std::string &path);
 
+		/**
+		 * Returns the current timestamp in milliseconds
+		 */
+		uint64_t current_time_ms();
+
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
 		const int UNDER_DESTRUCTION = 2;

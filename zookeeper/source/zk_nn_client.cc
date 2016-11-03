@@ -323,10 +323,7 @@ namespace zkclient{
 		FileZNode znode_data;
 		znode_data.length = 0;
 		znode_data.under_construction = UNDER_CONSTRUCTION;
-		// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
-		struct timeval tp;
-		gettimeofday(&tp, NULL);
-		uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		uint64_t mslong = current_time_ms();
 		znode_data.access_time = mslong;
 		znode_data.modification_time = mslong;
 		strcpy(znode_data.owner, owner.c_str());
@@ -380,10 +377,7 @@ namespace zkclient{
 	 */
 	void ZkNnClient::set_mkdir_znode(FileZNode* znode_data) {
 		znode_data->length = 0;
-		struct timeval tp;
-		gettimeofday(&tp, NULL);
-		// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
-		uint64_t mslong = (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		uint64_t mslong = current_time_ms();
 		znode_data->access_time = mslong; // TODO what are these
 		znode_data->modification_time = mslong;
 		znode_data->blocksize = 0;
@@ -650,7 +644,7 @@ namespace zkclient{
 			// TODO : handle error
 		}
 
-        // Generate the massive multi-op for creating the block
+		// Generate the massive multi-op for creating the block
 
 		std::vector<std::uint8_t> data;
 		data.resize(sizeof(u_int64_t));
@@ -940,6 +934,19 @@ namespace zkclient{
 		// TODO
 		return 1;
 	}
+
+	/**
+	 * Returns the current timestamp in milliseconds
+	 */
+	uint64_t ZkNnClient::current_time_ms() {
+		// http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+		struct timeval tp;
+		// Get current timestamp
+		gettimeofday(&tp, NULL);
+		// Convert to milliseconds
+		return (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000;
+	}
+
 }
 
 #endif
