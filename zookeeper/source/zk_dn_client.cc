@@ -40,10 +40,13 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 		}
 		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
-			if (exists) {
-				if(zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait for acks " << error_code;
+			if (!exists) {
+				if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait_for_acks/<block_uuid> " << error_code;
 				}
+			}
+			if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
+				LOG(ERROR) << CLASS_NAME <<  "Failed to create wait_for_acks/<block_uuid>/datanode_id " << error_code;
 			}
 		}
 
@@ -53,7 +56,7 @@ namespace zkclient{
 
 		// Create a block_locations node for this block if there isn't one already
 		// TODO this should always exist
-		if (!zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
+		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
         	if (!exists) {
 				LOG(INFO) << "This block did not exist so we are creating it";
         		if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code, false)) {
@@ -95,9 +98,15 @@ namespace zkclient{
             }
 		}
 
-        // Make ephemeral (set last argument to true)
-		if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-            // TODO: Handle errort
+
+        // Create an ephemeral node at /health/<datanode_id>/heartbeat
+        // if it doesn't already exist. Should have a ZOPERATIONTIMEOUT
+        if (zk->exists(HEALTH_BACKSLASH + id + "/heartbeat", exists, error_code)) {
+            if (!exists) {
+                if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", ZKWrapper::EMPTY_VECTOR, error_code, true)) {
+                    // TODO: Handle error
+                }
+            }
         }
 
         std::vector<uint8_t> data;
