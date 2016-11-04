@@ -100,7 +100,7 @@ namespace zkclient{
         // if it doesn't already exist. Should have a ZOPERATIONTIMEOUT 
         if (zk->exists(HEALTH_BACKSLASH + id + "/heartbeat", exists, error_code)) {
             if (!exists) {
-                if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat/", ZKWrapper::EMPTY_VECTOR, error_code)) {
+                if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", ZKWrapper::EMPTY_VECTOR, error_code, true)) {
                     // TODO: Handle error
                 }
             }
