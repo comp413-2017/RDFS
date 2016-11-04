@@ -14,7 +14,7 @@ NativeFS::NativeFS() {}
 /**
  * Given an ID, allocate a block. Returns true/false on success/failure.
  **/
-bool NativeFS::allocateBlock(long id, std::string blk)
+bool NativeFS::allocateBlock(uint64_t id, std::string blk)
 {
 
 	if (!blockMap[id].empty()) {
@@ -43,18 +43,19 @@ bool NativeFS::allocateBlock(long id, std::string blk)
 /**
  * Given an ID, returns a block buffer
 **/
-std::string NativeFS::getBlock(long id)
+std::string NativeFS::getBlock(uint64_t id, bool& success)
 {
 	// Look in map and get filename
 	std::string strFilename = blockMap[id];
 	char* filename = const_cast<char*>(strFilename.c_str());
-	const long blockSize = 67108864;
+	const uint64_t blockSize = 134217728;
 	// Open file
 	FILE* file;
 	file = fopen(filename, "r");
 	if (file == NULL) {
 		std::cout << "Error opening file " << filename << std::endl;
-		return NULL;
+		success = false;
+		return "";
 	}
 
 
@@ -66,8 +67,12 @@ std::string NativeFS::getBlock(long id)
 	if (bytesRead == 0) {
 		fclose(file);
 		std::cout << "Error reading in file" << std::endl;
-		return NULL;
+		success = false;
+		return "";
 	}
+
+	// No errors if we got this far
+	success = true;
 
 	// Close file
 	fclose(file);
@@ -78,7 +83,7 @@ std::string NativeFS::getBlock(long id)
 /**
  * Given an ID, deletes a block. Returns false on error, true otherwise
 **/
-bool NativeFS::rmBlock(long id)
+bool NativeFS::rmBlock(uint64_t id)
 {
 	std::string fileName;
 

@@ -324,6 +324,11 @@ public:
 
     static const std::vector <std::uint8_t> EMPTY_VECTOR;
 
+	watcher_fn watcher_health_factory(std::string path);
+
+	static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+
 private:
     zhandle_t *zh;
 

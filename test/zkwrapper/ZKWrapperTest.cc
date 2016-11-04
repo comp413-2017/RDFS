@@ -1,6 +1,9 @@
 #include "zkwrapper.h"
 #include <cstring>
 #include <gtest/gtest.h>
+#include <chrono>
+#include <thread>
+
 
 #include <easylogging++.h>
 
@@ -24,6 +27,18 @@ namespace {
 
         }
 
+        static void test_watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
+            bool *val = (bool *)watcherCtx;
+            if (*val == false){
+                *val = true;
+
+            }else{
+                printf("context is not false when in callback function\n");
+            }
+            // int error = 0;
+            // std::vector <std::uint8_t> data(65536);
+            // result = zk->wget(path, data, test_watcher, &check, error);
+        }
         // Objects declared here can be used by all tests in the test case for Foo.
         ZKWrapper *zk;
     };
@@ -93,7 +108,27 @@ namespace {
 
     //TODO need to create tests for this
     TEST_F(ZKWrapperTest, wexists){
-        ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
+        int error = 0;
+        bool exist = false;
+        bool check = false;
+
+        bool result = zk->wexists("/testwexists", exist, test_watcher, &check, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ(false, exist);
+        ASSERT_EQ("ZNONODE", zk->translate_error(error));
+
+        result = zk->create("/testwexists", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));
+
+        int count = 0;
+
+        while (check == false && count < 5){
+            count++;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+
+        ASSERT_EQ(true, check);
     }
 
     TEST_F(ZKWrapperTest, get_children){
@@ -107,7 +142,29 @@ namespace {
 
     //TODO need to create tests for this
     TEST_F(ZKWrapperTest, wget_children){
-        ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
+        int error = 0;
+        bool result = zk->create("/testwgetchildren1", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));
+
+        std::vector <std::string> children;
+        bool check = false;
+        result = zk->wget_children("/testwgetchildren1", children, test_watcher, &check, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));
+
+        result = zk->create("/testwgetchildren1/test", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));        
+
+        int count = 0;
+
+        while (check == false && count < 5){
+            count++;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+
+        ASSERT_EQ(true, check);
     }
     TEST_F(ZKWrapperTest, get){
         int error = 0;
@@ -135,7 +192,32 @@ namespace {
     }
     //TODO need to create tests for this
     TEST_F(ZKWrapperTest, wget){
-        ASSERT_EQ("ZCLOSING", zk->translate_error(-116));
+        int error = 0;
+        bool result = zk->create("/testwget1", ZKWrapper::EMPTY_VECTOR, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));
+
+        std::vector <std::uint8_t> data(65536);
+        bool check = false;
+        result = zk->wget("/testwget1", data, test_watcher, &check, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));
+        ASSERT_EQ(0, data.size());
+
+        auto data1 = ZKWrapper::get_byte_vector("hello");
+        result = zk->set("/testwget1", data1, error);
+        ASSERT_EQ(true, result);
+        ASSERT_EQ("ZOK", zk->translate_error(error));
+
+        int count = 0;
+
+        while (check == false && count < 5){
+            printf("waiting for check to be true\n");
+            count++;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+
+        ASSERT_EQ(true, check);
     }
     TEST_F(ZKWrapperTest, set){
         int error = 0;

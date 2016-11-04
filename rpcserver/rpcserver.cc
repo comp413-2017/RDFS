@@ -62,14 +62,14 @@ bool RPCServer::receive_prelude(tcp::socket& sock) {
         ERROR_AND_FALSE("Failed to receive message prelude length.");
     }
     hadoop::common::RpcRequestHeaderProto rpc_request_header;
-    if (read_proto(sock, rpc_request_header)) {
+    if (read_delimited_proto(sock, rpc_request_header)) {
         LOG(INFO) << CLASS_NAME <<  rpc_request_header.DebugString();
     } else {
         ERROR_AND_FALSE("Couldn't read the request header");
     }
     // Now read the length of the IpcConnectionContext and deserialize.
     hadoop::common::IpcConnectionContextProto connection_context;
-    if (read_proto(sock, connection_context)) {
+    if (read_delimited_proto(sock, connection_context)) {
         LOG(INFO) << CLASS_NAME <<  connection_context.DebugString();
     } else {
         ERROR_AND_FALSE("Couldn't read the ipc connection context");
@@ -104,13 +104,13 @@ void RPCServer::handle_rpc(tcp::socket sock) {
         }
         LOG(INFO) << CLASS_NAME <<  "Got payload size: " << payload_size;
         hadoop::common::RpcRequestHeaderProto rpc_request_header;
-        if (!read_proto(sock, rpc_request_header)) {
+        if (!read_delimited_proto(sock, rpc_request_header)) {
             ERROR_AND_RETURN("Failed to read the RPC request header");
         }
         LOG(INFO) << CLASS_NAME <<  rpc_request_header.DebugString();
 
         hadoop::common::RequestHeaderProto request_header;
-        if (!read_proto(sock, request_header)) {
+        if (!read_delimited_proto(sock, request_header)) {
             ERROR_AND_RETURN("Failed to read the request header");
         }
         LOG(INFO) << CLASS_NAME <<  request_header.DebugString();

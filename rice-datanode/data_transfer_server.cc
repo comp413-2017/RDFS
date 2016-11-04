@@ -17,7 +17,7 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
-TransferServer::TransferServer(int p) : port{p} {}
+TransferServer::TransferServer(int p, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn) : port(p), fs(fs), dn(dn) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -66,15 +66,13 @@ void TransferServer::handle_connection(tcp::socket sock) {
 				//Error
 				ERROR_AND_RETURN("Unknown operation type specified.");
 		}
-
-		sleep(5);
 	}
 }
 
 void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// TODO: Consume 1 delimited OpWriteBlockProto
 	OpWriteBlockProto proto;
-	if (rpcserver::read_proto(sock, proto)) {
+	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a write block proto";
 		LOG(INFO) << proto.DebugString();
 	} else {
@@ -96,30 +94,43 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	uint64_t bytesInBlock = proto.minbytesrcvd();
 	//num bytes sent
 	uint64_t bytesSent = proto.maxbytesrcvd();
-
+	
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		LOG(INFO) << "Could not send response to client";
 	}
-
-	//TODO read packets of block from client
+	
+	// read packets of block from client
 	bool last_packet = false;
+	std::string block_data;
 	while (!last_packet) {
+		asio::error_code error;
+		uint32_t payload_len;
+		rpcserver::read_int32(sock, &payload_len);
+		uint16_t header_len;
+		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
-		rpcserver::read_proto(sock, p_head);
+		rpcserver::read_proto(sock, p_head, header_len);
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
+		uint32_t checksum_len = payload_len - 4 - data_len;
+		std::string checksum (checksum_len, 0);
 		std::string data (data_len, 0);
-		asio::error_code error;
-		size_t len = sock.read_some(asio::buffer(&data[0], data_len), error);
-		if (len != data_len || !error) {
+		size_t len = sock.read_some(asio::buffer(&checksum[0], checksum_len), error);
+		if (len != checksum_len || error) {
+			LOG(ERROR) << "Failed to read checksum for packet " << p_head.seqno();
+			break;
+		}
+		len = sock.read_some(asio::buffer(&data[0], data_len), error);
+		if (len != data_len || error) {
 			LOG(ERROR) << "Failed to read packet " << p_head.seqno();
 			break;
 		}
-		if (!last_packet || data_len != 0) {
-			LOG(INFO) << "Writing data to disk: " << data;
+		if (!last_packet && data_len != 0) {
+			block_data += data;
 		}
+		// ack packet
 		PipelineAckProto ack;
 		ack.set_seqno(p_head.seqno());
 		ack.add_reply(SUCCESS);
@@ -132,11 +143,13 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		}
 	}
 	
-	//TODO send acks
-	
+	LOG(INFO) << "Writing data to disk: " << block_data;
+	if (!fs.allocateBlock(header.baseheader().block().blockid(), block_data)) {
+		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
+	} else {
+		dn.blockReceived(header.baseheader().block().blockid());
+	}
 
-	//TODO write out to block
-	
 
 	//TODO set proto source to this DataNode, remove this DataNode from
 	//	the proto targets, and send this proto along to other
@@ -147,22 +160,34 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
 	OpReadBlockProto proto;
-	if (rpcserver::read_proto(sock, proto)) {
+	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a read block proto";
 		LOG(INFO) << proto.DebugString();
 	} else {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
 	std::string response_string;
+
 	buildBlockOpResponse(response_string);
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		LOG(INFO) << "Could not send response to client";
 	}
-	// TODO once we read blocks: len must be <= remaining size of block.
-	uint64_t len = proto.len();
+
+	uint64_t blockID = proto.header().baseheader().block().blockid();
+	bool success;
+	std::string block = this->fs.getBlock(blockID, success);
+	if (!success){
+		LOG(ERROR) << "Failure on fs.getBlock";
+	}
+
 	uint64_t offset = proto.offset();
+	uint64_t len = std::min(block.size() - offset, proto.len());
+	if (offset > block.size()) {
+		len = 0;
+	}
+	
 	uint64_t seq = 0;
 	while (len > 0) {
 		PacketHeaderProto p_head;
@@ -172,7 +197,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		// The payload to write can be no more than what fits in the packet, or
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
-		std::string payload(payload_size, 'r');
+		std::string payload = block.substr(offset, payload_size);
 		p_head.set_datalen(payload_size);
 
 		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
@@ -204,7 +229,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		}
 		// Receive a status code from the client.
 		ClientReadStatusProto status_proto;
-		if (rpcserver::read_proto(sock, status_proto)) {
+		if (rpcserver::read_delimited_proto(sock, status_proto)) {
 			LOG(INFO) << "Received read status from client.";
 			LOG(INFO) << status_proto.DebugString();
 		} else {

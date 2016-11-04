@@ -4,7 +4,6 @@
 #include "datatransfer.pb.h"
 #include <google/protobuf/message.h>
 #include <rpcserver.h>
-#include <ConfigReader.h>
 
 #pragma once
 
@@ -31,16 +30,17 @@ class ClientDatanodeTranslator {
 		int getPort();
 		RPCServer getRPCServer();
 	private:
-		std::string Serialize(google::protobuf::Message&);
+		std::string Serialize(std::string*, google::protobuf::Message&);
 		void InitServer();
 		void RegisterClientRPCHandlers();
 		void Config();
-		void logMessage(google::protobuf::Message& req, std::string req_name);
-		int getDefaultInt(std::string);
+		void logMessage(google::protobuf::Message& req);
 
 		FsServerDefaultsProto server_defaults;
 		int port;
 		RPCServer server;
-		config_reader::ConfigReader config;
+
+		static const char* HDFS_DEFAULTS_CONFIG;
+		
 }; // class
 } // namespace

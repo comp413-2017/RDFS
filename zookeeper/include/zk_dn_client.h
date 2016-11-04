@@ -21,6 +21,11 @@ typedef struct
     uint64_t mem_bytes;
 } DataNodePayload;
 
+typedef struct
+{
+    char ipPort[256];
+} DataNodeZNode;
+
 class ZkClientDn : public ZkClientCommon {
 
 public:

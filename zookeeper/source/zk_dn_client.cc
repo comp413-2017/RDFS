@@ -2,6 +2,7 @@
 #define RDFS_ZK_CLIENT_DN_CC
 
 #include "zk_dn_client.h"
+#include "zk_lock.h"
 #include <easylogging++.h>
 
 namespace zkclient{
@@ -27,25 +28,54 @@ namespace zkclient{
 	}
 
 	bool ZkClientDn::blockReceived(uint64_t uuid) {
-
+		// TODO: store file size
 		int error_code;
 		bool exists;
 
-		LOG(INFO) << "DataNode received a block with uuid " << std::to_string(uuid);
+		LOG(INFO) << "DataNode received a block with UUID " << std::to_string(uuid);
         std::string id = build_datanode_id(data_node_id);
 
-		// Create block
-        if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid), exists, error_code)) {
-        	if (exists) {
-        		if(zk->create(WORK_QUEUES + WAIT_FOR_ACK + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-            		return true;
-        		}
-        	}
-        	// TODO: Display error message
+		// Add acknowledgement
+		ZKLock queue_lock(*zk.get(), WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid));
+		if (queue_lock.lock() != 0) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
+		}
+		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
+			if (exists) {
+				if(zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait for acks " << error_code;
+				}
+			}
+		}
+		if (queue_lock.unlock() != 0) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed unlocking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 		}
 
-		// TODO: Display error message
-		return false;
+		// Create a block_locations node for this block if there isn't one already
+		// TODO this should always exist
+		if (!zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
+        	if (!exists) {
+				LOG(INFO) << "This block did not exist so we are creating it";
+        		if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid> " << error_code;
+            		return false;
+        		}
+        	}
+		}
+		LOG(INFO) << "About to create the znode for the data ip";
+
+		// Add this datanode as the block's location in block_locations
+		DataNodeZNode znode_data;
+		strcpy(znode_data.ipPort, id.c_str());
+		std::vector<std::uint8_t> data(sizeof(znode_data));
+		memcpy(&data[0], &znode_data, sizeof(znode_data));
+		LOG(INFO) << BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id;
+		if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, data, error_code, false)) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<block_id> " << error_code;
+			return false;
+		}
+
+		return true;
 	}
 
 	void ZkClientDn::registerDataNode() {
@@ -64,12 +94,9 @@ namespace zkclient{
                 }
             }
 		}
-  //       // TODO: Make ephemeral
-		// if (!zk->create(HEALTH_BACKSLASH + id + HEALTH, ZKWrapper::EMPTY_VECTOR, error_code)) {
-  //           // TODO: Handle error
-  //       }
 
-        // Create an ephermal node at /health/datanodes/<datanode_id>/heartbeat
+
+        // Create an ephermal node at /health/<datanode_id>/heartbeat
         // if it doesn't already exist. Should have a ZOPERATIONTIMEOUT 
         if (zk->exists(HEALTH_BACKSLASH + id + "/heartbeat", exists, error_code)) {
             if (!exists) {

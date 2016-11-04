@@ -4,9 +4,12 @@
 
 #include <datatransfer.pb.h>
 
+#include "native-filesystem.h"
 #include "socket_reads.h"
 #include "socket_writes.h"
 #include "rpcserver.h"
+#include "native-filesystem.h"
+#include "zk_dn_client.h"
 
 #pragma once
 
@@ -31,11 +34,14 @@ using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
-		TransferServer(int port);
+		TransferServer(int port, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn);
 		void serve(asio::io_service& io_service);
 
 	private:
 		int port;
+		nativefs::NativeFS fs;
+		zkclient::ZkClientDn dn;
+
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
 		void handle_connection(tcp::socket sock);
 		void processWriteRequest(tcp::socket& sock);

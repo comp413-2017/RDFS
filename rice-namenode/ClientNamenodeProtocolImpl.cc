@@ -73,6 +73,7 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	const std::string& src = req.src();
 	const bool recursive = req.recursive();
 	DeleteResponseProto res;
+	// TODO: as of 11/1, zk.destroy has a seg fault.
 	zk.destroy(req, res);
 	return Serialize(res);
 }
@@ -193,8 +194,11 @@ std::string ClientNamenodeTranslator::setReplication(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::rename(std::string input) {
+	RenameRequestProto req;
 	RenameResponseProto res;
-	res.set_result(false);
+	req.ParseFromString(input);
+	logMessage(req, "Rename ");
+	zk.rename(req, res);
 	return Serialize(res);
 }
 
