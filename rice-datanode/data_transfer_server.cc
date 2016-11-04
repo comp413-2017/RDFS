@@ -70,7 +70,6 @@ void TransferServer::handle_connection(tcp::socket sock) {
 }
 
 void TransferServer::processWriteRequest(tcp::socket& sock) {
-	// TODO: Consume 1 delimited OpWriteBlockProto
 	OpWriteBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a write block proto";
@@ -98,7 +97,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
-		LOG(INFO) << "Could not send response to client";
+		ERROR_AND_RETURN("Could not send response to client");
 	}
 	
 	// read packets of block from client
@@ -114,7 +113,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		rpcserver::read_proto(sock, p_head, header_len);
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
-		uint32_t checksum_len = payload_len - 4 - data_len;
+		uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
 		std::string checksum (checksum_len, 0);
 		std::string data (data_len, 0);
 		size_t len = sock.read_some(asio::buffer(&checksum[0], checksum_len), error);
@@ -172,7 +171,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
-		LOG(INFO) << "Could not send response to client";
+		ERROR_AND_RETURN("Could not send response to client");
 	}
 
 	uint64_t blockID = proto.header().baseheader().block().blockid();
