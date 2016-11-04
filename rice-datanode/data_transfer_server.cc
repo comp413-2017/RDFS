@@ -144,7 +144,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	}
 	
 	LOG(INFO) << "Writing data to disk: " << block_data;
-	if (!fs.allocateBlock(header.baseheader().block().blockid(), block_data)) {
+	if (!fs.writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
 		dn.blockReceived(header.baseheader().block().blockid());

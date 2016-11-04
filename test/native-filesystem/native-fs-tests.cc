@@ -16,12 +16,12 @@ protected:
 };
 
 
-TEST_F(NativeFSTest, CanAllocateBlock) {
-	ASSERT_EQ(true, filesystem.allocateBlock(blk_id, blk));
+TEST_F(NativeFSTest, CanWriteBlock) {
+	ASSERT_EQ(true, filesystem.writeBlock(blk_id, blk));
 }
 
 TEST_F(NativeFSTest, CanGetBlock) {
-	filesystem.allocateBlock(blk_id, blk);
+	filesystem.writeBlock(blk_id, blk);
 	bool success;
 	std::string newBlock = filesystem.getBlock(blk_id, success);
 	ASSERT_EQ(newBlock[0], blk[0]);
@@ -29,7 +29,7 @@ TEST_F(NativeFSTest, CanGetBlock) {
 }
 
 TEST_F(NativeFSTest, CanRemoveBlock) {
-	filesystem.allocateBlock(blk_id, blk);
+	filesystem.writeBlock(blk_id, blk);
 	ASSERT_EQ(true, filesystem.rmBlock(blk_id));
 }
 

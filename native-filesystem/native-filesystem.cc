@@ -12,9 +12,9 @@ namespace nativefs {
 NativeFS::NativeFS() {}
 
 /**
- * Given an ID, allocate a block. Returns true/false on success/failure.
+ * Given an ID, write the given block to the native filesystem. Returns true/false on success/failure.
  **/
-bool NativeFS::allocateBlock(uint64_t id, std::string blk)
+bool NativeFS::writeBlock(uint64_t id, std::string blk)
 {
 
 	if (!blockMap[id].empty()) {

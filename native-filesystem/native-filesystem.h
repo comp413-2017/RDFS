@@ -12,7 +12,7 @@ namespace nativefs {
 class NativeFS{
 	public:
 		NativeFS();
-		bool allocateBlock(uint64_t, std::string);
+		bool writeBlock(uint64_t, std::string);
 		std::string getBlock(uint64_t, bool&);
 		bool rmBlock(uint64_t);
 
