@@ -1,6 +1,8 @@
 #include "native-filesystem.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <easylogging++.h>
+INITIALIZE_EASYLOGGINGPP
 using ::testing::AtLeast;
 
 using namespace nativefs;
