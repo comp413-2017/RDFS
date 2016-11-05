@@ -108,8 +108,8 @@ watcher_fn ZKWrapper::watcher_health_factory(std::string path){
 				}
 			}
 	};
-    return factory_wrapper::watcher_health;	
-} 
+	return factory_wrapper::watcher_health;
+}
 
 /*
  * Watcher for health child node (/health/datanode_)
@@ -124,7 +124,7 @@ void ZKWrapper::watcher_health_child(zhandle_t *zzh, int type, int state, const 
 	int rc = zoo_wget_children(zzh, path, watcher_health_child, nullptr, vector);
 	int i = 0;
 	if (vector->count == 0){
-		// TODO: client need to pass a function ptr so they will be notified 
+		// TODO: client need to pass a function ptr so they will be notified
 		LOG(INFO) << CLASS_NAME << "no childs to retrieve";
 	}
 	while (i < vector->count) {
@@ -193,7 +193,7 @@ bool ZKWrapper::create(const std::string &path,
 		return false;
 	}
 	auto real_path = prepend_zk_root(path);
-	LOG(INFO) << CLASS_NAME <<  "creating ZNode at " << real_path;
+	LOG(INFO) << CLASS_NAME <<	"creating ZNode at " << real_path;
 	int flag = (ephemeral) ? ZOO_EPHEMERAL : 0;
 	int rc = zoo_create(zh,
 			real_path.c_str(),
@@ -206,8 +206,8 @@ bool ZKWrapper::create(const std::string &path,
 	error_code = rc;
 	if (!rc)
 		return true;
-    LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
-    print_error(error_code);
+	LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
+	print_error(error_code);
 	return false;
 }
 
@@ -218,7 +218,7 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		bool ephemeral,
 		int &error_code) const {
 
-	LOG(INFO) << CLASS_NAME <<  "Starting sequential for " << path;
+	LOG(INFO) << CLASS_NAME <<	"Starting sequential for " << path;
 	if (!init) {
 		LOG(ERROR) << CLASS_NAME <<  "Attempt to create sequential before init!";
 		return false;
@@ -227,8 +227,8 @@ bool ZKWrapper::create_sequential(const std::string &path,
 	if (ephemeral) {
 		flag = flag | ZOO_EPHEMERAL;
 	}
-	LOG(INFO) << CLASS_NAME <<  "Attempting to generate new path" << new_path;
-	LOG(INFO) << CLASS_NAME <<  "creating seq ZNode at " << prepend_zk_root(path);
+	LOG(INFO) << CLASS_NAME <<	"Attempting to generate new path" << new_path;
+	LOG(INFO) << CLASS_NAME <<	"creating seq ZNode at " << prepend_zk_root(path);
 
 	int len = prepend_zk_root(path).size();
 	new_path.resize(MAX_PATH_LEN);
@@ -247,10 +247,10 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		return false;
 	}
 	int i = 0;
-	LOG(INFO) << CLASS_NAME <<  "NEW path is " << new_path;
-	new_path.resize(len+10);
+	LOG(INFO) << CLASS_NAME <<	"NEW path is " << new_path;
+	new_path.resize(len + NUM_SEQUENTIAL_DIGITS);
 	new_path = removeZKRoot(new_path);
-	LOG(INFO) << CLASS_NAME <<  "NEW path is now this" << new_path;
+	LOG(INFO) << CLASS_NAME <<	"NEW path is now this" << new_path;
 	return true;
 }
 
@@ -259,7 +259,7 @@ bool ZKWrapper::recursive_create(const std::string &path,
 		int &error_code) const {
 	for (int i=1; i<path.length(); ++i){
 		if (path[i] == '/'){
-			LOG(INFO) << CLASS_NAME <<  "Generating " << path.substr(0, i);
+			LOG(INFO) << CLASS_NAME <<	"Generating " << path.substr(0, i);
 			if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code)){
 				if (error_code != ZNODEEXISTS){
 					LOG(ERROR) << CLASS_NAME <<  "Failed to recursively create " << path;
@@ -270,7 +270,7 @@ bool ZKWrapper::recursive_create(const std::string &path,
 			error_code = ZOK;
 		}
 	}
-	LOG(INFO) << CLASS_NAME <<  "Generating " << path;
+	LOG(INFO) << CLASS_NAME <<	"Generating " << path;
 	return create(path, data, error_code);
 
 }
@@ -398,7 +398,7 @@ bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
 
 // TODO: Modify
 bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const {
-	LOG(INFO) << CLASS_NAME <<  "Recursively deleting " << path;
+	LOG(INFO) << CLASS_NAME <<	"Recursively deleting " << path;
 	bool root = ("/" == path);
 	bool endsSlash = path[path.size() - 1] == '/';
 	int rc = 0;
@@ -411,7 +411,7 @@ bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const
 	}
 
 	for (auto child : children) {
-		LOG(INFO) << CLASS_NAME <<  "child is " << child;
+		LOG(INFO) << CLASS_NAME <<	"child is " << child;
 		if (child.size() == 0){
 			continue;
 		}

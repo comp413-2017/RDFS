@@ -338,6 +338,7 @@ private:
     std::string root = "";
     const static std::uint32_t MAX_PAYLOAD = 65536;
     const static std::uint32_t MAX_PATH_LEN = 512;
+    const static int NUM_SEQUENTIAL_DIGITS = 10;
 
     const static std::map<int, std::string> error_message;
     static const std::string CLASS_NAME;
