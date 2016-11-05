@@ -3,6 +3,7 @@
 #include <asio.hpp>
 
 #include <datatransfer.pb.h>
+#include <queue>
 
 #include "native-filesystem.h"
 #include "socket_reads.h"
@@ -47,6 +48,7 @@ class TransferServer {
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
 		void buildBlockOpResponse(std::string& response_string);
+		void ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue);
 
 		template <typename BufType>
 		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);

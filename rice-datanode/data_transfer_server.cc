@@ -64,7 +64,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
 				ERROR_AND_RETURN("Handler for custom-op not written yet.");
 			default:
 				//Error
-				ERROR_AND_RETURN("Unknown operation type specified.");
+				ERROR_AND_RETURN("Unknown operation type specified: " << type);
 		}
 	}
 }
@@ -103,6 +103,8 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// read packets of block from client
 	bool last_packet = false;
 	std::string block_data;
+	std::queue<PacketHeaderProto> ackQueue;
+	std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue)).detach();
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -129,17 +131,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		if (!last_packet && data_len != 0) {
 			block_data += data;
 		}
-		// ack packet
-		PipelineAckProto ack;
-		ack.set_seqno(p_head.seqno());
-		ack.add_reply(SUCCESS);
-		std::string ack_string;
-		ack.SerializeToString(&ack_string);
-		if (rpcserver::write_delimited_proto(sock, ack_string)) {
-			LOG(INFO) << "Successfully sent ack to client";
-		} else {
-			LOG(INFO) << "Could not send ack to client";
-		}
+		ackQueue.push(p_head);
 	}
 	
 	LOG(INFO) << "Writing data to disk: " << block_data;
@@ -155,6 +147,31 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	//	DataNodes in targets
 	//TODO read in a response (?)
 	//TODO send packets to targets
+}
+
+void TransferServer::ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue) {
+	bool last_packet = false;
+	do {
+		// wait for packets to ack
+		if (ackQueue.empty()) {
+			continue;
+		}
+		
+		// ack packet
+		PacketHeaderProto p_head = ackQueue.front();
+		ackQueue.pop();
+		last_packet = p_head.lastpacketinblock();
+		PipelineAckProto ack;
+		ack.set_seqno(p_head.seqno());
+		ack.add_reply(SUCCESS);
+		std::string ack_string;
+		ack.SerializeToString(&ack_string);
+		if (rpcserver::write_delimited_proto(sock, ack_string)) {
+			LOG(INFO) << "Successfully sent ack to client";
+		} else {
+			LOG(ERROR) << "Could not send ack to client";
+		}
+	} while (!last_packet);
 }
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
@@ -177,7 +194,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	uint64_t blockID = proto.header().baseheader().block().blockid();
 	bool success;
 	std::string block = this->fs.getBlock(blockID, success);
-	if (!success){
+	if (!success) {
 		LOG(ERROR) << "Failure on fs.getBlock";
 	}
 
