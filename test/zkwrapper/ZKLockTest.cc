@@ -24,11 +24,6 @@ namespace {
 			assert(errorCode == 0); // ZOK
 		}
 
-		virtual void TearDown() {
-			// Code here will be called immediately after each test (right
-			// before the destructor).
-		}
-
 		static void lock_and_write(ZKWrapper &zkWrapper, std::condition_variable &cv, int &x) {
 			ZKLock lock1(zkWrapper, zk_dir);
 			ASSERT_EQ(0, lock1.lock());

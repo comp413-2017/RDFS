@@ -24,11 +24,6 @@ namespace {
 			queue = new ZKQueue(*zk, "/queue_test");
 		}
 
-		virtual void TearDown() {
-			// Code here will be called immediately after each test (right
-			// before the destructor).
-		}
-
 		// Objects declared here can be used by all tests in the test case for Foo.
 		ZKWrapper *zk;
 		ZKQueue *queue;
