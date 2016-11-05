@@ -42,8 +42,7 @@ int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
 	int res = RUN_ALL_TESTS();
 
-	std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /queue_test");
-	system(command.data());
+	system("sudo ~/zookeeper/bin/zkCli.sh rmr /queue_test");
 	system("sudo ~/zookeeper/bin/zkServer.sh stop");
 
 	return res;

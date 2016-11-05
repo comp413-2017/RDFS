@@ -69,7 +69,6 @@ int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 
-	std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /_locknode_");
-	system(command.data());
+	system("sudo ~/zookeeper/bin/zkCli.sh rmr /_locknode_");
 	system("sudo ~/zookeeper/bin/zkServer.sh stop");
 }

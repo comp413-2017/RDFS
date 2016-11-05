@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 	// NOTE: You'll need to scroll up a bit to see the test results
 
 	// Remove test files and shutdown zookeeper
-	std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
+	system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
 	system("sudo ~/zookeeper/bin/zkServer.sh stop");
 	return res;
 }
