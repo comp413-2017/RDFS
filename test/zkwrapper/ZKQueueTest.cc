@@ -11,41 +11,45 @@ INITIALIZE_EASYLOGGINGPP
 
 namespace {
 
-    class ZKQueueTest : public ::testing::Test {
-    protected:
-        virtual void SetUp() {
+	class ZKQueueTest : public ::testing::Test {
+	protected:
+		virtual void SetUp() {
 
-            int error_code;
-            // Code here will be called immediately after the constructor (right
-            // before each test).
-            system("sudo ~/zookeeper/bin/zkServer.sh start");
+			int error_code;
+			// Code here will be called immediately after the constructor (right
+			// before each test).
 
-            zk = new ZKWrapper("localhost:2181", error_code);
-            assert(error_code == 0); // Z_OK
-            queue = new ZKQueue(*zk, "/queue_test");
-        }
+			zk = new ZKWrapper("localhost:2181", error_code);
+			assert(error_code == 0); // Z_OK
+			queue = new ZKQueue(*zk, "/queue_test");
+		}
 
-        virtual void TearDown() {
-            // Code here will be called immediately after each test (right
-            // before the destructor).
-            std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /queue_test");
-            system(command.data());
-            system("sudo ~/zookeeper/bin/zkServer.sh stop");
-        }
+		virtual void TearDown() {
+			// Code here will be called immediately after each test (right
+			// before the destructor).
+		}
 
-        // Objects declared here can be used by all tests in the test case for Foo.
-        ZKWrapper *zk;
-        ZKQueue *queue;
-    };
+		// Objects declared here can be used by all tests in the test case for Foo.
+		ZKWrapper *zk;
+		ZKQueue *queue;
+	};
 
 
 
-    TEST_F(ZKQueueTest, Push) {
-        ASSERT_EQ("/queue_test/q_item-0000000000", queue->push(ZKWrapper::EMPTY_VECTOR));
-    }
+	TEST_F(ZKQueueTest, Push) {
+		ASSERT_EQ("/queue_test/q_item-0000000000", queue->push(ZKWrapper::EMPTY_VECTOR));
+	}
 }
 
 int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+	system("sudo ~/zookeeper/bin/zkServer.sh start");
+
+	::testing::InitGoogleTest(&argc, argv);
+	int res = RUN_ALL_TESTS();
+
+	std::string command("sudo ~/zookeeper/bin/zkCli.sh rmr /queue_test");
+	system(command.data());
+	system("sudo ~/zookeeper/bin/zkServer.sh stop");
+
+	return res;
 }
