@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <easylogging++.h>
-#include "native-filesystem.h"
+#include "native_filesystem.h"
 
 namespace nativefs {
 	const std::string NativeFS::CLASS_NAME = ": **NativeFS** : ";

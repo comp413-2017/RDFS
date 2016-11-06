@@ -325,7 +325,8 @@ int main(int argc, char **argv) {
 	system("sudo ~/zookeeper/bin/zkServer.sh start");
 	system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
 	::testing::InitGoogleTest(&argc, argv);
-	RUN_ALL_TESTS();
+	auto ret = RUN_ALL_TESTS();
 	system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
 	system("sudo ~/zookeeper/bin/zkServer.sh stop");
+    return ret;
 }

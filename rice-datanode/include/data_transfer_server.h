@@ -5,11 +5,11 @@
 #include <datatransfer.pb.h>
 #include <queue>
 
-#include "native-filesystem.h"
+#include "native_filesystem.h"
 #include "socket_reads.h"
 #include "socket_writes.h"
 #include "rpcserver.h"
-#include "native-filesystem.h"
+#include "native_filesystem.h"
 #include "zk_dn_client.h"
 
 #pragma once

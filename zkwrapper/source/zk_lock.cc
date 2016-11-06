@@ -5,26 +5,7 @@
 
 const std::string ZKLock::CLASS_NAME = ": **ZkLock** : ";
 
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-    return elems;
-}
-
 const std::string ZKLock::lock_path = "/_locknode_";
-
-std::vector<std::uint8_t> ZKLock::generate_uuid() {
-    std::vector<std::uint8_t> uuid_vec(16);
-    auto uuid = boost::uuids::random_generator()();
-    memcpy(uuid_vec.data(), &uuid, 16);
-    return uuid_vec;
-}
-
 
 int ZKLock::lock() {
     std::mutex mtx;
@@ -51,8 +32,8 @@ int ZKLock::lock() {
         LOG(ERROR) << CLASS_NAME <<  "ZKLock::lock(): Failed to create sequential " << my_lock;
         return error_code;
     }
-
-    auto splitted = split(locknode_with_seq, '/');
+    std::vector<std::string> splitted;
+    boost::split(splitted, locknode_with_seq, boost::is_any_of("/"));
 
     while (true) {
         std::vector<std::string> children;
@@ -94,7 +75,6 @@ int ZKLock::lock() {
 }
 
 int ZKLock::unlock(){
-    // TODO: Possibly pass in an error_code& so that we can let the calling user know how it failed
     int error_code;
     if (locknode_with_seq.size() == 0){
         return -1;

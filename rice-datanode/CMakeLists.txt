@@ -1,6 +1,12 @@
-include_directories(${CMAKE_SOURCE_DIR}/rpcserver ${CMAKE_SOURCE_DIR}/utility/config-reader ${CMAKE_SOURCE_DIR}/utility/logging ${CMAKE_SOURCE_DIR}/zookeeper/include ${CMAKE_SOURCE_DIR}/zkwrapper ${CMAKE_SOURCE_DIR}/native-filesystem )  
+include_directories(${CMAKE_SOURCE_DIR}/rpcserver/include
+        ${CMAKE_SOURCE_DIR}/utility/config-reader
+        ${CMAKE_SOURCE_DIR}/utility/logging
+        ${CMAKE_SOURCE_DIR}/zookeeper/include
+        ${CMAKE_SOURCE_DIR}/zkwrapper/include
+        ${CMAKE_SOURCE_DIR}/native-filesystem/include
+        ${CMAKE_SOURCE_DIR}/rice-datanode/include)
 
-add_executable(datanode main.cc ClientDatanodeProtocolImpl.cc data_transfer_server.cc)
+add_executable(datanode source/main.cc source/ClientDatanodeProtocolImpl.cc source/data_transfer_server.cc)
 target_link_libraries( datanode rpcserver )
 target_link_libraries( datanode config )
 target_link_libraries( datanode easylogging++ )

@@ -42,7 +42,7 @@ namespace {
 		auto datanodes = std::vector<std::string>();
 		u_int64_t block_id;
 		LOG(INFO) << "Finding dn's for block " << block_id;
-		client->generate_block_UUID(block_id);
+		util::generate_uuid(block_id);
 		client->find_datanode_for_block(datanodes, block_id, 1, true);
 
 		for (auto datanode : datanodes) {

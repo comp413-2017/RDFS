@@ -1,7 +1,8 @@
-include_directories(${CMAKE_SOURCE_DIR}/zkwrapper)
-include_directories(${CMAKE_SOURCE_DIR}/zookeeper/include)
-include_directories(${CMAKE_SOURCE_DIR}/utility/config-reader)
-include_directories(${CMAKE_SOURCE_DIR}/utility/logging)
+include_directories(${CMAKE_SOURCE_DIR}/zkwrapper/include
+        ${CMAKE_SOURCE_DIR}/zookeeper/include
+        ${CMAKE_SOURCE_DIR}/utility/config-reader
+        ${CMAKE_SOURCE_DIR}/utility/logging
+        ${CMAKE_SOURCE_DIR}/utility/include)
 
 add_library(zk_client_common source/zk_client_common.cc)
 target_link_libraries(zk_client_common zkwrapper)

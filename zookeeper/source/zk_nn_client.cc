@@ -16,8 +16,6 @@
 #include <ConfigReader.h>
 #include <easylogging++.h>
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
 #include <boost/algorithm/string.hpp>
 #include "zk_dn_client.h"
 
@@ -128,7 +126,7 @@ namespace zkclient{
 		uint64_t block_size = znode_data.blocksize;
 		assert(block_size > 0);
 
-		u_int64_t block_id;
+		std::uint64_t block_id;
 		auto data_nodes = std::vector<std::string>();
 
 		add_block(file_path, block_id, data_nodes, replication_factor);
@@ -142,7 +140,7 @@ namespace zkclient{
 		eb->set_generationstamp(1);
 		eb->set_numbytes(block_size);
 
-		for (auto data_node :data_nodes) {
+		for (auto data_node : data_nodes) {
 
 			int error_code;
 
@@ -309,7 +307,8 @@ namespace zkclient{
 		// If we need to create directories, do so
 		if (create_parent) {
 			std::string directory_paths = "";
-			auto split_path = split(path, '/');
+            std::vector<std::string> split_path;
+			boost::split(split_path, path, boost::is_any_of("/"));
 			LOG(INFO) << CLASS_NAME << split_path.size();
 			for (int i = 0; i < split_path.size() - 1; i++) {
 				directory_paths += split_path[i];
@@ -403,7 +402,8 @@ namespace zkclient{
 	 */
 	bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
 		if (create_parent) {
-			auto split_path = split(path, '/');
+            std::vector<std::string> split_path;
+			boost::split(split_path, path, boost::is_any_of("/"));
 			bool not_exist = false;
 			std::string unroll;
 			std::string p_path = "";
@@ -595,21 +595,7 @@ namespace zkclient{
 		LOG(INFO) << CLASS_NAME << "Successfully set the file info ";
 	}
 
-	/**
-	 * Split the str by the delimiter and return a vector of the split words
-	*/
-		std::vector<std::string> ZkNnClient::split(const std::string &str, char delim) {
-		std::stringstream ss;
-		ss.str(str);
-		std::string item;
-		std::vector<std::string> elems;
-		while (getline(ss, item, delim)) {
-			elems.push_back(item);
-		}
-		return elems;
-	}
-
-	bool ZkNnClient::add_block(const std::string& file_path, u_int64_t& block_id, std::vector<std::string> & data_nodes, uint32_t replicationFactor) {
+	bool ZkNnClient::add_block(const std::string& file_path, std::uint64_t& block_id, std::vector<std::string> & data_nodes, uint32_t replicationFactor) {
 
 		if (!file_exists(file_path)) {
 			LOG(ERROR) << CLASS_NAME << "Cannot add block to non-existent file" << file_path;
@@ -625,7 +611,7 @@ namespace zkclient{
 
 		std::string block_id_str;
 
-		generate_block_UUID(block_id);
+		util::generate_uuid(block_id);
 		block_id_str = std::to_string(block_id);
 		LOG(INFO) << CLASS_NAME << "Generated block id " << block_id_str;
 
@@ -667,13 +653,6 @@ namespace zkclient{
 			ZKWrapper::print_error(err);
 			return false;
 		}
-		return true;
-	}
-
-	bool ZkNnClient::generate_block_UUID(u_int64_t& blockId) {
-		// TODO: As of now we will just generate an incremented long
-		auto uuid = boost::uuids::random_generator()();
-		memcpy((&blockId), &uuid, sizeof(u_int64_t) / sizeof(u_char));
 		return true;
 	}
 

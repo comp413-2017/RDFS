@@ -6,8 +6,6 @@
 #define RICE_HDFS_ZK_LOCK_H_H
 
 #include <algorithm>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
 #include <thread>             // std::thread, std::this_thread::yield
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable
@@ -15,7 +13,7 @@
 #include <sstream>
 #include <vector>
 #include <easylogging++.h>
-
+#include <boost/algorithm/string.hpp>
 #include "zkwrapper.h"
 
 /**
@@ -49,8 +47,6 @@ private:
     std::string path_to_lock;
 
     static const std::string lock_path;
-
-    static std::vector<std::uint8_t> generate_uuid();
 
     std::string locknode_with_seq;
 
