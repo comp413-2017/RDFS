@@ -78,7 +78,7 @@ If you want to do a quick end-to-end test, try the following to cat the file:
 2. Run zookeeper (from ~, it’s `sudo zookeeper/bin/zkServer.sh start`). This will run in the background.
 3. Run namenode (`rdfs/build/rice-namenode/namenode`). This will run in the foreground.
 4. Run datanode (`rdfs/build/rice-datanode/datanode`). This will run in the foreground.
-5. Create a file with `hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal /filename`
+5. Create a file with `hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal localFile /filename`
 6. Try to cat that file with `hdfs dfs -fs hdfs://localhost:5351 -cat /filename`
 
 # Mocking
