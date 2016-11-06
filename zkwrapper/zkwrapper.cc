@@ -124,7 +124,7 @@ void ZKWrapper::watcher_health_child(zhandle_t *zzh, int type, int state, const 
 	int rc = zoo_wget_children(zzh, path, watcher_health_child, nullptr, vector);
 	int i = 0;
 	if (vector->count == 0){
-		// TODO: client need to pass a function ptr so they will be notified
+		// client needs to pass a function ptr so they will be notified
 		LOG(INFO) << CLASS_NAME << "no childs to retrieve";
 	}
 	while (i < vector->count) {

@@ -323,9 +323,23 @@ public:
     }
 
     static const std::vector <std::uint8_t> EMPTY_VECTOR;
-
+	
+	/**
+	 * Takes a string and returns a pointer of type watcher function that 
+	 * can be used as an input of wget()
+	 * 
+	 * This watcher should be used on /health/datanode_ level, not a datanode's child level
+	 * @param path, a string of path to health. Generally, the value will be
+	 * ZkNnClient::CLASS_NAME. 
+	 */
 	watcher_fn watcher_health_factory(std::string path);
-
+	
+	/**
+	 * Returns a pointer of type watcher function that can be used as an input of wget()
+	 *
+	 * This watcher should be used on /health/datanode_123/health level (a datanode's child level)
+	 * @param (defined in zookeeper.h)
+	 */
 	static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
 
