@@ -85,7 +85,6 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateResponseProto res;
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
-	zk.create_file(req, res);
 	LOG(INFO) << CLASS_NAME <<  res.DebugString();
     return Serialize(res);
 }
@@ -134,14 +133,13 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	logMessage(req, "Complete ");
 	CompleteResponseProto res;
 	// TODO some optional fields need to be read
-	zk.complete(req, res); 
-	// remove the lease from this file  
 	bool succ = lease_manager.removeLease(req.clientname(), req.src());
 	if (!succ) {
 		LOG(ERROR) << CLASS_NAME <<  "A client tried to close a file which is not theirs";
+		res.set_result(false);
+	} else {
+		zk.complete(req, res);
 	}
-	// TODO close the file (communicate with zookeeper) and do any recovery necessary
-	// for now, we claim to succeed.
 	return Serialize(res);
 }
 
@@ -165,9 +163,6 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	return Serialize(res);	
 }
 
-/**
- * TODO: stub please fix. @swyrough
- */
 std::string ClientNamenodeTranslator::addBlock(std::string input) {
 	AddBlockRequestProto req;
 	AddBlockResponseProto res;

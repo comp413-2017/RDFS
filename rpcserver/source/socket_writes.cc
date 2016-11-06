@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <google/protobuf/io/coded_stream.h>
 #include "socket_writes.h"
+#include <easylogging++.h>
 
 using asio::ip::tcp;
 
@@ -40,9 +41,9 @@ namespace rpcserver {
         size_t write_len = sock.write_some(asio::buffer(buf, len), error);
         delete[] buf;
         if (error)
-            std::cout << error << std::endl;
+            LOG(ERROR) << error;
         if (write_len != len)
-            std::cout << write_len << " " << len << std::endl;
+            LOG(INFO) << write_len << " " << len;
         return !error && write_len == len;
     }
 
@@ -52,7 +53,7 @@ namespace rpcserver {
      */
     bool write_delimited_proto(tcp::socket& sock, std::string& proto_bytes) {
         if (!write_varint(sock, proto_bytes.size())) {
-            std::cout << "varint failed hahaha " << proto_bytes.size() << std::endl;
+            LOG(ERROR) << "varint failed hahaha " << proto_bytes.size() << std::endl;
             return false;
         }
         return write_proto(sock, proto_bytes);

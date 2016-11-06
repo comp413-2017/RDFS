@@ -44,7 +44,6 @@ namespace zkclient{
 	void ZkNnClient::register_watches() {
 
 		int error_code;
-		// TODO: Do we have to free the returned children?
 		std::vector <std::string> children = std::vector <std::string>();
 
 		/* Place a watch on the health subtree */
@@ -90,8 +89,8 @@ namespace zkclient{
 		int error_code;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		if (!zk->get(ZookeeperPath(path), data, error_code)) {
-			LOG(INFO) << "helllo its bad news " << path;
-			// TODO handle error
+			LOG(ERROR) << "We could not read the file znode at " << path;
+			return; // don't bother reading the data
 		}
 		std::uint8_t *buffer = &data[0];
 		memcpy(&znode_data, buffer, sizeof(znode_data));
@@ -116,7 +115,7 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " does not exist";
 			return;
 		}
-		read_file_znode(znode_data, file_path); // TODO: What if the file does not exist
+		read_file_znode(znode_data, file_path);
 		if (znode_data.filetype != IS_FILE) { // Assert that the znode we want to modify is a file
 			LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " is not a file";
 			return;
@@ -329,7 +328,7 @@ namespace zkclient{
 		strcpy(znode_data.group, owner.c_str());
 		znode_data.replication = replication;
 		znode_data.blocksize = blocksize;
-		znode_data.filetype = 2;
+		znode_data.filetype = IS_FILE;
 
 		// if we failed, then do not set any status
 		if (!create_file_znode(path, &znode_data))
@@ -354,7 +353,8 @@ namespace zkclient{
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		file_znode_struct_to_vec(&znode_data, data);
 		if (!zk->set(ZookeeperPath(src), data, error_code)) {
-			// TODO : handle erro
+			LOG(ERROR) << CLASS_NAME << " complete could not change the construction bit";
+			res.set_result(false);
 		}
 		res.set_result(true);
 	}
@@ -397,7 +397,7 @@ namespace zkclient{
 	}
 
 	/**
-	 * Helper for creating a direcotyr znode. Iterates over the parents and crates them
+	 * Helper for creating a directory znode. Iterates over the parents and crates them
 	 * if necessary.
 	 */
 	bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
@@ -506,8 +506,6 @@ namespace zkclient{
 					LOG(ERROR) << CLASS_NAME << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
 				}
 
-				// TODO: fix me this is wrong.
-				// data_nodes.push_back("127.0.0.1:50020");
 				LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 				for (auto data_node :data_nodes) {
 
@@ -546,7 +544,7 @@ namespace zkclient{
 	std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath){
 		std::string zkpath = NAMESPACE_PATH;
 		if (hadoopPath.size() == 0) {
-			LOG(INFO) << "real real bad news";
+			LOG(ERROR) << " this hadoop path is invalid";
 		}
 		if (hadoopPath.at(0) != '/'){
 			zkpath += "/";
@@ -579,8 +577,6 @@ namespace zkclient{
 		FsPermissionProto* permission = status->mutable_permission();
 		// Shorcut to set permission to 777.
 		permission->set_perm(~0);
-		// Set it to be a file with length 1, "foo" owner and group, 0
-		// modification/access time, "0" path inode.
 		status->set_filetype(filetype);
 		status->set_path(path);
 		status->set_length(znode_data.length);

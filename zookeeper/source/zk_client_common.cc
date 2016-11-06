@@ -57,19 +57,6 @@ namespace zkclient {
         if (!zk->recursive_create("/work_queues/wait_for_acks", ZKWrapper::EMPTY_VECTOR, error_code)) {
             LOG(ERROR) << CLASS_NAME <<  "Failed creating /work_queues/wait_for_acks: " << error_code;
         }
-        /*
-        if (zk->exists("/work_queues",  exists, error_code)) {
-            if (!exists) {
-                zk->create("/work_queues", vec, error_code);
-            }
-            if (zk->exists("/work_queues/wait_for_acks",  exists, error_code)) {
-
-            }
-
-        } else {
-            // TODO: Handle error
-        }
-         */
         if (zk->exists("/block_locations", exists, error_code)) {
             if (!exists) {
                 zk->create("/block_locations", vec, error_code);

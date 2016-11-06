@@ -18,17 +18,35 @@ namespace config_reader {
 class ConfigReader {
 	public:
 		ConfigReader();
-	
-		std::string getString(std::string key); 	
+
+		/**
+		 * Get a string value associated with key
+		 * @param key the key in the config file
+		 */
+		std::string getString(std::string key);
+
+		/**
+		 * Get an int value associated with key
+		 * @param key the key in the config file
+		 */
 		int getInt(std::string key);
+
+		/**
+		 * Get a bool value associated with key
+		 * @param key the key in the config file
+		 */
 		bool getBool(std::string key);
 
 	private:
-		static const char* HDFS_DEFAULTS_CONFIG;		
+		// list of config files to read
+		static const char* HDFS_DEFAULTS_CONFIG;
+
+		// map of strings to strings, ints, and bools
  		std::unordered_map<std::string, std::string> conf_strings;
 		std::unordered_map<std::string, int> conf_ints;
 		std::unordered_map<std::string, bool> conf_bools;
 
+		// create the HDFS_DEFULATS_CONFIG mapping
 		void InitHDFSDefaults();
 
 		static const std::string CLASS_NAME;
