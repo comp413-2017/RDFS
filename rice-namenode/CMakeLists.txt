@@ -6,7 +6,7 @@ include_directories(${CMAKE_SOURCE_DIR}/rpcserver/include
         ${CMAKE_SOURCE_DIR}/rice-namenode/include
         ${CMAKE_SOURCE_DIR}/utility/include)
 
-add_library(namenode_protos source/ClientNamenodeProtocolImpl.cc)
+add_library(namenode_protos source/ClientNamenodeProtocolImpl.cc source/Leases.cc)
 target_link_libraries( namenode_protos rpcserver )
 target_link_libraries( namenode_protos zkwrapper )
 target_link_libraries( namenode_protos rpcserver )
@@ -20,5 +20,6 @@ target_link_libraries( namenode_protos zk_client_nn )
 target_link_libraries( namenode_protos /usr/local/lib/libzookeeper_mt.so )
 target_link_libraries( namenode_protos ${Boost_LIBRARIES} )
 
-add_executable(namenode source/main.cc source/Leases.cc)
+add_executable(namenode source/main.cc )
+
 target_link_libraries(namenode namenode_protos)

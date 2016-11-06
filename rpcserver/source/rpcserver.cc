@@ -8,6 +8,7 @@
 
 #include <easylogging++.h>
 
+#include <google/protobuf/io/coded_stream.h>
 #include "socket_writes.h"
 #include "socket_reads.h"
 #include "rpcserver.h"
@@ -140,7 +141,9 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             std::string response_header_str;
             response_header.SerializeToString(&response_header_str);
             std::string response = iter->second(request);
-            if (write_int32(sock, response.size() + response_header_str.size()) &&
+            size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+            size_t response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
+            if (write_int32(sock, response_varint_size + response.size() + header_varint_size + response_header_str.size()) &&
                 write_delimited_proto(sock, response_header_str) &&
                 write_delimited_proto(sock, response)) {
                 LOG(INFO)  << "successfully wrote response to client.";

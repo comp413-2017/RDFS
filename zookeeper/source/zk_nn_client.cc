@@ -694,9 +694,10 @@ namespace zkclient{
 				if (!zk->exists(HEALTH_BACKSLASH + datanode + HEALTH, isAlive, error_code)) {
 					LOG(ERROR) << CLASS_NAME << "Failed to check if datanode: " + datanode << " is alive: " << error_code;
 				}
-				if (isAlive) {
+				// TODO (by pelmers): why is isAlive always false?
+				//if (isAlive) {
 					datanodes.push_back(datanode);
-				}
+				//}
 				if (datanodes.size() == replication_factor) {
 					LOG(INFO) << CLASS_NAME << "Found " << replication_factor << " datanodes";
 					break;

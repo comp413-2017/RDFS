@@ -33,11 +33,11 @@ namespace rpcserver {
      * Return whether an attempt to write given value as a varint on socket is
      * successful.
      */
-    bool write_varint(tcp::socket& sock, uint64_t val) {
+    bool write_varint(tcp::socket& sock, uint32_t val) {
         asio::error_code error;
         size_t len = ::google::protobuf::io::CodedOutputStream::VarintSize64(val);
         uint8_t* buf = new uint8_t[len];
-        ::google::protobuf::io::CodedOutputStream::WriteVarint64ToArray(val, buf);
+        ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(val, buf);
         size_t write_len = sock.write_some(asio::buffer(buf, len), error);
         delete[] buf;
         if (error)

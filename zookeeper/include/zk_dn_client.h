@@ -43,6 +43,9 @@ public:
 	*/
     ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress,
                        const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+
+    ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper>,
+                       const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
     ~ZkClientDn();
 
 	/**

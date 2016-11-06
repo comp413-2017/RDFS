@@ -10,19 +10,37 @@ namespace zkclient{
 
     const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
 
+	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper> zk_in,
+			const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
+		// TODO: refactor with the next constructor.
+
+		data_node_id = DataNodeId();
+		data_node_id.ip = ip;
+		data_node_id.ipcPort = ipcPort;
+
+		// TODO: Fill in other data_node stats, and refactor with the blow.
+		data_node_payload = DataNodePayload();
+		data_node_payload.ipcPort = ipcPort;
+		data_node_payload.xferPort = xferPort;
+
+		registerDataNode();
+		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
+
+	}
+
 	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress,
             const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
 
-        data_node_id = DataNodeId();
-        data_node_id.ip = ip;
-        data_node_id.ipcPort = ipcPort;
+		data_node_id = DataNodeId();
+		data_node_id.ip = ip;
+		data_node_id.ipcPort = ipcPort;
 
-        // TODO: Fill in other data_node stats
-        data_node_payload = DataNodePayload();
-        data_node_payload.ipcPort = ipcPort;
-        data_node_payload.xferPort = xferPort;
+		// TODO: Fill in other data_node stats
+		data_node_payload = DataNodePayload();
+		data_node_payload.ipcPort = ipcPort;
+		data_node_payload.xferPort = xferPort;
 
-        registerDataNode();
+		registerDataNode();
 		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
 	}
 
