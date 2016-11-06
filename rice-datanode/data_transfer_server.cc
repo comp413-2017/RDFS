@@ -177,8 +177,7 @@ void TransferServer::ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>
 void TransferServer::processReadRequest(tcp::socket& sock) {
 	OpReadBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
-		LOG(INFO) << "Op a read block proto";
-		LOG(INFO) << proto.DebugString();
+		LOG(INFO) << "Op a read block proto" << std::endl << proto.DebugString();
 	} else {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
@@ -188,7 +187,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
-		ERROR_AND_RETURN("Could not send response to client");
+		ERROR_AND_RETURN("Could not send BlockOpResponseProto in read request.");
 	}
 
 	uint64_t blockID = proto.header().baseheader().block().blockid();
@@ -219,7 +218,6 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
 			LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
-			LOG(INFO) << payload;
 		} else {
 			LOG(ERROR) << "Could not send packet " << seq << " to client";
 			break;
@@ -232,26 +230,31 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 
 	if (len == 0) {
 		// Finish by writing the last empty packet, if we finished.
+		if (writeFinalPacket(sock, offset, seq)) {
+			// Receive a status code from the client.
+			ClientReadStatusProto status_proto;
+			if (rpcserver::read_delimited_proto(sock, status_proto)) {
+				LOG(INFO) << "Received read status from client.";
+				LOG(INFO) << status_proto.DebugString();
+			} else {
+				LOG(ERROR) << "Could not read status from client.";
+			}
+		} else {
+			LOG(ERROR) << "Could not send final packet to client";
+		}
+	}
+}
+
+// Write the final 0-payload packet to the client, and return whether
+// successful.
+bool TransferServer::writeFinalPacket(tcp::socket& sock, uint64_t offset, uint64_t seq) {
 		PacketHeaderProto p_head;
 		p_head.set_offsetinblock(offset);
 		p_head.set_seqno(seq);
 		p_head.set_lastpacketinblock(true);
 		p_head.set_datalen(0);
 		// No payload, so empty string.
-		if (writePacket(sock, p_head, asio::buffer(std::string()))) {
-			LOG(INFO) << "Successfully sent final packet to client";
-		} else {
-			LOG(ERROR) << "Could not send final packet to client";
-		}
-		// Receive a status code from the client.
-		ClientReadStatusProto status_proto;
-		if (rpcserver::read_delimited_proto(sock, status_proto)) {
-			LOG(INFO) << "Received read status from client.";
-			LOG(INFO) << status_proto.DebugString();
-		} else {
-			LOG(ERROR) << "Could not read status from client.";
-		}
-	}
+		return writePacket(sock, p_head, asio::buffer(""));
 }
 
 void TransferServer::buildBlockOpResponse(std::string& response_string) {
