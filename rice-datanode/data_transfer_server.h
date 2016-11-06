@@ -50,6 +50,7 @@ class TransferServer {
 		void buildBlockOpResponse(std::string& response_string);
 		void ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue);
 
+		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>
 		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);
 };
