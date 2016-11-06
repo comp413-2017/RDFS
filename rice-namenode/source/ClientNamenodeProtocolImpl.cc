@@ -61,7 +61,6 @@ std::string ClientNamenodeTranslator::mkdir(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Mkdir ");
 	MkdirsResponseProto res;
-	// TODO for now, just say the mkdir command failed
 	zk.mkdir(req, res);
 	return Serialize(res);
 }
@@ -73,7 +72,6 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	const std::string& src = req.src();
 	const bool recursive = req.recursive();
 	DeleteResponseProto res;
-	// TODO: as of 11/1, zk.destroy has a seg fault.
 	zk.destroy(req, res);
 	return Serialize(res);
 }

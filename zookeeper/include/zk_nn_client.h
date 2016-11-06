@@ -153,7 +153,6 @@ class ZkNnClient : public ZkClientCommon {
 
 		const int IS_FILE = 2;
 		const int IS_DIR = 1;
-		const int IS_DIR1 = 0; // TODO get rid of this weirdness eventually Stuart! - from Stu
 		// TODO: Should eventually be read from a conf file
 		const int ACK_TIMEOUT = 60; // 60 second timeout when waiting for replication acknowledgements
 

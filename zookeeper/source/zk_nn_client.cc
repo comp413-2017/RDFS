@@ -266,7 +266,7 @@ namespace zkclient{
 				}
 			}
 		}
-		else if (znode_data.filetype == IS_DIR || znode_data.filetype == IS_DIR1) {
+		else if (znode_data.filetype == IS_DIR) {
 			//make sure that the directory is empty if we are not recursively deleting it
 			std::vector<std::string> children;
 			if (!zk->get_children(ZookeeperPath(path), children, error_code) || children.size() > 0) {

@@ -32,7 +32,6 @@ namespace zkclient {
     }
 
     void ZkClientCommon::init() {
-        /* return 0 if path exists, 1 otherwise. */
         LOG(INFO) << CLASS_NAME <<  "Initializing ZkClientCommon";
         auto vec = ZKWrapper::get_byte_vector("");
 
