@@ -140,37 +140,11 @@ namespace zkclient{
 		eb->set_numbytes(block_size);
 
 		for (auto data_node : data_nodes) {
-
-			int error_code;
-
-			std::vector<std::string> split_address;
-			boost::split(split_address, data_node, boost::is_any_of(":"));
-			assert(split_address.size() == 2);
-
-			auto data = std::vector<std::uint8_t>();
-			if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
-				LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
-			}
-
-			zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
-
-			DatanodeInfoProto* dn_info = block->add_locs();
-			DatanodeIDProto* id = dn_info->mutable_id();
-			id->set_ipaddr(split_address[0]);
-			id->set_hostname("localhost"); // TODO: Fill out with the proper value
-			id->set_datanodeuuid("1234");
-			id->set_xferport(payload->xferPort);
-			id->set_infoport(50020);
-			id->set_ipcport(payload->ipcPort);
+            buildDatanodeInfoProto(block->add_locs(), data_node);
 		}
 
 		// Construct security token.
-		hadoop::common::TokenProto* token = block->mutable_blocktoken();
-		// TODO what do these mean
-		token->set_identifier("open");
-		token->set_password("sesame");
-		token->set_kind("foo");
-		token->set_service("bar");
+		buildToken(block->mutable_blocktoken());
 	}
 
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
@@ -484,13 +458,6 @@ namespace zkclient{
 				located_block->set_corrupt(0);
 				located_block->set_offset(size); // TODO: This offset may be incorrect
 
-				hadoop::common::TokenProto* token = located_block->mutable_blocktoken();
-				// TODO what do these mean
-				token->set_identifier("open");
-				token->set_password("sesame");
-				token->set_kind("foo");
-				token->set_service("bar");
-
 				ExtendedBlockProto* block_proto = located_block->mutable_b();
 
 				block_proto->set_poolid("0");
@@ -507,32 +474,11 @@ namespace zkclient{
 				}
 
 				LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
+
 				for (auto data_node :data_nodes) {
-
-					LOG(INFO) << CLASS_NAME << "Reading data node " << data_node;
-					int error_code;
-
-					std::vector<std::string> split_address;
-					boost::split(split_address, data_node, boost::is_any_of(":"));
-					assert(split_address.size() == 2);
-
-					auto data = std::vector<std::uint8_t>();
-					if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
-						LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
-					}
-
-					zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
-
-					DatanodeInfoProto* dn_info = located_block->add_locs();
-					DatanodeIDProto* id = dn_info->mutable_id();
-					id->set_ipaddr(split_address[0]);
-					id->set_hostname("localhost"); // TODO: Fill out with the proper value
-					id->set_datanodeuuid("1234");
-					id->set_xferport(payload->xferPort);
-					id->set_infoport(50020);
-					id->set_ipcport(payload->ipcPort);
+                    buildDatanodeInfoProto(located_block->add_locs(), data_node);
 				}
-				// Then store this block's information
+                buildToken(located_block->mutable_blocktoken());
 			}
 			size += block_size;
 		}
@@ -921,6 +867,39 @@ namespace zkclient{
 		// Convert to milliseconds
 		return (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000;
 	}
+
+    bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto* dn_info, const std::string& data_node) {
+
+        int error_code;
+
+        std::vector<std::string> split_address;
+        boost::split(split_address, data_node, boost::is_any_of(":"));
+        assert(split_address.size() == 2);
+
+        auto data = std::vector<std::uint8_t>();
+        if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
+            LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
+        }
+
+        zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
+
+        DatanodeIDProto* id = dn_info->mutable_id();
+        id->set_ipaddr(split_address[0]);
+        id->set_hostname("localhost"); // TODO: Fill out with the proper value
+        id->set_datanodeuuid("1234");
+        id->set_xferport(payload->xferPort);
+        id->set_infoport(50020);
+        id->set_ipcport(payload->ipcPort);
+        return true;
+    }
+
+    bool ZkNnClient::buildToken(hadoop::common::TokenProto* token) {
+        token->set_identifier("open");
+        token->set_password("sesame");
+        token->set_kind("foo");
+        token->set_service("bar");
+        return true;
+    }
 
 }
 

@@ -137,10 +137,27 @@ class ZkNnClient : public ZkClientCommon {
 		bool replicate_block(const std::string &block_uuid, int num_replicas, std::vector<std::string> &excluded_datanodes);
 
 		/**
-		 * Caculates the approximate number of seconds that have elapsed since
+		 * Calculates the approximate number of seconds that have elapsed since
 		 * the znode at the given path was created.
 		 */
 		int seconds_since_creation(std::string &path);
+
+		/**
+		 * Modifies the LocatedBlockProto with the proper block information
+		 */
+		// bool updateLocatedBlockProto(LocatedBlockProto* location, uint64_t block_id);
+
+		/**
+		 * Modifies the DatanodeInfoProto with information about the specified datanode.
+		 * Datanode is represented as a string as most calls to this function follow a
+		 * getChild() request. Returns true on success
+		 */
+		bool buildDatanodeInfoProto(DatanodeInfoProto *dn_info, const std::string &data_node);
+
+        /**
+         * Builds an empty token. Returns true on success.
+         */
+        bool buildToken(hadoop::common::TokenProto* token);
 
 		/**
 		 * Returns the current timestamp in milliseconds
