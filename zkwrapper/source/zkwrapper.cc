@@ -279,9 +279,11 @@ bool ZKWrapper::wget(const std::string &path,
 		std::vector <std::uint8_t> &data,
 		watcher_fn watch,
 		void *watcherCtx,
-		int &error_code) const {
+		int &error_code,
+		int length) const {
 	// TODO: Make this a constant value. Define a smarter retry policy for oversized data
-	int len = 0;
+	int len = length;
+	data.resize(len);
 	struct Stat stat;
 	error_code = zoo_wget(zh,
 			prepend_zk_root(path).c_str(),
@@ -301,11 +303,12 @@ bool ZKWrapper::wget(const std::string &path,
 
 bool ZKWrapper::get(const std::string &path,
 		std::vector <std::uint8_t> &data,
-		int &error_code) const {
+		int &error_code,
+		int length) const {
 
 	// TODO: Make this a constant value. Define a smarter retry policy for oversized data
 	struct Stat stat;
-	int len = MAX_PAYLOAD;
+	int len = length;
 	// TODO: Perhaps we can be smarter about this
 	// LOG(INFO) << CLASS_NAME <<  "Data resizing to " << len;
 	data.resize(len);

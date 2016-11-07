@@ -18,7 +18,7 @@ namespace {
 			// before each test).
 			int error_code = 0;
 			zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-			assert(error_code == 0); // Z_OK
+			ASSERT_EQ("ZOK", zk->translate_error(error_code)); // Z_OK
 		}
 
 		static void test_watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
@@ -29,9 +29,6 @@ namespace {
 			}else{
 				printf("context is not false when in callback function\n");
 			}
-			// int error = 0;
-			// std::vector <std::uint8_t> data(65536);
-			// result = zk->wget(path, data, test_watcher, &check, error);
 		}
 		// Objects declared here can be used by all tests in the test case for Foo.
 		ZKWrapper *zk;
@@ -100,7 +97,6 @@ namespace {
 		ASSERT_EQ("ZNONODE", zk->translate_error(error));
 	}
 
-	//TODO need to create tests for this
 	TEST_F(ZKWrapperTest, wexists){
 		int error = 0;
 		bool exist = false;
@@ -131,10 +127,8 @@ namespace {
 		bool result = zk->get_children("/", children, error);
 		ASSERT_EQ(true, result);
 		ASSERT_EQ("ZOK", zk->translate_error(error));
-		//ASSERT_EQ(1, children.size());
 	}
 
-	//TODO need to create tests for this
 	TEST_F(ZKWrapperTest, wget_children){
 		int error = 0;
 		bool result = zk->create("/testwgetchildren1", ZKWrapper::EMPTY_VECTOR, error);
@@ -184,7 +178,7 @@ namespace {
 		ASSERT_EQ("ZOK", zk->translate_error(error));
 		ASSERT_EQ(5, retrieved_data.size());
 	}
-	//TODO need to create tests for this
+	
 	TEST_F(ZKWrapperTest, wget){
 		int error = 0;
 		bool result = zk->create("/testwget1", ZKWrapper::EMPTY_VECTOR, error);

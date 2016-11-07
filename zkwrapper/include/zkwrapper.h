@@ -233,7 +233,8 @@ public:
      */
     bool get(const std::string &path,
              std::vector <std::uint8_t> &data,
-             int &error_code) const;
+             int &error_code,
+             int length = MAX_PAYLOAD) const;
 
     /**
      * This function is similar to 'get' except it allows one to specify
@@ -252,7 +253,8 @@ public:
               std::vector <std::uint8_t> &data,
               watcher_fn watch,
               void *watcherCtx,
-              int &error_code) const;
+              int &error_code,
+              int length = MAX_PAYLOAD) const;
 
     /**
      * Sets the data in a given znode
