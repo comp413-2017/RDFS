@@ -691,13 +691,12 @@ namespace zkclient{
 			/* for each child, check if the ephemeral node exists */
 			for(auto datanode : live_data_nodes) {
 				bool isAlive;
-				if (!zk->exists(HEALTH_BACKSLASH + datanode + HEALTH, isAlive, error_code)) {
+				if (!zk->exists(HEALTH_BACKSLASH + datanode + HEARTBEAT, isAlive, error_code)) {
 					LOG(ERROR) << CLASS_NAME << "Failed to check if datanode: " + datanode << " is alive: " << error_code;
 				}
-				// TODO (by pelmers): why is isAlive always false?
-				//if (isAlive) {
+				if (isAlive) {
 					datanodes.push_back(datanode);
-				//}
+				}
 				if (datanodes.size() == replication_factor) {
 					LOG(INFO) << CLASS_NAME << "Found " << replication_factor << " datanodes";
 					break;

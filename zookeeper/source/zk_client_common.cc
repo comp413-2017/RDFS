@@ -17,6 +17,7 @@ namespace zkclient {
     const std::string ZkClientCommon::HEALTH =  "/health";
     const std::string ZkClientCommon::HEALTH_BACKSLASH = "/health/";
     const std::string ZkClientCommon::STATS = "/stats";
+    const std::string ZkClientCommon::HEARTBEAT = "/heartbeat";
     const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
 	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
 

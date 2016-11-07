@@ -20,6 +20,7 @@ namespace zkclient {
         static const std::string HEALTH;
         static const std::string HEALTH_BACKSLASH;
         static const std::string STATS;
+        static const std::string HEARTBEAT;
         static const std::string WORK_QUEUES;
         static const std::string WAIT_FOR_ACK;
         static const std::string WAIT_FOR_ACK_BACKSLASH;
