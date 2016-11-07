@@ -9,6 +9,9 @@
 #include <asio.hpp>
 
 #include <cstring>
+
+#define ELPP_THREAD_SAFE
+
 #include <easylogging++.h>
 
 INITIALIZE_EASYLOGGINGPP
