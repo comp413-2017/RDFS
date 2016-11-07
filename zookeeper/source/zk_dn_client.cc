@@ -54,6 +54,7 @@ namespace zkclient{
 		
 		bool created_correctly = true;
 
+		// Add acknowledgement
 		ZKLock queue_lock(*zk.get(), WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid));
 		if (queue_lock.lock() != 0) {
 			LOG(ERROR) << CLASS_NAME <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
@@ -92,7 +93,7 @@ namespace zkclient{
 				std::vector<std::uint8_t> data(sizeof(znode_data));
 				memcpy(&data[0], &znode_data, sizeof(znode_data));
 				LOG(INFO) << BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id;
-				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrappEMPTY_VECTOR, error_code, false)) {
+				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<block_id> " << error_code;
 					return false;
 				}
@@ -128,7 +129,7 @@ namespace zkclient{
         // if it doesn't already exist. Should have a ZOPERATIONTIMEOUT
         if (zk->exists(HEALTH_BACKSLASH + id + "/heartbeat", exists, error_code)) {
             if (!exists) {
-                if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", data, error_code, true)) {
+                if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", ZKWrapper::EMPTY_VECTOR, error_code, true)) {
                     // TODO: Handle error
                 }
             }
