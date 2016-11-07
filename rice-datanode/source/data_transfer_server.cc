@@ -8,7 +8,6 @@
 #include "data_transfer_server.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
-#define ERROR_AND_FALSE(msg) LOG(ERROR) << msg; return false
 
 using asio::ip::tcp;
 // the .proto file implementation's namespace, used for messages
@@ -55,16 +54,16 @@ void TransferServer::handle_connection(tcp::socket sock) {
 			case (REQUEST_SHORT_CIRCUIT_FDS):
 				ERROR_AND_RETURN("Handler for request-short-circuit-fds not written yet.");
 			case (RELEASE_SHORT_CIRCUIT_FDS):
-				ERROR_AND_RETURN("Handler for release-short-circuit-fds not written yet."); 
+				ERROR_AND_RETURN("Handler for release-short-circuit-fds not written yet.");
 			case (REQUEST_SHORT_CIRCUIT_SHM):
-				ERROR_AND_RETURN("Handler for request-short-circuit-shm not written yet."); 
+				ERROR_AND_RETURN("Handler for request-short-circuit-shm not written yet.");
 			case (BLOCK_GROUP_CHECKSUM):
 				ERROR_AND_RETURN("Handler for block-group-checksum not written yet.");
 			case (CUSTOM):
 				ERROR_AND_RETURN("Handler for custom-op not written yet.");
 			default:
 				//Error
-				ERROR_AND_RETURN("Unknown operation type specified: " << type);
+				ERROR_AND_RETURN("Unknown operation type specified.");
 		}
 	}
 }
