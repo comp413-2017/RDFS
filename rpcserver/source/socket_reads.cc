@@ -118,14 +118,12 @@ namespace rpcserver {
         uint64_t len;
         asio::error_code error;
         size_t skip = read_varint(sock, &len);
-        char* buf = new char[len];
-        sock.read_some(asio::buffer(buf, len), error);
-        std::string proto_str(buf, len);
+        std::string buf(len, 0);
+        sock.read_some(asio::buffer(&buf[0], len), error);
         if (consumed != NULL) {
             *consumed = skip + len;
         }
-        delete[] buf;
-        return !error && proto.ParseFromString(proto_str);
+        return !error && proto.ParseFromString(buf);
     }
 	
 	/**
@@ -134,11 +132,9 @@ namespace rpcserver {
      */
     bool read_proto(tcp::socket& sock, ::google::protobuf::Message& proto, uint64_t len) {
         asio::error_code error;
-        char* buf = new char[len];
-        sock.read_some(asio::buffer(buf, len), error);
-        std::string proto_str(buf, len);
-        delete[] buf;
-        return !error && proto.ParseFromString(proto_str);
+        std::string buf(len, 0);
+        sock.read_some(asio::buffer(&buf[0], len), error);
+        return !error && proto.ParseFromString(buf);
     }
 	
 	
