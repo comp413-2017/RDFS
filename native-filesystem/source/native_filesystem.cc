@@ -56,7 +56,7 @@ namespace nativefs {
 		FILE* file;
 		file = fopen(filename, "r");
 		if (file == NULL) {
-			LOG(ERROR) << CLASS_NAME << "getBlock failed: error opening block file";
+			LOG(ERROR) << CLASS_NAME << "getBlock failed: error opening block file" << strFilename;
 			success = false;
 			return "";
 		}
