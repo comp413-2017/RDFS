@@ -157,7 +157,13 @@ class ZkNnClient : public ZkClientCommon {
         /**
          * Builds an empty token. Returns true on success.
          */
-        bool buildToken(hadoop::common::TokenProto* token);
+        bool buildTokenProto(hadoop::common::TokenProto* token);
+
+        /**
+         * Build an extended block proto. Returns true on success
+         */
+        bool buildExtendedBlockProto(ExtendedBlockProto* eb, const std::uint64_t& block_id,
+                                            const uint64_t& block_size);
 
 		/**
 		 * Returns the current timestamp in milliseconds

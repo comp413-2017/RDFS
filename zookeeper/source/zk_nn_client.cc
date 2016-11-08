@@ -133,18 +133,14 @@ namespace zkclient{
 		block->set_offset(0); // TODO: Set this
 		block->set_corrupt(false);
 
-		ExtendedBlockProto* eb = block->mutable_b();
-		eb->set_poolid("0");
-		eb->set_blockid(block_id);
-		eb->set_generationstamp(1);
-		eb->set_numbytes(block_size);
+        buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
 
 		for (auto data_node : data_nodes) {
             buildDatanodeInfoProto(block->add_locs(), data_node);
 		}
 
 		// Construct security token.
-		buildToken(block->mutable_blocktoken());
+		buildTokenProto(block->mutable_blocktoken());
 	}
 
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
@@ -458,12 +454,7 @@ namespace zkclient{
 				located_block->set_corrupt(0);
 				located_block->set_offset(size); // TODO: This offset may be incorrect
 
-				ExtendedBlockProto* block_proto = located_block->mutable_b();
-
-				block_proto->set_poolid("0");
-				block_proto->set_blockid(block_id);
-				block_proto->set_generationstamp(1); // TODO: Do we have to modify this?
-				block_proto->set_numbytes(block_size);
+                buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
 				auto data_nodes = std::vector<std::string>();
 
@@ -478,7 +469,7 @@ namespace zkclient{
 				for (auto data_node :data_nodes) {
                     buildDatanodeInfoProto(located_block->add_locs(), data_node);
 				}
-                buildToken(located_block->mutable_blocktoken());
+                buildTokenProto(located_block->mutable_blocktoken());
 			}
 			size += block_size;
 		}
@@ -893,7 +884,7 @@ namespace zkclient{
         return true;
     }
 
-    bool ZkNnClient::buildToken(hadoop::common::TokenProto* token) {
+    bool ZkNnClient::buildTokenProto(hadoop::common::TokenProto* token) {
         token->set_identifier("open");
         token->set_password("sesame");
         token->set_kind("foo");
@@ -901,6 +892,14 @@ namespace zkclient{
         return true;
     }
 
+    bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto* eb, const std::uint64_t& block_id,
+                                        const uint64_t& block_size) {
+        eb->set_poolid("0");
+        eb->set_blockid(block_id);
+        eb->set_generationstamp(1);
+        eb->set_numbytes(block_size);
+        return true;
+    }
 }
 
 #endif
