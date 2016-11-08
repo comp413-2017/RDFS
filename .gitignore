@@ -1,4 +1,5 @@
 .vagrant/
 build/
 .vagrant_provision.backup
+.idea/
 logs/

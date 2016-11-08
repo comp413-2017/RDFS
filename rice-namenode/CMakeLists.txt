@@ -1,10 +1,25 @@
-include_directories(${CMAKE_SOURCE_DIR}/rpcserver ${CMAKE_SOURCE_DIR}/utility/config-reader ${CMAKE_SOURCE_DIR}/utility/logging)
+include_directories(${CMAKE_SOURCE_DIR}/rpcserver/include
+        ${CMAKE_SOURCE_DIR}/utility/config-reader
+        ${CMAKE_SOURCE_DIR}/utility/logging
+        ${CMAKE_SOURCE_DIR}/zkwrapper/include
+        ${CMAKE_SOURCE_DIR}/zookeeper/include
+        ${CMAKE_SOURCE_DIR}/rice-namenode/include
+        ${CMAKE_SOURCE_DIR}/utility/include)
 
-add_executable(namenode main.cc ClientNamenodeProtocolImpl.cc Leases.cc)
-target_link_libraries( namenode rpcserver )
-target_link_libraries( namenode config )
-target_link_libraries( namenode easylogging++ )
-target_link_libraries( namenode protobuf )
-target_link_libraries( namenode pthread )
-target_link_libraries( namenode messages )
-target_link_libraries( namenode ${Boost_LIBRARIES} )
+add_library(namenode_protos source/ClientNamenodeProtocolImpl.cc source/Leases.cc)
+target_link_libraries( namenode_protos rpcserver )
+target_link_libraries( namenode_protos zkwrapper )
+target_link_libraries( namenode_protos rpcserver )
+target_link_libraries( namenode_protos config )
+target_link_libraries( namenode_protos easylogging++ )
+target_link_libraries( namenode_protos protobuf )
+target_link_libraries( namenode_protos pthread )
+target_link_libraries( namenode_protos messages )
+target_link_libraries( namenode_protos zk_client_dn )
+target_link_libraries( namenode_protos zk_client_nn )
+target_link_libraries( namenode_protos /usr/local/lib/libzookeeper_mt.so )
+target_link_libraries( namenode_protos ${Boost_LIBRARIES} )
+
+add_executable(namenode source/main.cc )
+
+target_link_libraries(namenode namenode_protos)

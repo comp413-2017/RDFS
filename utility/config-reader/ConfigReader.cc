@@ -10,6 +10,8 @@ namespace config_reader {
 using namespace pugi;
 
 const char* ConfigReader::HDFS_DEFAULTS_CONFIG = "hdfs-default.xml";
+const std::string ConfigReader::CLASS_NAME = ": **ConfigReader** : ";
+
 
 ConfigReader::ConfigReader() {
 	InitHDFSDefaults();
@@ -34,7 +36,7 @@ void ConfigReader::InitHDFSDefaults() {
 	xml_document doc;
 	xml_parse_result result = doc.load_file(HDFS_DEFAULTS_CONFIG);
 	if (!result) {
-		LOG(ERROR) << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" <<
+		LOG(ERROR) << CLASS_NAME << "XML [" << HDFS_DEFAULTS_CONFIG << "] parsed with errors, attr value: [" <<
 			doc.child("node").attribute("attr").value() << "]\n";
 			LOG(ERROR) << "Error description: " << result.description() << "\n";
 	}
@@ -51,6 +53,6 @@ void ConfigReader::InitHDFSDefaults() {
 		bool value_bool = value.first_child().text().as_bool();
 		conf_bools[name_str] = value_bool;
 	}
-	LOG(INFO) << "Configured namenode (but not really!)";
+	LOG(INFO) << CLASS_NAME << "Configured namenode (but not really!)";
 }
 } //namespace
