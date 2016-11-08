@@ -12,6 +12,7 @@
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include <RpcHeader.pb.h>
 
 #include <easylogging++.h>
 #include <rpcserver.h>
@@ -83,7 +84,9 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateResponseProto res;
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
-	LOG(INFO) << CLASS_NAME <<  res.DebugString();
+	else {
+		throw GetErrorRPCHeader("Could not create file", "IOException");
+	}
     return Serialize(res);
 }
 
@@ -170,22 +173,6 @@ std::string ClientNamenodeTranslator::addBlock(std::string input) {
 	return Serialize(res);
 }
 
-// ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
-
-/**
- * The actual block replication is not expected to be performed during  
- * this method call. The blocks will be populated or removed in the 
- * background as the result of the routine block maintenance procedures.
- */
-std::string ClientNamenodeTranslator::setReplication(std::string input) {
-	SetReplicationRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "SetReplication ");
-	SetReplicationResponseProto res;
-	res.set_result(false);
-	return Serialize(res);
-}
-
 std::string ClientNamenodeTranslator::rename(std::string input) {
 	RenameRequestProto req;
 	RenameResponseProto res;
@@ -195,39 +182,42 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 	return Serialize(res);
 }
 
+// ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
+
+/**
+ * The actual block replication is not expected to be performed during  
+ * this method call. The blocks will be populated or removed in the 
+ * background as the result of the routine block maintenance procedures.
+ */
+std::string ClientNamenodeTranslator::setReplication(std::string input) {
+	throw GetErrorRPCHeader("Cannot set replication to something new", "");
+}
+
+// TODO what is this
 std::string ClientNamenodeTranslator::rename2(std::string input) {
 	Rename2RequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "Rename2 ");
 	Rename2ResponseProto res;
-	return Serialize(res);	
+	return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::append(std::string input) {
-	AppendRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Append ");
-	AppendResponseProto res;
-	return Serialize(res);
+	throw GetErrorRPCHeader("Appends are not supported", "");
 }
 
 /**
  * This is effectively an append, so we do not support it 
  */
 std::string ClientNamenodeTranslator::concat(std::string input) {
-	ConcatRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Concat ");
-	ConcatResponseProto res;
-	return Serialize(res);	
+	throw GetErrorRPCHeader("Concats are not supported", "");
 }
 
 /**
  * TODO we might support this in the future!
  */ 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
-	SetPermissionResponseProto res;
-	return Serialize(res);
+	throw GetErrorRPCHeader("Cannot set permissions", "");
 }
 
 /**
@@ -235,13 +225,7 @@ std::string ClientNamenodeTranslator::setPermission(std::string input) {
  * a client to "recover" a lease, since we only allow a write-once system
  */ 
 std::string ClientNamenodeTranslator::recoverLease(std::string input) {
-	RecoverLeaseRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "RecoverLease ");
-	RecoverLeaseResponseProto res;
-	// just tell the client they could not recover the lease, so they won't try and write
-	res.set_result(false);
-	return Serialize(res);
+	throw GetErrorRPCHeader("Cannot recover leases", "");
 }
 
 
@@ -258,6 +242,19 @@ std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) 
 		// TODO handle error
 	}
 	return out;
+}
+
+/**
+ * Get an error rpc header given an error msg and exceptiobn classname
+ */
+hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHeader(std::string error_msg,
+		std::string exception_classname) {
+	hadoop::common::RpcResponseHeaderProto response_header;
+	response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
+	response_header.set_errormsg(error_msg);
+	response_header.set_exceptionclassname(exception_classname);
+	response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_NO_SUCH_METHOD);
+	return response_header;
 }
 
 // ------------------------- CONFIG AND INITIALIZATION ------------------------
@@ -328,9 +325,14 @@ void ClientNamenodeTranslator::leaseCheck() {
 	LOG(INFO) << CLASS_NAME <<  "Lease manager check initialized";
 	for (;;) {
 		sleep(LEASE_CHECK_TIME); // only check every 60 seconds
-		std::vector<std::string> expiredFiles = lease_manager.checkLeases(LEASE_CHECK_TIME);
-		for (std::string file : expiredFiles) {
-			// TODO close file on behalf of client, and standardize the last block written
+		std::vector<std::pair<std::string, std::string>> expiredFiles = lease_manager.checkLeases(LEASE_CHECK_TIME);
+		for (auto client_file : expiredFiles) {
+			std::string client = client_file.first;
+			std::string file = client_file.second;
+			CompleteRequestProto req;
+			req.set_src(file);
+			req.set_clientname(client);
+			complete(Serialize(req));
 		}
 	}
 }

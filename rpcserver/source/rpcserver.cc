@@ -136,16 +136,29 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             // Send the response back on the socket.
             hadoop::common::RpcResponseHeaderProto response_header;
             response_header.set_callid(rpc_request_header.callid());
-            response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
             response_header.set_clientid(rpc_request_header.clientid());
+            size_t response_varint_size;
             std::string response_header_str;
-            response_header.SerializeToString(&response_header_str);
-            std::string response = iter->second(request);
-            size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
-            size_t response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
-            if (write_int32(sock, response_varint_size + response.size() + header_varint_size + response_header_str.size()) &&
-                write_delimited_proto(sock, response_header_str) &&
-                write_delimited_proto(sock, response)) {
+            bool write_success;
+            try {
+                std::string response = iter->second(request);
+                response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
+                response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
+                size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+                response_header.SerializeToString(&response_header_str);
+                write_success = write_int32(sock, response_varint_size + response.size() + header_varint_size +
+                    response_header_str.size()) && write_delimited_proto(sock, response_header_str) &&
+                    write_delimited_proto(sock, response);
+            } catch (hadoop::common::RpcResponseHeaderProto& response_header) {
+                LOG(INFO) << CLASS_NAME << "Returning error rpc header to client";
+                response_header.set_callid(rpc_request_header.callid());
+                response_header.set_clientid(rpc_request_header.clientid());
+                response_header.SerializeToString(&response_header_str);
+                size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+                write_success = write_int32(sock, header_varint_size +
+                    response_header_str.size()) && write_delimited_proto(sock, response_header_str);
+            }
+            if (write_success) {
                 LOG(INFO)  << "successfully wrote response to client.";
             } else {
                 LOG(ERROR) << CLASS_NAME <<  "failed to write response to client.";
