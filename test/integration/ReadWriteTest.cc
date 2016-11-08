@@ -66,9 +66,9 @@ namespace {
 		system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 /e");
 		// Read it from rdfs.
 		system("hdfs dfs -fs hdfs://localhost:5351 -cat /e > temp");
-        system("head -c 5 temp > actual_testfile1234");
+		system("head -c 5 temp > actual_testfile1234");
 		// Check that its contents match.
-        // TODO: This test will fail until we implement the file lengths meta-data tracking.
+		// TODO: This test will fail until we implement the file lengths meta-data tracking.
 		ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
 	}
 }
