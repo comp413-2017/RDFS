@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <easylogging++.h>
+#include <mutex>
 #include "native_filesystem.h"
 
 namespace nativefs {
@@ -18,11 +19,12 @@ namespace nativefs {
 	**/
 	bool NativeFS::writeBlock(uint64_t id, std::string blk)
 	{
-
+		mapMtx.lock();
 		if (!blockMap[id].empty()) {
 			LOG(ERROR) << CLASS_NAME << "writeBlock failed: block with id " << id << " already exists";
 			return false;
 		}
+		mapMtx.unlock();
 
 		std::ostringstream oss;
 		oss << id;
@@ -38,8 +40,9 @@ namespace nativefs {
 		myfile << blk;
 		myfile.close();
 
+		mapMtx.lock();
 		blockMap[id] = filename;
-
+		mapMtx.unlock();
 		return true;
 
 	}
@@ -49,7 +52,9 @@ namespace nativefs {
 	std::string NativeFS::getBlock(uint64_t id, bool& success)
 	{
 		// Look in map and get filename
+		mapMtx.lock();
 		std::string strFilename = blockMap[id];
+		mapMtx.unlock();
 		char* filename = const_cast<char*>(strFilename.c_str());
 		const uint64_t blockSize = 134217728;
 		// Open file
@@ -89,7 +94,7 @@ namespace nativefs {
 	bool NativeFS::rmBlock(uint64_t id)
 	{
 		std::string fileName;
-
+		mapMtx.lock();
 		// Find and delete block in mapping
 		auto iter = blockMap.find(id);
 		if(iter == blockMap.end()){
@@ -97,7 +102,7 @@ namespace nativefs {
 			return false;
 		}
 		fileName = iter->second;
-
+		mapMtx.unlock();
 		//Copy to a char*, which erase and remove need
 		char *fileNameFmtd = const_cast<char*>(fileName.c_str());
 
@@ -107,8 +112,9 @@ namespace nativefs {
 			return false;
 		}
 
+		mapMtx.lock();
 		blockMap.erase(iter);
-
+		mapMtx.unlock();
 		return true;
 
 	}
