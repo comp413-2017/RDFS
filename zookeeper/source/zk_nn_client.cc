@@ -432,6 +432,9 @@ namespace zkclient{
 		if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
 			LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
 		}
+
+		std::sort(sorted_blocks.begin(), sorted_blocks.end());
+
 		uint64_t size = 0;
 		for (auto sorted_block : sorted_blocks) {
 			LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;

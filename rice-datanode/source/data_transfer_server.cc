@@ -198,10 +198,10 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		// The payload to write can be no more than what fits in the packet, or
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
-		std::string payload = block.substr(offset, payload_size);
 		p_head.set_datalen(payload_size);
+        p_head.set_syncblock(false);
 
-		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
+		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
 			LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
 		} else {
