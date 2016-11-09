@@ -131,6 +131,10 @@ void RPCServer::handle_rpc(tcp::socket sock) {
 	    LOG(INFO) << CLASS_NAME << "RPC_METHOD_FOUND: [[" << request_header.methodname()
 		    << "]]\n";
 
+    //The if-statement is true only if there is a corresponding handler in
+    //ClientNamenodeProtocolImpl.cc for the requested command.
+    std::string response_header_str;
+    bool write_success;
 	if (iter != dispatch_table.end()) {
             LOG(INFO) << CLASS_NAME <<  "dispatching handler for " << request_header.methodname();
             // Send the response back on the socket.
@@ -138,8 +142,6 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             response_header.set_callid(rpc_request_header.callid());
             response_header.set_clientid(rpc_request_header.clientid());
             size_t response_varint_size;
-            std::string response_header_str;
-            bool write_success;
             try {
                 std::string response = iter->second(request);
                 response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
@@ -150,6 +152,8 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                     response_header_str.size()) && write_delimited_proto(sock, response_header_str) &&
                     write_delimited_proto(sock, response);
             } catch (hadoop::common::RpcResponseHeaderProto& response_header) {
+                // Some sort of failure occurred in our handler. 
+                // TODO - refactor out 
                 LOG(INFO) << CLASS_NAME << "Returning error rpc header to client";
                 response_header.set_callid(rpc_request_header.callid());
                 response_header.set_clientid(rpc_request_header.clientid());
@@ -164,7 +168,38 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                 LOG(ERROR) << CLASS_NAME <<  "failed to write response to client.";
             }
         } else {
-            LOG(INFO) << CLASS_NAME <<  "no handler found for " << request_header.methodname();
+            // In this case, we see that the lookup for a function to handle the 
+            // requested command (see ClientNamenodeProtocolImpl for these)  using
+            // the dispatch table failed. As such, all we must send is a 
+            // header that specifices no method was found.
+            LOG(INFO) << CLASS_NAME <<  "\n\n\n\n\n\nno handler found for " << request_header.methodname();
+            //TODO - send an error header containin no method found
+            //////
+            hadoop::common::RpcResponseHeaderProto response_header;
+            response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
+            response_header.set_errormsg("No handler found for requested command");
+            //TODO - what should the exception classname be? Although this
+            //field is only really used for logging (as far as I understand),
+            //we should still set it correclty just to be safe.
+            response_header.set_exceptionclassname("TODO - exception classname.");
+            response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_NO_SUCH_METHOD);
+
+            //////////////////////////////////////////////////////
+            // Some sort of failure occurred in our handler. 
+            // TODO - refactor out 
+            LOG(INFO) << CLASS_NAME << "Returning error rpc header to client since no handler found";
+            response_header.set_callid(rpc_request_header.callid());
+            response_header.set_clientid(rpc_request_header.clientid());
+            response_header.SerializeToString(&response_header_str);
+            size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+                write_success = write_int32(sock, header_varint_size +
+                    response_header_str.size()) && write_delimited_proto(sock, response_header_str);
+            if (write_success) {
+                LOG(INFO)  << "successfully wrote error response to client.";
+            } else {
+                LOG(ERROR) << CLASS_NAME <<  "failed to write error response to client.";
+            }
+
         }
     }
 }
