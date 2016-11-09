@@ -48,7 +48,7 @@ class TransferServer {
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
 		void buildBlockOpResponse(std::string& response_string);
-		void ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue);
+		void ackPacket(tcp::socket& sock, PacketHeaderProto& p_head);
 
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>

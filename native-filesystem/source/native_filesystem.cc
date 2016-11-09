@@ -51,7 +51,7 @@ namespace nativefs {
 		// Look in map and get filename
 		std::string strFilename = blockMap[id];
 		char* filename = const_cast<char*>(strFilename.c_str());
-		const uint64_t blockSize = 134217728;
+		const uint64_t blockSize = 512000;
 		// Open file
 		FILE* file;
 		file = fopen(filename, "r");
