@@ -18,10 +18,13 @@ class NativeFS{
 		std::string getBlock(uint64_t, bool&);
 		bool rmBlock(uint64_t);
 
+		NativeFS(const NativeFS& other) {
+			std::lock_guard<std::mutex> lock(other.mapMtx);
+		}
 	private:
 		std::map<uint64_t, std::string> blockMap;
 		static const std::string CLASS_NAME;
-		std::mutex mapMtx;
+		mutable std::mutex mapMtx;
 
 };
 
