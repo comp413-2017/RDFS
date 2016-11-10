@@ -96,12 +96,7 @@ namespace zkclient{
 				}
 
 				// Add this datanode as the block's location in block_locations
-				DataNodeZNode znode_data;
-				strcpy(znode_data.ipPort, id.c_str());
-				std::vector<std::uint8_t> data(sizeof(znode_data));
-				memcpy(&data[0], &znode_data, sizeof(znode_data));
-				LOG(INFO) << BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id;
-				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, data, error_code, false)) {
+				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<block_id> " << error_code;
 					created_correctly = false;
 				}
@@ -111,9 +106,6 @@ namespace zkclient{
 				return false;
 			}
 		}
-
-
-
 
 		return created_correctly;
 	}
@@ -149,10 +141,6 @@ namespace zkclient{
 		memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
 
 		if (!zk->create(HEALTH_BACKSLASH + id + STATS, data, error_code, false)) {
-			// TODO: Handle error
-		}
-
-		if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
 			// TODO: Handle error
 		}
 
