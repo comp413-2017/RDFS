@@ -19,7 +19,7 @@ protected:
 		int error_code = 0;
 		zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
 		ASSERT_EQ("ZOK", zk->translate_error(error_code)); // Z_OK
-		client = new ZkClientDn("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort);
+		client = new ZkClientDn("127.0.0.1", "localhost", zk, ipcPort, xferPort);
 		dn_id = "127.0.0.1:50020";
 	}
 	uint64_t block_id;
@@ -37,16 +37,14 @@ TEST_F(ZKDNClientTest, CanReadBlockSize) {
 	int error_code;
 	uint64_t size;
 
-	std::string path = "/health/" + dn_id + "/blocks/" + std::to_string(block_id);
-	std::vector<std::uint8_t> data(sizeof(uint64_t));
-	zk->create("/block_locations/" + std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error_code);
+	std::string path = "/block_locations/" + std::to_string(block_id);
+	std::vector<std::uint8_t> data(sizeof(BlockZNode));
+	zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code);
 
 	client->blockReceived(block_id, block_size);
 
-	ASSERT_TRUE(zk->exists(path, exists, error_code));
-	ASSERT_TRUE(exists);
 	ASSERT_TRUE(zk->get(path, data, error_code));
-	memcpy(&size, &data, sizeof(data));
+	memcpy(&size, &data[0], sizeof(data));
 	ASSERT_EQ(block_size, size);
 }
 
@@ -59,5 +57,5 @@ int main(int argc, char **argv) {
 	auto ret = RUN_ALL_TESTS();
 	system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
 	system("sudo ~/zookeeper/bin/zkServer.sh stop");
-    return ret;
+	return ret;
 }

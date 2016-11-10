@@ -85,8 +85,16 @@ namespace zkclient{
 		LOG(INFO) << "About to create the znode for the data ip";
 		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
-				// TODO: Add to spec the location to which we're writing the size
-				// zk->set(BLOCK_LOCATIONS + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code);
+				// Write the block size
+				BlockZNode block_data;
+				block_data.block_size = size_bytes;
+				std::vector<std::uint8_t> data_vect(sizeof(block_data));
+				memcpy(&data_vect[0], &block_data, sizeof(block_data));
+				if(!zk->set(BLOCK_LOCATIONS + std::to_string(uuid), data_vect, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed writing block size to /block_locations/<block_uuid> " << error_code;
+					created_correctly = false;
+				}
+
 				// Add this datanode as the block's location in block_locations
 				DataNodeZNode znode_data;
 				strcpy(znode_data.ipPort, id.c_str());
@@ -105,19 +113,7 @@ namespace zkclient{
 		}
 
 
-		// Write the block size to health
-		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS, exists, error_code)) {
-			if (exists){
-				BlockZNode block_data;
-				block_data.block_size = size_bytes;
-				std::vector<std::uint8_t> data_vect(sizeof(block_data));
-				memcpy(&data_vect[0], &block_data, sizeof(block_data));
-				if(!zk->create(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), data_vect, error_code, false)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<datanode_id>/blocks/<block_uuid> " << error_code;
-					return false;
-				}
-			}
-		}
+
 
 		return created_correctly;
 	}
