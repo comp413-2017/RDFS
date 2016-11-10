@@ -105,7 +105,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	std::string block_data;
 	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
 	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
-	std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue)).detach();
+	auto ackThread = std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue));
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -114,18 +114,19 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
 		rpcserver::read_proto(sock, p_head, header_len);
+		LOG(INFO) << "Receigin packet " << p_head.seqno();
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
 		uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
 		std::string checksum (checksum_len, 0);
 		std::string data (data_len, 0);
-		size_t len = sock.read_some(asio::buffer(&checksum[0], checksum_len), error);
-		if (len != checksum_len || error) {
+		error = rpcserver::read_full(sock, asio::buffer(&checksum[0], checksum_len));
+		if (error) {
 			LOG(ERROR) << "Failed to read checksum for packet " << p_head.seqno();
 			break;
 		}
-		len = sock.read_some(asio::buffer(&data[0], data_len), error);
-		if (len != data_len || error) {
+		error = rpcserver::read_full(sock, asio::buffer(&data[0], data_len));
+		if (error) {
 			LOG(ERROR) << "Failed to read packet " << p_head.seqno();
 			break;
 		}
@@ -135,7 +136,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		ackQueue.push(p_head);
 	}
 	
-	LOG(INFO) << "Writing data to disk: " << block_data;
+	//LOG(INFO) << "Writing data to disk: " << block_data;
 	if (!fs.writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
@@ -148,6 +149,8 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	//	DataNodes in targets
 	//TODO read in a response (?)
 	//TODO send packets to targets
+	LOG(INFO) << "Wait for acks to finish. ";
+	ackThread.join();
 }
 
 void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
@@ -163,6 +166,7 @@ void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<P
 		last_packet = p_head.lastpacketinblock();
 		PipelineAckProto ack;
 		ack.set_seqno(p_head.seqno());
+		LOG(INFO) << "Acking " << p_head.seqno();
 		ack.add_reply(SUCCESS);
 		std::string ack_string;
 		ack.SerializeToString(&ack_string);
