@@ -8,23 +8,31 @@
 #include <easylogging++.h>
 #include <mutex>
 #include "native_filesystem.h"
+#include "block_queue.h"
 
 namespace nativefs {
 	const std::string NativeFS::CLASS_NAME = ": **NativeFS** : ";
 
-	NativeFS::NativeFS() {}
+	NativeFS::NativeFS(std::string fname) : disk(fname) {
+		for (uint64_t offset = DISK_SIZE; offset >= 0; offset -= DEFAULT_BLOCK_SIZE) {
+			auto block = std::make_shared<free_block>();
+			block->offset = offset;
+			block->next = free128;
+			free128 = block;
+		}
+	}
 
 	/**
 	* Given an ID, write the given block to the native filesystem. Returns true/false on success/failure.
 	**/
 	bool NativeFS::writeBlock(uint64_t id, std::string blk)
 	{
-		mapMtx.lock();
+		listMtx.lock();
 		if (!blockMap[id].empty()) {
 			LOG(ERROR) << CLASS_NAME << "writeBlock failed: block with id " << id << " already exists";
 			return false;
 		}
-		mapMtx.unlock();
+		listMtx.unlock();
 
 		std::ostringstream oss;
 		oss << id;
@@ -40,9 +48,9 @@ namespace nativefs {
 		myfile << blk;
 		myfile.close();
 
-		mapMtx.lock();
+		listMtx.lock();
 		blockMap[id] = filename;
-		mapMtx.unlock();
+		listMtx.unlock();
 		return true;
 
 	}
@@ -52,9 +60,9 @@ namespace nativefs {
 	std::string NativeFS::getBlock(uint64_t id, bool& success)
 	{
 		// Look in map and get filename
-		mapMtx.lock();
+		listMtx.lock();
 		std::string strFilename = blockMap[id];
-		mapMtx.unlock();
+		listMtx.unlock();
 		char* filename = const_cast<char*>(strFilename.c_str());
 		const uint64_t blockSize = 134217728;
 		// Open file
@@ -94,7 +102,7 @@ namespace nativefs {
 	bool NativeFS::rmBlock(uint64_t id)
 	{
 		std::string fileName;
-		mapMtx.lock();
+		listMtx.lock();
 		// Find and delete block in mapping
 		auto iter = blockMap.find(id);
 		if(iter == blockMap.end()){
@@ -102,7 +110,7 @@ namespace nativefs {
 			return false;
 		}
 		fileName = iter->second;
-		mapMtx.unlock();
+		listMtx.unlock();
 		//Copy to a char*, which erase and remove need
 		char *fileNameFmtd = const_cast<char*>(fileName.c_str());
 
@@ -112,9 +120,9 @@ namespace nativefs {
 			return false;
 		}
 
-		mapMtx.lock();
+		listMtx.lock();
 		blockMap.erase(iter);
-		mapMtx.unlock();
+		listMtx.unlock();
 		return true;
 
 	}

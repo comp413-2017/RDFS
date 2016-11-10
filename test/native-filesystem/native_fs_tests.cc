@@ -7,6 +7,8 @@ using ::testing::AtLeast;
 
 using namespace nativefs;
 class NativeFSTest : public ::testing::Test {
+	public:
+		NativeFSTest() : filesystem("NATIVEFSTESTFS") {}
 protected:
 	virtual void SetUp(){
 		blk_id = 0;
