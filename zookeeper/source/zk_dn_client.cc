@@ -95,7 +95,7 @@ namespace zkclient{
 				LOG(INFO) << BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id;
 				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, data, error_code, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<block_id> " << error_code;
-					return false;
+					created_correctly = false;
 				}
 			}
 			else {
