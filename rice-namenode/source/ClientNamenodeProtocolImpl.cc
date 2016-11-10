@@ -58,9 +58,13 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "GetFileInfo ");
 	GetFileInfoResponseProto res;
-	zk.get_info(req, res);
-	logMessage(res, "GetFileInfo response ");
-	return Serialize(res);
+	if(zk.get_info(req, res)){
+		logMessage(res, "GetFileInfo response ");
+		return Serialize(res);
+	}
+	else{
+		throw GetErrorRPCHeader("Could not Get File Info", "java.io.FileNotFoundException");	
+	}
 }
 
 std::string ClientNamenodeTranslator::mkdir(std::string input) {
@@ -109,7 +113,7 @@ std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
 std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 	GetServerDefaultsRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req, "GetServerDefaults ");
+	logMessage(req, "GetServerDefaults");
 	GetServerDefaultsResponseProto res;
 	FsServerDefaultsProto* def = res.mutable_serverdefaults();
 	// read all this config info
@@ -175,8 +179,11 @@ std::string ClientNamenodeTranslator::addBlock(std::string input) {
 	AddBlockResponseProto res;
 	req.ParseFromString(input);
 	logMessage(req, "AddBlock ");
-	zk.add_block(req, res);
-	return Serialize(res);
+	if(zk.add_block(req, res)){
+		return Serialize(res);}
+	else{
+		throw GetErrorRPCHeader("Could not add block", "");
+	}
 }
 
 std::string ClientNamenodeTranslator::rename(std::string input) {
@@ -263,7 +270,7 @@ std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) 
 }
 
 /**
- * Get an error rpc header given an error msg and exceptiobn classname
+ * Get an error rpc header given an error msg and exception classname
  *
  * (Note - this method shouldn't be used in the case that we just flat out
  * don't support a command being called. Those cases should be handled back in
