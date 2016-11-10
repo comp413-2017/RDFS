@@ -1,5 +1,6 @@
 #include <iostream>
 #include <asio.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
 #include <vector>
 
@@ -102,6 +103,9 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// read packets of block from client
 	bool last_packet = false;
 	std::string block_data;
+	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
+	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
+	std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue)).detach();
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -128,7 +132,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		if (!last_packet && data_len != 0) {
 			block_data += data;
 		}
-		ackPacket(sock, p_head);
+		ackQueue.push(p_head);
 	}
 	
 	LOG(INFO) << "Writing data to disk: " << block_data;
@@ -146,18 +150,28 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	//TODO send packets to targets
 }
 
-void TransferServer::ackPacket(tcp::socket& sock, PacketHeaderProto& p_head) {
-	// ack packet
-	PipelineAckProto ack;
-	ack.set_seqno(p_head.seqno());
-	ack.add_reply(SUCCESS);
-	std::string ack_string;
-	ack.SerializeToString(&ack_string);
-	if (rpcserver::write_delimited_proto(sock, ack_string)) {
-		LOG(INFO) << "Successfully sent ack to client";
-	} else {
-		LOG(ERROR) << "Could not send ack to client";
-	}
+void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
+	bool last_packet = false;
+	PacketHeaderProto p_head;
+	do {
+		// wait for packets to ack
+		if (!ackQueue.pop(&p_head)) {
+			continue;
+		}
+		
+		// ack packet
+		last_packet = p_head.lastpacketinblock();
+		PipelineAckProto ack;
+		ack.set_seqno(p_head.seqno());
+		ack.add_reply(SUCCESS);
+		std::string ack_string;
+		ack.SerializeToString(&ack_string);
+		if (rpcserver::write_delimited_proto(sock, ack_string)) {
+			LOG(INFO) << "Successfully sent ack to client";
+		} else {
+			LOG(ERROR) << "Could not send ack to client";
+		}
+	} while (!last_packet);
 }
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
@@ -199,7 +213,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
 		p_head.set_datalen(payload_size);
-        p_head.set_syncblock(false);
+		p_head.set_syncblock(false);
 
 		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
 			LOG(INFO) << "Successfully sent packet " << seq << " to client";
