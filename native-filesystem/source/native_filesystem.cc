@@ -19,10 +19,6 @@ namespace nativefs {
 			block->offset = offset;
 			block->next = free128;
 			free128 = block;
-				LOG(INFO) << CLASS_NAME << "First block is... " << offset;
-		}
-		if (free128 != nullptr) {
-			LOG(INFO) << CLASS_NAME << "real First block is... " << free128->offset;
 		}
 	}
 
@@ -135,29 +131,25 @@ namespace nativefs {
 	**/
 	bool NativeFS::rmBlock(uint64_t id)
 	{
-		std::string fileName;
-		listMtx.lock();
-		// Find and delete block in mapping
-		auto iter = blockMap.find(id);
-		if(iter == blockMap.end()){
-			LOG(ERROR) << CLASS_NAME << "rmBlock failed: block not found";
-			return false;
+		std::lock_guard<std::mutex> lock(listMtx);
+		for (int i = 0; i < blocks.size(); i++) {
+			if (blocks[i].blockid == id) {
+				uint64_t offset = blocks[i].offset;
+				uint32_t len = blocks[i].len;
+				blocks.erase(blocks.begin() + i);
+				auto new_free_block = std::make_shared<free_block>();
+				new_free_block->offset = offset;
+				if (len > DEFAULT_BLOCK_SIZE / 2) {
+					new_free_block->next = free128;
+					free128 = new_free_block;
+				} else {
+					new_free_block->next = free64;
+					free64 = new_free_block;
+				}
+				return true;
+			}
 		}
-		fileName = iter->second;
-		listMtx.unlock();
-		//Copy to a char*, which erase and remove need
-		char *fileNameFmtd = const_cast<char*>(fileName.c_str());
-
-		// Delete the corresponding file
-		if(remove(fileNameFmtd) != 0 ){
-			LOG(ERROR) << CLASS_NAME << "rmBlock failed: error deleting file";
-			return false;
-		}
-
-		listMtx.lock();
-		blockMap.erase(iter);
-		listMtx.unlock();
-		return true;
+		return false;
 
 	}
 }
