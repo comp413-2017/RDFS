@@ -202,7 +202,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (offset > block.size()) {
 		len = 0;
 	}
-	
+
 	uint64_t seq = 0;
 	while (len > 0) {
 		PacketHeaderProto p_head;
