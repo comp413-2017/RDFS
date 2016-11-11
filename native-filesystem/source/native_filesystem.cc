@@ -62,22 +62,21 @@ namespace nativefs {
 	{
 		size_t len = blk.size();
 		uint64_t offset;
-		listMtx.lock();
-		if (len <= DEFAULT_BLOCK_SIZE / 2) {
-			// Then try to take a free 64 megabyte block, otherwise split a 128m block.
-			if (!allocate64(offset)) {
-				LOG(ERROR) << CLASS_NAME << "Could not find a free 64-megabyte block.";
-				listMtx.unlock();
-				return false;
-			}
-		} else {
-			if (!allocate128(offset)) {
-				LOG(ERROR) << CLASS_NAME << "Could not find a free 128-megabyte block.";
-				listMtx.unlock();
-				return false;
+		{
+			std::lock_guard<std::mutex> lock(listMtx);
+			if (len <= DEFAULT_BLOCK_SIZE / 2) {
+				// Then try to take a free 64 megabyte block, otherwise split a 128m block.
+				if (!allocate64(offset)) {
+					LOG(ERROR) << CLASS_NAME << "Could not find a free 64-megabyte block.";
+					return false;
+				}
+			} else {
+				if (!allocate128(offset)) {
+					LOG(ERROR) << CLASS_NAME << "Could not find a free 128-megabyte block.";
+					return false;
+				}
 			}
 		}
-		listMtx.unlock();
 		LOG(INFO) << CLASS_NAME << "Writing block " << id << " to offset " << offset;
 		disk_out.seekp(offset);
 		disk_out << blk;
