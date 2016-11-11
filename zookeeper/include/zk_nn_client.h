@@ -51,8 +51,8 @@ class ZkNnClient : public ZkClientCommon {
 		 * These methods will correspond to proto calls that the client namenode protocol handles
 		 */
 
-		bool get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res);
-		int create_file(CreateRequestProto& request, CreateResponseProto& response);
+		void get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res);
+		bool create_file(CreateRequestProto& request, CreateResponseProto& response);
 		void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);

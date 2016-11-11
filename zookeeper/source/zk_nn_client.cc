@@ -144,7 +144,7 @@ namespace zkclient{
 		return true;
 	}
 
-	bool ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
+	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
 		const std::string& path = req.src();
 
 		if (file_exists(path)) {
@@ -158,10 +158,9 @@ namespace zkclient{
 
 			set_file_info(status, path, znode_data);
 			LOG(INFO) << CLASS_NAME << "Got info for file ";
-			return true;
+			return;
 		}
 		LOG(INFO) << CLASS_NAME << "No file to get info for";
-		return false;
 	}
 
 	/**
@@ -260,7 +259,7 @@ namespace zkclient{
 	/**
 	 * Create a file in zookeeper
 	 */
-	int ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
+	bool ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
 		LOG(INFO) << CLASS_NAME << "Gonna try and create a file on zookeeper";
 		const std::string& path = request.src();
 		const std::string& owner = request.clientname();
@@ -272,7 +271,7 @@ namespace zkclient{
 		if (file_exists(path)) {
 			// TODO solve this issue of overwriting files
 			LOG(ERROR) << CLASS_NAME << "File already exists";
-			return 0;
+			return false;
 		}
 
 		// If we need to create directories, do so
@@ -286,7 +285,7 @@ namespace zkclient{
 			}
 			// try and make all the parents
 			if (!mkdir_helper(directory_paths, true))
-				return 0;
+				return false;
 		}
 
 		// Now create the actual file which will hold blocks
@@ -304,12 +303,12 @@ namespace zkclient{
 
 		// if we failed, then do not set any status
 		if (!create_file_znode(path, &znode_data))
-			return 0;
+			return false;
 
 		HdfsFileStatusProto* status = response.mutable_fs();
 		set_file_info(status, path, znode_data);
 
-		return 1;
+		return true;
 	}
 
 	void ZkNnClient::complete(CompleteRequestProto& req, CompleteResponseProto& res) {
