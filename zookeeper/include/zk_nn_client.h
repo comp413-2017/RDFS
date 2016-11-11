@@ -61,7 +61,7 @@ class ZkNnClient : public ZkClientCommon {
 		/**
 		 * Add block.
 		 */
-		void add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
+		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
 
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls
