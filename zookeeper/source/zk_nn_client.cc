@@ -100,7 +100,7 @@ namespace zkclient{
 		memcpy(&data[0], znode_data, sizeof(*znode_data));
 	}
 
-	bool ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
+	void ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
 
 		// Build a new block for the response
 		auto block = res.mutable_block();
@@ -113,12 +113,12 @@ namespace zkclient{
 		FileZNode znode_data;
 		if (!file_exists(file_path)) {
 			LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " does not exist";
-			return false;
+			return;
 		}
 		read_file_znode(znode_data, file_path);
 		if (znode_data.filetype != IS_FILE) { // Assert that the znode we want to modify is a file
 			LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " is not a file";
-			return false;
+			return;
 		}
 
 		uint32_t replication_factor = znode_data.replication;
@@ -141,7 +141,6 @@ namespace zkclient{
 
 		// Construct security token.
 		buildTokenProto(block->mutable_blocktoken());
-		return true;
 	}
 
 	void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {

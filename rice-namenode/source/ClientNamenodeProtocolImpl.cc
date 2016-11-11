@@ -25,6 +25,12 @@
 
 /**
  * The implementation of the rpc calls.
+ *
+ * Take a look at rpcserver.cc to see where the calls to these functions are
+ * coming from - generally, it will be in the block following the "if(iter !=
+ * dispatch_table.end()) {" line, which is more or less just checking that the
+ * requested command has a function in this file.
+ *
  */
 namespace client_namenode_translator {
 
@@ -186,17 +192,54 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 }
 
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
-
 /**
+ * Generally, we don't distinguish between a command we know exists and don't
+ * support (for example, something in ClientNamenodeProtocol.proto we don't
+ * want to support, such as appends) versus a command we don't know exists.
+ *
+ * In either case, we'll be returning a method-not-found proto.
+ * The code in question is very similar to GetErrorRPCHeader, but 
+ * will actually occur further up - see rpcserver.cc's method
+ * handle_rpc. Whenever (iter != dispatch_table.end()) is false,
+ * it basically means that we couldn't find a corresponding method in this
+ * file here. 
+ *
+ * As such, it will go ahead and create the error header and send it back
+ * along, without ever having to call any methods in this file. So there is
+ * no need to ever worry about methods we just flat out don't support in this 
+ * file.
+ *
+ * That being said, the following is a short list of some common commands we don't
+ * support, and our reasons for not supporting them:
+ *
+ * 1. setReplication:
  * The actual block replication is not expected to be performed during  
  * this method call. The blocks will be populated or removed in the 
  * background as the result of the routine block maintenance procedures.
+ * Basically, cannot set replication to something new.
+ *
+ * 2. append: 
+ * Appends are not supported
+ *
+ * 3. concat:
+ * Effectively an append, so we don't support it
+ *
+ * 4. recoverLease:
+ * While we expect clients to renew their lease, we should never allow
+ * a client to "recover" a lease, since we only allow a write-once system
+ * As such, we cannot recover leases.
+ *
+ * 5. setPermission:
+ * TODO - might support this later!
+ *
  */
-std::string ClientNamenodeTranslator::setReplication(std::string input) {
-	throw GetErrorRPCHeader("Cannot set replication to something new", "");
-}
 
-// TODO what is this
+// ------------------------------ TODO ------------------------------------
+
+
+
+// TODO what is this? It originally was inside the "commands not supported"
+// block, but it seems to be doing something?
 std::string ClientNamenodeTranslator::rename2(std::string input) {
 	Rename2RequestProto req;
 	req.ParseFromString(input);
@@ -205,31 +248,6 @@ std::string ClientNamenodeTranslator::rename2(std::string input) {
 	return Serialize(res);
 }
 
-std::string ClientNamenodeTranslator::append(std::string input) {
-	throw GetErrorRPCHeader("Appends are not supported", "");
-}
-
-/**
- * This is effectively an append, so we do not support it 
- */
-std::string ClientNamenodeTranslator::concat(std::string input) {
-	throw GetErrorRPCHeader("Concats are not supported", "");
-}
-
-/**
- * TODO we might support this in the future!
- */ 
-std::string ClientNamenodeTranslator::setPermission(std::string input) {
-	throw GetErrorRPCHeader("Cannot set permissions", "");
-}
-
-/**
- * While we expect clients to renew their lease, we should never allow
- * a client to "recover" a lease, since we only allow a write-once system
- */ 
-std::string ClientNamenodeTranslator::recoverLease(std::string input) {
-	throw GetErrorRPCHeader("Cannot recover leases", "");
-}
 
 
 // ----------------------- HANDLER HELPERS --------------------------------
@@ -249,6 +267,10 @@ std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) 
 
 /**
  * Get an error rpc header given an error msg and exception classname
+ *
+ * (Note - this method shouldn't be used in the case that we just flat out
+ * don't support a command being called. Those cases should be handled back in
+ * rpcserver.cc, which will be using a very similar - but different - function)
  */
 hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHeader(std::string error_msg,
 		std::string exception_classname) {
@@ -256,7 +278,9 @@ hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHead
 	response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
 	response_header.set_errormsg(error_msg);
 	response_header.set_exceptionclassname(exception_classname);
-	response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_NO_SUCH_METHOD);
+    //TODO - since this method is now only being used for failed handlers, this line seems
+    //to be incorrect. As far as I can tell, only create uses this method now.
+	response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_APPLICATION);
 	return response_header;
 }
 
@@ -280,7 +304,13 @@ void ClientNamenodeTranslator::InitServer() {
 // ------------------------------------ RPC SERVER INTERACTIONS --------------------------
 
 /**
- * Register our rpc handlers with the server
+ * Register our rpc handlers with the server (rpcserver cals corresponding
+ * handler methods for any requested commands based on request_header.methodname())
+ *
+ * Note - do not make handlers for unsupported commands! Whenever a command
+ * doesn't have an entry in this map, rpcserver.cc will just send a response
+ * header with error detail "ERROR_NO_SUCH_METHOD." Any handlers registered
+ * here should be for supported commands.
  */
 void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
@@ -289,10 +319,8 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
     	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
 	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
-	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
 	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
 	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
-	server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 	server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));
 	server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
 	server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
@@ -300,12 +328,8 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
 	server.register_handler("addBlock", std::bind(&ClientNamenodeTranslator::addBlock, this, _1));
 
-	// register handlers for unsupported calls
-	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
+	//TODO - what is this function for? Do we still need it??
 	server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
-	server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
-	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
-	server.register_handler("concat", std::bind(&ClientNamenodeTranslator::concat, this, _1));
 }
 
 /**
