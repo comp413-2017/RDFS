@@ -4,6 +4,7 @@
 
 #include <datatransfer.pb.h>
 #include <queue>
+#include <atomic>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -39,6 +40,7 @@ class TransferServer {
 		void serve(asio::io_service& io_service);
 
 	private:
+		std::atomic<int> xmits;
 		int port;
 		nativefs::NativeFS fs;
 		zkclient::ZkClientDn dn;
