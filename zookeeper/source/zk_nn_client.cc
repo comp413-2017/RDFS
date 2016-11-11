@@ -320,6 +320,29 @@ namespace zkclient{
 		FileZNode znode_data;
 		read_file_znode(znode_data, src);
 		znode_data.under_construction = FILE_COMPLETE;
+		// set the file length
+		uint64_t file_length = 0;
+		auto file_blocks = std::vector<std::string>();
+		if (!zk->get_children(ZookeeperPath(src), file_blocks, error_code)) {
+			LOG(ERROR) << CLASS_NAME << "Failed getting children of " << ZookeeperPath(src) << " with error: " << error_code;
+			res.set_result(false);
+		}
+		for (auto file_block : file_blocks) {
+			auto data = std::vector<std::uint8_t>();
+			if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code)) {
+				LOG(ERROR) << CLASS_NAME << "Failed to get " << ZookeeperPath(src) << "/" << file_block << " with error: " << error_code;
+				res.set_result(false);
+			}
+			uint64_t block_uuid = *(uint64_t *)(&data[0]);
+			auto block_data = std::vector<std::uint8_t>();
+			if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code)) {
+				LOG(ERROR) << CLASS_NAME << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_uuid) << " with error: " << error_code;
+				res.set_result(false);
+			}
+			uint64_t length = *(uint64_t *)(&block_data[0]);
+			file_length += length;
+		}
+		znode_data.length = file_length;
 		std::vector<std::uint8_t> data(sizeof(znode_data));
 		file_znode_struct_to_vec(&znode_data, data);
 		if (!zk->set(ZookeeperPath(src), data, error_code)) {
@@ -550,17 +573,6 @@ namespace zkclient{
 
 		if (!find_datanode_for_block(data_nodes, block_id, replicationFactor, true)) {
 			return false;
-		}
-
-		// Add another block size to the file length and update zookeeper.
-		znode_data.length += znode_data.blocksize;
-		int error_code;
-		std::vector<std::uint8_t> new_data(sizeof(znode_data));
-		file_znode_struct_to_vec(&znode_data, new_data);
-		if (!zk->set(ZookeeperPath(file_path), new_data, error_code)) {
-			LOG(ERROR) << "Set failed" << error_code;
-			return 0;
-			// TODO : handle error
 		}
 
 		// Generate the massive multi-op for creating the block
