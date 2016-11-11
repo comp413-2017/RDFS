@@ -133,10 +133,10 @@ namespace zkclient{
 		block->set_offset(0); // TODO: Set this
 		block->set_corrupt(false);
 
-        buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
+		buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
 
 		for (auto data_node : data_nodes) {
-            buildDatanodeInfoProto(block->add_locs(), data_node);
+			buildDatanodeInfoProto(block->add_locs(), data_node);
 		}
 
 		// Construct security token.
@@ -276,7 +276,7 @@ namespace zkclient{
 		// If we need to create directories, do so
 		if (create_parent) {
 			std::string directory_paths = "";
-            std::vector<std::string> split_path;
+			std::vector<std::string> split_path;
 			boost::split(split_path, path, boost::is_any_of("/"));
 			LOG(INFO) << CLASS_NAME << split_path.size();
 			for (int i = 0; i < split_path.size() - 1; i++) {
@@ -372,7 +372,7 @@ namespace zkclient{
 	 */
 	bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
 		if (create_parent) {
-            std::vector<std::string> split_path;
+			std::vector<std::string> split_path;
 			boost::split(split_path, path, boost::is_any_of("/"));
 			bool not_exist = false;
 			std::string unroll;
@@ -454,7 +454,7 @@ namespace zkclient{
 				located_block->set_corrupt(0);
 				located_block->set_offset(size); // TODO: This offset may be incorrect
 
-                buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
+				buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
 				auto data_nodes = std::vector<std::string>();
 
@@ -467,9 +467,9 @@ namespace zkclient{
 				LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 
 				for (auto data_node :data_nodes) {
-                    buildDatanodeInfoProto(located_block->add_locs(), data_node);
+					buildDatanodeInfoProto(located_block->add_locs(), data_node);
 				}
-                buildTokenProto(located_block->mutable_blocktoken());
+				buildTokenProto(located_block->mutable_blocktoken());
 			}
 			size += block_size;
 		}
@@ -664,9 +664,10 @@ namespace zkclient{
 
 		int error_code = 0;
 		auto data = std::vector<std::uint8_t>();
+		auto ops = std::vector<std::shared_ptr<ZooOp>>();
 
-		std::string src_znode = "/fileSystem" + src;
-		std::string dst_znode = "/fileSystem" + dst;
+		std::string src_znode = ZookeeperPath(src);
+		std::string dst_znode = ZookeeperPath(dst);
 
 		// TODO: if one of these fails, should we try to undo? Use a multiop here?
 
@@ -678,11 +679,7 @@ namespace zkclient{
 		}
 
 		// Create a new znode in the filesystem for the dst
-		zk->create(dst_znode, data, error_code, false);
-		if (error_code != ZOK) {
-			LOG(ERROR) << "Failed to create new znode for '" << dst_znode << "' when renaming.";
-			return false;
-		}
+		ops.push_back(zk->build_create_op(dst_znode, data));
 
 		// Copy over the data from the children of the src_znode into new children of the dst_znode
 		auto children = std::vector<std::string>();
@@ -702,25 +699,21 @@ namespace zkclient{
 			}
 
 			// Create new child of dst_znode with this data
-			zk->create(dst_znode + "/" + child, child_data, error_code, false);
-			if (error_code != ZOK) {
-				LOG(ERROR) << "Failed to create dst_znode child for '" << dst_znode << "' when renaming.";
-				return false;
-			}
+			ops.push_back(zk->build_create_op(dst_znode + "/" + child, child_data));
 
 			// Delete src_znode's child
-			zk->delete_node(src_znode + "/" + child, error_code);
-			if (error_code != ZOK) {
-				LOG(ERROR) << "Failed to delete src_znode child for '" << src_znode << "' when renaming.";
-				return false;
-			}
-
+			ops.push_back(zk->build_delete_op(src_znode + "/" + child));
 		}
 
 		// Remove the old znode for the src
-		zk->delete_node(src_znode, error_code);
-		if (error_code != ZOK) {
-			LOG(ERROR) << "Failed to delete old znode '" << src_znode << "' when renaming.";
+		ops.push_back(zk->build_delete_op(src_znode));
+
+		std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
+		if (!zk->execute_multi(ops, results, error_code)) {
+			LOG(ERROR) << "Failed multiop when renaming: '" << src << "' to '" << dst << "'";
+			for (int i = 0; i < results.size(); i++) {
+				LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+			}
 			return false;
 		}
 
@@ -859,47 +852,47 @@ namespace zkclient{
 		return (uint64_t) tp.tv_sec * 1000L + tp.tv_usec / 1000;
 	}
 
-    bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto* dn_info, const std::string& data_node) {
+	bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto* dn_info, const std::string& data_node) {
 
-        int error_code;
+		int error_code;
 
-        std::vector<std::string> split_address;
-        boost::split(split_address, data_node, boost::is_any_of(":"));
-        assert(split_address.size() == 2);
+		std::vector<std::string> split_address;
+		boost::split(split_address, data_node, boost::is_any_of(":"));
+		assert(split_address.size() == 2);
 
-        auto data = std::vector<std::uint8_t>();
-        if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
-            LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
-        }
+		auto data = std::vector<std::uint8_t>();
+		if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
+			LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
+		}
 
-        zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
+		zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
 
-        DatanodeIDProto* id = dn_info->mutable_id();
-        id->set_ipaddr(split_address[0]);
-        id->set_hostname("localhost"); // TODO: Fill out with the proper value
-        id->set_datanodeuuid("1234");
-        id->set_xferport(payload->xferPort);
-        id->set_infoport(50020);
-        id->set_ipcport(payload->ipcPort);
-        return true;
-    }
+		DatanodeIDProto* id = dn_info->mutable_id();
+		id->set_ipaddr(split_address[0]);
+		id->set_hostname("localhost"); // TODO: Fill out with the proper value
+		id->set_datanodeuuid("1234");
+		id->set_xferport(payload->xferPort);
+		id->set_infoport(50020);
+		id->set_ipcport(payload->ipcPort);
+		return true;
+	}
 
-    bool ZkNnClient::buildTokenProto(hadoop::common::TokenProto* token) {
-        token->set_identifier("open");
-        token->set_password("sesame");
-        token->set_kind("foo");
-        token->set_service("bar");
-        return true;
-    }
+	bool ZkNnClient::buildTokenProto(hadoop::common::TokenProto* token) {
+		token->set_identifier("open");
+		token->set_password("sesame");
+		token->set_kind("foo");
+		token->set_service("bar");
+		return true;
+	}
 
-    bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto* eb, const std::uint64_t& block_id,
-                                        const uint64_t& block_size) {
-        eb->set_poolid("0");
-        eb->set_blockid(block_id);
-        eb->set_generationstamp(1);
-        eb->set_numbytes(block_size);
-        return true;
-    }
+	bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto* eb, const std::uint64_t& block_id,
+										const uint64_t& block_size) {
+		eb->set_poolid("0");
+		eb->set_blockid(block_id);
+		eb->set_generationstamp(1);
+		eb->set_numbytes(block_size);
+		return true;
+	}
 }
 
 #endif

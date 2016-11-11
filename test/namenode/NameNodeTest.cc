@@ -91,6 +91,35 @@ namespace {
 		ASSERT_EQ(0, children.size());
 	}
 
+	TEST_F(NamenodeTest, testRenameFile){
+		int error_code;
+		zk->create("/fileSystem/old_name", zk->get_byte_vector("File data"), error_code, false);
+		ASSERT_EQ(0, error_code);
+
+		std::string new_path;
+		zk->create_sequential("/fileSystem/old_name/block-", zk->get_byte_vector("Block uuid"), new_path, false, error_code);
+		ASSERT_EQ(0, error_code);
+		ASSERT_EQ("/fileSystem/old_name/block-0000000000", new_path);
+
+		ASSERT_TRUE(client->rename_file("/old_name", "/new_name"));
+
+		auto new_file_data = std::vector<std::uint8_t>();
+		zk->get("/fileSystem/new_name", new_file_data, error_code);
+		ASSERT_EQ(0, error_code);
+		ASSERT_EQ("File data", std::string(new_file_data.begin(), new_file_data.end()));
+		LOG(INFO) << "New: " << std::string(new_file_data.begin(), new_file_data.end());
+
+		auto new_block_data = std::vector<std::uint8_t>();
+		zk->get("/fileSystem/new_name/block-0000000000", new_block_data, error_code);
+		ASSERT_EQ(0, error_code);
+		ASSERT_EQ("Block uuid", std::string(new_block_data.begin(), new_block_data.end()));
+		LOG(INFO) << "New: " << std::string(new_block_data.begin(), new_block_data.end());
+
+		// Ensure that old_name was delete
+		bool exist;
+		zk->exists("/fileSystem/old_name", exist, error_code);
+		ASSERT_EQ(false, exist);
+	}
 }
 
 int main(int argc, char **argv) {
