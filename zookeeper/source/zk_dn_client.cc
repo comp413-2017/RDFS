@@ -120,22 +120,29 @@ namespace zkclient{
 		if (zk->exists(HEALTH_BACKSLASH + id, exists, error_code)) {
 			if (!exists) {
 				if (!zk->create(HEALTH_BACKSLASH + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
-					// TODO: Handle error
+					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks" << error_code;
 				}
 			}
 		}
 
+		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS, exists, error_code)) {
+			if (!exists) {
+				if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS, ZKWrapper::EMPTY_VECTOR, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks" << error_code;
+				}
+			}
+		}
 
 		// Create an ephemeral node at /health/<datanode_id>/heartbeat
 		// if it doesn't already exist. Should have a ZOPERATIONTIMEOUT
-		if (zk->exists(HEALTH_BACKSLASH + id + "/heartbeat", exists, error_code)) {
+		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS + HEARTBEAT, exists, error_code)) {
 			if (exists) {
-				if (!zk->delete_node(HEALTH_BACKSLASH + id + "/heartbeat", error_code)) {
-					// TODO: Handle error
+				if (!zk->delete_node(HEALTH_BACKSLASH + id + BLOCKS + HEARTBEAT, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /health/<data_node_id>/blocks/heartbeat" << error_code;
 				}
 			}
-			if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-				// TODO: Handle error
+			if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS + HEARTBEAT, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
+				LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks/heartbeat" << error_code;
 			}
 		}
 
@@ -143,10 +150,9 @@ namespace zkclient{
 		data.resize(sizeof(DataNodePayload));
 		memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
 
-		if (!zk->create(HEALTH_BACKSLASH + id + STATS, data, error_code, false)) {
-			// TODO: Handle error
+		if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS + STATS, data, error_code, false)) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks/stats" << error_code;
 		}
-
 	}
 
 

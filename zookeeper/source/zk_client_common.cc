@@ -20,6 +20,8 @@ namespace zkclient {
     const std::string ZkClientCommon::HEARTBEAT = "/heartbeat";
     const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
 	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
+    const std::string ZkClientCommon::BLOCKS = "/blocks";
+
 
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 
