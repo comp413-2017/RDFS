@@ -4,6 +4,9 @@
 #include "zkwrapper.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#define ELPP_THREAD_SAFE
+
 #include <easylogging++.h>
 INITIALIZE_EASYLOGGINGPP
 using ::testing::AtLeast;

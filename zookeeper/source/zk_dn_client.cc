@@ -128,25 +128,23 @@ namespace zkclient{
 		std::string id = build_datanode_id(data_node_id);
 		// TODO: Add a watcher on the health node
 		if (zk->exists(HEALTH_BACKSLASH + id, exists, error_code)) {
-			if (!exists) {
-				if (!zk->create(HEALTH_BACKSLASH + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id> " << error_code;
+			if (exists) {
+				if (!zk->recursive_delete(HEALTH_BACKSLASH + id, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /health/<data_node_id> " << error_code;
 				}
 			}
+		}
+
+		if (!zk->create(HEALTH_BACKSLASH + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id> " << error_code;
 		}
 
 
 		// Create an ephemeral node at /health/<datanode_id>/heartbeat
 		// if it doesn't already exist. Should have a ZOPERATIONTIMEOUT
-		if (zk->exists(HEALTH_BACKSLASH + id + "/heartbeat", exists, error_code)) {
-			if (exists) {
-				if (!zk->delete_node(HEALTH_BACKSLASH + id + "/heartbeat", error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /health/<data_node_id>/heartbeat " << error_code;
-				}
-			}
-			if (!zk->create(HEALTH_BACKSLASH + id + "/heartbeat", ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/heartbeat " << error_code;
-			}
+
+		if (!zk->create(HEALTH_BACKSLASH + id + HEARTBEAT, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/heartbeat " << error_code;
 		}
 
 		std::vector<uint8_t> data;
@@ -157,14 +155,9 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/stats " << error_code;
 		}
 
-		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS, exists, error_code)) {
-			if (!exists) {
-				if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS, ZKWrapper::EMPTY_VECTOR, error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks " << error_code;
-				}
-			}
+		if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS, ZKWrapper::EMPTY_VECTOR, error_code)) {
+			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks " << error_code;
 		}
-
 	}
 
 
