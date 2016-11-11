@@ -133,7 +133,8 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		if (!last_packet && data_len != 0) {
 			block_data += data;
 		}
-		ackQueue.push(p_head);
+		while (!ackQueue.push(p_head)) {
+		}
 	}
 	
 	//LOG(INFO) << "Writing data to disk: " << block_data;
