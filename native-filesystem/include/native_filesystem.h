@@ -18,8 +18,10 @@ namespace nativefs {
 		uint32_t len;
 	} block_info;
 
-	const size_t MAX_BLOCK_SIZE = 134217728;
-	const size_t MIN_BLOCK_SIZE = 134217728 / 2;
+	const size_t MIN_BLOCK_POWER = 24;
+	const size_t MAX_BLOCK_POWER = 27;
+	constexpr size_t MIN_BLOCK_SIZE = 1 << MIN_BLOCK_POWER;
+	constexpr size_t MAX_BLOCK_SIZE = 1 << MAX_BLOCK_POWER;
 	constexpr size_t DISK_SIZE = MAX_BLOCK_SIZE * 6;
 	constexpr size_t BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;
 	constexpr size_t BLOCK_LIST_SIZE = BLOCK_LIST_LEN * sizeof(block_info);
@@ -37,16 +39,17 @@ class NativeFS{
 		bool rmBlock(uint64_t);
 
 	private:
-		bool allocate64(uint64_t& offset);
-		bool allocate128(uint64_t& offset);
 		bool addBlock(const block_info& info);
+		/**
+		 * Mark the area of disk from start to end as free.
+		 */
+		void freeRange(uint64_t start, uint64_t end);
+		bool allocateBlock(size_t size, uint64_t& offset);
 		void flushBlocks();
 
 		std::array<block_info, BLOCK_LIST_LEN> blocks;
 		mutable std::mutex listMtx;
-		std::map<uint64_t, std::string> blockMap;
-		std::shared_ptr<free_block> free64;
-		std::shared_ptr<free_block> free128;
+		std::array<std::shared_ptr<free_block>, MAX_BLOCK_POWER - MIN_BLOCK_POWER + 1> freeLists;
 		std::ofstream disk_out;
 		std::ifstream disk_in;
 		static const std::string CLASS_NAME;
