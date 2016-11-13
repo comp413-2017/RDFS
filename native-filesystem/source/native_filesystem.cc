@@ -10,17 +10,62 @@
 #include "native_filesystem.h"
 #include "block_queue.h"
 
+
+// Return the power of two >= val.
+static uint64_t powerup(uint64_t val) {
+	uint64_t t = 1;
+	while (t < val) {
+		t *= 2;
+	}
+	return t;
+}
+
+static void zeroBlock(nativefs::block_info& blk) {
+	blk.blockid = 0;
+	blk.offset = 0;
+	blk.len = 0;
+}
+
 namespace nativefs {
 	const std::string NativeFS::CLASS_NAME = ": **NativeFS** : ";
 
+	NativeFS::NativeFS(NativeFS& other) :
+		free64(other.free64),
+		free128(other.free128),
+		blocks(other.blocks),
+		disk_out(std::move(other.disk_out)),
+		disk_in(std::move(other.disk_in)) {}
+
 	NativeFS::NativeFS(std::string fname) : disk_in(fname, std::ios::binary | std::ios::in), disk_out(fname, std::ios::binary | std::ios::out) {
+		// If the magic bytes exist, then load block info from the drive.
+		std::string magic(MAGIC.size(), 0);
+		disk_in.seekg(0);
+		disk_in.read(&magic[0], magic.size());
+		if (magic == MAGIC) {
+			LOG(INFO) << "Reloading existing block list...";
+			disk_in.read((char *) &blocks[0], BLOCK_LIST_SIZE);
+		} else {
+			LOG(INFO) << "No block list found, constructing from scratch...";
+			for (int i = 0; i < blocks.size(); i++) {
+				zeroBlock(blocks[i]);
+			}
+			flushBlocks();
+		}
 		// Reconstruct free block list.
-		for (uint64_t offset = 0; offset < DISK_SIZE; offset += DEFAULT_BLOCK_SIZE) {
+		for (uint64_t offset = RESERVED_SIZE; offset < DISK_SIZE; offset += MAX_BLOCK_SIZE) {
 			auto block = std::make_shared<free_block>();
 			block->offset = offset;
 			block->next = free128;
 			free128 = block;
 		}
+	}
+
+	void NativeFS::flushBlocks() {
+		LOG(INFO) << "Flushing blocks to storage.";
+		disk_out.seekp(0);
+		disk_out.write(&MAGIC[0], MAGIC.size());
+		disk_out.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
+		disk_out.flush();
 	}
 
 	// Attempt to allocate a 128 megabyte block and write to offset. On
@@ -44,7 +89,7 @@ namespace nativefs {
 			// Then free64 is empty but free128 has something, so split one
 			// 128m block.
 			allocate128(offset);
-			uint64_t new_free_offset = offset + DEFAULT_BLOCK_SIZE / 2;
+			uint64_t new_free_offset = offset + MAX_BLOCK_SIZE / 2;
 			auto new_free_block = std::make_shared<free_block>();
 			new_free_block->offset = new_free_offset;
 			new_free_block->next = free64;
@@ -65,7 +110,7 @@ namespace nativefs {
 		uint64_t offset;
 		{
 			std::lock_guard<std::mutex> lock(listMtx);
-			if (len <= DEFAULT_BLOCK_SIZE / 2) {
+			if (len <= MAX_BLOCK_SIZE / 2) {
 				// Then try to take a free 64 megabyte block, otherwise split a 128m block.
 				if (!allocate64(offset)) {
 					LOG(ERROR) << CLASS_NAME << "Could not find a free 64-megabyte block.";
@@ -89,11 +134,25 @@ namespace nativefs {
 		info.len = len;
 
 		listMtx.lock();
-		blocks.push_back(info);
+		if (!addBlock(info)) {
+			LOG(ERROR) << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+		} else {
+			flushBlocks();
+		}
 		listMtx.unlock();
 
 		return true;
 
+	}
+
+	bool NativeFS::addBlock(const block_info& info) {
+		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+			if (blocks[i].blockid == 0) {
+				blocks[i] = info;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -127,7 +186,7 @@ namespace nativefs {
 	}
 
 	/**
-	* Given an ID, deletes a block. Returns false on error, true otherwise
+	* Given an ID, deletes a block. Returns false on id not found, true otherwise
 	**/
 	bool NativeFS::rmBlock(uint64_t id)
 	{
@@ -136,16 +195,17 @@ namespace nativefs {
 			if (blocks[i].blockid == id) {
 				uint64_t offset = blocks[i].offset;
 				uint32_t len = blocks[i].len;
-				blocks.erase(blocks.begin() + i);
+				zeroBlock(blocks[i]);
 				auto new_free_block = std::make_shared<free_block>();
 				new_free_block->offset = offset;
-				if (len > DEFAULT_BLOCK_SIZE / 2) {
+				if (len > MAX_BLOCK_SIZE / 2) {
 					new_free_block->next = free128;
 					free128 = new_free_block;
 				} else {
 					new_free_block->next = free64;
 					free64 = new_free_block;
 				}
+				flushBlocks();
 				return true;
 			}
 		}

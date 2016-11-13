@@ -6,4 +6,5 @@ namespace nativefs {
 		uint64_t offset;
 		std::shared_ptr<free_block> next;
 	};
+
 }
