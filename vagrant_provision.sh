@@ -109,3 +109,5 @@ rm -r valgrindtemp
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
 chown -R vagrant:vagrant /home/vagrant/.ssh/*
+# Allow us to write to /dev/sdb.
+chown vagrant:vagrant /dev/sdb

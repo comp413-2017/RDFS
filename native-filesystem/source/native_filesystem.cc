@@ -14,6 +14,7 @@ namespace nativefs {
 	const std::string NativeFS::CLASS_NAME = ": **NativeFS** : ";
 
 	NativeFS::NativeFS(std::string fname) : disk_in(fname, std::ios::binary | std::ios::in), disk_out(fname, std::ios::binary | std::ios::out) {
+		// Reconstruct free block list.
 		for (uint64_t offset = 0; offset < DISK_SIZE; offset += DEFAULT_BLOCK_SIZE) {
 			auto block = std::make_shared<free_block>();
 			block->offset = offset;
