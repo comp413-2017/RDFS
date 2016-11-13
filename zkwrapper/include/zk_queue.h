@@ -5,45 +5,35 @@
 #ifndef RDFS_ZK_QUEUE_H
 #define RDFS_ZK_QUEUE_H
 
-#include <algorithm>
 #include <zookeeper.h>
 #include "zkwrapper.h"
 
-class ZKQueue {
-	public:
-		ZKQueue(ZKWrapper &wrapper, std::string path) : zk(wrapper) {
-				q_path = path;
-				element = path + "/q_item-";
-				peek_path = "";
-				int error_code;
-				if (!zk.create(path, ZKWrapper::EMPTY_VECTOR, error_code)) {
-					// TODO: Handle erro
-				}
-		}
 
-		/**
-		 * Returns the name of the first item in the queue
-		 */
-		std::string peek();
+/**
+ * Adds a new item to the end of the queue with the given data.
+ * q_path: the ZK path to the desired queue, i.e. "/work_queues/wait_for_acks"
+ * pushed_data: the byte vector of data to store in the queue item
+ * error_code: reference to integer for holding an error code
+ * return: boolean indicating success or failure of the method
+ */
+bool push(const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code);
 
-		/**
-		 * Removes the first item from the queue.
-		 * Returns 0 if successful, otherwise an error code
-		 */
-		int pop();
+/**
+ * Removes the first item from the queue.
+ * q_path: the ZK path to the desired queue, i.e. "/work_queues/wait_for_acks"
+ * popped_data: reference to a byte vector to hold the data from the popped item
+ * error_code: reference to integer for holding an error code
+ * return: boolean indicating success or failure of the method
+ */
+bool pop(const std::string &q_path, const std::vector<std::uint8_t> &popped_data, int &error_code);
 
-		/**
-		 * Adds a new item to the end of the queue with the given data.
-		 * Returns the path of the newly added element
-		 */
-		std::string push(const std::vector<std::uint8_t> &data);
-
-	private:
-		std::string q_path;
-		std::string peek_path;
-		std::string element;
-		ZKWrapper zk;
-		static const std::string CLASS_NAME;
-};
+/**
+ * Gets the name of the first item in the queue
+ * q_path: the ZK path to the desired queue, i.e. "/work_queues/wait_for_acks"
+ * peeked_path: string reference which will hold the path to the first element
+ * error_code: reference to integer for holding an error code
+ * return: boolean indicating success or failure of the method
+ */
+bool peek(const std::string &q_path, std::string &peeked_path, int &error_code);
 
 #endif //RDFS_ZK_QUEUE_H
