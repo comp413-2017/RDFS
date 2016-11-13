@@ -105,7 +105,6 @@ namespace zkclient{
 		std::vector<std::string> children;
 		std::string block_id_str = std::to_string(prev_id);
 		if (zk->get_children("/block_locations/" + block_id_str, children, error_code)) {
-			/* TODO: get replication factor from file variable? */
 			if (children.size() >= 1){
 				return true;
 			}
@@ -121,10 +120,9 @@ namespace zkclient{
 		//uint64_t prev_id = prev.blockId();
 		if (!previousBlockComplete(prev_id)){
 			LOG(INFO) << "Previous Add Block Operation has not finished";
-			// if return value is bool, use return false
-			// 
 			// TODO: exception branch must be merged to get this function to work
-			return;
+			// no-op here, change next line after exception branch is merged!
+			//return false;
 		}
 
 		// Build a new block for the response
