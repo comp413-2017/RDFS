@@ -147,7 +147,7 @@ namespace nativefs {
 
 	bool NativeFS::addBlock(const block_info& info) {
 		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
-			if (blocks[i].blockid == 0) {
+			if (blocks[i].len == 0) {
 				blocks[i] = info;
 				return true;
 			}
