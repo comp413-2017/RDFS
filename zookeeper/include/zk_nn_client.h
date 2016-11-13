@@ -62,7 +62,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * Add block.
 		 */
 		void add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
-
+		/**
+		 * Check if previous addblock operation is complete
+		 * 
+		 */
+		bool previousBlockComplete(uint64_t prev_id);
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls
 		 */

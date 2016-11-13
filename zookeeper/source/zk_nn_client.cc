@@ -121,8 +121,10 @@ namespace zkclient{
 		//uint64_t prev_id = prev.blockId();
 		if (!previousBlockComplete(prev_id)){
 			LOG(INFO) << "Previous Add Block Operation has not finished";
-			//TODO: what to return in case of failure?  continue for now
-			// no-op, will update later
+			// if return value is bool, use return false
+			// 
+			// TODO: exception branch must be merged to get this function to work
+			return;
 		}
 
 		// Build a new block for the response
@@ -390,11 +392,7 @@ namespace zkclient{
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Helper for creating a direcotyr znode. Iterates over the parents and crates them
-=======
 	 * Helper for creating a directory znode. Iterates over the parents and crates them
->>>>>>> develop
 	 * if necessary.
 	 */
 	bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
