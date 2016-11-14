@@ -476,8 +476,15 @@ namespace zkclient{
 				LocatedBlockProto* located_block = blocks->add_blocks();
 				located_block->set_corrupt(0);
 				located_block->set_offset(size); // TODO: This offset may be incorrect
+				
+				auto block_data = std::vector<std::uint8_t>();
+				if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_id), block_data, error_code)) {
+					LOG(ERROR) << CLASS_NAME << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_id) << " with error: " << error_code;
+					return; // TODO: Signal error
+				}
+				uint64_t length = *(uint64_t *)(&block_data[0]);
 
-				buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
+				buildExtendedBlockProto(located_block->mutable_b(), block_id, length);
 
 				auto data_nodes = std::vector<std::string>();
 
@@ -489,7 +496,7 @@ namespace zkclient{
 
 				LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 
-				for (auto data_node :data_nodes) {
+				for (auto data_node : data_nodes) {
 					buildDatanodeInfoProto(located_block->add_locs(), data_node);
 				}
 				buildTokenProto(located_block->mutable_blocktoken());
