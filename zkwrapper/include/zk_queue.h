@@ -16,7 +16,7 @@
  * error_code: reference to integer for holding an error code
  * return: boolean indicating success or failure of the method
  */
-bool push(const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code);
+bool push(std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code);
 
 /**
  * Removes the first item from the queue.

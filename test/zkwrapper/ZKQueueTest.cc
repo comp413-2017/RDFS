@@ -19,20 +19,28 @@ namespace {
 			// Code here will be called immediately after the constructor (right
 			// before each test).
 
-			zk = new ZKWrapper("localhost:2181", error_code);
+			zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
 			assert(error_code == 0); // Z_OK
-			queue = new ZKQueue(*zk, "/queue_test");
+
+			zk->create("/test_queue", ZKWrapper::EMPTY_VECTOR, error_code);
+			assert(error_code == 0); // Z_OK
+		}
+
+		virtual void TearDown() {
+			int error_code;
+			zk->recursive_delete("/test_queue", error_code);
+			assert(error_code == 0); // Z_OK
 		}
 
 		// Objects declared here can be used by all tests in the test case for Foo.
-		ZKWrapper *zk;
-		ZKQueue *queue;
+		std::shared_ptr <ZKWrapper> zk;
 	};
 
 
 
 	TEST_F(ZKQueueTest, Push) {
-		ASSERT_EQ("/queue_test/q_item-0000000000", queue->push(ZKWrapper::EMPTY_VECTOR));
+		int error_code;
+		ASSERT_TRUE(push(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, error_code));
 	}
 }
 
