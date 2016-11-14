@@ -197,16 +197,12 @@ std::string ClientNamenodeTranslator::setPermission(std::string input) {
 }
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
- * Generally, we don't distinguish between a command we know exists and don't
- * support (for example, something in ClientNamenodeProtocol.proto we don't
- * want to support, such as appends) versus a command we don't know exists.
- *
- * In either case, we'll be returning a method-not-found proto.
- * The code in question is very similar to GetErrorRPCHeader, but 
- * will actually occur further up - see rpcserver.cc's method
- * handle_rpc. Whenever (iter != dispatch_table.end()) is false,
- * it basically means that we couldn't find a corresponding method in this
- * file here. 
+ * When asked to do an unsupported command, we'll be returning a
+ * method-not-found proto.  The code in question is very similar to
+ * GetErrorRPCHeader, but will actually occur further up - see rpcserver.cc's
+ * method handle_rpc. Whenever (iter != dispatch_table.end()) is false, it
+ * basically means that we couldn't find a corresponding method in this file
+ * here. 
  *
  * As such, it will go ahead and create the error header and send it back
  * along, without ever having to call any methods in this file. So there is
@@ -272,8 +268,8 @@ std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) 
 /**
  * Get an error rpc header given an error msg and exception classname
  *
- * (Note - this method shouldn't be used in the case that we just flat out
- * don't support a command being called. Those cases should be handled back in
+ * (Note - this method shouldn't be used in the case that we choose not to
+ * support a command being called. Those cases should be handled back in
  * rpcserver.cc, which will be using a very similar - but different - function)
  */
 hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHeader(std::string error_msg,
