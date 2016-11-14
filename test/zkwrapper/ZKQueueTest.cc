@@ -46,9 +46,13 @@ namespace {
 		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
 		ASSERT_EQ("q-item-0000000000", peeked_path);
 
-		ASSERT_TRUE(pop(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, error_code));
+		auto popped_data = std::vector<std::uint8_t>();
+		ASSERT_TRUE(pop(zk, "/test_queue", popped_data, error_code));
 		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
 		ASSERT_EQ("/test_queue", peeked_path); // Since q is empty, the peeked path should be the same
+
+		// TODO: test more rigorously, esp. ensure that pushed data is
+		// correctly returned on pop
 	}
 }
 
