@@ -10,6 +10,7 @@
 namespace zkclient {
 
     const std::string ZkClientCommon::WORK_QUEUES = "/work_queues/";
+    const std::string ZkClientCommon::DELETE_QUEUES = "/work_queues/delete/";
     const std::string ZkClientCommon::WAIT_FOR_ACK = "wait_for_acks";
     const std::string ZkClientCommon::WAIT_FOR_ACK_BACKSLASH = "wait_for_acks/";
     const std::string ZkClientCommon::REPLICATE_BACKSLASH = "replicate/";
@@ -20,6 +21,8 @@ namespace zkclient {
     const std::string ZkClientCommon::HEARTBEAT = "/heartbeat";
     const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
 	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
+    const std::string ZkClientCommon::BLOCKS = "/blocks";
+
 
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 

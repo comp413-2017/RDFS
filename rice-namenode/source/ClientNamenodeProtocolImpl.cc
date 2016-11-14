@@ -191,6 +191,10 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 	return Serialize(res);
 }
 
+std::string ClientNamenodeTranslator::setPermission(std::string input) {
+		SetPermissionResponseProto res;
+			return Serialize(res);
+}
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
  * Generally, we don't distinguish between a command we know exists and don't
@@ -330,6 +334,12 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 
 	//TODO - what is this function for? Do we still need it??
 	server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
+	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
+	//server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
+	//server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
+	//server.register_handler("concat", std::bind(&ClientNamenodeTranslator::concat, this, _1));
+	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
+
 }
 
 /**

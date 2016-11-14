@@ -27,6 +27,15 @@ typedef struct
 } DataNodeZNode;
 
 /**
+* A struct used to write the number of bytes in a block (and
+* maybe other block-related things in the future) to a ZNode
+*/
+typedef struct
+{
+	uint64_t block_size; // size of the block in bytes
+}BlockZNode;
+
+/**
 * Class representing a Zookeeper-DataNode client.
 * Allows a DataNode to update the state of ZK.
 */
@@ -57,9 +66,10 @@ public:
 	* Informs Zookeeper when the DataNode has received a block. Adds an acknowledgment
 	* and creates a node for the DN in the block's block_locations.
 	* @param uuid The UUID of the block received by the DataNode.
+	* @param size_bytes The number of bytes in the block
 	* @return True on success, false on error.
 	*/
-    bool blockReceived(uint64_t uuid);
+    bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
 
 private:
