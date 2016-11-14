@@ -38,12 +38,17 @@ namespace {
 
 
 
-	TEST_F(ZKQueueTest, testPushPeek) {
+	TEST_F(ZKQueueTest, testPushPeekPop) {
 		int error_code;
+
 		ASSERT_TRUE(push(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, error_code));
 		std::string peeked_path;
 		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
 		ASSERT_EQ("q-item-0000000000", peeked_path);
+
+		ASSERT_TRUE(pop(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, error_code));
+		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
+		ASSERT_EQ("/test_queue", peeked_path); // Since q is empty, the peeked path should be the same
 	}
 }
 

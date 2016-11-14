@@ -36,47 +36,40 @@ bool push(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const
 }
 
 bool pop(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &popped_data, int &error_code) {
-	// std::cout << "Popping: " << peek_path << std::endl;
+	std::vector<std::string> children;
+	if (!zk->get_children(q_path, children, error_code)) {
+		LOG(ERROR) << "Failed to get children of queue node: " << q_path;
+		return false;
+	}
+	if (children.size() < 1) {
+		std::cerr << "ERROR: Queue is empty, nothing to pop!" << std::endl;
+		// TODO: set a custom error code?
+		return false;
+	}
 
-	// std::vector<std::string> children;
-	// int error_code;
+	std::string peeked_path = q_path + "/" + children.back();
+	LOG(INFO) << "Popping: " << peeked_path;
 
-	// if (!zk.get_children(q_path, children, error_code)) {
-		// TODO: Check error_code if desired
-		// return 1;
-	// }
-	// if (children.size() < 1) {
-		// std::cerr << "ERROR: Queue is empty, nothing to pop!" << std::endl;
-		// return -1;
-	// }
+	if (!zk->delete_node(peeked_path, error_code)) {
+		std::cerr << "ERROR: There was an error when popping the first element of the queue. Error code: " << error_code << std::endl;
+		std::cerr << "ERROR: The first element of the queue is still: " << peeked_path << std::endl;
+		return false;
+	}
+	LOG(INFO) << "The element '" << peeked_path << "' was popped.";
 
-	// if (zk.delete_node(peek_path, error_code)) {
-		// std::cerr << "The element '" << peek_path << "' was popped." << std::endl;
-		// if (!zk.get_children(q_path, children, error_code)) {
-			// TODO: Check error_code if desired
-			// return 1;
-		// }
-		// if (children.size() > 0) {
-			// peek_path = q_path + "/" + children.back();
-		// } else {
-			// peek_path = "";
-		// }
-		// std::cerr << "The first element of the queue is now: " << peek_path << std::endl;
-		// return 0;
-	// } else {
-		// std::cerr << "ERROR: There was an error when popping the first element of the queue. Error code: " << error_code << std::endl;
-		// std::cerr << "ERROR: The first element of the queue is still: " << peek_path << std::endl;
-		// return 1;
-	// }
 	return true;
 }
 
 bool peek(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, std::string &peeked_path, int &error_code) {
-
 	std::vector<std::string> children;
 	if (!zk->get_children(q_path, children, error_code)) {
 		LOG(ERROR) << "Failed to get children of queue node.";
 		return false;
+	}
+	if (children.size() < 1) {
+		LOG(ERROR) << "Queue:" << q_path << " is empty.";
+		peeked_path = q_path;
+		return true;
 	}
 	peeked_path = children.back();
 	LOG(INFO) << "Queue head: " << peeked_path;
