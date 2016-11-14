@@ -125,6 +125,8 @@ namespace nativefs {
     }
 
 	bool NativeFS::allocateBlock(size_t size, uint64_t& offset) {
+		// We cannot allocate a block smaller than MIN_BLOCK_SIZE.
+		size = std::max(MIN_BLOCK_SIZE, size);
 		size_t ceiling = powerup(size);
         if (ceiling > MAX_BLOCK_POWER) {
             LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
