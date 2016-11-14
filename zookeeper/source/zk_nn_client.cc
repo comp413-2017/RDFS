@@ -356,18 +356,26 @@ namespace zkclient{
 		if (!zk->get_children(ZookeeperPath(src), file_blocks, error_code)) {
 			LOG(ERROR) << CLASS_NAME << "Failed getting children of " << ZookeeperPath(src) << " with error: " << error_code;
 			res.set_result(false);
+			return;
+		}
+		if (file_blocks.size() == 0) {
+			LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
+			res.set_result(false);
+			return;
 		}
 		for (auto file_block : file_blocks) {
 			auto data = std::vector<std::uint8_t>();
 			if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code)) {
 				LOG(ERROR) << CLASS_NAME << "Failed to get " << ZookeeperPath(src) << "/" << file_block << " with error: " << error_code;
 				res.set_result(false);
+				return;
 			}
 			uint64_t block_uuid = *(uint64_t *)(&data[0]);
 			auto block_data = std::vector<std::uint8_t>();
 			if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code)) {
 				LOG(ERROR) << CLASS_NAME << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_uuid) << " with error: " << error_code;
 				res.set_result(false);
+				return;
 			}
 			uint64_t length = *(uint64_t *)(&block_data[0]);
 			file_length += length;
@@ -376,8 +384,9 @@ namespace zkclient{
         std::vector<std::uint8_t> data(sizeof(znode_data));
         file_znode_struct_to_vec(&znode_data, data);
         if (!zk->set(ZookeeperPath(src), data, error_code)) {
-            LOG(ERROR) << CLASS_NAME << " complete could not change the construction bit";
+            LOG(ERROR) << CLASS_NAME << " complete could not change the construction bit and file length";
             res.set_result(false);
+			return;
         }
         res.set_result(true);
     }
