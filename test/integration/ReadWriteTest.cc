@@ -26,7 +26,7 @@ namespace {
 	protected:
 		virtual void SetUp() {
 			int error_code;
-			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "");
+			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
 			assert(error_code == 0); // Z_OK
 
 			short port = 5351;
@@ -87,10 +87,7 @@ int main(int argc, char **argv) {
 
 	// Remove test files and shutdown zookeeper
 	system("rm -f expected_testfile1234 actual_testfile1234 temp");
-	system("~/zookeeper/bin/zkCli.sh rmr /fileSystem");
-	system("~/zookeeper/bin/zkCli.sh rmr /work_queues");
-	system("~/zookeeper/bin/zkCli.sh rmr /block_locations");
-	system("~/zookeeper/bin/zkCli.sh rmr /health");
+	system("~/zookeeper/bin/zkCli.sh rmr /testing");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
 }

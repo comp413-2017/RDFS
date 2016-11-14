@@ -10,6 +10,11 @@ using asio::ip::tcp;
 
 namespace rpcserver {
 	/**
+	 * Attempt to completely overwrite given pre-allocated buffer from provided
+	 * socket. Returns resulting error_code, 0 means success.
+	 */
+	asio::error_code read_full(tcp::socket& sock, asio::mutable_buffers_1 buf);
+	/**
 	 * Read a single byte from given socket and write to *byte.
 	 * Return true if successful, otherwise false.
 	 */

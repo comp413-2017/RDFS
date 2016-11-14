@@ -199,8 +199,42 @@ namespace zkclient{
 		if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS, ZKWrapper::EMPTY_VECTOR, error_code)) {
 			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks " << error_code;
 		}
+
+		// Create the work queues, set their watchers
+		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher, id);
+		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher, id);
+
 	}
 
+	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id){
+                int error_code;
+                bool exists;
+
+                // Creqte queue for this datanode
+                // TODO: Replace w/ actual queues when they're created
+                if (zk->exists(queueName + id, exists, error_code)){
+                        if (!exists){
+                                LOG(INFO) << "doesn't exist, trying to make it";
+                                if (!zk->create(queueName + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+                                        LOG(INFO) << "Creation failed";
+                                }
+                        }
+                }
+
+		// Register the replication watcher for this dn
+		std::vector <std::string> children = std::vector <std::string>();
+		if(!zk->wget_children(queueName + id, children, watchFuncPtr, nullptr, error_code)){
+			LOG(INFO) << "getting children failed";
+		}
+
+	}
+
+	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
+		LOG(INFO) << "Replication watcher triggered on path: " << path;
+	}
+	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
+		LOG(INFO) << "Delete watcher triggered on path: " << path;
+	}
 
 	ZkClientDn::~ZkClientDn() {
 		zk->close();
