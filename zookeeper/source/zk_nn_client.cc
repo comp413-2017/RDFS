@@ -311,8 +311,8 @@ namespace zkclient{
             std::vector<std::string> split_path;
             boost::split(split_path, path, boost::is_any_of("/"));
             LOG(INFO) << CLASS_NAME << split_path.size();
-            for (int i = 0; i < split_path.size() - 1; i++) {
-                directory_paths += split_path[i];
+            for (int i = 1; i < split_path.size() - 1; i++) {
+                directory_paths += ("/"  + split_path[i]);
             }
             // try and make all the parents
             if (!mkdir_helper(directory_paths, true))
@@ -403,15 +403,17 @@ namespace zkclient{
      * if necessary.
      */
     bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
-        if (create_parent) {
+       	LOG(INFO) << "mkdir_helper called with input " << path; 
+		if (create_parent) {
             std::vector<std::string> split_path;
             boost::split(split_path, path, boost::is_any_of("/"));
             bool not_exist = false;
             std::string unroll;
             std::string p_path = "";
-            for (int i = 0; i < split_path.size(); i++) {
-                p_path += split_path[i] + "/";
-                if (!file_exists(p_path)) {
+            for (int i = 1; i < split_path.size(); i++) {
+                p_path += "/" + split_path[i];
+                LOG(INFO) << "[in mkdir_helper] " << p_path;
+				if (!file_exists(p_path)) {
                     // keep track of the path where we start creating directories
                     if (not_exist == false) {
                         unroll = p_path;
@@ -420,11 +422,14 @@ namespace zkclient{
                     FileZNode znode_data;
                     set_mkdir_znode(&znode_data);
                     int error;
-                    if ((error = create_file_znode(path, &znode_data))) {
+                    if ((error = create_file_znode(p_path, &znode_data))) {
                         // TODO unroll the created directories
-                        return false;
-                    }
-                }
+                        //return false;
+                    	
+					}
+                } else {
+					LOG(INFO) << "mkdir_helper is trying to create";
+				}
             }
         }
         else {
