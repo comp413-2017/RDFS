@@ -403,86 +403,89 @@ namespace zkclient{
     bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
         if (create_parent) {
             std::vector<std::string> split_path;
-            boost::split(split_path, path, boost::is_any_of("/"));
-            bool not_exist = false;
-            std::string unroll;
-            std::string p_path = "";
-            for (int i = 0; i < split_path.size(); i++) {
-                p_path += split_path[i] + "/";
-                if (!file_exists(p_path)) {
-                    // keep track of the path where we start creating directories
-                    if (not_exist == false) {
-                        unroll = p_path;
-                    }
-                    not_exist = true;
-                    FileZNode znode_data;
-                    set_mkdir_znode(&znode_data);
-                    int error;
-                    if ((error = create_file_znode(path, &znode_data))) {
-                        // TODO unroll the created directories
-                        return false;
-                    }
-                }
-            }
-        }
-        else {
-            FileZNode znode_data;
-            set_mkdir_znode(&znode_data);
-            return create_file_znode(path, &znode_data);
-        }
-        return true;
-    }
+			boost::split(split_path, path, boost::is_any_of("/"));
+			bool not_exist = false;
+			std::string unroll;
+			std::string p_path = "";
+			for (int i = 0; i < split_path.size(); i++) {
+				p_path += split_path[i] + "/";
+				if (!file_exists(p_path)) {
+					// keep track of the path where we start creating directories
+					if (not_exist == false) {
+						unroll = p_path;
+					}
+					not_exist = true;
+					FileZNode znode_data;
+					set_mkdir_znode(&znode_data);
+					int error;
+					if ((error = create_file_znode(path, &znode_data))) {
+						// TODO unroll the created directories
+						return false;
+					}
+				}
+			}
+		}
+		else {
+			FileZNode znode_data;
+			set_mkdir_znode(&znode_data);
+			return create_file_znode(path, &znode_data);
+		}
+		return true;
+	}
 
-    void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
+	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 
-        int error_code;
+		int error_code;
 
-        const std::string &src = req.src();
-        const std::string zk_path = ZookeeperPath(src);
+		const std::string &src = req.src();
+		const std::string zk_path = ZookeeperPath(src);
 
-        google::protobuf::uint64 offset = req.offset();
-        google::protobuf::uint64 length = req.length();
+		google::protobuf::uint64 offset = req.offset();
+		google::protobuf::uint64 length = req.length();
 
-        LocatedBlocksProto* blocks = res.mutable_locations();
+		LocatedBlocksProto* blocks = res.mutable_locations();
 
-        FileZNode znode_data;
-        read_file_znode(znode_data, src);
+		FileZNode znode_data;
+		read_file_znode(znode_data, src);
 
-        blocks->set_underconstruction(false);
-        blocks->set_islastblockcomplete(true);
-        blocks->set_filelength(znode_data.length);
+		blocks->set_underconstruction(false);
+		blocks->set_islastblockcomplete(true);
+		blocks->set_filelength(znode_data.length);
 
-        uint64_t block_size = znode_data.blocksize;
+		uint64_t block_size = znode_data.blocksize;
 
-        LOG(INFO) << CLASS_NAME << "Block size of " << zk_path << " is " << block_size;
+		LOG(INFO) << CLASS_NAME << "Block size of " << zk_path << " is " << block_size;
 
-        auto sorted_blocks = std::vector<std::string>();
+		auto sorted_blocks = std::vector<std::string>();
 
-        // TODO: Make more efficient
-        if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
-            LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
-        }
-        uint64_t size = 0;
-        for (auto sorted_block : sorted_blocks) {
-            LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;
-            if (size > offset + length) {
-                // at this point the start of the block is at a higher offset than the segment we want
-                LOG(INFO) << CLASS_NAME << "Breaking at block " << sorted_block;
-                break;
-            }
-            if (size + block_size >= offset) {
-                auto data = std::vector<uint8_t>();
-                if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
-                    LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
-                    return; // TODO: Signal error
-                }
-                uint64_t block_id = *(uint64_t *)(&data[0]);
-                LOG(INFO) << CLASS_NAME << "Found block " << block_id << " for " << zk_path;
+		// TODO: Make more efficient
+		if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
+			LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
+		}
 
-                // TODO: This block of code should be moved to a function, repeated with add_block
-                LocatedBlockProto* located_block = blocks->add_blocks();
-                located_block->set_corrupt(0);
-                located_block->set_offset(size); // TODO: This offset may be incorrect
+		std::sort(sorted_blocks.begin(), sorted_blocks.end());
+
+		uint64_t size = 0;
+		for (auto sorted_block : sorted_blocks) {
+			LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;
+			if (size > offset + length) {
+				// at this point the start of the block is at a higher offset than the segment we want
+				LOG(INFO) << CLASS_NAME << "Breaking at block " << sorted_block;
+				break;
+			}
+			if (size + block_size >= offset) {
+				auto data = std::vector<uint8_t>();
+				if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
+					LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
+					return; // TODO: Signal error
+				}
+				uint64_t block_id = *(uint64_t *)(&data[0]);
+				LOG(INFO) << CLASS_NAME << "Found block " << block_id << " for " << zk_path;
+
+				// TODO: This block of code should be moved to a function, repeated with add_block
+				LocatedBlockProto* located_block = blocks->add_blocks();
+				located_block->set_corrupt(0);
+				located_block->set_offset(size); // TODO: This offset may be incorrect
 
                 buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
