@@ -120,6 +120,48 @@ namespace zkclient{
 		return created_correctly;
 	}
 
+	bool ZkClientDn::blockDeleted(uint64_t uuid, uint64_t size_bytes) {
+		int error_code;
+		bool exists;
+
+		LOG(INFO) << "DataNode deleted a block with UUID " << std::to_string(uuid);
+		std::string id = build_datanode_id(data_node_id);
+
+		bool deleted_correctly = true;
+
+		// TODO: Put a watcher on get_children(“/work_queues/delete/<datanode_id>/"")
+
+		// Delete block locations
+		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
+			if (exists) {
+				if(!zk->recursive_delete(BLOCK_LOCATIONS + std::to_string(uuid), error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed writing block size to /block_locations/<block_uuid> and children " << error_code;
+					deleted_correctly = false;
+				}
+			}
+		}
+
+		// Delete blocks
+		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS, exists, error_code)) {
+			if (exists) {
+				if (!zk->delete_node(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /health/<data_node_id>/blocks/<block_uuid> " << error_code;
+					deleted_correctly = false;
+				}
+			}
+		}
+
+		// If everything deleted correctly, remove from work queue
+		if (deleted_correctly) {
+			if(!zk->recursive_delete(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), error_code)) {
+				LOG(ERROR) << CLASS_NAME <<  "Failed to delete wait_for_acks/<block_uuid> and children " << error_code;
+				deleted_correctly = false;
+			}	
+		}
+
+		return deleted_correctly;
+	}
+
 	void ZkClientDn::registerDataNode() {
 		// TODO: Consider using startup time of the DN along with the ip and port
 		int error_code;

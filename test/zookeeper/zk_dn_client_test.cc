@@ -52,6 +52,24 @@ TEST_F(ZKDNClientTest, CanReadBlockSize) {
 }
 
 
+// Note, we'll get some "already exists" errors because of previous test
+TEST_F(ZKDNClientTest, CanDeleteBlock) {
+	bool exists;
+	int error_code;
+	uint64_t size;
+
+	std::string path = "/block_locations/" + std::to_string(block_id);
+	std::vector<std::uint8_t> data(sizeof(BlockZNode));
+	zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code);
+
+	client->blockReceived(block_id, block_size);
+	client->blockDeleted(block_id, block_size);
+
+	// Should fail here, as we've deleted the block
+	ASSERT_FALSE(zk->get(path, data, error_code));
+}
+
+
 
 int main(int argc, char **argv) {
 	system("sudo ~/zookeeper/bin/zkServer.sh start");
