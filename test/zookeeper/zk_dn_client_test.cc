@@ -34,6 +34,17 @@ protected:
 	ZkClientDn *client;
 };
 
+TEST_F(ZKDNClientTest, RegisterMakesWorkQueues){
+        bool exists;
+        int error_code;
+        uint64_t size;
+
+        std::vector<std::uint8_t> data(sizeof(BlockZNode));
+        std::string path = "/work_queues/replicate/" + dn_id;
+
+	client->registerDataNode();
+	ASSERT_TRUE(zk->get(path, data, error_code));
+}
 
 TEST_F(ZKDNClientTest, CanReadBlockSize) {
 	bool exists;
