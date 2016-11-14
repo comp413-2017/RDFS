@@ -6,7 +6,7 @@
 
 std::string element = "/q-item-";
 
-bool push(std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code) {
+bool push(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code) {
 	LOG(INFO) << "Pushing to queue: " << q_path;
 
 	// Check that the "queue" znode exists
@@ -35,7 +35,7 @@ bool push(std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::
 	return true;
 }
 
-bool pop(const std::string &q_path, const std::vector<std::uint8_t> &popped_data, int &error_code) {
+bool pop(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &popped_data, int &error_code) {
 	// std::cout << "Popping: " << peek_path << std::endl;
 
 	// std::vector<std::string> children;
@@ -71,7 +71,16 @@ bool pop(const std::string &q_path, const std::vector<std::uint8_t> &popped_data
 	return true;
 }
 
-bool peek(const std::string &q_path, std::string &peeked_path, int &error_code) {
+bool peek(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, std::string &peeked_path, int &error_code) {
+
+	std::vector<std::string> children;
+	if (!zk->get_children(q_path, children, error_code)) {
+		LOG(ERROR) << "Failed to get children of queue node.";
+		return false;
+	}
+	peeked_path = children.back();
+	LOG(INFO) << "Queue head: " << peeked_path;
+
 	return true;
 }
 

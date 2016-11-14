@@ -16,7 +16,7 @@
  * error_code: reference to integer for holding an error code
  * return: boolean indicating success or failure of the method
  */
-bool push(std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code);
+bool push(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code);
 
 /**
  * Removes the first item from the queue.
@@ -25,7 +25,7 @@ bool push(std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::
  * error_code: reference to integer for holding an error code
  * return: boolean indicating success or failure of the method
  */
-bool pop(const std::string &q_path, const std::vector<std::uint8_t> &popped_data, int &error_code);
+bool pop(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, const std::vector<std::uint8_t> &popped_data, int &error_code);
 
 /**
  * Gets the name of the first item in the queue
@@ -34,6 +34,6 @@ bool pop(const std::string &q_path, const std::vector<std::uint8_t> &popped_data
  * error_code: reference to integer for holding an error code
  * return: boolean indicating success or failure of the method
  */
-bool peek(const std::string &q_path, std::string &peeked_path, int &error_code);
+bool peek(const std::shared_ptr <ZKWrapper> zk, const std::string &q_path, std::string &peeked_path, int &error_code);
 
 #endif //RDFS_ZK_QUEUE_H
