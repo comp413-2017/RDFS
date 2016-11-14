@@ -22,10 +22,12 @@ namespace zkclient {
         static const std::string STATS;
         static const std::string HEARTBEAT;
         static const std::string WORK_QUEUES;
+        static const std::string DELETE_QUEUES;
         static const std::string WAIT_FOR_ACK;
         static const std::string WAIT_FOR_ACK_BACKSLASH;
         static const std::string REPLICATE_BACKSLASH;
 		static const std::string BLOCK_LOCATIONS;
+        static const std::string BLOCKS;
     private:
         static const std::string CLASS_NAME;
     };

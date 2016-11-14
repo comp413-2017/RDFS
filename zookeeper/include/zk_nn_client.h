@@ -129,6 +129,8 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
 
+        bool destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops);
+
 		/**
 		 * Creates 'num_replicas' many work items for the given 'block_uuid' in
 		 * the replicate work queue, ensuring that the new replicas are not on

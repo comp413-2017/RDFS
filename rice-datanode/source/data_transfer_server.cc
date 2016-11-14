@@ -79,7 +79,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	}
 	std::string response_string;
 	buildBlockOpResponse(response_string);
-	
+
 	const ClientOperationHeaderProto header = proto.header();
 	std::vector<DatanodeInfoProto> targets;
 	for (int i = 0; i < proto.targets_size(); i++) {
@@ -93,13 +93,13 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	uint64_t bytesInBlock = proto.minbytesrcvd();
 	//num bytes sent
 	uint64_t bytesSent = proto.maxbytesrcvd();
-	
+
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		ERROR_AND_RETURN("Could not send response to client");
 	}
-	
+
 	// read packets of block from client
 	bool last_packet = false;
 	std::string block_data;
@@ -137,11 +137,10 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		}
 	}
 	
-	//LOG(INFO) << "Writing data to disk: " << block_data;
 	if (!fs.writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
-		dn.blockReceived(header.baseheader().block().blockid());
+		dn.blockReceived(header.baseheader().block().blockid(), bytesInBlock);
 	}
 
 
@@ -162,7 +161,7 @@ void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<P
 		if (!ackQueue.pop(&p_head)) {
 			continue;
 		}
-		
+
 		// ack packet
 		last_packet = p_head.lastpacketinblock();
 		PipelineAckProto ack;
