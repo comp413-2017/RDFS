@@ -12,18 +12,18 @@ namespace {
 
 	class NamenodeTest : public ::testing::Test {
 
-	protected:
-		virtual void SetUp() {
-			int error_code;
-			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-			assert(error_code == 0); // Z_OK
-			client = new zkclient::ZkNnClient(zk_shared);
-			zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-		}
+		protected:
+			virtual void SetUp() {
+				int error_code;
+				auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+				assert(error_code == 0); // Z_OK
+				client = new zkclient::ZkNnClient(zk_shared);
+				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
+			}
 
-		// Objects declared here can be used by all tests in the test case for Foo.
-		ZKWrapper *zk;
-		zkclient::ZkNnClient *client;
+			// Objects declared here can be used by all tests in the test case for Foo.
+			ZKWrapper *zk;
+			zkclient::ZkNnClient *client;
 	};
 
 
@@ -120,6 +120,22 @@ namespace {
 		zk->exists("/fileSystem/old_name", exist, error_code);
 		ASSERT_EQ(false, exist);
 	}
+
+	TEST_F(NamenodeTest, previousBlockComplete){
+		int error;
+		u_int64_t block_id;
+		util::generate_uuid(block_id);
+		LOG(INFO) << "Previous block_id is " << block_id;
+		ASSERT_EQ(false, client->previousBlockComplete(block_id));
+		/* mock the directory */
+		zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
+		zk->create("/block_locations/"+std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error);
+		ASSERT_EQ(false, client->previousBlockComplete(block_id));
+		/* mock the child directory */
+		zk->create("/block_locations/"+std::to_string(block_id)+"/child1", ZKWrapper::EMPTY_VECTOR, error);
+		ASSERT_EQ(true, client->previousBlockComplete(block_id));
+	}
+
 }
 
 int main(int argc, char **argv) {
