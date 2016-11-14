@@ -22,6 +22,10 @@ bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsign
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
 }
 
+int TransferServer::getNumTransmits(void) {
+	return xmits.fetch_add(0);
+}
+
 void TransferServer::handle_connection(tcp::socket sock) {
 	for (;;) {
 		asio::error_code error;
