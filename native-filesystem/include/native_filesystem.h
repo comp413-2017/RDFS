@@ -37,6 +37,8 @@ class NativeFS{
 		bool writeBlock(uint64_t, std::string);
 		std::string getBlock(uint64_t, bool&);
 		bool rmBlock(uint64_t);
+		long getTotalSpace();
+		long getFreeSpace();
 
 	private:
 		bool addBlock(const block_info& info);

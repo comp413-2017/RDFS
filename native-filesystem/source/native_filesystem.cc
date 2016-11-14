@@ -202,11 +202,11 @@ namespace nativefs {
 
 	}
 
-	long getTotalSpace() {
+	long NativeFS::getTotalSpace() {
 		return DISK_SIZE;
 	}
 
-	long getFreeSpace() {
+	long NativeFS::getFreeSpace() {
 		long allocatedSize = 0;
 		for (int i = 0; i < blocks.size(); i++) {
 			allocatedSize += blocks[i].len;
