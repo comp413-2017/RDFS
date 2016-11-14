@@ -9,8 +9,6 @@
 #include <easylogging++.h>
 #include <mutex>
 #include "native_filesystem.h"
-#include "block_queue.h"
-
 
 // Return the power of two >= val.
 static size_t powerup(uint64_t val) {
@@ -64,21 +62,24 @@ namespace nativefs {
 			std::for_each(blocks.begin(), blocks.end(), resetBlock);
 			flushBlocks();
 		}
+        freeLists.resize(FREE_LIST_SIZE);
 		std::sort(blocks.begin(), blocks.end(),
 				[](const block_info& a, const block_info& b) -> bool {
 					return a.offset < b.offset;
 				});
-		std::cout << "freeing ranges." << std::endl;
+
 		// Add free space before the first block.
 		freeRange(0, blocks[0].offset);
 		// Add free space between blocks.
 		for (int i = 0; i < blocks.size() - 1; i++) {
-			std::cout << "freeing " << i << std::endl;
-			freeRange(blocks[i].offset, blocks[i+1].offset);
+            if (blocks[i].offset + blocks[i].len == blocks[i+1].offset) {
+                continue;
+            }
+			freeRange(blocks[i].offset + blocks[i].len, blocks[i+1].offset);
 		}
-		std::cout << "freeing last one" << std::endl;
 		// Add free space between the last block and the end of disk.
-		freeRange(blocks[blocks.size() - 1].offset, DISK_SIZE);
+		freeRange(blocks[blocks.size() - 1].offset + blocks[blocks.size() - 1].len, DISK_SIZE);
+        // printFreeBlocks();
 	}
 
 	void NativeFS::flushBlocks() {
@@ -93,20 +94,56 @@ namespace nativefs {
 		// Sanity check: make sure start <= end <= DISK_SIZE.
 		end = std::max(start, std::min(end, DISK_SIZE));
 		// Fill in with the largest blocks possible until no more fit.
-		while ((end - start) >= MIN_BLOCK_SIZE) {
-			size_t fit = powerdown(end - start);
-			size_t idx = fit - MIN_BLOCK_POWER;
-			auto blk = std::make_shared<free_block>();
-			blk->offset = start;
-			blk->next = freeLists[idx];
-			freeLists[idx] = blk;
-			start += std::pow(2, fit);
-		}
+
+        // If the block is larger than max block size, then split it up into blocks of max size.
+        if (end - start > MAX_BLOCK_SIZE) {
+            size_t i = start;
+            for (; i + MAX_BLOCK_SIZE < end; i+= MAX_BLOCK_SIZE) {
+                freeRange(i, i + MAX_BLOCK_SIZE);
+            }
+            freeRange(i, end);
+        // Otherwise, recursively divide into the largest possible blocks
+        } else {
+            while ((end - start) >= MIN_BLOCK_SIZE) {
+                size_t fit = powerdown(end - start);
+                size_t idx = fit - MIN_BLOCK_POWER;
+                uint64_t offset = start;
+                freeLists[idx].push_back(offset);
+                start += std::pow(2, fit);
+            }
+        }
 	}
 
+    void NativeFS::printFreeBlocks() {
+        for (int i = 0; i < freeLists.size(); i++) {
+            std::cout << "BLOCKS " << i << ": ";
+            for (auto offset: freeLists[i]) {
+                std::cout << offset << ",";
+            }
+            std::cout << std::endl;
+        }
+    }
+
 	bool NativeFS::allocateBlock(size_t size, uint64_t& offset) {
-		// TODO: do this one
-		return false;
+		size_t ceiling = powerup(size);
+        if (ceiling > MAX_BLOCK_POWER) {
+            LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
+            return false;
+        }
+        auto freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
+        if (freeBlocks.empty()) {
+            bool success =  allocateBlock(size * 2, offset);
+            // If successful, split the allocated block in half.
+            if (success) {
+                freeBlocks.push_back(offset + (std::pow(2, ceiling)));
+            }
+            return success;
+        } else {
+            offset = freeBlocks[freeBlocks.size() - 1];
+            freeBlocks.pop_back();
+            return true;
+        }
+
 	}
 
 	/**
@@ -119,7 +156,8 @@ namespace nativefs {
 			std::lock_guard<std::mutex> lock(listMtx);
 			if (!allocateBlock(len, offset)) {
 				LOG(ERROR) << CLASS_NAME << "Could not find a free block to fit " << len;
-			}
+			    return false;
+            }
 		}
 		LOG(INFO) << CLASS_NAME << "Writing block " << id << " to offset " << offset;
 		disk_out.seekp(offset);

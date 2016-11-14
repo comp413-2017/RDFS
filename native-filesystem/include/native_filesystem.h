@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <easylogging++.h>
 #include <mutex>
-#include "block_queue.h"
 
 #pragma once
 
@@ -22,6 +21,7 @@ namespace nativefs {
 	const size_t MAX_BLOCK_POWER = 27;
 	constexpr size_t MIN_BLOCK_SIZE = 1 << MIN_BLOCK_POWER;
 	constexpr size_t MAX_BLOCK_SIZE = 1 << MAX_BLOCK_POWER;
+    constexpr size_t FREE_LIST_SIZE = MAX_BLOCK_POWER - MIN_BLOCK_POWER + 1;
 	constexpr size_t DISK_SIZE = MAX_BLOCK_SIZE * 6;
 	constexpr size_t BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;
 	constexpr size_t BLOCK_LIST_SIZE = BLOCK_LIST_LEN * sizeof(block_info);
@@ -48,10 +48,11 @@ class NativeFS{
 		void freeRange(uint64_t start, uint64_t end);
 		bool allocateBlock(size_t size, uint64_t& offset);
 		void flushBlocks();
+        void printFreeBlocks();
 
 		std::array<block_info, BLOCK_LIST_LEN> blocks;
 		mutable std::mutex listMtx;
-		std::array<std::shared_ptr<free_block>, MAX_BLOCK_POWER - MIN_BLOCK_POWER + 1> freeLists;
+		std::vector<std::vector<uint64_t>> freeLists;
 		std::ofstream disk_out;
 		std::ifstream disk_in;
 		static const std::string CLASS_NAME;
