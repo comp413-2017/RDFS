@@ -112,8 +112,7 @@ namespace nativefs {
 	/**
 	* Given an ID, write the given block to the native filesystem. Returns true/false on success/failure.
 	**/
-	bool NativeFS::writeBlock(uint64_t id, std::string blk)
-	{
+	bool NativeFS::writeBlock(uint64_t id, std::string blk) {
 		size_t len = blk.size();
 		uint64_t offset;
 		{
@@ -157,8 +156,7 @@ namespace nativefs {
 	/**
 	* Given an ID, returns a block buffer
 	**/
-	std::string NativeFS::getBlock(uint64_t id, bool& success)
-	{
+	std::string NativeFS::getBlock(uint64_t id, bool& success) {
 		// Look in map and get filename
 		block_info info;
 		{
@@ -187,8 +185,7 @@ namespace nativefs {
 	/**
 	* Given an ID, deletes a block. Returns false on id not found, true otherwise
 	**/
-	bool NativeFS::rmBlock(uint64_t id)
-	{
+	bool NativeFS::rmBlock(uint64_t id) {
 		std::lock_guard<std::mutex> lock(listMtx);
 		for (int i = 0; i < blocks.size(); i++) {
 			if (blocks[i].blockid == id) {
@@ -203,5 +200,17 @@ namespace nativefs {
 		}
 		return false;
 
+	}
+
+	long getTotalSpace() {
+		return DISK_SIZE;
+	}
+
+	long getFreeSpace() {
+		long allocatedSize = 0;
+		for (int i = 0; i < blocks.size(); i++) {
+			allocatedSize += blocks[i].len;
+		}
+		return getTotalSpace() - allocatedSize;
 	}
 }
