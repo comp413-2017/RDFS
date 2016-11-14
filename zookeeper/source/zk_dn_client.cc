@@ -61,7 +61,6 @@ namespace zkclient{
 			created_correctly = false;
 		}
 
-
 		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
 			if (!exists) {
 				if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code)) {
@@ -135,7 +134,7 @@ namespace zkclient{
 		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
 				if(!zk->recursive_delete(BLOCK_LOCATIONS + std::to_string(uuid), error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed writing block size to /block_locations/<block_uuid> and children " << error_code;
+					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /block_locations/<block_uuid> and children " << error_code;
 					deleted_correctly = false;
 				}
 			}
@@ -154,7 +153,7 @@ namespace zkclient{
 		// If everything deleted correctly, remove from work queue
 		if (deleted_correctly) {
 			if(!zk->recursive_delete(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), error_code)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed to delete wait_for_acks/<block_uuid> and children " << error_code;
+				LOG(ERROR) << CLASS_NAME <<  "Failed deleting wait_for_acks/<block_uuid> and children " << error_code;
 				deleted_correctly = false;
 			}	
 		}
