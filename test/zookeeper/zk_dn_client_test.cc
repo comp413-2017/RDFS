@@ -25,6 +25,9 @@ protected:
 		client = new ZkClientDn("127.0.0.1", "localhost", zk, ipcPort, xferPort);
 		dn_id = "127.0.0.1:50020";
 	}
+	virtual void TearDown() {
+		system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
+	}
 	uint64_t block_id;
 	uint64_t block_size;
 	unsigned short xferPort;
@@ -52,7 +55,6 @@ TEST_F(ZKDNClientTest, CanReadBlockSize) {
 }
 
 
-// Note, we'll get some "already exists" errors because of previous test
 TEST_F(ZKDNClientTest, CanDeleteBlock) {
 	bool exists;
 	int error_code;
