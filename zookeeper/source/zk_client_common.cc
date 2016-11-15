@@ -8,6 +8,25 @@
 #include <iostream>
 
 namespace zkclient {
+
+    const std::string ZkClientCommon::WORK_QUEUES = "/work_queues/";
+    const std::string ZkClientCommon::REPLICATE_QUEUES = "/work_queues/replicate/";
+    const std::string ZkClientCommon::REPLICATE_QUEUES_NO_BACKSLASH = "/work_queues/replicate";
+    const std::string ZkClientCommon::DELETE_QUEUES = "/work_queues/delete/";
+    const std::string ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH = "/work_queues/delete";
+    const std::string ZkClientCommon::WAIT_FOR_ACK = "wait_for_acks";
+    const std::string ZkClientCommon::WAIT_FOR_ACK_BACKSLASH = "wait_for_acks/";
+    const std::string ZkClientCommon::REPLICATE_BACKSLASH = "replicate/";
+    const std::string ZkClientCommon::NAMESPACE_PATH = "/fileSystem";
+    const std::string ZkClientCommon::HEALTH =  "/health";
+    const std::string ZkClientCommon::HEALTH_BACKSLASH = "/health/";
+    const std::string ZkClientCommon::STATS = "/stats";
+    const std::string ZkClientCommon::HEARTBEAT = "/heartbeat";
+    const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
+	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
+    const std::string ZkClientCommon::BLOCKS = "/blocks";
+
+
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 
         int error_code;
@@ -20,8 +39,7 @@ namespace zkclient {
     }
 
     void ZkClientCommon::init() {
-        /* return 0 if path exists, 1 otherwise. */
-        LOG(INFO) << "Initializing ZkClientCommon";
+        LOG(INFO) << CLASS_NAME <<  "Initializing ZkClientCommon";
         auto vec = ZKWrapper::get_byte_vector("");
 
         bool exists;
@@ -43,21 +61,25 @@ namespace zkclient {
             // TODO: Handle error
         }
         if (!zk->recursive_create("/work_queues/wait_for_acks", ZKWrapper::EMPTY_VECTOR, error_code)) {
-            LOG(ERROR) << "Failed creating /work_queues/wait_for_acks: " << error_code;
+            LOG(ERROR) << CLASS_NAME <<  "Failed creating /work_queues/wait_for_acks: " << error_code;
         }
-        /*
-        if (zk->exists("/work_queues",  exists, error_code)) {
-            if (!exists) {
-                zk->create("/work_queues", vec, error_code);
+        // Ensure work_queues exist
+        if (zk->exists(DELETE_QUEUES_NO_BACKSLASH, exists, error_code)){
+             if (!exists){
+                 if (!zk->create(DELETE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+                     // Handle failed to create replicate node
+                     LOG(INFO) << "Creation failed for delete ueue";;
+                 }
             }
-            if (zk->exists("/work_queues/wait_for_acks",  exists, error_code)) {
-
-            }
-
-        } else {
-            // TODO: Handle error
         }
-         */
+        if (zk->exists(REPLICATE_QUEUES_NO_BACKSLASH, exists, error_code)){
+             if (!exists){
+                 if (!zk->create(REPLICATE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+                     // Handle failed to create replicate node
+                     LOG(INFO) << "Creation failed for repl queue";;
+                 }
+            }
+        }
         if (zk->exists("/block_locations", exists, error_code)) {
             if (!exists) {
                 zk->create("/block_locations", vec, error_code);
@@ -66,10 +88,9 @@ namespace zkclient {
             // TODO: Handle error
         }
 
-        LOG(INFO) << "Finished ZkClientCommon";
+        LOG(INFO) << CLASS_NAME <<  "Finished ZkClientCommon";
 
     }
 }
 
 #endif
-
