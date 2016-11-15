@@ -78,7 +78,7 @@ class LeaseManager {
 		 * @param exp_time the time that a file needs to surpass to be forcibly closed
 		 * TODO return a list of pairs (client, file)
 		 */
-		std::vector<std::string> checkLeases(int exp_time);
+		std::vector<std::pair<std::string, std::string>> checkLeases(int exp_time);
 
 	private:
 		std::unordered_map<std::string, std::vector<Lease>> leases;
