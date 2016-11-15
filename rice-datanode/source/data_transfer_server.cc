@@ -3,7 +3,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
 #include <vector>
-
+#include <functional>
 #include <easylogging++.h>
 
 #include "data_transfer_server.h"
@@ -17,17 +17,14 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
-TransferServer::TransferServer(int p, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn) : xmits(0), port(p), fs(fs), dn(dn) {}
+TransferServer::TransferServer(int p, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn) : port(p), fs(fs), dn(dn) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
 }
 
-int TransferServer::getNumTransmits(void) {
-	return xmits.fetch_add(0);
-}
-
 void TransferServer::handle_connection(tcp::socket sock) {
+    using namespace std::placeholders;
 	for (;;) {
 		asio::error_code error;
 		uint16_t version;
@@ -40,12 +37,16 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		}
 		// TODO: implement proto handlers based on type
 		switch (type) {
-			case (WRITE_BLOCK):
-				processWriteRequest(sock);
-				break;
-			case (READ_BLOCK):
-				processReadRequest(sock);
-				break;
+			case (WRITE_BLOCK): {
+                std::function <void(TransferServer&, tcp::socket&)> writeFn = &TransferServer::processWriteRequest;
+                synchronize(writeFn, sock);
+            }
+            break;
+			case (READ_BLOCK): {
+                std::function <void(TransferServer&, tcp::socket&)> readFn = &TransferServer::processReadRequest;
+                synchronize(readFn, sock);
+            }
+            break;
 			case (READ_METADATA):
 				ERROR_AND_RETURN("Handler for read-metadata not written yet.");
 			case (REPLACE_BLOCK):
@@ -74,13 +75,11 @@ void TransferServer::handle_connection(tcp::socket sock) {
 }
 
 void TransferServer::processWriteRequest(tcp::socket& sock) {
-	xmits++;
 	OpWriteBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a write block proto";
 		LOG(INFO) << proto.DebugString();
 	} else {
-		xmits--;
 		ERROR_AND_RETURN("Failed to op the write block proto.");
 	}
 	std::string response_string;
@@ -103,7 +102,6 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
-		xmits--;
 		ERROR_AND_RETURN("Could not send response to client");
 	}
 
@@ -160,8 +158,6 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 
 	LOG(INFO) << "Wait for acks to finish. ";
 	ackThread.join();
-
-	xmits--;
 }
 
 void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
@@ -190,13 +186,11 @@ void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<P
 }
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
-	xmits++;
 
 	OpReadBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a read block proto" << std::endl << proto.DebugString();
 	} else {
-		xmits--;
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
 	std::string response_string;
@@ -205,7 +199,6 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
-		xmits--;
 		ERROR_AND_RETURN("Could not send BlockOpResponseProto in read request.");
 	}
 
@@ -262,8 +255,6 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 			LOG(ERROR) << "Could not send final packet to client";
 		}
 	}
-
-	xmits--;
 }
 
 // Write the final 0-payload packet to the client, and return whether
@@ -303,4 +294,10 @@ void TransferServer::serve(asio::io_service& io_service) {
 		a.accept(sock);
 		std::thread(&TransferServer::handle_connection, this, std::move(sock)).detach();
 	}
+}
+
+void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
+    dn.incrementNumXmits();
+    f(*this, sock);
+    dn.decrementNumXmits();
 }

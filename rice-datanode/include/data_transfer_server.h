@@ -5,7 +5,6 @@
 
 #include <datatransfer.pb.h>
 #include <queue>
-#include <atomic>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -42,10 +41,9 @@ class TransferServer {
 		int getNumTransmits(void);
 
 	private:
-		std::atomic<int> xmits;
 		int port;
-		nativefs::NativeFS fs;
-		zkclient::ZkClientDn dn;
+		nativefs::NativeFS& fs;
+		zkclient::ZkClientDn& dn;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
 		void handle_connection(tcp::socket sock);
@@ -57,7 +55,8 @@ class TransferServer {
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>
 		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);
-};
+        void synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock);
+    };
 
 // Templated method to be generic across any asio buffer type.
 template <typename BufType>
