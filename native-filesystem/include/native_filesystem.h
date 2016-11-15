@@ -17,7 +17,7 @@ namespace nativefs {
 		uint32_t len;
 	} block_info;
 
-	const size_t MIN_BLOCK_POWER = 24;
+	const size_t MIN_BLOCK_POWER = 13;
 	const size_t MAX_BLOCK_POWER = 27;
 	constexpr size_t MIN_BLOCK_SIZE = 1 << MIN_BLOCK_POWER;
 	constexpr size_t MAX_BLOCK_SIZE = 1 << MAX_BLOCK_POWER;
@@ -34,6 +34,7 @@ class NativeFS{
 	public:
 		NativeFS(std::string);
 		NativeFS(NativeFS& other);
+		~NativeFS();
 		bool writeBlock(uint64_t, std::string);
 		std::string getBlock(uint64_t, bool&);
 		bool rmBlock(uint64_t);
@@ -50,7 +51,7 @@ class NativeFS{
 		void flushBlocks();
         void printFreeBlocks();
 
-		std::array<block_info, BLOCK_LIST_LEN> blocks;
+		block_info* blocks;
 		mutable std::mutex listMtx;
 		std::vector<std::vector<uint64_t>> freeLists;
 		std::ofstream disk_out;
