@@ -24,7 +24,6 @@ bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsign
 }
 
 void TransferServer::handle_connection(tcp::socket sock) {
-    using namespace std::placeholders;
 	for (;;) {
 		asio::error_code error;
 		uint16_t version;

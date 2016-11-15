@@ -38,7 +38,6 @@ class TransferServer {
 	public:
 		TransferServer(int port, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn);
 		void serve(asio::io_service& io_service);
-		int getNumTransmits(void);
 
 	private:
 		int port;
