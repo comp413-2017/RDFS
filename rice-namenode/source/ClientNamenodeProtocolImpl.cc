@@ -91,7 +91,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
 	else {
-		throw GetErrorRPCHeader("Could not create file", "IOException");
+		throw GetErrorRPCHeader("Could not create file", "");
 	}
     return Serialize(res);
 }
@@ -193,8 +193,24 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
 		SetPermissionResponseProto res;
-			return Serialize(res);
+		return Serialize(res);
 }
+
+
+/**
+ * While we expect clients to renew their lease, we should never allow
+ * a client to "recover" a lease, since we only allow a write-once system
+ */ 
+std::string ClientNamenodeTranslator::recoverLease(std::string input) {
+	RecoverLeaseRequestProto req;
+	req.ParseFromString(input);
+	logMessage(req, "RecoverLease ");
+	RecoverLeaseResponseProto res;
+	// just tell the client they could not recover the lease, so they won't try and write
+	res.set_result(false);
+	return Serialize(res);
+}
+
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
  * When asked to do an unsupported command, we'll be returning a
@@ -331,9 +347,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	//TODO - what is this function for? Do we still need it??
 	server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
-	//server.register_handler("append", std::bind(&ClientNamenodeTranslator::append, this, _1));
-	//server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
-	//server.register_handler("concat", std::bind(&ClientNamenodeTranslator::concat, this, _1));
+	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
 	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
 
 }

@@ -404,17 +404,19 @@ namespace zkclient{
      */
     bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
        	LOG(INFO) << "mkdir_helper called with input " << path; 
-		if (create_parent) {
-            std::vector<std::string> split_path;
+	if (create_parent) {
+	    std::vector<std::string> split_path;
             boost::split(split_path, path, boost::is_any_of("/"));
             bool not_exist = false;
             std::string unroll;
             std::string p_path = "";
-            for (int i = 1; i < split_path.size(); i++) {
+            // Start at index 1 because it includes "/" as the first element 
+	    // in the array when we do NOT want that
+	    for (int i = 1; i < split_path.size(); i++) {
                 p_path += "/" + split_path[i];
                 LOG(INFO) << "[in mkdir_helper] " << p_path;
-				if (!file_exists(p_path)) {
-                    // keep track of the path where we start creating directories
+		if (!file_exists(p_path)) {
+		    // keep track of the path where we start creating directories
                     if (not_exist == false) {
                         unroll = p_path;
                     }
@@ -425,11 +427,10 @@ namespace zkclient{
                     if ((error = create_file_znode(p_path, &znode_data))) {
                         // TODO unroll the created directories
                         //return false;
-                    	
-					}
-                } else {
-					LOG(INFO) << "mkdir_helper is trying to create";
-				}
+                    }
+		} else {
+			LOG(INFO) << "mkdir_helper is trying to create";
+		}
             }
         }
         else {

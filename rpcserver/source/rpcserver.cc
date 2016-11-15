@@ -153,11 +153,11 @@ void RPCServer::handle_rpc(tcp::socket sock) {
             // requested command (for example, see ClientNamenodeProtocolImpl)  using
             // the dispatch table failed. As such, all we must send is a 
             // header that specifices no handler method for this command was found.
-            LOG(INFO) << CLASS_NAME <<  "\n\n\n\n\n\nno handler found for " << request_header.methodname();
+            LOG(INFO) << CLASS_NAME <<  "\n NO HANDLER FOUND FOR " << request_header.methodname();
             hadoop::common::RpcResponseHeaderProto response_header;
             response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
             response_header.set_errormsg("No handler found for requested command");
-            response_header.set_exceptionclassname("TODO - exception classname.");
+            response_header.set_exceptionclassname("");
             response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_NO_SUCH_METHOD);
 
             LOG(INFO) << CLASS_NAME << "Returning error rpc header to client since no handler found";
