@@ -73,7 +73,6 @@ public:
 
     /**
     * Informs Zookeeper when the DataNode has deleted a block. 
-    * Puts a watch on the datanode's delete work queue
     * @param uuid The UUID of the block deleted by the DataNode.
     * @param size_bytes The number of bytes in the block
     * @return True on success, false on error.

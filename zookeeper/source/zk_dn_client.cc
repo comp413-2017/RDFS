@@ -128,13 +128,11 @@ namespace zkclient{
 
 		bool deleted_correctly = true;
 
-		// TODO: Put a watcher on get_children(“/work_queues/delete/<datanode_id>/"")
-
 		// Delete block locations
 		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
-				if(!zk->recursive_delete(BLOCK_LOCATIONS + std::to_string(uuid), error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /block_locations/<block_uuid> and children " << error_code;
+				if(!zk->delete_node(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /block_locations/<block_uuid> " << error_code;
 					deleted_correctly = false;
 				}
 			}
@@ -148,14 +146,6 @@ namespace zkclient{
 					deleted_correctly = false;
 				}
 			}
-		}
-
-		// If everything deleted correctly, remove from work queue
-		if (deleted_correctly) {
-			if(!zk->recursive_delete(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), error_code)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed deleting wait_for_acks/<block_uuid> and children " << error_code;
-				deleted_correctly = false;
-			}	
 		}
 
 		return deleted_correctly;
@@ -232,6 +222,10 @@ namespace zkclient{
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Replication watcher triggered on path: " << path;
 	}
+
+	// Get children and for each of them delete it from raw disk IO (call delete block) and and say block deleted
+	// and then re-attach watcher. Before need to call get children agian and see if there are more delete commands
+	// Make sure to delete actual work item from queue 
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Delete watcher triggered on path: " << path;
 	}
