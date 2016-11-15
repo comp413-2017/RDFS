@@ -27,6 +27,15 @@ typedef struct
 } DataNodeZNode;
 
 /**
+* A struct used to write the number of bytes in a block (and
+* maybe other block-related things in the future) to a ZNode
+*/
+typedef struct
+{
+	uint64_t block_size; // size of the block in bytes
+}BlockZNode;
+
+/**
 * Class representing a Zookeeper-DataNode client.
 * Allows a DataNode to update the state of ZK.
 */
@@ -57,9 +66,10 @@ public:
 	* Informs Zookeeper when the DataNode has received a block. Adds an acknowledgment
 	* and creates a node for the DN in the block's block_locations.
 	* @param uuid The UUID of the block received by the DataNode.
+	* @param size_bytes The number of bytes in the block
 	* @return True on success, false on error.
 	*/
-    bool blockReceived(uint64_t uuid);
+    bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
 
 private:
@@ -75,6 +85,17 @@ private:
     DataNodePayload data_node_payload;
 
     static const std::string CLASS_NAME;
+
+    /**
+    * Sets up the work queue for this datanode in zookeeper, and sets the watcher
+    * on that queue.  To be used for replication and deletion queues
+    * @param queueName the name of the queue, i.e. replication or deletion
+    * @param watchFuncPtr the watcher function to be used on the queue
+    */
+    void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+
+    static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+    static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 };
 
 }

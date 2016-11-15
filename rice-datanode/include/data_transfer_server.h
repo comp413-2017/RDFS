@@ -1,6 +1,7 @@
 #include <functional>
 
 #include <asio.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 
 #include <datatransfer.pb.h>
 #include <queue>
@@ -51,7 +52,7 @@ class TransferServer {
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
 		void buildBlockOpResponse(std::string& response_string);
-		void ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue);
+		void ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue);
 
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>

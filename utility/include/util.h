@@ -18,5 +18,27 @@ namespace util {
         auto bytes = boost::uuids::random_generator()();
         memcpy((&uuid), &bytes, sizeof(std::uint64_t));
     }
+
+    /**
+     * Safely concatenates two path strings
+     * @param str1
+     * @param str2
+     * @return the concatenation of str1 and str2
+     */
+    inline std::string concat_path(const std::string& str1, const std::string& str2){
+        std::string new_path = str1;
+
+        if (str1.back() != '/' && str2.at(0) != '/'){
+            new_path += "/";
+        }
+        else if (str1.back() == '/' &&  str2.at(0) == '/'){
+            new_path = str1.substr(0, str1.size() - 1);
+        }
+        new_path += str2;
+        if (new_path.at(new_path.length() - 1) == '/'){
+            new_path.at(new_path.length() - 1) = '\0';
+        }
+        return new_path;
+    }
 }
 #endif //RICE_HDFS_UTIL_H

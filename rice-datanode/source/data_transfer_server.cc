@@ -1,5 +1,6 @@
 #include <iostream>
 #include <asio.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
 #include <vector>
 
@@ -84,7 +85,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	}
 	std::string response_string;
 	buildBlockOpResponse(response_string);
-	
+
 	const ClientOperationHeaderProto header = proto.header();
 	std::vector<DatanodeInfoProto> targets;
 	for (int i = 0; i < proto.targets_size(); i++) {
@@ -98,19 +99,20 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	uint64_t bytesInBlock = proto.minbytesrcvd();
 	//num bytes sent
 	uint64_t bytesSent = proto.maxbytesrcvd();
-	
+
 	if (rpcserver::write_delimited_proto(sock, response_string)) {
 		LOG(INFO) << "Successfully sent response to client";
 	} else {
 		xmits--;
 		ERROR_AND_RETURN("Could not send response to client");
 	}
-	
+
 	// read packets of block from client
 	bool last_packet = false;
 	std::string block_data;
-	std::queue<PacketHeaderProto> ackQueue;
-	std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue)).detach();
+	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
+	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
+	auto ackThread = std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue));
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -119,32 +121,34 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
 		rpcserver::read_proto(sock, p_head, header_len);
+		LOG(INFO) << "Receigin packet " << p_head.seqno();
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
 		uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
 		std::string checksum (checksum_len, 0);
 		std::string data (data_len, 0);
-		size_t len = sock.read_some(asio::buffer(&checksum[0], checksum_len), error);
-		if (len != checksum_len || error) {
+		error = rpcserver::read_full(sock, asio::buffer(&checksum[0], checksum_len));
+		if (error) {
 			LOG(ERROR) << "Failed to read checksum for packet " << p_head.seqno();
 			break;
 		}
-		len = sock.read_some(asio::buffer(&data[0], data_len), error);
-		if (len != data_len || error) {
+		error = rpcserver::read_full(sock, asio::buffer(&data[0], data_len));
+		if (error) {
 			LOG(ERROR) << "Failed to read packet " << p_head.seqno();
 			break;
 		}
 		if (!last_packet && data_len != 0) {
 			block_data += data;
 		}
-		ackQueue.push(p_head);
+		// Wait free queue will return false on failure to insert element. Keep trying until insert works
+		while (!ackQueue.push(p_head)) {
+		}
 	}
 	
-	LOG(INFO) << "Writing data to disk: " << block_data;
 	if (!fs.writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
-		dn.blockReceived(header.baseheader().block().blockid());
+		dn.blockReceived(header.baseheader().block().blockid(), bytesInBlock);
 	}
 
 
@@ -155,22 +159,25 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	//TODO send packets to targets
 	
 	xmits--;
+
+	LOG(INFO) << "Wait for acks to finish. ";
+	ackThread.join();
 }
 
-void TransferServer::ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue) {
+void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
 	bool last_packet = false;
+	PacketHeaderProto p_head;
 	do {
 		// wait for packets to ack
-		if (ackQueue.empty()) {
+		if (!ackQueue.pop(&p_head)) {
 			continue;
 		}
-		
+
 		// ack packet
-		PacketHeaderProto p_head = ackQueue.front();
-		ackQueue.pop();
 		last_packet = p_head.lastpacketinblock();
 		PipelineAckProto ack;
 		ack.set_seqno(p_head.seqno());
+		LOG(INFO) << "Acking " << p_head.seqno();
 		ack.add_reply(SUCCESS);
 		std::string ack_string;
 		ack.SerializeToString(&ack_string);
@@ -214,7 +221,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (offset > block.size()) {
 		len = 0;
 	}
-	
+
 	uint64_t seq = 0;
 	while (len > 0) {
 		PacketHeaderProto p_head;
@@ -224,10 +231,10 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		// The payload to write can be no more than what fits in the packet, or
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
-		std::string payload = block.substr(offset, payload_size);
 		p_head.set_datalen(payload_size);
+		p_head.set_syncblock(false);
 
-		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
+		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
 			LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
 		} else {
