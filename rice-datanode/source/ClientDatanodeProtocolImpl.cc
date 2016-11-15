@@ -139,6 +139,7 @@ void ClientDatanodeTranslator::InitServer() {
 
 /**
  * Register our rpc handlers with the server
+ * (See rpcserver.cc - it's where these will get called from)
  */
 void ClientDatanodeTranslator::RegisterClientRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
