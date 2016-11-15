@@ -157,11 +157,11 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	//	DataNodes in targets
 	//TODO read in a response (?)
 	//TODO send packets to targets
-	
-	xmits--;
 
 	LOG(INFO) << "Wait for acks to finish. ";
 	ackThread.join();
+
+	xmits--;
 }
 
 void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
