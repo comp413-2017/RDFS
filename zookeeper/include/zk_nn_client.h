@@ -62,7 +62,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * Add block.
 		 */
 		void add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
-
+		/**
+		 * Check if previous addblock operation is complete
+		 * 
+		 */
+		bool previousBlockComplete(uint64_t prev_id);
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls
 		 */
@@ -128,8 +132,6 @@ class ZkNnClient : public ZkClientCommon {
 		 * Try to delete a node and log error if we couldnt and set response to false
 		 */
 		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
-
-        bool destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops);
 
 		/**
 		 * Creates 'num_replicas' many work items for the given 'block_uuid' in

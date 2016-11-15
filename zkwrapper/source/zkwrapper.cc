@@ -449,7 +449,6 @@ bool ZKWrapper::get_children(const std::string &path,
 	for (i = 0; i < stvector.count; i++) {
 		children.push_back(stvector.data[i]);
 	}
-    children.resize(stvector.count);
 	return true;
 }
 
