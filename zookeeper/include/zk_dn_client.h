@@ -85,6 +85,17 @@ private:
     DataNodePayload data_node_payload;
 
     static const std::string CLASS_NAME;
+
+    /**
+    * Sets up the work queue for this datanode in zookeeper, and sets the watcher
+    * on that queue.  To be used for replication and deletion queues
+    * @param queueName the name of the queue, i.e. replication or deletion
+    * @param watchFuncPtr the watcher function to be used on the queue
+    */
+    void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+
+    static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+    static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 };
 
 }

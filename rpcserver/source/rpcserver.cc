@@ -19,10 +19,9 @@ bool RPCServer::receive_handshake(tcp::socket& sock, short* version, short* serv
     // handshake header.
     // Handshake has 7 bytes.
     constexpr size_t handshake_len = 7;
-    asio::error_code error;
     char data[handshake_len];
-    size_t rec_len = sock.read_some(asio::buffer(data, handshake_len), error);
-    if (!error && rec_len == handshake_len) {
+    asio::error_code error = read_full(sock, asio::buffer(data, handshake_len));
+    if (!error) {
         // First 4 bytes are 'hrpc'
         if (data[0] == 'h' && data[1] == 'r' && data[2] == 'p' && data[3] == 'c') {
             *version = data[4];
@@ -31,7 +30,7 @@ bool RPCServer::receive_handshake(tcp::socket& sock, short* version, short* serv
             return true;
         }
     } else {
-        LOG(ERROR) << CLASS_NAME <<  "Received " << rec_len << " bytes and expected 7, error code " << error << ".";
+        LOG(ERROR) << CLASS_NAME <<  "Handshake receipt error code " << error << ".";
     }
     return false;
 }
@@ -109,8 +108,8 @@ void RPCServer::handle_rpc(tcp::socket sock) {
         }
         LOG(INFO) << CLASS_NAME <<  "request length=" << request_len;
         std::string request(request_len, 0);
-        size_t rcv_len = sock.read_some(asio::buffer(&request[0], request_len), error);
-        if (rcv_len != request_len || error) {
+        error = read_full(sock, asio::buffer(&request[0], request_len));
+        if (error) {
             ERROR_AND_RETURN("Failed to receive request.");
         }
         auto iter = dispatch_table.find(request_header.methodname());

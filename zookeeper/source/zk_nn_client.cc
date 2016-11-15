@@ -440,77 +440,79 @@ namespace zkclient{
         }
         return true;
     }
-
     void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 
-        int error_code;
+	int error_code;
 
-        const std::string &src = req.src();
-        const std::string zk_path = ZookeeperPath(src);
+	const std::string &src = req.src();
+	const std::string zk_path = ZookeeperPath(src);
 
-        google::protobuf::uint64 offset = req.offset();
-        google::protobuf::uint64 length = req.length();
+	google::protobuf::uint64 offset = req.offset();
+	google::protobuf::uint64 length = req.length();
 
-        LocatedBlocksProto* blocks = res.mutable_locations();
+	LocatedBlocksProto* blocks = res.mutable_locations();
 
-        FileZNode znode_data;
-        read_file_znode(znode_data, src);
+	FileZNode znode_data;
+	read_file_znode(znode_data, src);
 
-        blocks->set_underconstruction(false);
-        blocks->set_islastblockcomplete(true);
-        blocks->set_filelength(znode_data.length);
+	blocks->set_underconstruction(false);
+	blocks->set_islastblockcomplete(true);
+	blocks->set_filelength(znode_data.length);
 
-        uint64_t block_size = znode_data.blocksize;
+	uint64_t block_size = znode_data.blocksize;
 
-        LOG(INFO) << CLASS_NAME << "Block size of " << zk_path << " is " << block_size;
+	LOG(INFO) << CLASS_NAME << "Block size of " << zk_path << " is " << block_size;
 
-        auto sorted_blocks = std::vector<std::string>();
+	auto sorted_blocks = std::vector<std::string>();
 
-        // TODO: Make more efficient
-        if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
-            LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
-        }
-        uint64_t size = 0;
-        for (auto sorted_block : sorted_blocks) {
-            LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;
-            if (size > offset + length) {
-                // at this point the start of the block is at a higher offset than the segment we want
-                LOG(INFO) << CLASS_NAME << "Breaking at block " << sorted_block;
-                break;
-            }
-            if (size + block_size >= offset) {
-                auto data = std::vector<uint8_t>();
-                if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
-                    LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
-                    return; // TODO: Signal error
-                }
-                uint64_t block_id = *(uint64_t *)(&data[0]);
-                LOG(INFO) << CLASS_NAME << "Found block " << block_id << " for " << zk_path;
+	// TODO: Make more efficient
+	if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
+		LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
+	}
 
-                // TODO: This block of code should be moved to a function, repeated with add_block
-                LocatedBlockProto* located_block = blocks->add_blocks();
-                located_block->set_corrupt(0);
-                located_block->set_offset(size); // TODO: This offset may be incorrect
+	std::sort(sorted_blocks.begin(), sorted_blocks.end());
 
-                buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
+	uint64_t size = 0;
+	for (auto sorted_block : sorted_blocks) {
+		LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;
+		if (size > offset + length) {
+			// at this point the start of the block is at a higher offset than the segment we want
+			LOG(INFO) << CLASS_NAME << "Breaking at block " << sorted_block;
+			break;
+		}
+		if (size + block_size >= offset) {
+			auto data = std::vector<uint8_t>();
+			if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
+				LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
+				return; // TODO: Signal error
+			}
+			uint64_t block_id = *(uint64_t *)(&data[0]);
+			LOG(INFO) << CLASS_NAME << "Found block " << block_id << " for " << zk_path;
 
-                auto data_nodes = std::vector<std::string>();
+			// TODO: This block of code should be moved to a function, repeated with add_block
+			LocatedBlockProto* located_block = blocks->add_blocks();
+			located_block->set_corrupt(0);
+			located_block->set_offset(size); // TODO: This offset may be incorrect
 
-                LOG(INFO) << CLASS_NAME << "Getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id);
+			buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
-                if (!zk->get_children("/block_locations/" + std::to_string(block_id), data_nodes, error_code)) {
-                    LOG(ERROR) << CLASS_NAME << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
-                }
+			auto data_nodes = std::vector<std::string>();
 
-                LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
+			LOG(INFO) << CLASS_NAME << "Getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id);
 
-                for (auto data_node :data_nodes) {
-                    buildDatanodeInfoProto(located_block->add_locs(), data_node);
-                }
-                buildTokenProto(located_block->mutable_blocktoken());
-            }
-            size += block_size;
-        }
+			if (!zk->get_children("/block_locations/" + std::to_string(block_id), data_nodes, error_code)) {
+			    LOG(ERROR) << CLASS_NAME << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
+			}
+
+			LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
+
+			for (auto data_node :data_nodes) {
+			    buildDatanodeInfoProto(located_block->add_locs(), data_node);
+			}
+			buildTokenProto(located_block->mutable_blocktoken());
+	    	}
+		size += block_size;
+	}
     }
 
 
