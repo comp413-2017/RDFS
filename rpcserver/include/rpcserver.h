@@ -3,6 +3,20 @@
 
 #include <asio.hpp>
 
+#include <iostream>
+#include <asio.hpp>
+#include <thread>
+
+#include <RpcHeader.pb.h>
+#include <ProtobufRpcEngine.pb.h>
+#include <IpcConnectionContext.pb.h>
+
+#include <easylogging++.h>
+
+#include <google/protobuf/io/coded_stream.h>
+#include "socket_writes.h"
+#include "socket_reads.h"
+
 #pragma once
 
 using asio::ip::tcp;
@@ -52,6 +66,17 @@ class RPCServer {
 		 * Handle a single RPC connection: it only returns when the client disconnects.
 		 */
 		void handle_rpc(tcp::socket sock);
+		/**
+ 		* Helper function to send an error response header - it's used either if there
+		* is an error inside a command's handler, or if there isn't a handler for the 
+		* requested command (meaning it's unsupported)
+ 		* True if successful, false on failure
+		*/
+		bool send_error_header(
+			hadoop::common::RpcRequestHeaderProto rpc_request_header, 
+			hadoop::common::RpcResponseHeaderProto response_header,
+			std::string response_header_str,
+			tcp::socket& sock);
 
 		// **RPCSserver**
 		static const std::string CLASS_NAME;

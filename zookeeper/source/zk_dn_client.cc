@@ -97,7 +97,7 @@ namespace zkclient{
 
 				// Add this datanode as the block's location in block_locations
 				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<block_id> " << error_code;
+					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<datanode_id> " << error_code;
 					created_correctly = false;
 				}
 			}
@@ -203,5 +203,12 @@ namespace zkclient{
 		return data_node_id.ip + ":" + std::to_string(data_node_id.ipcPort);
 	}
 
+	void ZkClientDn::incrementNumXmits(){
+		xmits++;
+	}
+
+	void ZkClientDn::decrementNumXmits(){
+		xmits--;
+	}
 }
 #endif //RDFS_ZK_CLIENT_DN_H
