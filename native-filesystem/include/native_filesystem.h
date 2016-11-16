@@ -90,6 +90,11 @@ class NativeFS{
 		 */
 		void printFreeBlocks();
 
+        /**
+         * For debugging, print the known blocks.
+         */
+		void printKnownBlocks();
+
 		block_info* blocks;
 		mutable std::mutex listMtx;
 		std::vector<std::vector<uint64_t>> freeLists;

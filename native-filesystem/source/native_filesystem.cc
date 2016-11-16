@@ -121,12 +121,23 @@ namespace nativefs {
 	}
 
 	void NativeFS::printFreeBlocks() {
+        LOG(INFO) << "Free blocks:";
 		for (int i = 0; i < freeLists.size(); i++) {
 			std::cout << "BLOCKS " << i << ": ";
 			for (auto offset: freeLists[i]) {
 				std::cout << offset << ",";
 			}
 			std::cout << std::endl;
+		}
+	}
+
+	void NativeFS::printKnownBlocks() {
+        LOG(INFO) << "Known blocks:";
+		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+			if (blocks[i].len != 0) {
+				auto info = blocks[i];
+				LOG(INFO) << "Found block: " << info.blockid << " at " << info.offset << " with len " << info.len;
+			}
 		}
 	}
 
@@ -138,7 +149,7 @@ namespace nativefs {
 			LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
 			return false;
 		}
-		auto freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
+		auto& freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
 		if (freeBlocks.empty()) {
 			bool success =  allocateBlock(size * 2, offset);
 			// If successful, split the allocated block in half.

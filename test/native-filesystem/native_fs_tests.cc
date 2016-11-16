@@ -17,6 +17,7 @@ protected:
 	NativeFS filesystem;
 };
 
+// TODO: Test writing and getting multiple blocks
 
 TEST_F(NativeFSTest, CanWriteBlock) {
 	ASSERT_EQ(true, filesystem.writeBlock(1, blk));
