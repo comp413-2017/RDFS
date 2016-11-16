@@ -296,14 +296,14 @@ void TransferServer::serve(asio::io_service& io_service) {
 }
 
 void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
-  std::unique_lock<std::mutex> lk(m);
-  while (dn->getNumXmits() >= max_xmits){
-      cv.wait(lk);
-  }
+	std::unique_lock<std::mutex> lk(m);
+	while (dn->getNumXmits() >= max_xmits){
+		cv.wait(lk);
+	}
 	dn->incrementNumXmits();
-  LOG(INFO) << "**********" << "num xmits is " << dn->getNumXmits();
-  lk.unlock();
-  f(*this, sock);
+	LOG(INFO) << "**********" << "num xmits is " << dn->getNumXmits();
+	lk.unlock();
+	f(*this, sock);
 	dn->decrementNumXmits();
-  cv.notify_one();
+	cv.notify_one();
 }
