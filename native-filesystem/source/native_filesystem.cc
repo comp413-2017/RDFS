@@ -73,17 +73,18 @@ namespace nativefs {
 		freeRange(0, blocks[0].offset);
 		// Add free space between blocks.
 		for (int i = 0; i < BLOCK_LIST_LEN - 1; i++) {
-            if (blocks[i].offset + blocks[i].len == blocks[i+1].offset) {
-                continue;
-            }
+			if (blocks[i].offset + blocks[i].len == blocks[i+1].offset) {
+				continue;
+			}
 			freeRange(blocks[i].offset + blocks[i].len, blocks[i+1].offset);
 		}
 		// Add free space between the last block and the end of disk.
 		freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].len, DISK_SIZE);
-        // printFreeBlocks();
+		// printFreeBlocks();
 	}
 
 	NativeFS::~NativeFS() {
+		flushBlocks();
 		delete[] blocks;
 	}
 
@@ -100,56 +101,56 @@ namespace nativefs {
 		end = std::max(start, std::min(end, DISK_SIZE));
 		// Fill in with the largest blocks possible until no more fit.
 
-        // If the block is larger than max block size, then split it up into blocks of max size.
-        if (end - start > MAX_BLOCK_SIZE) {
-            size_t i = start;
-            for (; i + MAX_BLOCK_SIZE < end; i+= MAX_BLOCK_SIZE) {
-                freeRange(i, i + MAX_BLOCK_SIZE);
-            }
-            freeRange(i, end);
-        // Otherwise, recursively divide into the largest possible blocks
-        } else {
-            while ((end - start) >= MIN_BLOCK_SIZE) {
-                size_t fit = powerdown(end - start);
-                size_t idx = fit - MIN_BLOCK_POWER;
-                uint64_t offset = start;
-                freeLists[idx].push_back(offset);
-                start += std::pow(2, fit);
-            }
-        }
+		// If the block is larger than max block size, then split it up into blocks of max size.
+		if (end - start > MAX_BLOCK_SIZE) {
+			size_t i = start;
+			for (; i + MAX_BLOCK_SIZE < end; i+= MAX_BLOCK_SIZE) {
+				freeRange(i, i + MAX_BLOCK_SIZE);
+			}
+			freeRange(i, end);
+			// Otherwise, recursively divide into the largest possible blocks
+		} else {
+			while ((end - start) >= MIN_BLOCK_SIZE) {
+				size_t fit = powerdown(end - start);
+				size_t idx = fit - MIN_BLOCK_POWER;
+				uint64_t offset = start;
+				freeLists[idx].push_back(offset);
+				start += std::pow(2, fit);
+			}
+		}
 	}
 
-    void NativeFS::printFreeBlocks() {
-        for (int i = 0; i < freeLists.size(); i++) {
-            std::cout << "BLOCKS " << i << ": ";
-            for (auto offset: freeLists[i]) {
-                std::cout << offset << ",";
-            }
-            std::cout << std::endl;
-        }
-    }
+	void NativeFS::printFreeBlocks() {
+		for (int i = 0; i < freeLists.size(); i++) {
+			std::cout << "BLOCKS " << i << ": ";
+			for (auto offset: freeLists[i]) {
+				std::cout << offset << ",";
+			}
+			std::cout << std::endl;
+		}
+	}
 
 	bool NativeFS::allocateBlock(size_t size, uint64_t& offset) {
 		// We cannot allocate a block smaller than MIN_BLOCK_SIZE.
 		size = std::max(MIN_BLOCK_SIZE, size);
 		size_t ceiling = powerup(size);
-        if (ceiling > MAX_BLOCK_POWER) {
-            LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
-            return false;
-        }
-        auto freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
-        if (freeBlocks.empty()) {
-            bool success =  allocateBlock(size * 2, offset);
-            // If successful, split the allocated block in half.
-            if (success) {
-                freeBlocks.push_back(offset + (std::pow(2, ceiling)));
-            }
-            return success;
-        } else {
-            offset = freeBlocks[freeBlocks.size() - 1];
-            freeBlocks.pop_back();
-            return true;
-        }
+		if (ceiling > MAX_BLOCK_POWER) {
+			LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
+			return false;
+		}
+		auto freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
+		if (freeBlocks.empty()) {
+			bool success =  allocateBlock(size * 2, offset);
+			// If successful, split the allocated block in half.
+			if (success) {
+				freeBlocks.push_back(offset + (std::pow(2, ceiling)));
+			}
+			return success;
+		} else {
+			offset = freeBlocks[freeBlocks.size() - 1];
+			freeBlocks.pop_back();
+			return true;
+		}
 
 	}
 
@@ -181,10 +182,10 @@ namespace nativefs {
 			case 0:
 				flushBlocks();
 				break;
-			case 1: 
+			case 1:
 				LOG(ERROR) << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
 				return false;
-			case 2: 
+			case 2:
 				LOG(ERROR) << "Block wih id " << info.blockid << " already exists on this DataNode";
 				return false;
 		}
@@ -195,7 +196,7 @@ namespace nativefs {
 
 	/**
 	 * Returns 0 on success, 1 if no space, 2 if already exists
-	 */ 
+	 */
 	int NativeFS::addBlock(const block_info& info) {
 		// Make sure this block doesn't already exist on this datanode
 		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
@@ -207,10 +208,10 @@ namespace nativefs {
 		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len == 0) {
 				blocks[i] = info;
-				return 1;
+				return 0;
 			}
 		}
-		return 0;
+		return 1;
 	}
 
 	/**
@@ -235,6 +236,7 @@ namespace nativefs {
 				return "";
 			}
 		}
+		LOG(INFO) << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
 		std::string data(info.len, 0);
 		disk_in.seekg(info.offset);
 		disk_in.read(&data[0], info.len);
