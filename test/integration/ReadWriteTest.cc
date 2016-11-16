@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
 	// NOTE: You'll need to scroll up a bit to see the test results
 
 	// Remove test files and shutdown zookeeper
+	system("~/zookeeper/bin/zkCli.sh rmr /testing");
 	system("rm -f expected_testfile1234 actual_testfile* temp* block*");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
