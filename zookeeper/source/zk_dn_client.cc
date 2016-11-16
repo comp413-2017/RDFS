@@ -211,8 +211,8 @@ namespace zkclient{
 		xmits--;
 	}
 
-    int ZkClientDn::getNumXmits(){
-        return xmits.fetch_add(0);
-    }
+  int ZkClientDn::getNumXmits(){
+      return xmits.fetch_add(0);
+  }
 }
 #endif //RDFS_ZK_CLIENT_DN_H

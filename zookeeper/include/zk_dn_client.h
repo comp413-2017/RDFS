@@ -76,7 +76,7 @@ public:
 
 	void decrementNumXmits();
 
-    int getNumXmits();
+  int getNumXmits();
 
 private:
 
@@ -90,6 +90,7 @@ private:
     DataNodeId data_node_id;
     DataNodePayload data_node_payload;
     std::atomic_int xmits{0};
+
     static const std::string CLASS_NAME;
 
     /**
