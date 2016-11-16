@@ -202,33 +202,28 @@ namespace zkclient{
 		int error_code;
 
 		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
-		thisDn->helloWorld();
+		thisDn->processReplQueue(path);
 	}
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Delete watcher triggered on path: " << path;
 	}
-	void ZkClientDn::helloWorld(){
-		std::string queueName = REPLICATE_QUEUES_NO_BACKSLASH;
+	void ZkClientDn::processReplQueue(std::string path){
                 int error_code;
                 bool exists;
-		LOG(INFO) << "This solution seems like it worked";
-		if (zk->exists(queueName, exists, error_code)){
-                        if (!exists){
-                                LOG(INFO) << "doesn't exist, trying to make it";
-                                if (!zk->create(queueName, ZKWrapper::EMPTY_VECTOR, error_code, false)){
-                                        LOG(INFO) << "Creation failed";
-                                }
-                        }
-			else{
-				LOG(INFO) << "Found our queue";
-			}
-                }
-
 		std::string peeked;
-		if(peek(zk, queueName, peeked, error_code)){
-			LOG(INFO) << "Queue peek success!";
-		}else{
-			LOG(INFO) << "Failed to peek queue!";
+		std::vector<uint8_t> queue_vec(1); //TODO: Size?
+
+		LOG(INFO) << "In process repl queue";
+
+		peek(zk, path, peeked, error_code);
+		while(peeked != path){
+			LOG(INFO) << "Found queue item";
+			if(pop(zk, path, queue_vec, error_code)){
+				LOG(INFO) << "Popped node w/ block id: " + std::to_string(queue_vec[0]);
+			}else{
+				LOG(INFO) << "Error popping from queue while processing Replication Queue";
+			}
+			peek(zk, path, peeked, error_code);
 		}
 	}
 
