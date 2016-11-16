@@ -176,26 +176,41 @@ namespace nativefs {
 		info.offset = offset;
 		info.len = len;
 
-		listMtx.lock();
-		if (!addBlock(info)) {
-			LOG(ERROR) << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
-		} else {
-			flushBlocks();
+		std::lock_guard<std::mutex> lock(listMtx);
+		switch (addBlock(info)) {
+			case 0:
+				flushBlocks();
+				break;
+			case 1: 
+				LOG(ERROR) << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+				return false;
+			case 2: 
+				LOG(ERROR) << "Block wih id " << info.blockid << " already exists on this DataNode";
+				return false;
 		}
-		listMtx.unlock();
 
 		return true;
 
 	}
 
-	bool NativeFS::addBlock(const block_info& info) {
+	/**
+	 * Returns 0 on success, 1 if no space, 2 if already exists
+	 */ 
+	int NativeFS::addBlock(const block_info& info) {
+		// Make sure this block doesn't already exist on this datanode
+		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+			if (blocks[i].blockid == info.blockid) {
+				return 2;
+			}
+		}
+		// Instead block_info into array
 		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len == 0) {
 				blocks[i] = info;
-				return true;
+				return 1;
 			}
 		}
-		return false;
+		return 0;
 	}
 
 	/**

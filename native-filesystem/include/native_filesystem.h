@@ -72,10 +72,10 @@ class NativeFS{
 
 	private:
 		/**
-		 * Attempt to place provided block info in the block list. Return
-		 * whether successful, false if no empty space found in the block list.
+		 * Attempt to place provided block info in the block list. Returns 
+		 * 0 on success, 1 if no space, 2 if already exists
 		 */
-		bool addBlock(const block_info& info);
+		int addBlock(const block_info& info);
 		/**
 		 * Mark the area of disk from start to end as free.
 		 */

@@ -11,7 +11,7 @@ class NativeFSTest : public ::testing::Test {
 		NativeFSTest() : filesystem("NATIVEFSTESTFS") {}
 protected:
 	virtual void SetUp() {
-		blk_id = 0;
+		blk_id = 1;
 		blk = "here's some data to write in the block";
 	}
 	long blk_id;
@@ -24,12 +24,12 @@ TEST_F(NativeFSTest, CanWriteBlock) {
 	ASSERT_EQ(true, filesystem.writeBlock(blk_id, blk));
 }
 
-/*
 TEST_F(NativeFSTest, CanGetBlock) {
-	filesystem.writeBlock(blk_id, blk);
+	bool write_success = filesystem.writeBlock(blk_id, blk);
+	ASSERT_EQ(true, write_success);
 	bool success;
 	std::string newBlock = filesystem.getBlock(blk_id, success);
-	ASSERT_EQ(newBlock[0], blk[0]);
+	ASSERT_EQ(blk[0], newBlock[0]);
 	ASSERT_EQ(success, true);
 }
 
@@ -41,8 +41,6 @@ TEST_F(NativeFSTest, CanRemoveBlock) {
 TEST_F(NativeFSTest, RemoveNonExistBlockReturnsError) {
 	ASSERT_EQ(false, filesystem.rmBlock(blk_id));
 }
- */
-
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
