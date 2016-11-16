@@ -1,8 +1,9 @@
 #include <iostream>
 #include <asio.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
 #include <vector>
-
+#include <functional>
 #include <easylogging++.h>
 
 #include "data_transfer_server.h"
@@ -16,7 +17,7 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
-TransferServer::TransferServer(int p, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn) : port(p), fs(fs), dn(dn) {}
+TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn) : port(port), fs(fs), dn(dn) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -35,12 +36,16 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		}
 		// TODO: implement proto handlers based on type
 		switch (type) {
-			case (WRITE_BLOCK):
-				processWriteRequest(sock);
-				break;
-			case (READ_BLOCK):
-				processReadRequest(sock);
-				break;
+			case (WRITE_BLOCK): {
+				std::function <void(TransferServer&, tcp::socket&)> writeFn = &TransferServer::processWriteRequest;
+				synchronize(writeFn, sock);
+			}
+			break;
+			case (READ_BLOCK): {
+				std::function <void(TransferServer&, tcp::socket&)> readFn = &TransferServer::processReadRequest;
+				synchronize(readFn, sock);
+			}
+			break;
 			case (READ_METADATA):
 				ERROR_AND_RETURN("Handler for read-metadata not written yet.");
 			case (REPLACE_BLOCK):
@@ -102,8 +107,9 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// read packets of block from client
 	bool last_packet = false;
 	std::string block_data;
-	std::queue<PacketHeaderProto> ackQueue;
-	std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue)).detach();
+	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
+	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
+	auto ackThread = std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue));
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -112,29 +118,31 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
 		rpcserver::read_proto(sock, p_head, header_len);
+		LOG(INFO) << "Receigin packet " << p_head.seqno();
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
 		uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
 		std::string checksum (checksum_len, 0);
 		std::string data (data_len, 0);
-		size_t len = sock.read_some(asio::buffer(&checksum[0], checksum_len), error);
-		if (len != checksum_len || error) {
+		error = rpcserver::read_full(sock, asio::buffer(&checksum[0], checksum_len));
+		if (error) {
 			LOG(ERROR) << "Failed to read checksum for packet " << p_head.seqno();
 			break;
 		}
-		len = sock.read_some(asio::buffer(&data[0], data_len), error);
-		if (len != data_len || error) {
+		error = rpcserver::read_full(sock, asio::buffer(&data[0], data_len));
+		if (error) {
 			LOG(ERROR) << "Failed to read packet " << p_head.seqno();
 			break;
 		}
 		if (!last_packet && data_len != 0) {
 			block_data += data;
 		}
-		ackQueue.push(p_head);
+		// Wait free queue will return false on failure to insert element. Keep trying until insert works
+		while (!ackQueue.push(p_head)) {
+		}
 	}
-
-	LOG(INFO) << "Writing data to disk: " << block_data;
-	if (!fs.writeBlock(header.baseheader().block().blockid(), block_data)) {
+	
+	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
 		dn.blockReceived(header.baseheader().block().blockid(), block_data.length());
@@ -146,22 +154,25 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	//	DataNodes in targets
 	//TODO read in a response (?)
 	//TODO send packets to targets
+
+	LOG(INFO) << "Wait for acks to finish. ";
+	ackThread.join();
 }
 
-void TransferServer::ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>& ackQueue) {
+void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
 	bool last_packet = false;
+	PacketHeaderProto p_head;
 	do {
 		// wait for packets to ack
-		if (ackQueue.empty()) {
+		if (!ackQueue.pop(&p_head)) {
 			continue;
 		}
 
 		// ack packet
-		PacketHeaderProto p_head = ackQueue.front();
-		ackQueue.pop();
 		last_packet = p_head.lastpacketinblock();
 		PipelineAckProto ack;
 		ack.set_seqno(p_head.seqno());
+		LOG(INFO) << "Acking " << p_head.seqno();
 		ack.add_reply(SUCCESS);
 		std::string ack_string;
 		ack.SerializeToString(&ack_string);
@@ -174,6 +185,7 @@ void TransferServer::ackPackets(tcp::socket& sock, std::queue<PacketHeaderProto>
 }
 
 void TransferServer::processReadRequest(tcp::socket& sock) {
+
 	OpReadBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(INFO) << "Op a read block proto" << std::endl << proto.DebugString();
@@ -191,7 +203,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 
 	uint64_t blockID = proto.header().baseheader().block().blockid();
 	bool success;
-	std::string block = this->fs.getBlock(blockID, success);
+	std::string block = fs->getBlock(blockID, success);
 	if (!success) {
 		LOG(ERROR) << "Failure on fs.getBlock";
 	}
@@ -211,10 +223,10 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		// The payload to write can be no more than what fits in the packet, or
 		// remaining requested length.
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
-		std::string payload = block.substr(offset, payload_size);
 		p_head.set_datalen(payload_size);
+		p_head.set_syncblock(false);
 
-		if (writePacket(sock, p_head, asio::buffer(&payload[0], payload_size))) {
+		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
 			LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
 		} else {
@@ -281,4 +293,10 @@ void TransferServer::serve(asio::io_service& io_service) {
 		a.accept(sock);
 		std::thread(&TransferServer::handle_connection, this, std::move(sock)).detach();
 	}
+}
+
+void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
+	dn->incrementNumXmits();
+	f(*this, sock);
+	dn->decrementNumXmits();
 }

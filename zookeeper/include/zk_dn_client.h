@@ -2,6 +2,7 @@
 #define RDFS_ZK_CLIENT_DN_H
 
 #include "zk_client_common.h"
+#include <atomic>
 
 namespace zkclient {
 
@@ -71,6 +72,9 @@ public:
 	*/
     bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
+	void incrementNumXmits();
+
+	void decrementNumXmits();
 
 private:
 
@@ -83,8 +87,19 @@ private:
 
     DataNodeId data_node_id;
     DataNodePayload data_node_payload;
-
+    std::atomic_int xmits;
     static const std::string CLASS_NAME;
+
+    /**
+    * Sets up the work queue for this datanode in zookeeper, and sets the watcher
+    * on that queue.  To be used for replication and deletion queues
+    * @param queueName the name of the queue, i.e. replication or deletion
+    * @param watchFuncPtr the watcher function to be used on the queue
+    */
+    void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+
+    static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+    static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 };
 
 }

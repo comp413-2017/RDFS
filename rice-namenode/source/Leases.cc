@@ -84,8 +84,8 @@ void LeaseManager::renewLeases(std::string client) {
 /**
  * Loop through all the leases and return all that are expired 
  */
-std::vector<std::string> LeaseManager::checkLeases(int time) {
-	std::vector<std::string> expiredFiles;
+std::vector<std::pair<std::string, std::string>> LeaseManager::checkLeases(int time) {
+	std::vector<std::pair<std::string, std::string>> expiredFiles;
 	// LOG(INFO) << "Checking leases";
 	// iterate through map, and for each lease, call isExpired() 
 	for (auto x = leases.begin(); x != leases.end(); x++) {
@@ -93,7 +93,7 @@ std::vector<std::string> LeaseManager::checkLeases(int time) {
 		std::vector<Lease> clientLeases = x->second;
 		for (Lease lease : clientLeases) {
 			if (lease.isExpired(time)) {
-				expiredFiles.push_back(lease.getFile());
+				expiredFiles.push_back(std::make_pair(client, lease.getFile()));
 			}
 		}
 	}

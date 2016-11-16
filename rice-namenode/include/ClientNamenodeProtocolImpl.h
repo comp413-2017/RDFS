@@ -2,6 +2,7 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include "hdfs.pb.h"
 #include <google/protobuf/message.h>
+#include <RpcHeader.pb.h>
 #include <rpcserver.h>
 #include <zkwrapper.h>
 #include <ConfigReader.h>
@@ -94,6 +95,12 @@ class ClientNamenodeTranslator {
 		 * Get an int from the config file for our defaults
 		 */
 		int getDefaultInt(std::string);
+
+		/**
+		 * Get an rpc header proto given an error message and exception classname
+		 */
+		hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
+        		std::string exception_classname);
 
         static const int LEASE_CHECK_TIME; 	// in seconds, how often the namenode checks all leases
 
