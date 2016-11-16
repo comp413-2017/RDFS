@@ -52,7 +52,7 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 
 		void get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res);
-		int create_file(CreateRequestProto& request, CreateResponseProto& response);
+		bool create_file(CreateRequestProto& request, CreateResponseProto& response);
 		void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
@@ -61,7 +61,7 @@ class ZkNnClient : public ZkClientCommon {
 		/**
 		 * Add block.
 		 */
-		void add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
+		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
 
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls
@@ -128,6 +128,8 @@ class ZkNnClient : public ZkClientCommon {
 		 * Try to delete a node and log error if we couldnt and set response to false
 		 */
 		void delete_node_wrapper(std::string& path, DeleteResponseProto& response);
+
+        bool destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops);
 
 		/**
 		 * Creates 'num_replicas' many work items for the given 'block_uuid' in
