@@ -3,6 +3,7 @@
 
 #include "zk_dn_client.h"
 #include "zk_lock.h"
+#include "zk_queue.h"
 #include <easylogging++.h>
 
 namespace zkclient{
@@ -160,12 +161,25 @@ namespace zkclient{
 		}
 
 		// Create the work queues, set their watchers
-		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher, id);
-		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher, id);
+		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, id);
+		ZkClientDn::initWorkQueue(DELETE_QUEUES, id);
 
+		// Register the queue watchers for this dn
+		std::vector <std::string> children = std::vector <std::string>();
+		if(!zk->wget_children(REPLICATE_QUEUES + id, children, ZkClientDn::thisDNReplicationQueueWatcher, this, error_code)){
+			LOG(INFO) << "getting children failed";
+		}
+		//if(!zk->wget_children(DELETE_QUEUES + id, children, ZkClientDn::thisDNDeleteQueueWatcher, ZkClientDn, error_code)){
+		//	LOG(INFO) << "getting children failed";
+		//}
+
+                // TODO: For debugging only
+		std::vector <std::uint8_t> replUUID (1);
+		replUUID[0] = 12;
+                push(zk, REPLICATE_QUEUES + id, replUUID, error_code);
 	}
 
-	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id){
+	void ZkClientDn::initWorkQueue(std::string queueName, std::string id){
                 int error_code;
                 bool exists;
 
@@ -180,19 +194,42 @@ namespace zkclient{
                         }
                 }
 
-		// Register the replication watcher for this dn
-		std::vector <std::string> children = std::vector <std::string>();
-		if(!zk->wget_children(queueName + id, children, watchFuncPtr, nullptr, error_code)){
-			LOG(INFO) << "getting children failed";
-		}
-
 	}
 
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
+		LOG(INFO) << "In the replication watcher";
 		LOG(INFO) << "Replication watcher triggered on path: " << path;
+		int error_code;
+
+		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
+		thisDn->helloWorld();
 	}
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Delete watcher triggered on path: " << path;
+	}
+	void ZkClientDn::helloWorld(){
+		std::string queueName = REPLICATE_QUEUES_NO_BACKSLASH;
+                int error_code;
+                bool exists;
+		LOG(INFO) << "This solution seems like it worked";
+		if (zk->exists(queueName, exists, error_code)){
+                        if (!exists){
+                                LOG(INFO) << "doesn't exist, trying to make it";
+                                if (!zk->create(queueName, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+                                        LOG(INFO) << "Creation failed";
+                                }
+                        }
+			else{
+				LOG(INFO) << "Found our queue";
+			}
+                }
+
+		std::string peeked;
+		if(peek(zk, queueName, peeked, error_code)){
+			LOG(INFO) << "Queue peek success!";
+		}else{
+			LOG(INFO) << "Failed to peek queue!";
+		}
 	}
 
 	ZkClientDn::~ZkClientDn() {

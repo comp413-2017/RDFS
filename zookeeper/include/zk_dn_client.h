@@ -96,10 +96,11 @@ private:
     * @param queueName the name of the queue, i.e. replication or deletion
     * @param watchFuncPtr the watcher function to be used on the queue
     */
-    void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+    void initWorkQueue(std::string queueName, std::string id);
 
     static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
     static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+    void helloWorld();
 };
 
 }
