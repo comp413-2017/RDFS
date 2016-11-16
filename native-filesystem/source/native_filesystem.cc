@@ -43,21 +43,15 @@ static void resetBlock(nativefs::block_info& blk) {
 namespace nativefs {
 	const std::string NativeFS::CLASS_NAME = ": **NativeFS** : ";
 
-	NativeFS::NativeFS(NativeFS& other) :
-		freeLists(other.freeLists),
-		blocks(other.blocks),
-		disk_out(std::move(other.disk_out)),
-		disk_in(std::move(other.disk_in)) {}
-
-	NativeFS::NativeFS(std::string fname) : disk_in(fname, std::ios::binary | std::ios::in), disk_out(fname, std::ios::binary | std::ios::out) {
+	NativeFS::NativeFS(std::string fname) : disk(fname, std::ios::binary | std::ios::in | std::ios::out) {
 		// If the magic bytes exist, then load block info from the drive.
-		std::string magic(MAGIC.size(), 0);
+		std::string magic(MAGIC.size(), 'b');
 		blocks = new block_info[BLOCK_LIST_LEN];
-		disk_in.seekg(0);
-		disk_in.read(&magic[0], magic.size());
+		disk.seekg(0);
+		disk.read(&magic[0], magic.size());
 		if (magic == MAGIC) {
 			LOG(INFO) << "Reloading existing block list...";
-			disk_in.read((char *) &blocks[0], BLOCK_LIST_SIZE);
+			disk.read((char *) &blocks[0], BLOCK_LIST_SIZE);
 		} else {
 			LOG(INFO) << "No block list found, constructing from scratch...";
 			std::for_each(&blocks[0], &blocks[BLOCK_LIST_LEN], resetBlock);
@@ -90,10 +84,10 @@ namespace nativefs {
 
 	void NativeFS::flushBlocks() {
 		LOG(INFO) << "Flushing blocks to storage.";
-		disk_out.seekp(0);
-		disk_out.write(&MAGIC[0], MAGIC.size());
-		disk_out.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
-		disk_out.flush();
+		disk.seekp(0);
+		disk.write(&MAGIC[0], MAGIC.size());
+		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
+		disk.flush();
 	}
 
 	void NativeFS::freeRange(uint64_t start, uint64_t end) {
@@ -179,9 +173,9 @@ namespace nativefs {
             }
 		}
 		LOG(INFO) << CLASS_NAME << "Writing block " << id << " to offset " << offset;
-		disk_out.seekp(offset);
-		disk_out << blk;
-		disk_out.flush();
+		disk.seekp(offset);
+		disk << blk;
+		disk.flush();
 
 		block_info info;
 		info.blockid = id;
@@ -249,8 +243,8 @@ namespace nativefs {
 		}
 		LOG(INFO) << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
 		std::string data(info.len, 0);
-		disk_in.seekg(info.offset);
-		disk_in.read(&data[0], info.len);
+		disk.seekg(info.offset);
+		disk.read(&data[0], info.len);
 		success = true;
 		return data;
 	}

@@ -37,11 +37,6 @@ class NativeFS{
 		 */
 		NativeFS(std::string);
 		/**
-		 * Construct a NativeFS by copying fields from other and moving disk
-		 * streams over.
-		 */
-		NativeFS(NativeFS& other);
-		/**
 		 * Destroy NativeFS, free block array.
 		 */
 		~NativeFS();
@@ -90,16 +85,15 @@ class NativeFS{
 		 */
 		void printFreeBlocks();
 
-        /**
-         * For debugging, print the known blocks.
-         */
+		/**
+		 * For debugging, print the known blocks.
+		 */
 		void printKnownBlocks();
 
 		block_info* blocks;
 		mutable std::mutex listMtx;
 		std::vector<std::vector<uint64_t>> freeLists;
-		std::ofstream disk_out;
-		std::ifstream disk_in;
+		std::fstream disk;
 		static const std::string CLASS_NAME;
 
 };
