@@ -3,6 +3,7 @@
 //
 
 #include "zk_queue.h"
+#include "zk_lock.h"
 
 std::string element = "/q-item-";
 
@@ -41,7 +42,10 @@ bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::
 		LOG(ERROR) << "Failed to get children of queue node: " << q_path;
 		return false;
 	}
-	// TODO: Place lock on q_path
+
+	ZKLock q_lock(*zk, q_path);
+	q_lock.lock();
+
 	if (children.size() < 1) {
 		LOG(ERROR) << "Queue is empty, nothing to pop!";
 		// TODO: set a custom error code?
@@ -62,7 +66,8 @@ bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::
 		return false;
 	}
 	LOG(INFO) << "The element '" << peeked_path << "' was popped.";
-	// TODO: remove lock on q_path
+
+	q_lock.unlock();
 
 	return true;
 }
