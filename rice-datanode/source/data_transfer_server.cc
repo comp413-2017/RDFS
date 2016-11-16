@@ -17,7 +17,7 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096;
 
-TransferServer::TransferServer(int p, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn) : port(p), fs(fs), dn(dn) {}
+TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn) : port(port), fs(fs), dn(dn) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -36,16 +36,16 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		}
 		// TODO: implement proto handlers based on type
 		switch (type) {
-			case (WRITE_BLOCK): {
+            case (WRITE_BLOCK): {
                 std::function <void(TransferServer&, tcp::socket&)> writeFn = &TransferServer::processWriteRequest;
                 synchronize(writeFn, sock);
             }
             break;
-			case (READ_BLOCK): {
+            case (READ_BLOCK): {
                 std::function <void(TransferServer&, tcp::socket&)> readFn = &TransferServer::processReadRequest;
                 synchronize(readFn, sock);
             }
-            break;
+			break;
 			case (READ_METADATA):
 				ERROR_AND_RETURN("Handler for read-metadata not written yet.");
 			case (REPLACE_BLOCK):
@@ -142,10 +142,10 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		}
 	}
 	
-	if (!fs.writeBlock(header.baseheader().block().blockid(), block_data)) {
+	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
-		dn.blockReceived(header.baseheader().block().blockid(), bytesInBlock);
+		dn->blockReceived(header.baseheader().block().blockid(), bytesInBlock);
 	}
 
 
@@ -203,7 +203,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 
 	uint64_t blockID = proto.header().baseheader().block().blockid();
 	bool success;
-	std::string block = this->fs.getBlock(blockID, success);
+	std::string block = fs->getBlock(blockID, success);
 	if (!success) {
 		LOG(ERROR) << "Failure on fs.getBlock";
 	}
@@ -296,7 +296,7 @@ void TransferServer::serve(asio::io_service& io_service) {
 }
 
 void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
-    dn.incrementNumXmits();
-    f(*this, sock);
-    dn.decrementNumXmits();
+	dn->incrementNumXmits();
+	f(*this, sock);
+	dn->decrementNumXmits();
 }

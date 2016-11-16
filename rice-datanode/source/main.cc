@@ -31,8 +31,8 @@ int main(int argc, char* argv[]) {
 	if (argc >= 3) {
 		ipcPort = std::atoi(argv[2]);
 	}
-	nativefs::NativeFS fs;
-	zkclient::ZkClientDn dncli("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort); // TODO: Change the datanode id
+	auto fs = std::make_shared<nativefs::NativeFS>();
+    auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
 	TransferServer transfer_server(xferPort, fs, dncli);
 	transfer_server.serve(io_service);
