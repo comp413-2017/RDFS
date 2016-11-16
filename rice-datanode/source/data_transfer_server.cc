@@ -23,12 +23,15 @@ bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsign
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
 }
 
+bool TransferServer::write_header(tcp::socket& sock, uint16_t version, uint8_t type) {
+	return (rpcserver::write_int16(sock, version) && rpcserver::write_byte(sock, type));
+}
+
 void TransferServer::handle_connection(tcp::socket sock) {
 	for (;;) {
 		asio::error_code error;
 		uint16_t version;
 		unsigned char type;
-		uint64_t payload_size;
 		if (receive_header(sock, &version, &type)) {
 			LOG(INFO) << "Got header version=" << version << ", type=" << (int) type;
 		} else {
@@ -148,12 +151,8 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		dn.blockReceived(header.baseheader().block().blockid(), bytesInBlock);
 	}
 
-
-	//TODO set proto source to this DataNode, remove this DataNode from
-	//	the proto targets, and send this proto along to other
-	//	DataNodes in targets
-	//TODO read in a response (?)
-	//TODO send packets to targets
+	// TODO for the two datandoes in the list of datanodes to target that aren't me, put the block
+	// TODO I just wrote onto the replication queue belonging to those two datanodes!
 
 	LOG(INFO) << "Wait for acks to finish. ";
 	ackThread.join();
@@ -299,4 +298,86 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
     dn.incrementNumXmits();
     f(*this, sock);
     dn.decrementNumXmits();
+}
+
+bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
+	LOG(INFO) << " replicating";
+	// connect to the datanode
+	asio::io_service io_service;
+	std::string port = xferport;
+	tcp::resolver resolver(io_service);
+	tcp::resolver::query query(ip, port);
+	tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+
+	tcp::socket sock(io_service);
+	asio::connect(sock, endpoint_iterator);
+
+	// construct the rpc op_read request
+	std::string read_string;
+	OpReadBlockProto read_block_proto;
+	read_block_proto.set_len(len);
+	ClientOperationHeaderProto* header = read_block_proto.mutable_header();
+	header->set_clientname("datanode_replication"); // TODO ??
+
+	BaseHeaderProto base_proto;
+	base_proto.set_allocated_block(&blockToTarget);
+	header->set_allocated_baseheader(&base_proto);
+
+	// send the read request
+	uint16_t version = 1; // TODO what is the version
+	uint8_t read_request = READ_BLOCK;
+	read_block_proto.SerializeToString(&read_string);
+	if (!(write_header(sock, version, read_request) || rpcserver::write_proto(sock, read_string))) {
+		LOG(ERROR) << " could not write the read request to target datanode";
+		return false;
+	}
+
+	// read the read response
+	BlockOpResponseProto read_response;
+	if (!rpcserver::read_proto(sock, read_response, read_response.ByteSize())) {
+		LOG(ERROR) << " could not read the read response from target datanode";
+		return false;
+	}
+	std::string data(len, 0);
+
+	// read in the packets while we still have them, and we haven't processed the final packet
+	int read_len = 0;
+	bool last_packet = false;
+	while (read_len < len && !last_packet) {
+		asio::error_code error;
+		uint32_t payload_len;
+		rpcserver::read_int32(sock, &payload_len);
+		uint16_t header_len;
+		rpcserver::read_int16(sock, &header_len);
+		PacketHeaderProto p_head;
+		rpcserver::read_proto(sock, p_head, header_len);
+		LOG(INFO) << "Receigin packet " << p_head.seqno();
+		// read in the data
+		if (!p_head.lastpacketinblock()) {
+			uint64_t data_len = p_head.datalen();
+			uint64_t seqno = p_head.seqno();
+			uint64_t offset = p_head.offsetinblock();
+			// TODO what is the - 4 going on in the writePAcket in data_transer_server.hh
+			if (!last_packet) {
+				error = rpcserver::read_full(sock, asio::buffer(&data[offset], data_len));
+				if (error) {
+					LOG(ERROR) << "Failed to read packet " << p_head.seqno();
+					break;
+				}
+			}
+			read_len += data_len;
+		} else {
+			last_packet = true;
+		}
+	}
+
+	if (!fs.writeBlock(header->baseheader().block().blockid(), data)) {
+		LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
+	} else {
+		dn.blockReceived(header->baseheader().block().blockid(), read_len);
+	}
+
+	// close the connection
+    sock.close();
+    return true;
 }

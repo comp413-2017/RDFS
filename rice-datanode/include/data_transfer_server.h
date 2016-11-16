@@ -4,6 +4,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include <datatransfer.pb.h>
+#include <hdfs.pb.h>
 #include <queue>
 
 #include "native_filesystem.h"
@@ -38,6 +39,7 @@ class TransferServer {
 	public:
 		TransferServer(int port, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn);
 		void serve(asio::io_service& io_service);
+		bool replicate(DatanodeIDProto datanodeToTarget, ExtendedBlockProto blockToTarget);
 
 	private:
 		int port;
@@ -45,11 +47,13 @@ class TransferServer {
 		zkclient::ZkClientDn& dn;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
+		bool write_header(tcp::socket& sock, uint16_t version, uint8_t type);
 		void handle_connection(tcp::socket sock);
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
 		void buildBlockOpResponse(std::string& response_string);
 		void ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue);
+		bool replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget);
 
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>
