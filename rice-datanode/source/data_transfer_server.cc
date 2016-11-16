@@ -36,16 +36,16 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		}
 		// TODO: implement proto handlers based on type
 		switch (type) {
-            case (WRITE_BLOCK): {
-                std::function <void(TransferServer&, tcp::socket&)> writeFn = &TransferServer::processWriteRequest;
-                synchronize(writeFn, sock);
-            }
-            break;
-            case (READ_BLOCK): {
-                std::function <void(TransferServer&, tcp::socket&)> readFn = &TransferServer::processReadRequest;
-                synchronize(readFn, sock);
-            }
-            break;
+			case (WRITE_BLOCK): {
+				std::function <void(TransferServer&, tcp::socket&)> writeFn = &TransferServer::processWriteRequest;
+				synchronize(writeFn, sock);
+			}
+			break;
+			case (READ_BLOCK): {
+				std::function <void(TransferServer&, tcp::socket&)> readFn = &TransferServer::processReadRequest;
+				synchronize(readFn, sock);
+			}
+			break;
 			case (READ_METADATA):
 				ERROR_AND_RETURN("Handler for read-metadata not written yet.");
 			case (REPLACE_BLOCK):

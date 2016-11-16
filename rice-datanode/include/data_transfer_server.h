@@ -60,7 +60,7 @@ class TransferServer {
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>
 		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);
-        void synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock);
+		void synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock);
 };
 
 // Templated method to be generic across any asio buffer type.
