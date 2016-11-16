@@ -5,6 +5,8 @@
 
 #include <datatransfer.pb.h>
 #include <queue>
+#include <mutex>
+#include <condition_variable>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -36,13 +38,17 @@ using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
-		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn);
+		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
 		void serve(asio::io_service& io_service);
 
 	private:
+        int max_xmits;
 		int port;
 		std::shared_ptr<nativefs::NativeFS> fs;
 		std::shared_ptr<zkclient::ZkClientDn> dn;
+
+        std::mutex m;
+        std::condition_variable cv;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
 		void handle_connection(tcp::socket sock);
