@@ -37,9 +37,9 @@ namespace {
 
 			unsigned short xferPort = 50010;
 			unsigned short ipcPort = 50020;
-			dncli = new zkclient::ZkClientDn("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
-			nativefs::NativeFS fs;
-			dn_transfer_server = new TransferServer(xferPort, fs, *dncli);
+			auto fs = std::make_shared<nativefs::NativeFS>();
+			dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
+			dn_transfer_server = new TransferServer(xferPort, fs, dncli);
 			// Give the datanode a second to register itself on the /health index.
 
 		}
@@ -47,7 +47,7 @@ namespace {
 		// Objects declared here can be used by all tests in the test case for Foo.
 		zkclient::ZkNnClient *nncli;
 		ClientNamenodeTranslator *nn_translator;
-		zkclient::ZkClientDn *dncli;
+		std::shared_ptr<zkclient::ZkClientDn> dncli;
 		RPCServer *namenodeServer;
 		TransferServer *dn_transfer_server;
 	};

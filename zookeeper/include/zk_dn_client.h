@@ -2,6 +2,7 @@
 #define RDFS_ZK_CLIENT_DN_H
 
 #include "zk_client_common.h"
+#include <atomic>
 
 namespace zkclient {
 
@@ -71,6 +72,9 @@ public:
 	*/
     bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
+	void incrementNumXmits();
+
+	void decrementNumXmits();
 
 private:
 
@@ -83,7 +87,7 @@ private:
 
     DataNodeId data_node_id;
     DataNodePayload data_node_payload;
-
+    std::atomic_int xmits;
     static const std::string CLASS_NAME;
 
     /**
