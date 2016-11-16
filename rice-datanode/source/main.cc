@@ -25,13 +25,17 @@ int main(int argc, char* argv[]) {
 	asio::io_service io_service;
 	unsigned short xferPort = 50010;
 	unsigned short ipcPort = 50020;
+	std::string backingStore("/dev/sdb");
 	if (argc >= 2) {
 		xferPort = std::atoi(argv[1]);
 	}
 	if (argc >= 3) {
 		ipcPort = std::atoi(argv[2]);
 	}
-	auto fs = std::make_shared<nativefs::NativeFS>("/dev/sdb");
+	if (argc >= 4) {
+		backingStore = argv[3];
+	}
+	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
 	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
 	TransferServer transfer_server(xferPort, fs, dncli);

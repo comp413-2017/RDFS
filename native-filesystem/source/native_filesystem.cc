@@ -63,7 +63,7 @@ namespace nativefs {
 			std::for_each(&blocks[0], &blocks[BLOCK_LIST_LEN], resetBlock);
 			flushBlocks();
 		}
-        freeLists.resize(FREE_LIST_SIZE);
+		freeLists.resize(FREE_LIST_SIZE);
 		std::sort(&blocks[0], &blocks[BLOCK_LIST_LEN],
 				[](const block_info& a, const block_info& b) -> bool {
 					return a.offset < b.offset;
