@@ -1,16 +1,17 @@
+#define ELPP_THREAD_SAFE
+
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "zk_dn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
 #include "data_transfer_server.h"
 #include <thread>
-
+#include <vector>
 #include <gtest/gtest.h>
 #include <asio.hpp>
 
 #include <cstring>
 
-#define ELPP_THREAD_SAFE
 
 #include <easylogging++.h>
 
@@ -18,48 +19,11 @@ INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
 using client_namenode_translator::ClientNamenodeTranslator;
-
+int num_threads = 4;
+int max_xmits = 2;
 namespace {
 
-	class ReadWriteTest : public ::testing::Test {
-
-	protected:
-		virtual void SetUp() {
-			int error_code;
-			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-			assert(error_code == 0); // Z_OK
-
-			short port = 5351;
-			nncli = new zkclient::ZkNnClient(zk_shared);
-			nncli->register_watches();
-			nn_translator = new ClientNamenodeTranslator(5351, *nncli);
-			sleep(3);
-
-			unsigned short xferPort = 50010;
-			unsigned short ipcPort = 50020;
-			auto fs = std::make_shared<nativefs::NativeFS>("/dev/sdb");
-			dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
-			dn_transfer_server = new TransferServer(xferPort, fs, dncli);
-			// Give the datanode a second to register itself on the /health index.
-
-		}
-
-		// Objects declared here can be used by all tests in the test case for Foo.
-		zkclient::ZkNnClient *nncli;
-		ClientNamenodeTranslator *nn_translator;
-		std::shared_ptr<zkclient::ZkClientDn> dncli;
-		RPCServer *namenodeServer;
-		TransferServer *dn_transfer_server;
-	};
-
-
-	TEST_F(ReadWriteTest, testReadWrite){
-		asio::io_service io_service;
-		auto namenodeServer = nn_translator->getRPCServer();
-		std::thread(&TransferServer::serve, dn_transfer_server, std::ref(io_service)).detach();
-		std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
-		// Idle main thread to let the servers start up.
-		sleep(3);
+	TEST(ReadWriteTest, testReadWrite){
 		// Make a file.
 		ASSERT_EQ(0, system("echo 1234 > expected_testfile1234"));
 		// Put it into rdfs.
@@ -71,13 +35,60 @@ namespace {
 		// TODO: This test will fail until we implement the file lengths meta-data tracking.
 		ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
 	}
+
+	TEST(ReadWriteTest, testConcurrentRead){
+		// Make a file.
+		ASSERT_EQ(0, system("echo 1234 > expected_testfile1234"));
+		// Put it into rdfs.
+		system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 /e");
+		// Read it from rdfs.
+		std::vector<std::thread> threads;
+		for (int i = 0; i < num_threads; i++){
+
+			threads.push_back(std::thread([i](){
+				LOG(INFO) << "starting thread " << i;
+				system(("hdfs dfs -fs hdfs://localhost:5351 -cat /e > temp" + std::to_string(i)).c_str());
+				system(("head -c 5 temp" + std::to_string(i) + " > actual_testfile" + std::to_string(i)).c_str());
+				// Check that its contents match.
+				// TODO: This test will fail until we implement the file lengths meta-data tracking.
+				ASSERT_EQ(0, system(("diff expected_testfile1234 actual_testfile"+ std::to_string(i)).c_str()));
+			}));
+		}
+		for (int i = 0; i < num_threads; i++){
+			threads[i].join();
+		}
+	}
 }
 
 int main(int argc, char **argv) {
 	// Start up zookeeper
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-	// Give zk some time to start.
+
+	zkclient::ZkNnClient *nncli;
+	ClientNamenodeTranslator *nn_translator;
+	std::shared_ptr<zkclient::ZkClientDn> dncli;
+	TransferServer *dn_transfer_server;
+	int error_code;
+	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+	assert(error_code == 0); // Z_OK
+
+	short port = 5351;
+	nncli = new zkclient::ZkNnClient(zk_shared);
+	nncli->register_watches();
+	nn_translator = new ClientNamenodeTranslator(5351, *nncli);
+	sleep(3);
+
+	unsigned short xferPort = 50010;
+	unsigned short ipcPort = 50020;
+	auto fs = std::make_shared<nativefs::NativeFS>("/dev/sdb");
+	dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
+	dn_transfer_server = new TransferServer(xferPort, fs, dncli, max_xmits);
+
+	asio::io_service io_service;
+	auto namenodeServer = nn_translator->getRPCServer();
+	std::thread(&TransferServer::serve, dn_transfer_server, std::ref(io_service)).detach();
+	std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
 	sleep(5);
 
 	// Initialize and run the tests
@@ -86,8 +97,8 @@ int main(int argc, char **argv) {
 	// NOTE: You'll need to scroll up a bit to see the test results
 
 	// Remove test files and shutdown zookeeper
-	system("rm -f expected_testfile1234 actual_testfile1234 temp");
 	system("~/zookeeper/bin/zkCli.sh rmr /testing");
+	system("rm -f expected_testfile1234 actual_testfile* temp*");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
 }

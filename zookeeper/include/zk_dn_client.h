@@ -61,7 +61,7 @@ public:
 	/**
 	* Registers this DataNode with Zookeeper.
 	*/
-    void registerDataNode();
+    	void registerDataNode();
 
 	/**
 	* Informs Zookeeper when the DataNode has received a block. Adds an acknowledgment
@@ -70,11 +70,13 @@ public:
 	* @param size_bytes The number of bytes in the block
 	* @return True on success, false on error.
 	*/
-    bool blockReceived(uint64_t uuid, uint64_t size_bytes);
+    	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
 	void incrementNumXmits();
 
 	void decrementNumXmits();
+
+	int getNumXmits();
 
 private:
 
@@ -83,25 +85,25 @@ private:
 	* @param data_node_id The DataNode's DataNodeId object, containing the IP and port.
 	* @return The ID string
 	*/
-    std::string build_datanode_id(DataNodeId data_node_id);
+	std::string build_datanode_id(DataNodeId data_node_id);
 
-    DataNodeId data_node_id;
-    DataNodePayload data_node_payload;
-    std::atomic_int xmits;
-    static const std::string CLASS_NAME;
+	DataNodeId data_node_id;
+	DataNodePayload data_node_payload;
+	std::atomic_int xmits{0};
 
-    /**
-    * Sets up the work queue for this datanode in zookeeper, and sets the watcher
-    * on that queue.  To be used for replication and deletion queues
-    * @param queueName the name of the queue, i.e. replication or deletion
-    * @param watchFuncPtr the watcher function to be used on the queue
-    */
-    void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+	static const std::string CLASS_NAME;
 
-    static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
-    static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+	/**
+	* Sets up the work queue for this datanode in zookeeper, and sets the watcher
+	* on that queue.  To be used for replication and deletion queues
+	* @param queueName the name of the queue, i.e. replication or deletion
+	* @param watchFuncPtr the watcher function to be used on the queue
+	*/
+	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+
+	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 };
-
 }
 
 #endif //RDFS_ZK_CLIENT_DN_H

@@ -15,9 +15,9 @@ using asio::ip::tcp;
 using namespace hadoop::hdfs;
 
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
-const size_t PACKET_PAYLOAD_BYTES = 4096;
+const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
 
-TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn) : port(port), fs(fs), dn(dn) {}
+TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits) : port(port), fs(fs), dn(dn), max_xmits(max_xmits) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -141,7 +141,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		while (!ackQueue.push(p_head)) {
 		}
 	}
-	
+
 	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
@@ -296,7 +296,14 @@ void TransferServer::serve(asio::io_service& io_service) {
 }
 
 void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
+	std::unique_lock<std::mutex> lk(m);
+	while (dn->getNumXmits() >= max_xmits){
+		cv.wait(lk);
+	}
 	dn->incrementNumXmits();
+	LOG(INFO) << "**********" << "num xmits is " << dn->getNumXmits();
+	lk.unlock();
 	f(*this, sock);
 	dn->decrementNumXmits();
+	cv.notify_one();
 }
