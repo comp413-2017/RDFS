@@ -365,16 +365,17 @@ namespace zkclient{
 			res.set_result(false);
 			return;
 		}
+		// TODO: This loop could be two multi-ops instead
 		for (auto file_block : file_blocks) {
 			auto data = std::vector<std::uint8_t>();
-			if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code)) {
+			if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code, sizeof(uint64_t))) {
 				LOG(ERROR) << CLASS_NAME << "Failed to get " << ZookeeperPath(src) << "/" << file_block << " with error: " << error_code;
 				res.set_result(false);
 				return;
 			}
 			uint64_t block_uuid = *(uint64_t *)(&data[0]);
 			auto block_data = std::vector<std::uint8_t>();
-			if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code)) {
+			if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code, sizeof(uint64_t))) {
 				LOG(ERROR) << CLASS_NAME << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_uuid) << " with error: " << error_code;
 				res.set_result(false);
 				return;
@@ -514,7 +515,7 @@ namespace zkclient{
 		}
 		if (size + block_size >= offset) {
 			auto data = std::vector<uint8_t>();
-			if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
+			if (!zk->get(zk_path + "/" + sorted_block, data, error_code, sizeof(uint64_t))) {
 				LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
 				return; // TODO: Signal error
 			}
@@ -922,7 +923,7 @@ namespace zkclient{
         assert(split_address.size() == 2);
 
         auto data = std::vector<std::uint8_t>();
-        if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
+        if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code, sizeof(zkclient::DataNodePayload))) {
             LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
         }
 
