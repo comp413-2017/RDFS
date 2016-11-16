@@ -41,8 +41,9 @@ bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::
 		LOG(ERROR) << "Failed to get children of queue node: " << q_path;
 		return false;
 	}
+	// TODO: Place lock on q_path
 	if (children.size() < 1) {
-		std::cerr << "ERROR: Queue is empty, nothing to pop!" << std::endl;
+		LOG(ERROR) << "Queue is empty, nothing to pop!";
 		// TODO: set a custom error code?
 		return false;
 	}
@@ -50,12 +51,18 @@ bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::
 	std::string peeked_path = q_path + "/" + children.back();
 	LOG(INFO) << "Popping: " << peeked_path;
 
+	if (!zk->get(peeked_path, popped_data, error_code)) {
+		LOG(ERROR) << "Failed to get data from popped node";
+		return false;
+	}
+
 	if (!zk->delete_node(peeked_path, error_code)) {
 		std::cerr << "ERROR: There was an error when popping the first element of the queue. Error code: " << error_code << std::endl;
 		std::cerr << "ERROR: The first element of the queue is still: " << peeked_path << std::endl;
 		return false;
 	}
 	LOG(INFO) << "The element '" << peeked_path << "' was popped.";
+	// TODO: remove lock on q_path
 
 	return true;
 }
