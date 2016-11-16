@@ -170,7 +170,7 @@ namespace nativefs {
 			if (!allocateBlock(len, offset)) {
 				LOG(ERROR) << CLASS_NAME << "Could not find a free block to fit " << len;
 			    return false;
-            }
+			}
 		}
 		LOG(INFO) << CLASS_NAME << "Writing block " << id << " to offset " << offset;
 		disk.seekp(offset);
