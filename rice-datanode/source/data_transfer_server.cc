@@ -45,7 +45,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
                 std::function <void(TransferServer&, tcp::socket&)> readFn = &TransferServer::processReadRequest;
                 synchronize(readFn, sock);
             }
-			break;
+            break;
 			case (READ_METADATA):
 				ERROR_AND_RETURN("Handler for read-metadata not written yet.");
 			case (REPLACE_BLOCK):

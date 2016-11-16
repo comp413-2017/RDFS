@@ -37,8 +37,8 @@ namespace {
 
 			unsigned short xferPort = 50010;
 			unsigned short ipcPort = 50020;
-            auto fs = std::make_shared<nativefs::NativeFS>();
-            dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
+			auto fs = std::make_shared<nativefs::NativeFS>();
+			dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
 			dn_transfer_server = new TransferServer(xferPort, fs, dncli);
 			// Give the datanode a second to register itself on the /health index.
 
