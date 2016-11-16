@@ -203,5 +203,12 @@ namespace zkclient{
 		return data_node_id.ip + ":" + std::to_string(data_node_id.ipcPort);
 	}
 
+	void ZkClientDn::incrementNumXmits(){
+		xmits++;
+	}
+
+	void ZkClientDn::decrementNumXmits(){
+		xmits--;
+	}
 }
 #endif //RDFS_ZK_CLIENT_DN_H
