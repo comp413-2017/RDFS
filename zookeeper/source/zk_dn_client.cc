@@ -119,36 +119,37 @@ namespace zkclient{
 		return created_correctly;
 	}
 
-	bool ZkClientDn::blockDeleted(uint64_t uuid, uint64_t size_bytes) {
+	bool ZkClientDn::blockDeleted(uint64_t uuid) {
 		int error_code;
 		bool exists;
 
 		LOG(INFO) << "DataNode deleted a block with UUID " << std::to_string(uuid);
 		std::string id = build_datanode_id(data_node_id);
 
-		bool deleted_correctly = true;
+		auto ops = std::vector<std::shared_ptr<ZooOp>>();
 
 		// Delete block locations
 		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
-				if(!zk->delete_node(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /block_locations/<block_uuid> " << error_code;
-					deleted_correctly = false;
-				}
+				ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id));
 			}
 		}
 
 		// Delete blocks
 		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS, exists, error_code)) {
 			if (exists) {
-				if (!zk->delete_node(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /health/<data_node_id>/blocks/<block_uuid> " << error_code;
-					deleted_correctly = false;
-				}
+				ops.push_back(zk->build_delete_op(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid)));
 			}
 		}
 
-		return deleted_correctly;
+		std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
+		if (!zk->execute_multi(ops, results, error_code)) {
+			LOG(ERROR) << "Failed multiop when deleting block" << std::to_string(uuid);
+			for (int i = 0; i < results.size(); i++) {
+				LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+			}
+			return false;
+ 		}
 	}
 
 	void ZkClientDn::registerDataNode() {

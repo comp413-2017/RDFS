@@ -25,7 +25,6 @@ namespace zkclient {
     const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
 	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
     const std::string ZkClientCommon::BLOCKS = "/blocks";
-    const std::string ZkClientCommon::DELETE_BACKSLASH = "/delete/";
 
 
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {

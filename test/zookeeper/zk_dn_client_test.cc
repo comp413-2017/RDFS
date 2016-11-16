@@ -37,6 +37,18 @@ protected:
 	ZkClientDn *client;
 };
 
+TEST_F(ZKDNClientTest, RegisterMakesWorkQueues){
+    bool exists;
+    int error_code;
+    uint64_t size;
+ 
+    std::vector<std::uint8_t> data(sizeof(BlockZNode));
+    std::string path = "/work_queues/replicate/" + dn_id;
+ 
+ 	client->registerDataNode();
+ 	ASSERT_TRUE(zk->get(path, data, error_code));
+ }
+
 
 TEST_F(ZKDNClientTest, CanReadBlockSize) {
 	bool exists;
@@ -65,7 +77,7 @@ TEST_F(ZKDNClientTest, CanDeleteBlock) {
 	zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code);
 
 	client->blockReceived(block_id, block_size);
-	client->blockDeleted(block_id, block_size);
+	client->blockDeleted(block_id);
 
 	// Should fail here, as we've deleted the block
 	ASSERT_FALSE(zk->get("/block_locations/" + std::to_string(block_id) + "/" + dn_id, data, error_code));

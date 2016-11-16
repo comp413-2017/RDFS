@@ -77,7 +77,7 @@ public:
     * @param size_bytes The number of bytes in the block
     * @return True on success, false on error.
     */
-    bool blockDeleted(uint64_t uuid, uint64_t size_bytes);
+    bool blockDeleted(uint64_t uuid);
 
 
 private:

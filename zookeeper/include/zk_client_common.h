@@ -31,7 +31,6 @@ namespace zkclient {
         static const std::string REPLICATE_BACKSLASH;
 		static const std::string BLOCK_LOCATIONS;
         static const std::string BLOCKS;
-        static const std::string DELETE_BACKSLASH;
     private:
         static const std::string CLASS_NAME;
     };
