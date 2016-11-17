@@ -78,6 +78,12 @@ public:
 
 	int getNumXmits();
 
+	/**
+	* Push the blockid onto the replication queue belonging to dn_name
+	* @param dn_name the queue to add onto
+	* @param blockid the id of the block to be replicated
+	* @return true if success
+	*/
 	bool push_dn_on_repq(std::string dn_name, uint64_t blockid);
 
 private:
