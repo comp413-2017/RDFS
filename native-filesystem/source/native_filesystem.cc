@@ -162,7 +162,7 @@ namespace nativefs {
 	/**
 	* Given an ID, write the given block to the native filesystem. Returns true/false on success/failure.
 	**/
-	bool NativeFS::writeBlock(uint64_t id, std::string blk) {
+	bool NativeFS::writeBlock(uint64_t id, const std::string& blk) {
 		size_t len = blk.size();
 		uint64_t offset;
 		{
@@ -220,9 +220,9 @@ namespace nativefs {
 	}
 
 	/**
-	* Given an ID, returns a block buffer
+	* Read the contents of given block id.
 	**/
-	std::string NativeFS::getBlock(uint64_t id, bool& success) {
+	bool NativeFS::getBlock(uint64_t id, std::string& blk) {
 		// Look in map and get filename
 		block_info info;
 		{
@@ -237,16 +237,14 @@ namespace nativefs {
 				}
 			}
 			if (!found) {
-				success = false;
-				return "";
+				return false;
 			}
 		}
 		LOG(INFO) << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
-		std::string data(info.len, 0);
+		blk.resize(info.len);
 		disk.seekg(info.offset);
-		disk.read(&data[0], info.len);
-		success = true;
-		return data;
+		disk.read(&blk[0], info.len);
+		return true;
 	}
 
 	/**

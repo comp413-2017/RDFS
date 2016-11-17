@@ -202,8 +202,8 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	}
 
 	uint64_t blockID = proto.header().baseheader().block().blockid();
-	bool success;
-	std::string block = fs->getBlock(blockID, success);
+	std::string block;
+	bool success = fs->getBlock(blockID, block);
 	if (!success) {
 		LOG(ERROR) << "Failure on fs.getBlock";
 	}

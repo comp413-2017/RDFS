@@ -44,13 +44,13 @@ class NativeFS{
 		 * Write provided block contents to a block with given id. On success,
 		 * return true. Otherwise false (e.g. no free space).
 		 */
-		bool writeBlock(uint64_t, std::string);
+		bool writeBlock(uint64_t, const std::string&);
 		/**
 		 * Get the contents of the block with given id. If successful, return
-		 * the contents of the block and set provided bool to true. On failure
-		 * to find the block, return empty string and set bool to false.
+		 * true and set string reference to retreived contents. Otherwise
+		 * return false.
 		 */
-		std::string getBlock(uint64_t, bool&);
+		bool getBlock(uint64_t, std::string&);
 		/**
 		 * Delete contents of provided block id from this datanode. Return true
 		 * if delete successful, false otherwise (block id not found).

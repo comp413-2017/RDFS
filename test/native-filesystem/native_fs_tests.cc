@@ -26,8 +26,8 @@ TEST_F(NativeFSTest, CanWriteBlock) {
 TEST_F(NativeFSTest, CanGetBlock) {
 	bool write_success = filesystem.writeBlock(2, blk);
 	ASSERT_EQ(true, write_success);
-	bool success;
-	std::string newBlock = filesystem.getBlock(2, success);
+	std::string newBlock;
+	bool success = filesystem.getBlock(2, newBlock);
 	ASSERT_EQ(true, success);
 	ASSERT_EQ(blk[0], newBlock[0]);
 }
