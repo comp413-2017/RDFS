@@ -127,6 +127,14 @@ namespace zkclient{
 		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, exists, error_code)) {
 			if (exists) {
 				ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id));
+				// If deleted last child of block locations, delete block locations
+				std::vector <std::string> children = std::vector <std::string>();
+				if(!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid), children, error_code)){
+					LOG(ERROR) << "getting children failed";
+				}
+				if (children.size() == 1) {
+					ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid)));
+				}
 			}
 		}
 
