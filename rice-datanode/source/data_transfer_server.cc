@@ -348,7 +348,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
 	// read the read response
 	BlockOpResponseProto read_response;
-	if (!rpcserver::read_proto(sock, read_response, read_response.ByteSize())) {
+	if (!rpcserver::read_delimited_proto(sock, read_response)) {
 		LOG(ERROR) << " could not read the read response from target datanode";
 		return false;
 	}
