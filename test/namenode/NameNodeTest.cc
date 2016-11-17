@@ -6,37 +6,24 @@
 #include <cstring>
 #include <easylogging++.h>
 
-#include "hdfs.pb.h"
-#include "ClientNamenodeProtocol.pb.h"
-
 INITIALIZE_EASYLOGGINGPP
 
 namespace {
+
 	class NamenodeTest : public ::testing::Test {
 
-	protected:
-		virtual void SetUp() {
-			int error_code;
-			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-			assert(error_code == 0); // Z_OK
-			client = new zkclient::ZkNnClient(zk_shared);
-			zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-		}
+		protected:
+			virtual void SetUp() {
+				int error_code;
+				auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+				assert(error_code == 0); // Z_OK
+				client = new zkclient::ZkNnClient(zk_shared);
+				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
+			}
 
-        hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
-            hadoop::hdfs::CreateRequestProto create_req;
-            create_req.set_src(path);
-            create_req.set_clientname("asdf");
-            create_req.set_createparent(false);
-            create_req.set_blocksize(1);
-            create_req.set_replication(1);
-            create_req.set_createflag(0);
-            return create_req;
-        }
-
-		// Objects declared here can be used by all tests in the test case for Foo.
-		ZKWrapper *zk;
-		zkclient::ZkNnClient *client;
+			// Objects declared here can be used by all tests in the test case for Foo.
+			ZKWrapper *zk;
+			zkclient::ZkNnClient *client;
 	};
 
 
@@ -48,9 +35,9 @@ namespace {
 
 		int error;
 		zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2181/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
+		zk->create("/health/localhost:2181/health", ZKWrapper::EMPTY_VECTOR, error);
 		zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2182/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
+		zk->create("/health/localhost:2182/health", ZKWrapper::EMPTY_VECTOR, error);
 
 		auto datanodes = std::vector<std::string>();
 		u_int64_t block_id;
@@ -104,93 +91,6 @@ namespace {
 		ASSERT_EQ(0, children.size());
 	}
 
-    TEST_F(NamenodeTest, DeleteEmptyDirNonRecursive){
-        int error;
-        hadoop::hdfs::MkdirsRequestProto mkdir_req;
-        hadoop::hdfs::MkdirsResponseProto mkdir_resp;
-        mkdir_req.set_src("dir1");
-        mkdir_req.set_createparent(false);
-        client->mkdir(mkdir_req, mkdir_resp);
-        ASSERT_TRUE(mkdir_resp.result());
-
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("dir1");
-        del_req.set_recursive(false);
-        client->destroy(del_req, del_resp);
-        ASSERT_FALSE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/dir1", exists, error));
-        ASSERT_TRUE(exists);
-    }
-
-    TEST_F(NamenodeTest, DeleteEmptyDirRecursive){
-        int error;
-        hadoop::hdfs::MkdirsRequestProto mkdir_req;
-        hadoop::hdfs::MkdirsResponseProto mkdir_resp;
-        mkdir_req.set_src("dir2");
-        mkdir_req.set_createparent(false);
-        client->mkdir(mkdir_req, mkdir_resp);
-        ASSERT_TRUE(mkdir_resp.result());
-
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("dir2");
-        del_req.set_recursive(true);
-        client->destroy(del_req, del_resp);
-        ASSERT_TRUE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/dir2", exists, error));
-        ASSERT_FALSE(exists);
-    }
-
-    TEST_F(NamenodeTest, DeleteUnclosedFile){
-        int error;
-        hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file1");
-        hadoop::hdfs::CreateResponseProto create_resp;
-        ASSERT_EQ(1, client->create_file(create_req, create_resp));
-
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("file1");
-        del_req.set_recursive(false);
-        client->destroy(del_req, del_resp);
-        ASSERT_FALSE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/file1", exists, error));
-        ASSERT_TRUE(exists);
-    }
-
-    TEST_F(NamenodeTest, DeleteClosedFileWithBlock){
-        int error;
-        hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file2");
-        hadoop::hdfs::CreateResponseProto create_resp;
-        ASSERT_EQ(1, client->create_file(create_req, create_resp));
-		std::uint64_t block_id = 1234;
-		std::vector<std::uint8_t> block_vec(sizeof(std::uint64_t));
-		memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
-        ASSERT_TRUE(zk->create("/fileSystem/file2/block-0000000000", block_vec, error));
-        ASSERT_TRUE(zk->create("/block_locations/1234", ZKWrapper::EMPTY_VECTOR, error));
-
-        // TODO: create real block_locations for this block once we start doing complete legitimately
-
-        hadoop::hdfs::CompleteRequestProto complete_req;
-        hadoop::hdfs::CompleteResponseProto complete_resp;
-        complete_req.set_src("file2");
-        client->complete(complete_req, complete_resp);
-        ASSERT_TRUE(complete_resp.result());
-
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("file2");
-        del_req.set_recursive(false);
-        client->destroy(del_req, del_resp);
-        ASSERT_TRUE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/file2", exists, error));
-        ASSERT_FALSE(exists);
-    }
-
 	TEST_F(NamenodeTest, testRenameFile){
 		int error_code;
 		zk->create("/fileSystem/old_name", zk->get_byte_vector("File data"), error_code, false);
@@ -220,6 +120,22 @@ namespace {
 		zk->exists("/fileSystem/old_name", exist, error_code);
 		ASSERT_EQ(false, exist);
 	}
+
+	TEST_F(NamenodeTest, previousBlockComplete){
+		int error;
+		u_int64_t block_id;
+		util::generate_uuid(block_id);
+		LOG(INFO) << "Previous block_id is " << block_id;
+		ASSERT_EQ(false, client->previousBlockComplete(block_id));
+		/* mock the directory */
+		zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
+		zk->create("/block_locations/"+std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error);
+		ASSERT_EQ(false, client->previousBlockComplete(block_id));
+		/* mock the child directory */
+		zk->create("/block_locations/"+std::to_string(block_id)+"/child1", ZKWrapper::EMPTY_VECTOR, error);
+		ASSERT_EQ(true, client->previousBlockComplete(block_id));
+	}
+
 }
 
 int main(int argc, char **argv) {
