@@ -20,6 +20,17 @@ namespace {
 				client = new zkclient::ZkNnClient(zk_shared);
 				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
 			}
+			
+			hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
+				hadoop::hdfs::CreateRequestProto create_req;
+				create_req.set_src(path);
+				create_req.set_clientname("asdf");
+				create_req.set_createparent(false);
+				create_req.set_blocksize(1);
+				create_req.set_replication(1);
+				create_req.set_createflag(0);
+				return create_req;
+			}
 
 			// Objects declared here can be used by all tests in the test case for Foo.
 			ZKWrapper *zk;
