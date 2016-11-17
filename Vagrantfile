@@ -1,6 +1,8 @@
 MOUNT_POINT = '/home/vagrant/rdfs'
 
 Vagrant.configure("2") do |config|
+    file_to_disk = 'raw_storage.vdi'
+
     config.vm.box = "bento/ubuntu-16.04"
     config.ssh.username = "vagrant"
     config.ssh.password = "vagrant"
@@ -12,6 +14,11 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--memory", 1024]
         v.customize ["setextradata", :id,
             "VBoxInternal2/SharedFoldersEnableSymlinksCreate//home/vagrant/rdfs", "1"]
+
+        unless File.exist?(file_to_disk)
+            v.customize ['createhd', '--filename', file_to_disk, '--size', 2 * 1024]
+        end
+        v.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', file_to_disk]
     end
 
     # Add to /etc/hosts: 33.33.33.33 rdfs
