@@ -46,23 +46,27 @@ bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::
 	if (children.size() < 1) {
 		LOG(ERROR) << "Queue is empty, nothing to pop!";
 		error_code = ZNONODE;
+		q_lock.unlock();
 		return false;
 	}
 
 	if (!peek(zk, q_path, popped_path, error_code)) {
 		LOG(ERROR) << "Failed to get head of queue!";
+		q_lock.unlock();
 		return false;
 	}
 	LOG(INFO) << "Popping: " << popped_path;
 
 	if (!zk->get(popped_path, popped_data, error_code)) {
 		LOG(ERROR) << "Failed to get data from popped node";
+		q_lock.unlock();
 		return false;
 	}
 
 	if (!zk->delete_node(popped_path, error_code)) {
 		std::cerr << "ERROR: There was an error when popping the first element of the queue. Error code: " << error_code << std::endl;
 		std::cerr << "ERROR: The first element of the queue is still: " << popped_path << std::endl;
+		q_lock.unlock();
 		return false;
 	}
 	LOG(INFO) << "The element '" << popped_path << "' was popped.";
