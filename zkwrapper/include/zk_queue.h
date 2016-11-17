@@ -16,7 +16,7 @@
  * error_code: reference to integer for holding an error code
  * return: boolean indicating success or failure of the method
  */
-bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code);
+bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, std::string &pushed_path, int &error_code);
 
 /**
  * Removes the first item from the queue.
@@ -25,7 +25,7 @@ bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, cons
  * error_code: reference to integer for holding an error code
  * return: boolean indicating success or failure of the method
  */
-bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::vector<std::uint8_t> &popped_data, int &error_code);
+bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::vector<std::uint8_t> &popped_data, std::string &popped_path, int &error_code);
 
 /**
  * Gets the name of the first item in the queue
