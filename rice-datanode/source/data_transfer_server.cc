@@ -307,3 +307,8 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 	dn->decrementNumXmits();
 	cv.notify_one();
 }
+
+bool TransferServer::sendStats() {
+	uint64_t free_space = fs->getFreeSpace();
+	return dn->sendStats(free_space);
+}

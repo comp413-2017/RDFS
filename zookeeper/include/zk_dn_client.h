@@ -18,8 +18,9 @@ typedef struct
 {
     uint32_t ipcPort;
     uint32_t xferPort;
-    uint64_t disk_bytes;
-    uint64_t mem_bytes;
+    uint64_t disk_bytes; 	//total space on disk
+    uint64_t free_bytes; 	//free space on disk
+	uint32_t xmits;			//current number of xmits
 } DataNodePayload;
 
 typedef struct
@@ -51,17 +52,17 @@ public:
 	* @param ipcPort TODO
 	* @param xferPort TODO
 	*/
-	ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress,
+	ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress, uint64_t total_disk_space,
 			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 
-	ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper>,
+	ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper>, uint64_t total_disk_space,
 			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 	~ZkClientDn();
 
 	/**
 	* Registers this DataNode with Zookeeper.
 	*/
-    	void registerDataNode();
+	void registerDataNode();
 
 	/**
 	* Informs Zookeeper when the DataNode has received a block. Adds an acknowledgment
@@ -70,11 +71,13 @@ public:
 	* @param size_bytes The number of bytes in the block
 	* @return True on success, false on error.
 	*/
-    	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
+	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
 	void incrementNumXmits();
 
 	void decrementNumXmits();
+	
+	bool sendStats(uint64_t free_space);
 
 	int getNumXmits();
 

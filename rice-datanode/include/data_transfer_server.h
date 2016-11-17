@@ -40,7 +40,10 @@ class TransferServer {
 	public:
 		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
 
+		TransferServer(const TransferServer& other) {}
+		
 		void serve(asio::io_service& io_service);
+		bool sendStats();
 
 	private:
 		int max_xmits;
@@ -48,7 +51,7 @@ class TransferServer {
 		std::shared_ptr<nativefs::NativeFS> fs;
 		std::shared_ptr<zkclient::ZkClientDn> dn;
 
-		std::mutex m;
+		mutable std::mutex m;
 		std::condition_variable cv;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
