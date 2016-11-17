@@ -73,11 +73,11 @@ public:
     	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
    	/**
-    * Informs Zookeeper when the DataNode has deleted a block. 
-    * @param uuid The UUID of the block deleted by the DataNode.
-    * @param size_bytes The number of bytes in the block
-    * @return True on success, false on error.
-    */
+    	* Informs Zookeeper when the DataNode has deleted a block. 
+    	* @param uuid The UUID of the block deleted by the DataNode.
+    	* @param size_bytes The number of bytes in the block
+    	* @return True on success, false on error.
+    	*/
     	bool blockDeleted(uint64_t uuid);
 
 	void incrementNumXmits();
