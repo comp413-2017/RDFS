@@ -46,7 +46,7 @@ namespace daemon_thread{
 			 * ct- is a member function pointer which takes in no arguments
 			 *     and returns a bool whether it was successful or not
 			 * obj- is the object pointer that will call the chore function ct
-			 * sleep_time- the amount of time you want the thread to sleep
+			 * sleep_time- the amount of time (in seconds) you want the thread to sleep
 			 *             before calling the chore function
 			 *
 			 * an example call of this function would be:

@@ -7,56 +7,52 @@
 
 namespace zkclient{
 
-
 	const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
 
 	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper> zk_in, uint64_t total_disk_space,
 		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
-			// TODO: refactor with the next constructor.
+		// TODO: refactor with the next constructor.
 
-			data_node_id = DataNodeId();
-			data_node_id.ip = ip;
-			data_node_id.ipcPort = ipcPort;
+		data_node_id = DataNodeId();
+		data_node_id.ip = ip;
+		data_node_id.ipcPort = ipcPort;
 
-			data_node_payload = DataNodePayload();
-			data_node_payload.ipcPort = ipcPort;
-			data_node_payload.xferPort = xferPort;
-			data_node_payload.disk_bytes = total_disk_space;
-			data_node_payload.free_bytes = total_disk_space;
-			data_node_payload.xmits = 0;
+		data_node_payload = DataNodePayload();
+		data_node_payload.ipcPort = ipcPort;
+		data_node_payload.xferPort = xferPort;
+		data_node_payload.disk_bytes = total_disk_space;
+		data_node_payload.free_bytes = total_disk_space;
+		data_node_payload.xmits = 0;
 
-			registerDataNode();
-			LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
-
-		}
+		registerDataNode();
+		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
+	}
 
 	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress, uint64_t total_disk_space,
 		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
 
-			data_node_id = DataNodeId();
-			data_node_id.ip = ip;
-			data_node_id.ipcPort = ipcPort;
+		data_node_id = DataNodeId();
+		data_node_id.ip = ip;
+		data_node_id.ipcPort = ipcPort;
+		
+		data_node_payload = DataNodePayload();
+		data_node_payload.ipcPort = ipcPort;
+		data_node_payload.xferPort = xferPort;
+		data_node_payload.disk_bytes = total_disk_space;
+		data_node_payload.free_bytes = total_disk_space;
+		data_node_payload.xmits = 0;
 
-			data_node_payload = DataNodePayload();
-			data_node_payload.ipcPort = ipcPort;
-			data_node_payload.xferPort = xferPort;
-			data_node_payload.disk_bytes = total_disk_space;
-			data_node_payload.free_bytes = total_disk_space;
-			data_node_payload.xmits = 0;
-
-			registerDataNode();
-			LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
-		}
+		registerDataNode();
+		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
+	}
 
 	bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
 		int error_code;
 		bool exists;
+		bool created_correctly = true;
 
 		LOG(INFO) << "DataNode received a block with UUID " << std::to_string(uuid);
 		std::string id = build_datanode_id(data_node_id);
-
-
-		bool created_correctly = true;
 
 		// Add acknowledgement
 		ZKLock queue_lock(*zk.get(), WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid));
@@ -64,7 +60,6 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 			created_correctly = false;
 		}
-
 
 		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
 			if (!exists) {
@@ -85,7 +80,6 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed unlocking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 			created_correctly = false;
 		}
-
 
 		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
 			if (exists) {
@@ -120,8 +114,48 @@ namespace zkclient{
 			}
 		}
 
-
 		return created_correctly;
+	}
+
+	bool ZkClientDn::blockDeleted(uint64_t uuid) {
+		int error_code;
+		bool exists;
+
+		LOG(INFO) << "DataNode deleted a block with UUID " << std::to_string(uuid);
+		std::string id = build_datanode_id(data_node_id);
+
+		auto ops = std::vector<std::shared_ptr<ZooOp>>();
+
+		// Delete block locations
+		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, exists, error_code)) {
+			if (exists) {
+				ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id));
+				// If deleted last child of block locations, delete block locations
+				std::vector <std::string> children = std::vector <std::string>();
+				if(!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid), children, error_code)){
+					LOG(ERROR) << "getting children failed";
+				}
+				if (children.size() == 1) {
+					ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid)));
+				}
+			}
+		}
+
+		// Delete blocks
+		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), exists, error_code)) {
+			if (exists) {
+				ops.push_back(zk->build_delete_op(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid)));
+			}
+		}
+
+		std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
+		if (!zk->execute_multi(ops, results, error_code)) {
+			LOG(ERROR) << "Failed multiop when deleting block" << std::to_string(uuid);
+			for (int i = 0; i < results.size(); i++) {
+				LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+			}
+			return false;
+ 		}
 	}
 
 	void ZkClientDn::registerDataNode() {
@@ -146,7 +180,6 @@ namespace zkclient{
 
 		// Create an ephemeral node at /health/<datanode_id>/heartbeat
 		// if it doesn't already exist. Should have a ZOPERATIONTIMEOUT
-
 		if (!zk->create(HEALTH_BACKSLASH + id + HEARTBEAT, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
 			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/heartbeat " << error_code;
 		}
@@ -195,6 +228,10 @@ namespace zkclient{
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Replication watcher triggered on path: " << path;
 	}
+
+	// TODO: Get children and for each of them delete it from raw disk IO (call delete block) and and say block deleted
+	// and then re-attach watcher. Before need to call get children agian and see if there are more delete commands
+	// Make sure to delete actual work item from queue
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Delete watcher triggered on path: " << path;
 	}
