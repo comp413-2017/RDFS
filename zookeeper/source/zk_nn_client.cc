@@ -100,7 +100,7 @@ namespace zkclient{
         memcpy(&data[0], znode_data, sizeof(*znode_data));
     }
 
-    void ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
+    bool ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
 
         // Build a new block for the response
         auto block = res.mutable_block();
@@ -113,12 +113,12 @@ namespace zkclient{
         FileZNode znode_data;
         if (!file_exists(file_path)) {
             LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " does not exist";
-            return;
+            return false;
         }
         read_file_znode(znode_data, file_path);
         if (znode_data.filetype != IS_FILE) { // Assert that the znode we want to modify is a file
             LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " is not a file";
-            return;
+            return false;
         }
 
         uint32_t replication_factor = znode_data.replication;
@@ -141,7 +141,8 @@ namespace zkclient{
 
         // Construct security token.
         buildTokenProto(block->mutable_blocktoken());
-    }
+    	return true;
+	}
 
     void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
         const std::string& path = req.src();
@@ -160,7 +161,8 @@ namespace zkclient{
             return;
         }
         LOG(INFO) << CLASS_NAME << "No file to get info for";
-    }
+    	return;
+	}
 
     /**
      * Create a node in zookeeper corresponding to a file
@@ -288,7 +290,7 @@ namespace zkclient{
     /**
      * Create a file in zookeeper
      */
-    int ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
+    bool ZkNnClient::create_file(CreateRequestProto& request, CreateResponseProto& response) {
         LOG(INFO) << CLASS_NAME << "Gonna try and create a file on zookeeper";
         const std::string& path = request.src();
         const std::string& owner = request.clientname();
@@ -300,7 +302,7 @@ namespace zkclient{
         if (file_exists(path)) {
             // TODO solve this issue of overwriting files
             LOG(ERROR) << CLASS_NAME << "File already exists";
-            return 0;
+            return false;
         }
 
         // If we need to create directories, do so
@@ -309,12 +311,12 @@ namespace zkclient{
             std::vector<std::string> split_path;
             boost::split(split_path, path, boost::is_any_of("/"));
             LOG(INFO) << CLASS_NAME << split_path.size();
-            for (int i = 0; i < split_path.size() - 1; i++) {
-                directory_paths += split_path[i];
+            for (int i = 1; i < split_path.size() - 1; i++) {
+                directory_paths += ("/"  + split_path[i]);
             }
             // try and make all the parents
             if (!mkdir_helper(directory_paths, true))
-                return 0;
+                return false;
         }
 
         // Now create the actual file which will hold blocks
@@ -332,12 +334,12 @@ namespace zkclient{
 
         // if we failed, then do not set any status
         if (!create_file_znode(path, &znode_data))
-            return 0;
+            return false;
 
         HdfsFileStatusProto* status = response.mutable_fs();
         set_file_info(status, path, znode_data);
 
-        return 1;
+        return true;
     }
 
     void ZkNnClient::complete(CompleteRequestProto& req, CompleteResponseProto& res) {
@@ -350,11 +352,44 @@ namespace zkclient{
         FileZNode znode_data;
         read_file_znode(znode_data, src);
         znode_data.under_construction = FILE_COMPLETE;
+		// set the file length
+		uint64_t file_length = 0;
+		auto file_blocks = std::vector<std::string>();
+		if (!zk->get_children(ZookeeperPath(src), file_blocks, error_code)) {
+			LOG(ERROR) << CLASS_NAME << "Failed getting children of " << ZookeeperPath(src) << " with error: " << error_code;
+			res.set_result(false);
+			return;
+		}
+		if (file_blocks.size() == 0) {
+			LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
+			res.set_result(false);
+			return;
+		}
+		// TODO: This loop could be two multi-ops instead
+		for (auto file_block : file_blocks) {
+			auto data = std::vector<std::uint8_t>();
+			if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code, sizeof(uint64_t))) {
+				LOG(ERROR) << CLASS_NAME << "Failed to get " << ZookeeperPath(src) << "/" << file_block << " with error: " << error_code;
+				res.set_result(false);
+				return;
+			}
+			uint64_t block_uuid = *(uint64_t *)(&data[0]);
+			auto block_data = std::vector<std::uint8_t>();
+			if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code, sizeof(uint64_t))) {
+				LOG(ERROR) << CLASS_NAME << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_uuid) << " with error: " << error_code;
+				res.set_result(false);
+				return;
+			}
+			uint64_t length = *(uint64_t *)(&block_data[0]);
+			file_length += length;
+		}
+		znode_data.length = file_length;
         std::vector<std::uint8_t> data(sizeof(znode_data));
         file_znode_struct_to_vec(&znode_data, data);
         if (!zk->set(ZookeeperPath(src), data, error_code)) {
-            LOG(ERROR) << CLASS_NAME << " complete could not change the construction bit";
+            LOG(ERROR) << CLASS_NAME << " complete could not change the construction bit and file length";
             res.set_result(false);
+			return;
         }
         res.set_result(true);
     }
@@ -401,111 +436,116 @@ namespace zkclient{
      * if necessary.
      */
     bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
-        if (create_parent) {
-            std::vector<std::string> split_path;
-			boost::split(split_path, path, boost::is_any_of("/"));
-			bool not_exist = false;
-			std::string unroll;
-			std::string p_path = "";
-			for (int i = 0; i < split_path.size(); i++) {
-				p_path += split_path[i] + "/";
-				if (!file_exists(p_path)) {
-					// keep track of the path where we start creating directories
-					if (not_exist == false) {
-						unroll = p_path;
-					}
-					not_exist = true;
-					FileZNode znode_data;
-					set_mkdir_znode(&znode_data);
-					int error;
-					if ((error = create_file_znode(path, &znode_data))) {
-						// TODO unroll the created directories
-						return false;
-					}
-				}
-			}
+       	LOG(INFO) << "mkdir_helper called with input " << path; 
+	if (create_parent) {
+	    std::vector<std::string> split_path;
+            boost::split(split_path, path, boost::is_any_of("/"));
+            bool not_exist = false;
+            std::string unroll;
+            std::string p_path = "";
+            // Start at index 1 because it includes "/" as the first element 
+	    // in the array when we do NOT want that
+	    for (int i = 1; i < split_path.size(); i++) {
+                p_path += "/" + split_path[i];
+                LOG(INFO) << "[in mkdir_helper] " << p_path;
+		if (!file_exists(p_path)) {
+		    // keep track of the path where we start creating directories
+                    if (not_exist == false) {
+                        unroll = p_path;
+                    }
+                    not_exist = true;
+                    FileZNode znode_data;
+                    set_mkdir_znode(&znode_data);
+                    int error;
+                    if ((error = create_file_znode(p_path, &znode_data))) {
+                        // TODO unroll the created directories
+                        //return false;
+                    }
+		} else {
+			LOG(INFO) << "mkdir_helper is trying to create";
 		}
-		else {
-			FileZNode znode_data;
-			set_mkdir_znode(&znode_data);
-			return create_file_znode(path, &znode_data);
-		}
-		return true;
+            }
+        }
+        else {
+            FileZNode znode_data;
+            set_mkdir_znode(&znode_data);
+            return create_file_znode(path, &znode_data);
+        }
+        return true;
+    }
+    void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
+
+	int error_code;
+
+	const std::string &src = req.src();
+	const std::string zk_path = ZookeeperPath(src);
+
+	google::protobuf::uint64 offset = req.offset();
+	google::protobuf::uint64 length = req.length();
+
+	LocatedBlocksProto* blocks = res.mutable_locations();
+
+	FileZNode znode_data;
+	read_file_znode(znode_data, src);
+
+	blocks->set_underconstruction(false);
+	blocks->set_islastblockcomplete(true);
+	blocks->set_filelength(znode_data.length);
+
+	uint64_t block_size = znode_data.blocksize;
+
+	LOG(INFO) << CLASS_NAME << "Block size of " << zk_path << " is " << block_size;
+
+	auto sorted_blocks = std::vector<std::string>();
+
+	// TODO: Make more efficient
+	if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
+		LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
 	}
 
-	void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
+	std::sort(sorted_blocks.begin(), sorted_blocks.end());
 
-		int error_code;
-
-		const std::string &src = req.src();
-		const std::string zk_path = ZookeeperPath(src);
-
-		google::protobuf::uint64 offset = req.offset();
-		google::protobuf::uint64 length = req.length();
-
-		LocatedBlocksProto* blocks = res.mutable_locations();
-
-		FileZNode znode_data;
-		read_file_znode(znode_data, src);
-
-		blocks->set_underconstruction(false);
-		blocks->set_islastblockcomplete(true);
-		blocks->set_filelength(znode_data.length);
-
-		uint64_t block_size = znode_data.blocksize;
-
-		LOG(INFO) << CLASS_NAME << "Block size of " << zk_path << " is " << block_size;
-
-		auto sorted_blocks = std::vector<std::string>();
-
-		// TODO: Make more efficient
-		if(!zk->get_children(zk_path, sorted_blocks, error_code)) {
-			LOG(ERROR) << CLASS_NAME << "Failed getting children of " << zk_path << " with error: " << error_code;
+	uint64_t size = 0;
+	for (auto sorted_block : sorted_blocks) {
+		LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;
+		if (size > offset + length) {
+			// at this point the start of the block is at a higher offset than the segment we want
+			LOG(INFO) << CLASS_NAME << "Breaking at block " << sorted_block;
+			break;
 		}
-
-		std::sort(sorted_blocks.begin(), sorted_blocks.end());
-
-		uint64_t size = 0;
-		for (auto sorted_block : sorted_blocks) {
-			LOG(INFO) << CLASS_NAME << "Considering block " << sorted_block;
-			if (size > offset + length) {
-				// at this point the start of the block is at a higher offset than the segment we want
-				LOG(INFO) << CLASS_NAME << "Breaking at block " << sorted_block;
-				break;
+		if (size + block_size >= offset) {
+			auto data = std::vector<uint8_t>();
+			if (!zk->get(zk_path + "/" + sorted_block, data, error_code, sizeof(uint64_t))) {
+				LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
+				return; // TODO: Signal error
 			}
-			if (size + block_size >= offset) {
-				auto data = std::vector<uint8_t>();
-				if (!zk->get(zk_path + "/" + sorted_block, data, error_code)) {
-					LOG(ERROR) << CLASS_NAME << "Failed to get " << zk_path << "/" << sorted_block << " info: " << error_code;
-					return; // TODO: Signal error
-				}
-				uint64_t block_id = *(uint64_t *)(&data[0]);
-				LOG(INFO) << CLASS_NAME << "Found block " << block_id << " for " << zk_path;
+			uint64_t block_id = *(uint64_t *)(&data[0]);
+			LOG(INFO) << CLASS_NAME << "Found block " << block_id << " for " << zk_path;
 
-				// TODO: This block of code should be moved to a function, repeated with add_block
-				LocatedBlockProto* located_block = blocks->add_blocks();
-				located_block->set_corrupt(0);
-				located_block->set_offset(size); // TODO: This offset may be incorrect
+			// TODO: This block of code should be moved to a function, repeated with add_block
+			LocatedBlockProto* located_block = blocks->add_blocks();
+			located_block->set_corrupt(0);
+			located_block->set_offset(size); // TODO: This offset may be incorrect
 
-                buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
+			buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
-                auto data_nodes = std::vector<std::string>();
+			auto data_nodes = std::vector<std::string>();
 
-                LOG(INFO) << CLASS_NAME << "Getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id);
+			LOG(INFO) << CLASS_NAME << "Getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id);
 
-                if (!zk->get_children("/block_locations/" + std::to_string(block_id), data_nodes, error_code)) {
-                    LOG(ERROR) << CLASS_NAME << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
-                }
+			if (!zk->get_children("/block_locations/" + std::to_string(block_id), data_nodes, error_code)) {
+			    LOG(ERROR) << CLASS_NAME << "Failed getting datanode locations for block: " << "/block_locations/" + std::to_string(block_id) << " with error: " << error_code;
+			}
 
-                LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
+			LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 
-                for (auto data_node :data_nodes) {
-                    buildDatanodeInfoProto(located_block->add_locs(), data_node);
-                }
-                buildTokenProto(located_block->mutable_blocktoken());
-            }
-            size += block_size;
-        }
+			for (auto data_node :data_nodes) {
+			    buildDatanodeInfoProto(located_block->add_locs(), data_node);
+			}
+			buildTokenProto(located_block->mutable_blocktoken());
+	    	}
+		size += block_size;
+	}
     }
 
 
@@ -583,17 +623,6 @@ namespace zkclient{
 
         if (!find_datanode_for_block(data_nodes, block_id, replicationFactor, true)) {
             return false;
-        }
-
-        // Add another block size to the file length and update zookeeper.
-        znode_data.length += znode_data.blocksize;
-        int error_code;
-        std::vector<std::uint8_t> new_data(sizeof(znode_data));
-        file_znode_struct_to_vec(&znode_data, new_data);
-        if (!zk->set(ZookeeperPath(file_path), new_data, error_code)) {
-            LOG(ERROR) << "Set failed" << error_code;
-            return 0;
-            // TODO : handle error
         }
 
         // Generate the massive multi-op for creating the block
@@ -894,7 +923,7 @@ namespace zkclient{
         assert(split_address.size() == 2);
 
         auto data = std::vector<std::uint8_t>();
-        if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code)) {
+        if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data, error_code, sizeof(zkclient::DataNodePayload))) {
             LOG(ERROR) << CLASS_NAME << "Getting data node stats failed with " << error_code;
         }
 
@@ -920,7 +949,7 @@ namespace zkclient{
 
     bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto* eb, const std::uint64_t& block_id,
                                              const uint64_t& block_size) {
-        eb->set_poolid("0");
+		eb->set_poolid("0");
         eb->set_blockid(block_id);
         eb->set_generationstamp(1);
         eb->set_numbytes(block_size);

@@ -6,6 +6,8 @@
 #include <datatransfer.pb.h>
 #include <hdfs.pb.h>
 #include <queue>
+#include <mutex>
+#include <condition_variable>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -37,14 +39,19 @@ using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
-		TransferServer(int port, nativefs::NativeFS& fs, zkclient::ZkClientDn& dn);
+		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
+
 		void serve(asio::io_service& io_service);
 		bool replicate(DatanodeIDProto datanodeToTarget, ExtendedBlockProto blockToTarget);
 
 	private:
+		int max_xmits;
 		int port;
-		nativefs::NativeFS& fs;
-		zkclient::ZkClientDn& dn;
+		std::shared_ptr<nativefs::NativeFS> fs;
+		std::shared_ptr<zkclient::ZkClientDn> dn;
+
+		std::mutex m;
+		std::condition_variable cv;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
 		bool write_header(tcp::socket& sock, uint16_t version, uint8_t type);
@@ -58,8 +65,8 @@ class TransferServer {
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>
 		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);
-        void synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock);
-    };
+		void synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock);
+};
 
 // Templated method to be generic across any asio buffer type.
 template <typename BufType>

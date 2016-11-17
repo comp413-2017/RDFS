@@ -1,16 +1,3 @@
-#include <iostream>
-#include <asio.hpp>
-#include <thread>
-
-#include <RpcHeader.pb.h>
-#include <ProtobufRpcEngine.pb.h>
-#include <IpcConnectionContext.pb.h>
-
-#include <easylogging++.h>
-
-#include <google/protobuf/io/coded_stream.h>
-#include "socket_writes.h"
-#include "socket_reads.h"
 #include "rpcserver.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << CLASS_NAME <<  msg; return
@@ -130,30 +117,84 @@ void RPCServer::handle_rpc(tcp::socket sock) {
 	    LOG(INFO) << CLASS_NAME << "RPC_METHOD_FOUND: [[" << request_header.methodname()
 		    << "]]\n";
 
+	//The if-statement is true only if there is a corresponding handler in
+	//for the requested command in on of the Namenode or datanode ProtocolImpl.cc files.
+	std::string response_header_str;
+	bool write_success;
 	if (iter != dispatch_table.end()) {
             LOG(INFO) << CLASS_NAME <<  "dispatching handler for " << request_header.methodname();
             // Send the response back on the socket.
             hadoop::common::RpcResponseHeaderProto response_header;
             response_header.set_callid(rpc_request_header.callid());
-            response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
             response_header.set_clientid(rpc_request_header.clientid());
-            std::string response_header_str;
-            response_header.SerializeToString(&response_header_str);
-            std::string response = iter->second(request);
-            size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
-            size_t response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
-            if (write_int32(sock, response_varint_size + response.size() + header_varint_size + response_header_str.size()) &&
-                write_delimited_proto(sock, response_header_str) &&
-                write_delimited_proto(sock, response)) {
+            size_t response_varint_size;
+            try {
+                std::string response = iter->second(request);
+                response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
+                response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
+                size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+                response_header.SerializeToString(&response_header_str);
+                write_success = write_int32(sock, response_varint_size + response.size() + header_varint_size +
+                    response_header_str.size()) && write_delimited_proto(sock, response_header_str) &&
+                    write_delimited_proto(sock, response);
+            } catch (hadoop::common::RpcResponseHeaderProto& response_header) {
+                // Some sort of failure occurred in our command's handler. 
+                LOG(INFO) << CLASS_NAME << "Returning error rpc header to client";
+            	write_success = send_error_header(rpc_request_header, response_header, response_header_str, sock);
+            }
+            if (write_success) {
                 LOG(INFO)  << "successfully wrote response to client.";
             } else {
                 LOG(ERROR) << CLASS_NAME <<  "failed to write response to client.";
             }
         } else {
-            LOG(INFO) << CLASS_NAME <<  "no handler found for " << request_header.methodname();
+            // In this case, we see that the lookup for a function to handle the 
+            // requested command (for example, see ClientNamenodeProtocolImpl)  using
+            // the dispatch table failed. As such, all we must send is a 
+            // header that specifices no handler method for this command was found.
+            LOG(INFO) << CLASS_NAME <<  "\n NO HANDLER FOUND FOR " << request_header.methodname();
+            hadoop::common::RpcResponseHeaderProto response_header;
+            response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
+            response_header.set_errormsg("No handler found for requested command");
+            response_header.set_exceptionclassname("");
+            response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_NO_SUCH_METHOD);
+
+            LOG(INFO) << CLASS_NAME << "Returning error rpc header to client since no handler found";
+	    //Same exact process to send it as when error occured in a handler
+            write_success = send_error_header(rpc_request_header, response_header, response_header_str, sock);
+
+            if (write_success) {
+                LOG(INFO)  << "successfully wrote error response to client.";
+            } else {
+                LOG(ERROR) << CLASS_NAME <<  "failed to write error response to client.";
+            }
+
         }
     }
 }
+
+/**
+ * Helper function to send an error response header
+ *
+ * This logic is used both when there was an error in a command handler
+ * as well as the case that we get a command that is unsupported
+ * (meaning we don't have a command handler for said command)
+ */
+bool RPCServer::send_error_header(
+		hadoop::common::RpcRequestHeaderProto rpc_request_header, 
+		hadoop::common::RpcResponseHeaderProto response_header,
+    		std::string response_header_str,
+		tcp::socket& sock) {
+    bool write_success; 
+    response_header.set_callid(rpc_request_header.callid());
+    response_header.set_clientid(rpc_request_header.clientid());
+    response_header.SerializeToString(&response_header_str);
+    size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+    write_success = write_int32(sock, header_varint_size +
+            response_header_str.size()) && write_delimited_proto(sock, response_header_str);
+    return write_success;
+}
+
 
 /**
  * Register given handler function on the provided method key.

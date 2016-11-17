@@ -52,7 +52,7 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 
 		void get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res);
-		int create_file(CreateRequestProto& request, CreateResponseProto& response);
+		bool create_file(CreateRequestProto& request, CreateResponseProto& response);
 		void get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res);
 		void mkdir(MkdirsRequestProto& req, MkdirsResponseProto& res);
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
@@ -61,7 +61,7 @@ class ZkNnClient : public ZkClientCommon {
 		/**
 		 * Add block.
 		 */
-		void add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
+		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
 
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls
