@@ -201,15 +201,9 @@ namespace zkclient{
 			LOG(ERROR) << " could not add replica to queue";
 			return false;
 		}
-		LOG(INFO) << "put it on queue";
-		char id_data[256];
-		std::strncpy(id_data, my_id.c_str(), my_id.size());
-		data[my_id.size() + 1] = '\0';
-		data.resize(256);
-		memcpy(&data[0], id_data, 256);
-		LOG(INFO) << "writing" << id_data << "on queue";
-		if (!zk->set(pushed_path, data, error)) {
-			LOG(ERROR) << " could not add data to sequential node created on replcia queue";
+		LOG(INFO) << "writing" << my_id << " as a child on queue";
+		if (!zk->create(pushed_path + "/" + my_id, ZKWrapper::EMPTY_VECTOR, error)) {
+			LOG(ERROR) << " could not add child to sequential node created on replcia queue";
 			return false;
 		}
 		return true;
