@@ -41,23 +41,31 @@ namespace {
 	TEST_F(ZKQueueTest, testPushPeek) {
 		int error_code;
 
-		ASSERT_TRUE(push(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, error_code));
+		std::string pushed_path;
+		ASSERT_TRUE(push(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, pushed_path, error_code));
+		ASSERT_EQ("/test_queue/q-item-0000000000", pushed_path);
+		ASSERT_TRUE(push(zk, "/test_queue", ZKWrapper::EMPTY_VECTOR, pushed_path, error_code));
+		ASSERT_EQ("/test_queue/q-item-0000000001", pushed_path);
 		std::string peeked_path;
 		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
-		ASSERT_EQ("q-item-0000000000", peeked_path);
+		ASSERT_EQ("/test_queue/q-item-0000000000", peeked_path);
 	}
 
 	TEST_F(ZKQueueTest, testPushAndPop) {
 		int error_code;
 
-		ASSERT_TRUE(push(zk, "/test_queue", zk->get_byte_vector("Test node data."), error_code));
+		std::string pushed_path;
+		ASSERT_TRUE(push(zk, "/test_queue", zk->get_byte_vector("Test node data."), pushed_path, error_code));
+		ASSERT_EQ("/test_queue/q-item-0000000000", pushed_path);
 
 		std::string peeked_path;
 		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
-		ASSERT_EQ("q-item-0000000000", peeked_path);
+		ASSERT_EQ("/test_queue/q-item-0000000000", peeked_path);
 
 		auto popped_data = std::vector<std::uint8_t>();
-		ASSERT_TRUE(pop(zk, "/test_queue", popped_data, error_code));
+		std::string popped_path;
+		ASSERT_TRUE(pop(zk, "/test_queue", popped_data, popped_path, error_code));
+		ASSERT_EQ("/test_queue/q-item-0000000000", popped_path);
 		ASSERT_EQ("Test node data.", std::string(popped_data.begin(), popped_data.end()));
 		ASSERT_TRUE(peek(zk, "/test_queue", peeked_path, error_code));
 		ASSERT_EQ("/test_queue", peeked_path); // Since q is empty, the peeked path should be the same
