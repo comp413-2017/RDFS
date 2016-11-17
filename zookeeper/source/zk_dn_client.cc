@@ -166,19 +166,19 @@ namespace zkclient{
 	}
 
 	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id){
-                int error_code;
-                bool exists;
+		int error_code;
+		bool exists;
 
-                // Creqte queue for this datanode
-                // TODO: Replace w/ actual queues when they're created
-                if (zk->exists(queueName + id, exists, error_code)){
-                        if (!exists){
-                                LOG(INFO) << "doesn't exist, trying to make it";
-                                if (!zk->create(queueName + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
-                                        LOG(INFO) << "Creation failed";
-                                }
-                        }
-                }
+		// Creqte queue for this datanode
+		// TODO: Replace w/ actual queues when they're created
+		if (zk->exists(queueName + id, exists, error_code)){
+				if (!exists){
+						LOG(INFO) << "doesn't exist, trying to make it";
+						if (!zk->create(queueName + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+								LOG(INFO) << "Creation failed";
+						}
+				}
+		}
 
 		// Register the replication watcher for this dn
 		std::vector <std::string> children = std::vector <std::string>();

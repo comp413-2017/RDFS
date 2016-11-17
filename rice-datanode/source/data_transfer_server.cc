@@ -151,8 +151,18 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		dn.blockReceived(header.baseheader().block().blockid(), bytesInBlock);
 	}
 
-	// TODO for the two datandoes in the list of datanodes to target that aren't me, put the block
+	// TODO for the two datandoes in the list of datanodes to target that aren't me, pt the block
 	// TODO I just wrote onto the replication queue belonging to those two datanodes!
+
+	const DatanodeIDProto& dn_one = proto.targets(0).id();
+	const DatanodeIDProto& dn_two = proto.targets(1).id();
+
+	std::string dn_one_name = dn_one.ipaddr() + std::to_string(dn_one.xferport());
+	std::string dn_two_name = dn_two.ipaddr() + std::to_string(dn_two.xferport());
+
+	// for now, put both targets on replication queue
+
+	
 
 	LOG(INFO) << "Wait for acks to finish. ";
 	ackThread.join();
@@ -357,13 +367,10 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 			uint64_t data_len = p_head.datalen();
 			uint64_t seqno = p_head.seqno();
 			uint64_t offset = p_head.offsetinblock();
-			// TODO what is the - 4 going on in the writePAcket in data_transer_server.hh
-			if (!last_packet) {
-				error = rpcserver::read_full(sock, asio::buffer(&data[offset], data_len));
-				if (error) {
-					LOG(ERROR) << "Failed to read packet " << p_head.seqno();
-					break;
-				}
+			error = rpcserver::read_full(sock, asio::buffer(&data[offset], data_len));
+			if (error) {
+				LOG(ERROR) << "Failed to read packet " << p_head.seqno();
+				break;
 			}
 			read_len += data_len;
 		} else {
