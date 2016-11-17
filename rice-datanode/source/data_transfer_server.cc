@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <easylogging++.h>
+#include <zkwrapper>
 
 #include "data_transfer_server.h"
 
@@ -161,8 +162,10 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	std::string dn_two_name = dn_two.ipaddr() + std::to_string(dn_two.xferport());
 
 	// for now, put both targets on replication queue
-
-	
+	if (!dn.push_dn_on_repq(dn_one_name, header.baseheader().block().blockid())) {
+	}
+	if (!dn.push_dn_on_repq(dn_two_name, header.baseheader().block().blockid())) {
+	}
 
 	LOG(INFO) << "Wait for acks to finish. ";
 	ackThread.join();

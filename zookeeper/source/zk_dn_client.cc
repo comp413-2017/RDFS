@@ -188,6 +188,11 @@ namespace zkclient{
 
 	}
 
+	bool push_dn_on_repq(std::string dn_name, uint64_t blockid) {
+		std::string queue_path = ZkClientCommon::BLOCK_LOCATIONS + dn_name;
+
+	}
+
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Replication watcher triggered on path: " << path;
 	}

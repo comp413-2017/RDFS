@@ -78,6 +78,8 @@ public:
 
 	int getNumXmits();
 
+	bool push_dn_on_repq(std::string dn_name, uint64_t blockid);
+
 private:
 
 	/**
