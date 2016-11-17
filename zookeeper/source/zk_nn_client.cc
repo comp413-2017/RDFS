@@ -930,13 +930,15 @@ namespace zkclient{
         zkclient::DataNodePayload * payload = (zkclient::DataNodePayload *) (&data[0]);
 
         DatanodeIDProto* id = dn_info->mutable_id();
-        id->set_ipaddr(split_address[0]);
+        dn_info->set_location("/fixlocation");
+		id->set_ipaddr(split_address[0]);
         id->set_hostname("localhost"); // TODO: Fill out with the proper value
         id->set_datanodeuuid("1234");
         id->set_xferport(payload->xferPort);
         id->set_infoport(50020);
         id->set_ipcport(payload->ipcPort);
-        return true;
+      
+		return true;
     }
 
     bool ZkNnClient::buildTokenProto(hadoop::common::TokenProto* token) {

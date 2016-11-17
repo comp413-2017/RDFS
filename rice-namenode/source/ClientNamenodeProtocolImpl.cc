@@ -196,6 +196,11 @@ std::string ClientNamenodeTranslator::setPermission(std::string input) {
 		return Serialize(res);
 }
 
+std::string ClientNamenodeTranslator::setReplication(std::string input) {
+		SetReplicationResponseProto res;
+		res.set_result(1);
+		return Serialize(res);
+}
 
 /**
  * While we expect clients to renew their lease, we should never allow
@@ -349,7 +354,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
 	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
 	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
-
+    server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 }
 
 /**
