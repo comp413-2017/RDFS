@@ -7,41 +7,43 @@ using ::testing::AtLeast;
 
 using namespace nativefs;
 class NativeFSTest : public ::testing::Test {
+	public:
+		NativeFSTest() : filesystem("/dev/sdb") {}
 protected:
-	virtual void SetUp(){
-		blk_id = 0;
+	virtual void SetUp() {
 		blk = "here's some data to write in the block";
 	}
-	long blk_id;
 	std::string blk;
 	NativeFS filesystem;
 };
 
+// TODO: Test writing and getting multiple blocks
 
 TEST_F(NativeFSTest, CanWriteBlock) {
-	ASSERT_EQ(true, filesystem.writeBlock(blk_id, blk));
+	ASSERT_EQ(true, filesystem.writeBlock(1, blk));
 }
 
 TEST_F(NativeFSTest, CanGetBlock) {
-	filesystem.writeBlock(blk_id, blk);
-	bool success;
-	std::string newBlock = filesystem.getBlock(blk_id, success);
-	ASSERT_EQ(newBlock[0], blk[0]);
-	ASSERT_EQ(success, true);
+	bool write_success = filesystem.writeBlock(2, blk);
+	ASSERT_EQ(true, write_success);
+	std::string newBlock;
+	bool success = filesystem.getBlock(2, newBlock);
+	ASSERT_EQ(true, success);
+	ASSERT_EQ(blk[0], newBlock[0]);
 }
 
 TEST_F(NativeFSTest, CanRemoveBlock) {
-	filesystem.writeBlock(blk_id, blk);
-	ASSERT_EQ(true, filesystem.rmBlock(blk_id));
+	ASSERT_EQ(true, filesystem.rmBlock(1));
+	ASSERT_EQ(true, filesystem.rmBlock(2));
 }
 
 TEST_F(NativeFSTest, RemoveNonExistBlockReturnsError) {
-	ASSERT_EQ(false, filesystem.rmBlock(blk_id));
+	ASSERT_EQ(false, filesystem.rmBlock(3));
 }
-
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
 	::testing::InitGoogleMock(&argc, argv);
-	return RUN_ALL_TESTS();
+	int result = RUN_ALL_TESTS();
+	return result;
 }

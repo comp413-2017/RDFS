@@ -118,7 +118,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
 		rpcserver::read_proto(sock, p_head, header_len);
-		LOG(INFO) << "Receigin packet " << p_head.seqno();
+		// LOG(INFO) << "Receigin packet " << p_head.seqno();
 		last_packet = p_head.lastpacketinblock();
 		uint64_t data_len = p_head.datalen();
 		uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
@@ -172,12 +172,12 @@ void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<P
 		last_packet = p_head.lastpacketinblock();
 		PipelineAckProto ack;
 		ack.set_seqno(p_head.seqno());
-		LOG(INFO) << "Acking " << p_head.seqno();
+		// LOG(INFO) << "Acking " << p_head.seqno();
 		ack.add_reply(SUCCESS);
 		std::string ack_string;
 		ack.SerializeToString(&ack_string);
 		if (rpcserver::write_delimited_proto(sock, ack_string)) {
-			LOG(INFO) << "Successfully sent ack to client";
+			// LOG(INFO) << "Successfully sent ack to client";
 		} else {
 			LOG(ERROR) << "Could not send ack to client";
 		}
@@ -202,8 +202,8 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	}
 
 	uint64_t blockID = proto.header().baseheader().block().blockid();
-	bool success;
-	std::string block = fs->getBlock(blockID, success);
+	std::string block;
+	bool success = fs->getBlock(blockID, block);
 	if (!success) {
 		LOG(ERROR) << "Failure on fs.getBlock";
 	}
@@ -227,8 +227,8 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		p_head.set_syncblock(false);
 
 		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
-			LOG(INFO) << "Successfully sent packet " << seq << " to client";
-			LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
+			// LOG(INFO) << "Successfully sent packet " << seq << " to client";
+			// LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
 		} else {
 			LOG(ERROR) << "Could not send packet " << seq << " to client";
 			break;

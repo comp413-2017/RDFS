@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 
 	unsigned short xferPort = 50010;
 	unsigned short ipcPort = 50020;
-	auto fs = std::make_shared<nativefs::NativeFS>();
+	auto fs = std::make_shared<nativefs::NativeFS>("/dev/sdb");
 	dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", zk_shared, ipcPort, xferPort);
 	dn_transfer_server = new TransferServer(xferPort, fs, dncli, max_xmits);
 
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 
 	// Remove test files and shutdown zookeeper
 	system("~/zookeeper/bin/zkCli.sh rmr /testing");
-	system("rm -f expected_testfile1234 actual_testfile* temp* block*");
+	system("rm -f expected_testfile1234 actual_testfile* temp*");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
 }
