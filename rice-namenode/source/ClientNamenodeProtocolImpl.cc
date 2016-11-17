@@ -146,6 +146,9 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 		res.set_result(false);
 	} else {
 		zk.complete(req, res);
+		if (res.result() == false) {
+			lease_manager.addLease(req.clientname(), req.src());
+		}
 	}
 	return Serialize(res);
 }
