@@ -59,11 +59,11 @@ class NativeFS{
 		/**
 		 * Return the total capacity of this datanode.
 		 */
-		long getTotalSpace();
+		uint64_t getTotalSpace();
 		/**
 		 * Return an estimate of the remaining free space on this datanode.
 		 */
-		long getFreeSpace();
+		uint64_t getFreeSpace();
 
 	private:
 		/**

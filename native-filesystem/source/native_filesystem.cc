@@ -66,7 +66,7 @@ namespace nativefs {
 		// Add free space before the first block.
 		freeRange(0, blocks[0].offset);
 		// Add free space between blocks.
-		for (int i = 0; i < BLOCK_LIST_LEN - 1; i++) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN - 1; i++) {
 			if (blocks[i].offset + blocks[i].len == blocks[i+1].offset) {
 				continue;
 			}
@@ -116,7 +116,7 @@ namespace nativefs {
 
 	void NativeFS::printFreeBlocks() {
         LOG(INFO) << "Free blocks:";
-		for (int i = 0; i < freeLists.size(); i++) {
+		for (size_t i = 0; i < freeLists.size(); i++) {
 			std::cout << "BLOCKS " << i << ": ";
 			for (auto offset: freeLists[i]) {
 				std::cout << offset << ",";
@@ -127,7 +127,7 @@ namespace nativefs {
 
 	void NativeFS::printKnownBlocks() {
         LOG(INFO) << "Known blocks:";
-		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len != 0) {
 				auto info = blocks[i];
 				LOG(INFO) << "Found block: " << info.blockid << " at " << info.offset << " with len " << info.len;
@@ -204,13 +204,13 @@ namespace nativefs {
 	 */
 	int NativeFS::addBlock(const block_info& info) {
 		// Make sure this block doesn't already exist on this datanode
-		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].blockid == info.blockid) {
 				return 2;
 			}
 		}
 		// Instead block_info into array
-		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len == 0) {
 				blocks[i] = info;
 				return 0;
@@ -229,7 +229,7 @@ namespace nativefs {
 			std::lock_guard<std::mutex> lock(listMtx);
 			// Look up the block info for this id.
 			bool found = false;
-			for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+			for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 				if (blocks[i].blockid == id) {
 					info = blocks[i];
 					found = true;
@@ -254,7 +254,7 @@ namespace nativefs {
 	**/
 	bool NativeFS::rmBlock(uint64_t id) {
 		std::lock_guard<std::mutex> lock(listMtx);
-		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].blockid == id) {
 				uint64_t offset = blocks[i].offset;
 				uint32_t len = blocks[i].len;
@@ -269,13 +269,13 @@ namespace nativefs {
 
 	}
 
-	long NativeFS::getTotalSpace() {
+	uint64_t NativeFS::getTotalSpace() {
 		return DISK_SIZE;
 	}
 
-	long NativeFS::getFreeSpace() {
-		long allocatedSize = 0;
-		for (int i = 0; i < BLOCK_LIST_LEN; i++) {
+	uint64_t NativeFS::getFreeSpace() {
+		uint64_t allocatedSize = 0;
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			allocatedSize += blocks[i].len;
 		}
 		return getTotalSpace() - allocatedSize;
