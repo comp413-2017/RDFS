@@ -3,6 +3,7 @@
 
 #include "zk_dn_client.h"
 #include "zk_lock.h"
+#include "zk_queue.h"
 #include <easylogging++.h>
 
 namespace zkclient{
@@ -188,9 +189,30 @@ namespace zkclient{
 
 	}
 
-	bool push_dn_on_repq(std::string dn_name, uint64_t blockid) {
-		std::string queue_path = ZkClientCommon::BLOCK_LOCATIONS + dn_name;
-
+	bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
+		LOG(INFO) << "adding datanode to replication queue";
+		std::string queue_path = ZkClientCommon::REPLICATE_QUEUES + dn_name;
+		std::string my_id = build_datanode_id(data_node_id);
+		std::vector<uint8_t> data (sizeof(blockid));
+		std::string pushed_path;
+		int error;
+		data[0] = blockid;
+		if (!push(zk, queue_path, data, pushed_path, error)) {
+			LOG(ERROR) << " could not add replica to queue";
+			return false;
+		}
+		LOG(INFO) << "put it on queue";
+		char id_data[256];
+		std::strncpy(id_data, my_id.c_str(), my_id.size());
+		data[my_id.size() + 1] = '\0';
+		data.resize(256);
+		memcpy(&data[0], id_data, 256);
+		LOG(INFO) << "writing" << id_data << "on queue";
+		if (!zk->set(pushed_path, data, error)) {
+			LOG(ERROR) << " could not add data to sequential node created on replcia queue";
+			return false;
+		}
+		return true;
 	}
 
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){

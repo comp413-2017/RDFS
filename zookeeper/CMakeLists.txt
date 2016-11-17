@@ -12,6 +12,7 @@ add_library(zk_client_dn source/zk_dn_client.cc)
 target_link_libraries(zk_client_dn zk_client_common)
 target_link_libraries(zk_client_dn easylogging++)
 target_link_libraries(zk_client_dn zk_lock)
+target_link_libraries(zk_client_dn zk_queue)
 
 add_library(zk_client_nn source/zk_nn_client.cc)
 target_link_libraries(zk_client_nn zk_client_common)

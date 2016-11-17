@@ -5,7 +5,6 @@
 #include <vector>
 #include <functional>
 #include <easylogging++.h>
-#include <zkwrapper>
 
 #include "data_transfer_server.h"
 
@@ -155,16 +154,11 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// TODO for the two datandoes in the list of datanodes to target that aren't me, pt the block
 	// TODO I just wrote onto the replication queue belonging to those two datanodes!
 
-	const DatanodeIDProto& dn_one = proto.targets(0).id();
-	const DatanodeIDProto& dn_two = proto.targets(1).id();
-
-	std::string dn_one_name = dn_one.ipaddr() + std::to_string(dn_one.xferport());
-	std::string dn_two_name = dn_two.ipaddr() + std::to_string(dn_two.xferport());
-
-	// for now, put both targets on replication queue
-	if (!dn.push_dn_on_repq(dn_one_name, header.baseheader().block().blockid())) {
-	}
-	if (!dn.push_dn_on_repq(dn_two_name, header.baseheader().block().blockid())) {
+	for (int i = 0; i < proto.targets_size(); i++) {
+		const DatanodeIDProto& dn_p = proto.targets(i).id();
+		std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
+		if (!dn->push_dn_on_repq(dn_name, header.baseheader().block().blockid())) {
+		}
 	}
 
 	LOG(INFO) << "Wait for acks to finish. ";
@@ -388,10 +382,10 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 		}
 	}
 
-	if (!fs.writeBlock(header->baseheader().block().blockid(), data)) {
+	if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
 		LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
 	} else {
-		dn.blockReceived(header->baseheader().block().blockid(), read_len);
+		dn->blockReceived(header->baseheader().block().blockid(), read_len);
 	}
 
 	// close the connection
