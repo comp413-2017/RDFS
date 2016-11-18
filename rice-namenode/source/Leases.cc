@@ -90,7 +90,7 @@ void LeaseManager::renewLeases(std::string client) {
  */
 std::vector<std::pair<std::string, std::string>> LeaseManager::checkLeases(int time) {
 	std::vector<std::pair<std::string, std::string>> expiredFiles;
-	LOG(DEBUG) << "Checking leases for time " << time;
+	// LOG(DEBUG) << "Checking leases for time " << time;
 	// iterate through map, and for each lease, call isExpired() 
 	for (auto x = leases.begin(); x != leases.end(); x++) {
 		std::string client = x->first;
