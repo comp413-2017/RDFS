@@ -62,6 +62,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * Add block.
 		 */
 		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
+        
+        /**
+         * Abandons the block - basically reverses all of add block's multiops
+         */
+		bool abandon_block(AbandonBlockRequestProto& req, AbandonBlockResponseProto& res);
 
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls

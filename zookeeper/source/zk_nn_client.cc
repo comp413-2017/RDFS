@@ -144,6 +144,76 @@ namespace zkclient{
     	return true;
 	}
 
+    /**
+     * Since the names were a bit strange and it was a pain to go back and figure out 
+     * where these were again, I'm writing what the proto fields are here.
+     *
+     * message has:
+     * required ExtendedBlockProto b = 1;
+     * required string src = 2;
+     * required string holder = 3;
+     * optional uint64 fileId = 4 [default = 0];  // default to GRANDFATHER_INODE_ID 
+     *
+     * ExtendedBlockProto has:
+     * required string poolId = 1;   // Block pool id - gloablly unique across clusters
+     * required uint64 blockId = 2;  // the local id within a pool
+     * required uint64 generationStamp = 3;
+     * optional uint64 numBytes = 4 [default = 0];  // len does not belong in ebid 
+    */
+    bool ZkNnClient::abandon_block(AbandonBlockRequestProto& req, AbandonBlockResponseProto& res) {
+        LOG(INFO) << CLASS_NAME << "Attempting to abandon block";
+        const std::string& src = req.src();
+        const std::string& holder = req.src(); // TODO who is the holder??
+
+        LOG(INFO) << CLASS_NAME << "Getting block info for this file... " << src;
+        LOG(INFO) << CLASS_NAME << "(btw, what is the 'holder' field?)... " << holder;
+        const std::string file_path = src;
+
+        //uint64 generationStamp (as well as the optional uint64 numBytes)
+        const ExtendedBlockProto& block = req.b();
+        const std::string poolId = block.poolid();
+        const uint64_t blockId = block.blockid();
+        const uint64_t generation_stamp = block.generationstamp();
+
+        const std::string block_id_str = std::to_string(blockId);
+        LOG(INFO) << CLASS_NAME << "Got block info. Checking file exists... " << file_path;
+
+        //double check the file exists first 
+        FileZNode znode_data;
+        if (!file_exists(file_path)) {
+            LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " does not exist";
+            return false;
+        }
+        read_file_znode(znode_data, file_path);
+        if (znode_data.filetype != IS_FILE) { // Assert that the znode we want to modify is a file
+            LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " is not a file";
+            return false;
+        }
+        
+        LOG(INFO) << CLASS_NAME << "File exists. Building multi op to abandon block... " << file_path;
+        //Build the multi op - it's a reverse of the one's in add_block
+        //TODO - should probably change from -1 if version checking ever gets implemented
+        //(right now I don't believe it is. -1 just means don't check the version)
+        auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path + "/block_"), -1);
+        auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/" + block_id_str, -1);
+        auto undo_block_location_op = zk->build_delete_op("/block_locations/" + block_id_str, -1);
+
+        std::vector<std::shared_ptr<ZooOp>> ops = {undo_seq_file_block_op, undo_ack_op, undo_block_location_op};
+
+        auto results = std::vector <zoo_op_result>();
+        int err;
+
+        LOG(INFO) << CLASS_NAME << "Built multi op. Executing multi op to abandon block... " << file_path;
+        // TODO: Perhaps we have to perform a more fine grained analysis of the results
+        if (!zk->execute_multi(ops, results, err)) {
+            LOG(ERROR) << CLASS_NAME << "Failed to write the abandon_block multiop, ZK state was not changed";
+            ZKWrapper::print_error(err);
+            return false;
+        }
+    	return true;
+	}
+
+
     void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
         const std::string& path = req.src();
 
@@ -335,6 +405,7 @@ namespace zkclient{
         // if we failed, then do not set any status
         if (!create_file_znode(path, &znode_data))
             return false;
+
 
         HdfsFileStatusProto* status = response.mutable_fs();
         set_file_info(status, path, znode_data);
@@ -633,7 +704,7 @@ namespace zkclient{
 
         LOG(INFO) << CLASS_NAME << "Generating block for " << ZookeeperPath(file_path);
 
-        // ZooKeeper multi-op to
+        // ZooKeeper multi-op to add block
         auto seq_file_block_op = zk->build_create_op(ZookeeperPath(file_path + "/block_"), data, ZOO_SEQUENCE);
         auto ack_op = zk->build_create_op("/work_queues/wait_for_acks/" + block_id_str, ZKWrapper::EMPTY_VECTOR);
         auto block_location_op = zk->build_create_op("/block_locations/" + block_id_str, ZKWrapper::EMPTY_VECTOR);
