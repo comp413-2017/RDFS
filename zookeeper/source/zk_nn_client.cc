@@ -113,7 +113,7 @@ namespace zkclient{
 	    }
 	    return false;
 	}
-	return false;
+	return true;
     }
 
     bool ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
