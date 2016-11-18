@@ -341,7 +341,8 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	uint16_t version = 1; // TODO what is the version
 	uint8_t read_request = READ_BLOCK;
 	read_block_proto.SerializeToString(&read_string);
-	if (!(write_header(sock, version, read_request) || rpcserver::write_proto(sock, read_string))) {
+	LOG(INFO) << " writing read request " << std::to_string(read_request);
+	if (!(write_header(sock, version, read_request) && rpcserver::write_delimited_proto(sock, read_string))) {
 		LOG(ERROR) << " could not write the read request to target datanode";
 		return false;
 	}
