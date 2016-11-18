@@ -77,7 +77,7 @@ void watcher(zhandle_t *zzh,
 }
 
 
-watcher_fn ZKWrapper::watcher_health_factory(std::string path){
+watcher_fn ZKWrapper::watcher_health_factory(std::string inputpath){
 	class factory_wrapper{
 		public:
 
@@ -98,16 +98,27 @@ watcher_fn ZKWrapper::watcher_health_factory(std::string path){
 					// ZkNnClient::CLASS_NAME is not in scope when put into zkwrapper
 					LOG(INFO) <<  "no childs to retrieve";
 				}
-
+				constexpr int MAX_BUF = 65535;
 				for (int i = 0; i < children.size(); i++) {
+					char str[MAX_BUF];
+					memset(str, MAX_BUF, '\0');
+					LOG(INFO) << "[In factory] value of i is " << i;
+					LOG(INFO) << "[In factory] children.size() is " << children.size();
 					LOG(INFO) <<  "[In watcher_health] Attaching child to " << children[i];
 					//ZkClientCommon::HEALTH_BACKSLASH + children[i]).c_str(),
-					int rc = zoo_wget_children(zzh, (path+children[i]).c_str(),
+					strcat(str, path);
+					strcat(str, "/");
+					strcat(str, children[i].c_str());
+					LOG(INFO) << "[In factory] path is " << path;
+					LOG(INFO) << "[In factory] str is " << str;
+					int rc = zoo_wget_children(zzh, str,
 							ZKWrapper::watcher_health_child, nullptr,
 							vector);
+					LOG(INFO) << "[In factory] rc value is" << rc;
 				}
 			}
 	};
+	LOG(INFO) <<  "[In factory], factory ready to return";
 	return factory_wrapper::watcher_health;
 }
 
