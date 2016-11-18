@@ -9,41 +9,16 @@ namespace zkclient{
 
 	const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
 
-	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper> zk_in, uint64_t total_disk_space,
+	ZkClientDn::ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper> zk_in, uint64_t total_disk_space,
 		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
-		// TODO: refactor with the next constructor.
 
-		data_node_id = DataNodeId();
-		data_node_id.ip = ip;
-		data_node_id.ipcPort = ipcPort;
-
-		data_node_payload = DataNodePayload();
-		data_node_payload.ipcPort = ipcPort;
-		data_node_payload.xferPort = xferPort;
-		data_node_payload.disk_bytes = total_disk_space;
-		data_node_payload.free_bytes = total_disk_space;
-		data_node_payload.xmits = 0;
-
-		registerDataNode();
-		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
+		registerDataNode(ip, total_disk_space, ipcPort, xferPort);
 	}
 
-	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress, uint64_t total_disk_space,
+	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
 		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
 
-		data_node_id = DataNodeId();
-		data_node_id.ip = ip;
-		data_node_id.ipcPort = ipcPort;
-		
-		data_node_payload = DataNodePayload();
-		data_node_payload.ipcPort = ipcPort;
-		data_node_payload.xferPort = xferPort;
-		data_node_payload.disk_bytes = total_disk_space;
-		data_node_payload.free_bytes = total_disk_space;
-		data_node_payload.xmits = 0;
-
-		registerDataNode();
-		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
+		registerDataNode(ip, total_disk_space, ipcPort, xferPort);
 	}
 
 	bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
@@ -158,10 +133,21 @@ namespace zkclient{
  		}
 	}
 
-	void ZkClientDn::registerDataNode() {
+	void ZkClientDn::registerDataNode(const std::string& ip, uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) {
 		// TODO: Consider using startup time of the DN along with the ip and port
 		int error_code;
 		bool exists;
+		
+		data_node_id = DataNodeId();
+		data_node_id.ip = ip;
+		data_node_id.ipcPort = ipcPort;
+
+		data_node_payload = DataNodePayload();
+		data_node_payload.ipcPort = ipcPort;
+		data_node_payload.xferPort = xferPort;
+		data_node_payload.disk_bytes = total_disk_space;
+		data_node_payload.free_bytes = total_disk_space;
+		data_node_payload.xmits = 0;
 
 		std::string id = build_datanode_id(data_node_id);
 		// TODO: Add a watcher on the health node
@@ -199,7 +185,7 @@ namespace zkclient{
 		// Create the work queues, set their watchers
 		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher, id);
 		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher, id);
-
+		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
 	}
 
 	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id){
@@ -243,20 +229,8 @@ namespace zkclient{
 	std::string ZkClientDn::build_datanode_id(DataNodeId data_node_id) {
 		return data_node_id.ip + ":" + std::to_string(data_node_id.ipcPort);
 	}
-
-	void ZkClientDn::incrementNumXmits(){
-		xmits++;
-	}
-
-	void ZkClientDn::decrementNumXmits(){
-		xmits--;
-	}
-
-	int ZkClientDn::getNumXmits() {
-		return xmits.fetch_add(0);
-	}
 	
-	bool ZkClientDn::sendStats(uint64_t free_space) {
+	bool ZkClientDn::sendStats(uint64_t free_space, uint32_t xmits) {
 		int error_code;
 		
 		std::string id = build_datanode_id(data_node_id);

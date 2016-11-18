@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 	}
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
 	uint64_t total_disk_space = fs->getTotalSpace();
-	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", "localhost:2181", total_disk_space, ipcPort, xferPort); // TODO: Change the datanode id
+	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost:2181", total_disk_space, ipcPort, xferPort); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
 	TransferServer transfer_server(xferPort, fs, dncli);
 	daemon_thread::DaemonThreadFactory factory;

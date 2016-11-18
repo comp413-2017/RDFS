@@ -2,7 +2,6 @@
 #define RDFS_ZK_CLIENT_DN_H
 
 #include "zk_client_common.h"
-#include <atomic>
 
 namespace zkclient {
 
@@ -52,17 +51,17 @@ public:
 	* @param ipcPort TODO
 	* @param xferPort TODO
 	*/
-	ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress, uint64_t total_disk_space,
+	ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
 			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 
-	ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper>, uint64_t total_disk_space,
+	ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper>, uint64_t total_disk_space,
 			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 	~ZkClientDn();
 
 	/**
 	* Registers this DataNode with Zookeeper.
 	*/
-	void registerDataNode();
+	void registerDataNode(const std::string& ip, uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort);
 
 	/**
 	* Informs Zookeeper when the DataNode has received a block. Adds an acknowledgment
@@ -73,21 +72,15 @@ public:
 	*/
 	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
-   	/**
-    	* Informs Zookeeper when the DataNode has deleted a block. 
-    	* @param uuid The UUID of the block deleted by the DataNode.
-    	* @param size_bytes The number of bytes in the block
-    	* @return True on success, false on error.
-    	*/
-    	bool blockDeleted(uint64_t uuid);
-
-	void incrementNumXmits();
-
-	void decrementNumXmits();
+	/**
+	* Informs Zookeeper when the DataNode has deleted a block. 
+	* @param uuid The UUID of the block deleted by the DataNode.
+	* @param size_bytes The number of bytes in the block
+	* @return True on success, false on error.
+	*/
+	bool blockDeleted(uint64_t uuid);
 	
-	bool sendStats(uint64_t free_space);
-
-	int getNumXmits();
+	bool sendStats(uint64_t free_space, uint32_t xmits);
 
 private:
 
@@ -100,7 +93,6 @@ private:
 
 	DataNodeId data_node_id;
 	DataNodePayload data_node_payload;
-	std::atomic_int xmits{0};
 
 	static const std::string CLASS_NAME;
 

@@ -46,9 +46,9 @@ namespace {
 
 		int error;
 		zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2181/health", ZKWrapper::EMPTY_VECTOR, error);
+		zk->create("/health/localhost:2181/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
 		zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2182/health", ZKWrapper::EMPTY_VECTOR, error);
+		zk->create("/health/localhost:2182/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
 
 		auto datanodes = std::vector<std::string>();
 		u_int64_t block_id;

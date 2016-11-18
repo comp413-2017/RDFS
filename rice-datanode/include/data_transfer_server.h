@@ -7,6 +7,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -48,6 +49,7 @@ class TransferServer {
 	private:
 		int max_xmits;
 		int port;
+		std::atomic<std::uint32_t> xmits{0};
 		std::shared_ptr<nativefs::NativeFS> fs;
 		std::shared_ptr<zkclient::ZkClientDn> dn;
 
