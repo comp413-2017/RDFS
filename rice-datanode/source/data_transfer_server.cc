@@ -316,14 +316,15 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
 
-	// TODO check if blockToTarget id is already in file system, if so, call blockReceived and return true
+	// check if blockToTarget id is already in file system, if so, call blockReceived and return true
 	::google::protobuf::uint64 block_uuid = blockToTarget.blockid();
 	std::string blk;
 	if (fs->getBlock(block_uuid, blk)) {
-		// call blockReceived and return true
 		dn->blockReceived(block_uuid, blk.size());
 		return true;
 	}
+
+	// in this case, the filesystem could not locate the block in question
 
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
@@ -342,14 +343,14 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	OpReadBlockProto read_block_proto;
 	read_block_proto.set_len(len);
 	ClientOperationHeaderProto* header = read_block_proto.mutable_header();
-	header->set_clientname("datanode_replication"); // TODO ??
+	header->set_clientname("datanode_replication"); // TODO is this the correct name?
 
 	BaseHeaderProto base_proto;
 	base_proto.set_allocated_block(&blockToTarget);
 	header->set_allocated_baseheader(&base_proto);
 
 	// send the read request
-	uint16_t version = 1000; // TODO what is the version
+	uint16_t version = 1000; // TODO what is the version?
 	unsigned char read_request = READ_BLOCK;
 	read_block_proto.SerializeToString(&read_string);
 	LOG(INFO) << " writing read request " << std::to_string(read_request);
