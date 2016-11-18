@@ -154,10 +154,13 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// TODO for the two datandoes in the list of datanodes to target that aren't me, pt the block
 	// TODO I just wrote onto the replication queue belonging to those two datanodes!
 
-	for (int i = 0; i < proto.targets_size(); i++) {
-		const DatanodeIDProto& dn_p = proto.targets(i).id();
+	LOG(INFO) << "Placing " << targets.size() << " targets on replication queue";
+	for (auto target = targets.begin(); target != targets.end(); ++target) {
+		const DatanodeIDProto& dn_p = target->id();
 		std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
+		LOG(INFO) << "Placed " << dn_name << " on replication queue";
 		if (!dn->push_dn_on_repq(dn_name, header.baseheader().block().blockid())) {
+			LOG(ERROR) << "Failed to push datanode onto replication queue";
 		}
 	}
 
@@ -315,6 +318,8 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 }
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
+
+	LOG(INFO) << "Replication starting...";
 
 	// check if blockToTarget id is already in file system, if so, call blockReceived and return true
 	::google::protobuf::uint64 block_uuid = blockToTarget.blockid();
