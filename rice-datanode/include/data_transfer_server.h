@@ -7,6 +7,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -40,15 +41,19 @@ class TransferServer {
 	public:
 		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
 
+		TransferServer(const TransferServer& other) {}
+		
 		void serve(asio::io_service& io_service);
+		bool sendStats();
 
 	private:
 		int max_xmits;
 		int port;
+		std::atomic<std::uint32_t> xmits{0};
 		std::shared_ptr<nativefs::NativeFS> fs;
 		std::shared_ptr<zkclient::ZkClientDn> dn;
 
-		std::mutex m;
+		mutable std::mutex m;
 		std::condition_variable cv;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);

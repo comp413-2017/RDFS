@@ -6,37 +6,35 @@
 #include <cstring>
 #include <easylogging++.h>
 
-#include "hdfs.pb.h"
-#include "ClientNamenodeProtocol.pb.h"
-
 INITIALIZE_EASYLOGGINGPP
 
 namespace {
+
 	class NamenodeTest : public ::testing::Test {
 
-	protected:
-		virtual void SetUp() {
-			int error_code;
-			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-			assert(error_code == 0); // Z_OK
-			client = new zkclient::ZkNnClient(zk_shared);
-			zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-		}
+		protected:
+			virtual void SetUp() {
+				int error_code;
+				auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+				assert(error_code == 0); // Z_OK
+				client = new zkclient::ZkNnClient(zk_shared);
+				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
+			}
+			
+			hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
+				hadoop::hdfs::CreateRequestProto create_req;
+				create_req.set_src(path);
+				create_req.set_clientname("asdf");
+				create_req.set_createparent(false);
+				create_req.set_blocksize(1);
+				create_req.set_replication(1);
+				create_req.set_createflag(0);
+				return create_req;
+			}
 
-        hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
-            hadoop::hdfs::CreateRequestProto create_req;
-            create_req.set_src(path);
-            create_req.set_clientname("asdf");
-            create_req.set_createparent(false);
-            create_req.set_blocksize(1);
-            create_req.set_replication(1);
-            create_req.set_createflag(0);
-            return create_req;
-        }
-
-		// Objects declared here can be used by all tests in the test case for Foo.
-		ZKWrapper *zk;
-		zkclient::ZkNnClient *client;
+			// Objects declared here can be used by all tests in the test case for Foo.
+			ZKWrapper *zk;
+			zkclient::ZkNnClient *client;
 	};
 
 
@@ -196,7 +194,8 @@ namespace {
 		u_int64_t block_id;
 		util::generate_uuid(block_id);
 		LOG(INFO) << "Previous block_id is " << block_id;
-		ASSERT_EQ(false, client->previousBlockComplete(block_id));
+		// Calling previousblockcomplete on the first block should be true.
+		ASSERT_EQ(true, client->previousBlockComplete(block_id));
 		/* mock the directory */
 		zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
 		zk->create("/block_locations/"+std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error);
@@ -235,6 +234,7 @@ namespace {
 		zk->exists("/fileSystem/old_name", exist, error_code);
 		ASSERT_EQ(false, exist);
 	}
+
 }
 
 int main(int argc, char **argv) {

@@ -1,7 +1,7 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
-#include "../include/zk_nn_client.h"
+#include "zk_nn_client.h"
 #include "zkwrapper.h"
 #include <iostream>
 #include <sstream>
@@ -49,7 +49,7 @@ namespace zkclient{
         /* Place a watch on the health subtree */
 
 
-        if (!(zk->wget_children(HEALTH, children, zk->watcher_health_factory(ZkClientCommon::HEALTH_BACKSLASH), nullptr, error_code))) {
+        if (!(zk->wget_children(HEALTH, children, zk->watcher_health_factory(HEALTH_BACKSLASH), nullptr, error_code))) {
             // TODO: Handle error
             LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << error_code;
         }
@@ -113,7 +113,7 @@ namespace zkclient{
 	    }
 	    return false;
 	}
-	return false;
+	return true;
     }
 
     bool ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
