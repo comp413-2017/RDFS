@@ -199,7 +199,12 @@ namespace zkclient{
 
         const std::string block_id_str = std::to_string(blockId);
         LOG(INFO) << CLASS_NAME << "Got block info. Checking file exists... " << file_path;
-
+        
+        //TODO - once leases get implemented, need to use them here.
+        //Java implementation looks like the following:
+            //INodeFileUnderConstruction file = checkLease(src, holder);
+            //dir.removeBlock(src, file, b); <- this basically is what our multiop is for
+     
         //double check the file exists first 
         FileZNode znode_data;
         if (!file_exists(file_path)) {
@@ -211,11 +216,18 @@ namespace zkclient{
             LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " is not a file";
             return false;
         }
-        
         LOG(INFO) << CLASS_NAME << "File exists. Building multi op to abandon block... " << file_path;
+
+        //Our equivalent to dir.removeBlock will be the 3 zookeeper ops below
+        //(Java implementation modifies file->block and blocksMap)
+       
         //Build the multi op - it's a reverse of the one's in add_block
-        //TODO - should probably change from -1 if version checking ever gets implemented
-        //(right now I don't believe it is. -1 just means don't check the version)
+        //TODO - should probably change the generations from -1 if version checking ever
+        //gets implemented (right now I don't believe it is).
+        //-1 just means don't check the version)
+       
+        //TODO - check this first line is correct. (The build_create_op definitely creates 
+        //a node at this location; surprisingly, the *data* written at it is the blockId). 
         auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path + "/block_"), -1);
         auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/" + block_id_str, -1);
         auto undo_block_location_op = zk->build_delete_op("/block_locations/" + block_id_str, -1);
