@@ -225,6 +225,8 @@ namespace zkclient{
 		std::string work_item;
 		int error;
 
+		// TODO go through all of the work items
+
 		// take something off the queue
 		if (!peek(zk, children_path, work_item, error)) {
 			LOG(ERROR) << "could not pop work-item off queue";
@@ -239,6 +241,8 @@ namespace zkclient{
 				return;
 			}
 		}
+
+		// TODO after getting block info, check if I already have block, if so, just stop
 
 		// get the block information
 		uint64_t block_id;
@@ -280,6 +284,10 @@ namespace zkclient{
 			uint32_t xferPort = dn_target_info.xferPort;
 			server->replicate(block_length, dn_ip, std::to_string(xferPort), block_proto);
 		}
+
+		// TODO delete work item from the queue
+
+		// TODO reattach the watcher, check if there are on work-items on me, if so, do this whole shit over again
 
 	}
 

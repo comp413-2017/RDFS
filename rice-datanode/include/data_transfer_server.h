@@ -64,7 +64,7 @@ class TransferServer {
 		std::condition_variable cv;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
-		bool write_header(tcp::socket& sock, uint16_t version, uint8_t type);
+		bool write_header(tcp::socket& sock, uint16_t version, unsigned char type);
 		void handle_connection(tcp::socket sock);
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);

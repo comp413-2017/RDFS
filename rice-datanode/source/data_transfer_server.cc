@@ -23,7 +23,7 @@ bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsign
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
 }
 
-bool TransferServer::write_header(tcp::socket& sock, uint16_t version, uint8_t type) {
+bool TransferServer::write_header(tcp::socket& sock, uint16_t version, unsigned char type) {
 	return (rpcserver::write_int16(sock, version) && rpcserver::write_byte(sock, type));
 }
 
@@ -315,6 +315,9 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 }
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
+
+	// TODO check if blockToTarget id is already in file system, if so, call blcokReceived and return true
+
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 	// connect to the datanode
 	asio::io_service io_service;
@@ -338,8 +341,8 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	header->set_allocated_baseheader(&base_proto);
 
 	// send the read request
-	uint16_t version = 1; // TODO what is the version
-	uint8_t read_request = READ_BLOCK;
+	uint16_t version = 1000; // TODO what is the version
+	unsigned char read_request = READ_BLOCK;
 	read_block_proto.SerializeToString(&read_string);
 	LOG(INFO) << " writing read request " << std::to_string(read_request);
 	if (!(write_header(sock, version, read_request) && rpcserver::write_delimited_proto(sock, read_string))) {
