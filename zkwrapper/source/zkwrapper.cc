@@ -98,12 +98,9 @@ watcher_fn ZKWrapper::watcher_health_factory(std::string inputpath){
 					// ZkNnClient::CLASS_NAME is not in scope when put into zkwrapper
 					LOG(INFO) <<  "no childs to retrieve";
 				}
-				int MAX_BUF = 65535;
+				constexpr int MAX_BUF = 65535;
 				for (int i = 0; i < children.size(); i++) {
-					// TODO: if I use a variable, I got variable-sized array type 'char [MAX_BUF]' 
-					// is not a valid template argument when I tried to log
-					// 
-					char str[65535];
+					char str[MAX_BUF];
 					memset(str, MAX_BUF, '\0');
 					LOG(INFO) << "[In factory] value of i is " << i;
 					LOG(INFO) << "[In factory] children.size() is " << children.size();
