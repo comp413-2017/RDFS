@@ -42,7 +42,17 @@ class TransferServer {
 		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
 
 		void serve(asio::io_service& io_service);
-		bool replicate(DatanodeIDProto datanodeToTarget, ExtendedBlockProto blockToTarget);
+
+		/**
+		 * @param len the length of the block
+		 * @param ip the ip of the datanode we are sending the read request to
+		 * @param xferport the xfer port of the datandoe we are sending the read request to
+		 * @param blockToTarget the block info of the block to replicate
+		 *
+		 * Send a read request to anotehr datanode for a certain block, stream in the packets and write them
+		 * to our disk
+		 */
+		bool replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget);
 
 	private:
 		int max_xmits;
@@ -60,16 +70,6 @@ class TransferServer {
 		void processReadRequest(tcp::socket& sock);
 		void buildBlockOpResponse(std::string& response_string);
 		void ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue);
-		/**
-		 * @param len the length of the block
-		 * @param ip the ip of the datanode we are sending the read request to
-		 * @param xferport the xfer port of the datandoe we are sending the read request to
-		 * @param blockToTarget the block info of the block to replicate
-		 *
-		 * Send a read request to anotehr datanode for a certain block, stream in the packets and write them
-		 * to our disk
-		 */
-		bool replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget);
 
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>

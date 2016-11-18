@@ -37,9 +37,10 @@ int main(int argc, char* argv[]) {
 		backingStore = argv[3];
 	}
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
-	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort); // TODO: Change the datanode id
+	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost", "localhost:2181", ipcPort, xferPort);
 	ClientDatanodeTranslator translator(ipcPort);
 	TransferServer transfer_server(xferPort, fs, dncli);
+	dncli->server = &transfer_server;
 	std::thread(&TransferServer::serve, &transfer_server, std::ref(io_service)).detach();
 	translator.getRPCServer().serve(io_service);
 }

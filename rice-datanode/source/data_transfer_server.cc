@@ -315,7 +315,7 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 }
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
-	LOG(INFO) << " replicating";
+	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 	// connect to the datanode
 	asio::io_service io_service;
 	std::string port = xferport;

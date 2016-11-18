@@ -3,6 +3,10 @@
 
 #include "zk_client_common.h"
 #include <atomic>
+#include <google/protobuf/message.h>
+#include "hdfs.pb.h"
+
+class TransferServer;
 
 namespace zkclient {
 
@@ -78,6 +82,8 @@ public:
 
 	int getNumXmits();
 
+	TransferServer *server;
+
 	/**
 	* Push the blockid onto the replication queue belonging to dn_name
 	* @param dn_name the queue to add onto
@@ -109,8 +115,13 @@ private:
 	*/
 	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
 
+	void handleReplicateCmds(const char *path);
+
 	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+	bool buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto* eb, const std::uint64_t& block_id,
+    											 const uint64_t& block_size);
 };
 }
 
