@@ -3,3 +3,4 @@ build/
 .vagrant_provision.backup
 .idea/
 logs/
+raw_storage.vdi

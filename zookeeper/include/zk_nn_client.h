@@ -68,6 +68,7 @@ class ZkNnClient : public ZkClientCommon {
          */
 		bool abandon_block(AbandonBlockRequestProto& req, AbandonBlockResponseProto& res);
 
+		bool previousBlockComplete(uint64_t prev_id);
 		/**
 		 * Information that the protocol might need to respond to individual rpc calls
 		 */

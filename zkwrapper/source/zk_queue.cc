@@ -3,10 +3,11 @@
 //
 
 #include "zk_queue.h"
+#include "zk_lock.h"
 
 std::string element = "/q-item-";
 
-bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, int &error_code) {
+bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, const std::vector<std::uint8_t> &pushed_data, std::string &pushed_path, int &error_code) {
 	LOG(INFO) << "Pushing to queue: " << q_path;
 
 	// Check that the "queue" znode exists
@@ -17,7 +18,6 @@ bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, cons
 	}
 
 	// Push a new element on to the queue with the given data
-	std::string pushed_path;
 	if (!zk->create_sequential(q_path + element, pushed_data, pushed_path, false, error_code)) {
 		LOG(ERROR) << "There was an error when pushing new element onto the queue.";
 		return false;
@@ -29,33 +29,49 @@ bool push(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, cons
 		LOG(ERROR) << "Failed to get children of queue node.";
 		return false;
 	}
-	LOG(INFO) << "Queue front: " << children.back();
-	LOG(INFO) << "Queue back: " << children.front();
 
 	return true;
 }
 
-bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::vector<std::uint8_t> &popped_data, int &error_code) {
+bool pop(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std::vector<std::uint8_t> &popped_data, std::string &popped_path, int &error_code) {
 	std::vector<std::string> children;
 	if (!zk->get_children(q_path, children, error_code)) {
 		LOG(ERROR) << "Failed to get children of queue node: " << q_path;
 		return false;
 	}
+
+	ZKLock q_lock(*zk, q_path);
+	q_lock.lock();
+
 	if (children.size() < 1) {
-		std::cerr << "ERROR: Queue is empty, nothing to pop!" << std::endl;
-		// TODO: set a custom error code?
+		LOG(ERROR) << "Queue is empty, nothing to pop!";
+		error_code = ZNONODE;
+		q_lock.unlock();
 		return false;
 	}
 
-	std::string peeked_path = q_path + "/" + children.back();
-	LOG(INFO) << "Popping: " << peeked_path;
+	if (!peek(zk, q_path, popped_path, error_code)) {
+		LOG(ERROR) << "Failed to get head of queue!";
+		q_lock.unlock();
+		return false;
+	}
+	LOG(INFO) << "Popping: " << popped_path;
 
-	if (!zk->delete_node(peeked_path, error_code)) {
+	if (!zk->get(popped_path, popped_data, error_code)) {
+		LOG(ERROR) << "Failed to get data from popped node";
+		q_lock.unlock();
+		return false;
+	}
+
+	if (!zk->delete_node(popped_path, error_code)) {
 		std::cerr << "ERROR: There was an error when popping the first element of the queue. Error code: " << error_code << std::endl;
-		std::cerr << "ERROR: The first element of the queue is still: " << peeked_path << std::endl;
+		std::cerr << "ERROR: The first element of the queue is still: " << popped_path << std::endl;
+		q_lock.unlock();
 		return false;
 	}
-	LOG(INFO) << "The element '" << peeked_path << "' was popped.";
+	LOG(INFO) << "The element '" << popped_path << "' was popped.";
+
+	q_lock.unlock();
 
 	return true;
 }
@@ -71,7 +87,9 @@ bool peek(const std::shared_ptr <ZKWrapper> &zk, const std::string &q_path, std:
 		peeked_path = q_path;
 		return true;
 	}
-	peeked_path = children.back();
+
+	std::sort(children.begin(), children.end());
+	peeked_path = q_path + "/" + children.front();
 	LOG(INFO) << "Queue head: " << peeked_path;
 
 	return true;
