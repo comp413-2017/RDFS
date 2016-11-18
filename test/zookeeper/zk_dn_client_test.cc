@@ -22,7 +22,7 @@ protected:
 		int error_code = 0;
 		zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
 		ASSERT_EQ("ZOK", zk->translate_error(error_code)); // Z_OK
-		client = new ZkClientDn("127.0.0.1", "localhost", zk, ipcPort, xferPort);
+		client = new ZkClientDn("127.0.0.1", zk, block_size * 10, ipcPort, xferPort);
 		dn_id = "127.0.0.1:50020";
 	}
 	virtual void TearDown() {
@@ -45,7 +45,6 @@ TEST_F(ZKDNClientTest, RegisterMakesWorkQueues){
     std::vector<std::uint8_t> data(sizeof(BlockZNode));
     std::string path = "/work_queues/replicate/" + dn_id;
  
- 	client->registerDataNode();
  	ASSERT_TRUE(zk->get(path, data, error_code));
  }
 

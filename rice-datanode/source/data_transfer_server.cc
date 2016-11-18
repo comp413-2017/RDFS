@@ -297,13 +297,18 @@ void TransferServer::serve(asio::io_service& io_service) {
 
 void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
 	std::unique_lock<std::mutex> lk(m);
-	while (dn->getNumXmits() >= max_xmits){
+	while (xmits.fetch_add(0) >= max_xmits){
 		cv.wait(lk);
 	}
-	dn->incrementNumXmits();
-	LOG(INFO) << "**********" << "num xmits is " << dn->getNumXmits();
+	xmits++;
+	LOG(INFO) << "**********" << "num xmits is " << xmits.fetch_add(0);
 	lk.unlock();
 	f(*this, sock);
-	dn->decrementNumXmits();
+	xmits--;
 	cv.notify_one();
+}
+
+bool TransferServer::sendStats() {
+	uint64_t free_space = fs->getFreeSpace();
+	return dn->sendStats(free_space, xmits.fetch_add(0));
 }

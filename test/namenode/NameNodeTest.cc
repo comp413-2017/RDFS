@@ -6,37 +6,35 @@
 #include <cstring>
 #include <easylogging++.h>
 
-#include "hdfs.pb.h"
-#include "ClientNamenodeProtocol.pb.h"
-
 INITIALIZE_EASYLOGGINGPP
 
 namespace {
+
 	class NamenodeTest : public ::testing::Test {
 
-	protected:
-		virtual void SetUp() {
-			int error_code;
-			auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-			assert(error_code == 0); // Z_OK
-			client = new zkclient::ZkNnClient(zk_shared);
-			zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-		}
+		protected:
+			virtual void SetUp() {
+				int error_code;
+				auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+				assert(error_code == 0); // Z_OK
+				client = new zkclient::ZkNnClient(zk_shared);
+				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
+			}
+			
+			hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
+				hadoop::hdfs::CreateRequestProto create_req;
+				create_req.set_src(path);
+				create_req.set_clientname("asdf");
+				create_req.set_createparent(false);
+				create_req.set_blocksize(1);
+				create_req.set_replication(1);
+				create_req.set_createflag(0);
+				return create_req;
+			}
 
-        hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
-            hadoop::hdfs::CreateRequestProto create_req;
-            create_req.set_src(path);
-            create_req.set_clientname("asdf");
-            create_req.set_createparent(false);
-            create_req.set_blocksize(1);
-            create_req.set_replication(1);
-            create_req.set_createflag(0);
-            return create_req;
-        }
-
-		// Objects declared here can be used by all tests in the test case for Foo.
-		ZKWrapper *zk;
-		zkclient::ZkNnClient *client;
+			// Objects declared here can be used by all tests in the test case for Foo.
+			ZKWrapper *zk;
+			zkclient::ZkNnClient *client;
 	};
 
 
@@ -235,6 +233,7 @@ namespace {
 		zk->exists("/fileSystem/old_name", exist, error_code);
 		ASSERT_EQ(false, exist);
 	}
+
 }
 
 int main(int argc, char **argv) {
