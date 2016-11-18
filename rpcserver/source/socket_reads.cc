@@ -32,6 +32,7 @@ namespace rpcserver {
         unsigned char read[1];
         asio::error_code error = read_full(sock, asio::buffer(read, 1));
         *byte = read[0];
+        std::cout << "FUCKKKER " << read[1];
         return !error;
     }
 

@@ -115,11 +115,17 @@ private:
 	*/
 	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
 
+	/**
+	 * Handle all of the work items on path
+	 */
 	void handleReplicateCmds(const char *path);
 
 	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
+	/**
+	 * Copied from nn client, create block proto
+	 */
 	bool buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto* eb, const std::uint64_t& block_id,
     											 const uint64_t& block_size);
 };

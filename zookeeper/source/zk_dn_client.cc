@@ -274,6 +274,7 @@ namespace zkclient{
 				LOG(ERROR) << "dn id should just be ip:port";
 				continue;
 			}
+			// get the port
 			std::string dn_ip = split_address[0];
 			DataNodePayload dn_target_info;
 			if (!zk->get(HEALTH_BACKSLASH + dn_target_id + STATS, data, error)) {
@@ -282,6 +283,7 @@ namespace zkclient{
 			}
 			memcpy(&dn_target_info, &data[0], sizeof(DataNodePayload));
 			uint32_t xferPort = dn_target_info.xferPort;
+			// actually do the inter datanode communication
 			server->replicate(block_length, dn_ip, std::to_string(xferPort), block_proto);
 		}
 

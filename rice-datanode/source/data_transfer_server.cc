@@ -319,6 +319,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	// TODO check if blockToTarget id is already in file system, if so, call blcokReceived and return true
 
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
+
 	// connect to the datanode
 	asio::io_service io_service;
 	std::string port = xferport;

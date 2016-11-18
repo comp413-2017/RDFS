@@ -32,9 +32,10 @@ namespace rpcserver {
     /**
      * Return whether an attempt to write 8-bit val on socket is successful.
      */
-    bool write_byte(tcp::socket& sock, uint8_t val) {
+    bool write_byte(tcp::socket& sock, unsigned char byte) {
         asio::error_code error;
-        uint8_t val_net = htons(val);
+        uint8_t val_net = htons(byte);
+        std::cout << " writing byte! " << byte;
         size_t write_len = sock.write_some(asio::buffer(&val_net, 1), error);
         return !error && write_len == 1;
     }
