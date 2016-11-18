@@ -101,6 +101,7 @@ private:
     static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
     static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
     void processReplQueue(std::string path);
+	void processDeleteQueue(std::string path);
 };
 
 }

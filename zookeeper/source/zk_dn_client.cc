@@ -167,32 +167,32 @@ namespace zkclient{
 		// Register the queue watchers for this dn
 		std::vector <std::string> children = std::vector <std::string>();
 		if(!zk->wget_children(REPLICATE_QUEUES + id, children, ZkClientDn::thisDNReplicationQueueWatcher, this, error_code)){
-			LOG(INFO) << "getting children failed";
+			LOG(INFO) << "getting children for replicate queue failed";
 		}
-		//if(!zk->wget_children(DELETE_QUEUES + id, children, ZkClientDn::thisDNDeleteQueueWatcher, ZkClientDn, error_code)){
-		//	LOG(INFO) << "getting children failed";
-		//}
+		if(!zk->wget_children(DELETE_QUEUES + id, children, ZkClientDn::thisDNDeleteQueueWatcher, this, error_code)){
+			LOG(INFO) << "getting children for delete queue failed";
+		}
 
-                // TODO: For debugging only
+        // TODO: For debugging only
 		std::vector <std::uint8_t> replUUID (1);
 		replUUID[0] = 12;
-                push(zk, REPLICATE_QUEUES + id, replUUID, error_code);
+        push(zk, REPLICATE_QUEUES + id, replUUID, error_code);
 	}
 
 	void ZkClientDn::initWorkQueue(std::string queueName, std::string id){
-                int error_code;
-                bool exists;
+        int error_code;
+        bool exists;
 
-                // Creqte queue for this datanode
-                // TODO: Replace w/ actual queues when they're created
-                if (zk->exists(queueName + id, exists, error_code)){
-                        if (!exists){
-                                LOG(INFO) << "doesn't exist, trying to make it";
-                                if (!zk->create(queueName + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
-                                        LOG(INFO) << "Creation failed";
-                                }
-                        }
+        // Creqte queue for this datanode
+        // TODO: Replace w/ actual queues when they're created
+        if (zk->exists(queueName + id, exists, error_code)){
+            if (!exists){
+                LOG(INFO) << "doesn't exist, trying to make it";
+                if (!zk->create(queueName + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+                    LOG(INFO) << "Creation failed";
                 }
+            }
+        }
 
 	}
 
@@ -204,9 +204,14 @@ namespace zkclient{
 		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
 		thisDn->processReplQueue(path);
 	}
+
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Delete watcher triggered on path: " << path;
+
+		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
+		thisDn->processDeleteQueue(path);
 	}
+
 	void ZkClientDn::processReplQueue(std::string path){
                 int error_code;
                 bool exists;
@@ -225,6 +230,21 @@ namespace zkclient{
 			}
 			peek(zk, path, peeked, error_code);
 		}
+	}
+
+	void ZkClientDn::processDeleteQueue(std::string path) {
+		int error_code;
+		bool exists;
+		std::string peeked;
+		std::vector<uint8_t> queue_vec(1); //TODO: Size?
+
+		peek(zk, path, peeked, error_code);
+		while(peeked != path){
+			LOG(INFO) << "Found item in delete queue";
+
+			peek(zk, path, peeked, error_code);
+		}
+
 	}
 
 	ZkClientDn::~ZkClientDn() {
