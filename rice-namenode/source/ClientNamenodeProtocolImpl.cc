@@ -86,6 +86,7 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 std::string ClientNamenodeTranslator::create(std::string input) {
 	CreateRequestProto req;
 	req.ParseFromString(input);
+	req.set_replication(2);
 	logMessage(req, "Create ");
 	CreateResponseProto res;
 	if (zk.create_file(req, res))

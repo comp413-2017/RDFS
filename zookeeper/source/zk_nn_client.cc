@@ -539,8 +539,9 @@ namespace zkclient{
 
 			LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 
-			for (auto data_node :data_nodes) {
-			    buildDatanodeInfoProto(located_block->add_locs(), data_node);
+			for (auto data_node = data_nodes.begin(); data_node != data_nodes.end(); ++data_node) {
+			    LOG(INFO) << "Block DN Loc: " << *data_node;
+			    buildDatanodeInfoProto(located_block->add_locs(), *data_node);
 			}
 			buildTokenProto(located_block->mutable_blocktoken());
 	    	}
