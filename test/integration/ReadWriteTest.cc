@@ -29,8 +29,7 @@ namespace {
 		// Put it into rdfs.
 		system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 /e");
 		// Read it from rdfs.
-		system("hdfs dfs -fs hdfs://localhost:5351 -cat /e > temp");
-		system("head -c 5 temp > actual_testfile1234");
+		system("hdfs dfs -fs hdfs://localhost:5351 -cat /e > actual_testfile1234");
 		// Check that its contents match.
 		// TODO: This test will fail until we implement the file lengths meta-data tracking.
 		ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
@@ -47,8 +46,7 @@ namespace {
 
 			threads.push_back(std::thread([i](){
 				LOG(INFO) << "starting thread " << i;
-				system(("hdfs dfs -fs hdfs://localhost:5351 -cat /e > temp" + std::to_string(i)).c_str());
-				system(("head -c 5 temp" + std::to_string(i) + " > actual_testfile" + std::to_string(i)).c_str());
+				system(("hdfs dfs -fs hdfs://localhost:5351 -cat /e > actual_testfile" + std::to_string(i)).c_str());
 				// Check that its contents match.
 				// TODO: This test will fail until we implement the file lengths meta-data tracking.
 				ASSERT_EQ(0, system(("diff expected_testfile1234 actual_testfile"+ std::to_string(i)).c_str()));
@@ -64,6 +62,7 @@ int main(int argc, char **argv) {
 	// Start up zookeeper
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+	system("truncate _RW_TEST_FS -s 1000000000");
 
 	zkclient::ZkNnClient *nncli;
 	ClientNamenodeTranslator *nn_translator;
@@ -81,7 +80,7 @@ int main(int argc, char **argv) {
 
 	unsigned short xferPort = 50010;
 	unsigned short ipcPort = 50020;
-	auto fs = std::make_shared<nativefs::NativeFS>("/dev/sdb");
+	auto fs = std::make_shared<nativefs::NativeFS>("_RW_TEST_FS");
 	dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", zk_shared, ipcPort, xferPort);
 	dn_transfer_server = new TransferServer(xferPort, fs, dncli, max_xmits);
 
@@ -98,7 +97,7 @@ int main(int argc, char **argv) {
 
 	// Remove test files and shutdown zookeeper
 	system("~/zookeeper/bin/zkCli.sh rmr /testing");
-	system("rm -f expected_testfile1234 actual_testfile* temp*");
+	system("rm -f _RW_TEST_FS expected_testfile1234 actual_testfile* temp*");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
 }
