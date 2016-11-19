@@ -10,7 +10,7 @@
 INITIALIZE_EASYLOGGINGPP
 
 namespace {
-
+	using namespace zkqueue;
 	class ZKQueueTest : public ::testing::Test {
 	protected:
 		virtual void SetUp() {

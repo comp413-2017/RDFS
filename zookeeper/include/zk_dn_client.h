@@ -20,10 +20,11 @@ typedef struct
 // TODO: Store hostname in payload as a vararg?
 typedef struct
 {
-    uint32_t ipcPort;
-    uint32_t xferPort;
-    uint64_t disk_bytes;
-    uint64_t mem_bytes;
+	uint32_t ipcPort;
+	uint32_t xferPort;
+	uint64_t disk_bytes;	//total space on disk
+	uint64_t free_bytes;	//free space on disk
+	uint32_t xmits;			//current number of xmits
 } DataNodePayload;
 
 typedef struct

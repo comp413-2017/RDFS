@@ -202,7 +202,7 @@ namespace zkclient{
 		memcpy(&data[0], &blockid, sizeof(uint64_t));
 		std::string pushed_path;
 		int error;
-		if (!push(zk, queue_path, data, pushed_path, error)) {
+		if (!zkqueue::push(zk, queue_path, data, pushed_path, error)) {
 			LOG(ERROR) << " could not add replica to queue";
 			return false;
 		}
@@ -228,7 +228,7 @@ namespace zkclient{
 		// TODO go through all of the work items
 
 		// take something off the queue
-		if (!peek(zk, children_path, work_item, error)) {
+		if (!zkqueue::peek(zk, children_path, work_item, error)) {
 			LOG(ERROR) << "could not pop work-item off queue";
 		}
 

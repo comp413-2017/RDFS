@@ -2,7 +2,7 @@
 #define RDFS_ZKNNCLIENT_H
 
 #include "zk_client_common.h"
-
+#include <queue>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <google/protobuf/message.h>
@@ -27,6 +27,24 @@ typedef struct
 	char owner[256]; // the client who created the file
 	char group[256];
 }FileZNode;
+
+
+struct TargetDN
+{
+	std::string dn_id;
+	uint64_t free_bytes;	//free space on disk
+	uint32_t num_xmits;		//current number of xmits
+
+	TargetDN(std::string id, int bytes, int xmits) : dn_id(id), free_bytes(bytes), num_xmits(xmits)
+	{
+	}
+
+	bool operator<(const struct TargetDN& other) const
+	{
+		// Minimizes num_xmits
+		return num_xmits > other.num_xmits;
+	}
+};
 
 using namespace hadoop::hdfs;
 
@@ -74,6 +92,8 @@ class ZkNnClient : public ZkClientCommon {
 		// TODO lil doc string and move to private (why does this cause compiler problems?)
 		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
 		bool find_datanode_for_block(std::vector<std::string>& datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock = false);
+		bool find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code);
+
 		bool rename_file(std::string src, std::string dst);
 
 		/**
@@ -139,10 +159,10 @@ class ZkNnClient : public ZkClientCommon {
 		bool replicate_block(const std::string &block_uuid, int num_replicas, std::vector<std::string> &excluded_datanodes);
 
 		/**
-		 * Calculates the approximate number of seconds that have elapsed since
-		 * the znode at the given path was created.
+		 * Calculates the approximate number of milliseconds that have elapsed
+		 * since the znode at the given path was created.
 		 */
-		int seconds_since_creation(std::string &path);
+		int ms_since_creation(std::string &path);
 
 		/**
 		 * Modifies the LocatedBlockProto with the proper block information
@@ -189,8 +209,8 @@ class ZkNnClient : public ZkClientCommon {
 		const int IS_FILE = 2;
 		const int IS_DIR = 1;
 		// TODO: Should eventually be read from a conf file
-		const int ACK_TIMEOUT = 60; // 60 second timeout when waiting for replication acknowledgements
-
+        const int ACK_TIMEOUT = 600000; // in millisecons, 10 minute timeout when waiting for replication acknowledgements
+        const int BLOCKSIZE = 64; // TODO: Is this a const or should this be read for each block?
 };
 
 } // namespace
