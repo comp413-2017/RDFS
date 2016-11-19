@@ -158,7 +158,9 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	for (int i = 0; i < proto.targets_size(); i++) {
 		const DatanodeIDProto& dn_p = proto.targets(i).id();
 		std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
+		LOG(INFO) << "Placed " << dn_name << " on replication queue";
 		if (!dn->push_dn_on_repq(dn_name, header.baseheader().block().blockid())) {
+			LOG(ERROR) << "Failed to push datanode onto replication queue";
 		}
 	}
 
@@ -317,7 +319,17 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
 
-	// TODO check if blockToTarget id is already in file system, if so, call blcokReceived and return true
+	LOG(INFO) << "Replication starting...";
+
+	// check if blockToTarget id is already in file system, if so, call blockReceived and return true
+	::google::protobuf::uint64 block_uuid = blockToTarget.blockid();
+	std::string blk;
+	if (fs->getBlock(block_uuid, blk)) {
+		dn->blockReceived(block_uuid, blk.size());
+		return true;
+	}
+
+	// in this case, the filesystem could not locate the block in question
 
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
@@ -343,6 +355,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	std::string read_string;
 	OpReadBlockProto read_block_proto;
 	read_block_proto.set_len(len);
+
 	LOG(INFO) << "Requesting replica of length " << len << std::endl;
 
 	read_block_proto.set_offset(0);
@@ -364,7 +377,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	header->set_allocated_baseheader(&base_proto);
 
 	// send the read request
-	uint16_t version = 1000; // TODO what is the version
+	uint16_t version = 1000; // TODO what is the version?
 	unsigned char read_request = READ_BLOCK;
 	read_block_proto.SerializeToString(&read_string);
 	LOG(INFO) << " writing read request " << std::to_string(read_request);

@@ -34,9 +34,7 @@ namespace rpcserver {
      */
     bool write_byte(tcp::socket& sock, unsigned char byte) {
         asio::error_code error;
-        uint8_t val_net = byte;
-        std::cout << " writing byte! " << byte << " as " << val_net << std::endl;
-        size_t write_len = sock.write_some(asio::buffer(&val_net, 1), error);
+        size_t write_len = sock.write_some(asio::buffer(&byte, 1), error);
         return !error && write_len == 1;
     }
 
