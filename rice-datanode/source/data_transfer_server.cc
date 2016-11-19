@@ -154,6 +154,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	// TODO for the two datandoes in the list of datanodes to target that aren't me, pt the block
 	// TODO I just wrote onto the replication queue belonging to those two datanodes!
 
+	LOG(INFO) << "Replicating onto " << proto.targets_size() << " target data nodes";
 	for (int i = 0; i < proto.targets_size(); i++) {
 		const DatanodeIDProto& dn_p = proto.targets(i).id();
 		std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
@@ -320,6 +321,14 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
+	std::string blk;
+	if (fs->getBlock(blockToTarget.blockid(), blk)) {
+		LOG(INFO) << "Block already exists on this DN";
+		return true;
+	} else {
+		LOG(INFO) << "Block not found on this DN, replicating...";
+	}
+
 	// connect to the datanode
 	asio::io_service io_service;
 	std::string port = xferport;
@@ -334,11 +343,24 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	std::string read_string;
 	OpReadBlockProto read_block_proto;
 	read_block_proto.set_len(len);
-	ClientOperationHeaderProto* header = read_block_proto.mutable_header();
-	header->set_clientname("datanode_replication"); // TODO ??
+	LOG(INFO) << "Requesting replica of length " << len << std::endl;
 
+	read_block_proto.set_offset(0);
+	read_block_proto.set_sendchecksums(true);
+
+	ClientOperationHeaderProto* header = read_block_proto.mutable_header();
+	header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO ??
+	
 	BaseHeaderProto base_proto;
 	base_proto.set_allocated_block(&blockToTarget);
+	::hadoop::common::TokenProto *token_header = base_proto.mutable_token();
+
+	token_header->set_identifier("open");
+	token_header->set_password("sesame");
+	token_header->set_kind("foo");
+	token_header->set_service("bar");
+
+
 	header->set_allocated_baseheader(&base_proto);
 
 	// send the read request
@@ -346,16 +368,27 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	unsigned char read_request = READ_BLOCK;
 	read_block_proto.SerializeToString(&read_string);
 	LOG(INFO) << " writing read request " << std::to_string(read_request);
-	if (!(write_header(sock, version, read_request) && rpcserver::write_delimited_proto(sock, read_string))) {
-		LOG(ERROR) << " could not write the read request to target datanode";
+	if (!write_header(sock, version, read_request)) {
+		LOG(ERROR) << " could not write the header request to target datanode";
 		return false;
+	} else {
+		LOG(INFO) << " successfully wrote the header request to target datanode";
+	}
+
+	if (!rpcserver::write_delimited_proto(sock, read_string)) {
+		LOG(ERROR) << " could not write the delimited read request to target datanode";
+		return false;
+	} else {
+		LOG(INFO) << " successfully wrote the delimited read request to target datanode";
 	}
 
 	// read the read response
 	BlockOpResponseProto read_response;
-	if (!rpcserver::read_delimited_proto(sock, read_response)) {
+	if (!rpcserver::read_delimited_proto(sock, read_response)) { //TODO error occurs here
 		LOG(ERROR) << " could not read the read response from target datanode";
 		return false;
+	} else {
+		LOG(INFO) << " successfully read the read response from target datanode";
 	}
 	std::string data(len, 0);
 
@@ -370,7 +403,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 		rpcserver::read_int16(sock, &header_len);
 		PacketHeaderProto p_head;
 		rpcserver::read_proto(sock, p_head, header_len);
-		LOG(INFO) << "Receigin packet " << p_head.seqno();
+		LOG(INFO) << "Receiving packet " << p_head.seqno();
 		// read in the data
 		if (!p_head.lastpacketinblock()) {
 			uint64_t data_len = p_head.datalen();
@@ -387,6 +420,8 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 		}
 	}
 
+	//TODO send ClientReadStatusProto (delimited)
+
 	if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
 		LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
 	} else {
@@ -394,6 +429,6 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	}
 
 	// close the connection
-    sock.close();
-    return true;
+    	sock.close();
+    	return true;
 }
