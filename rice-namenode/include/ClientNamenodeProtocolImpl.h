@@ -43,6 +43,7 @@ class ClientNamenodeTranslator {
 		std::string complete(std::string);
 		std::string setReplication(std::string);
 		std::string addBlock(std::string input);
+		std::string getListing(std::string input);
 
 		// RPC calls which are not supported
 		std::string rename(std::string);
