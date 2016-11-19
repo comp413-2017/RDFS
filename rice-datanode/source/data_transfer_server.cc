@@ -319,18 +319,6 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
 
-	LOG(INFO) << "Replication starting...";
-
-	// check if blockToTarget id is already in file system, if so, call blockReceived and return true
-	::google::protobuf::uint64 block_uuid = blockToTarget.blockid();
-	std::string blk;
-	if (fs->getBlock(block_uuid, blk)) {
-		dn->blockReceived(block_uuid, blk.size());
-		return true;
-	}
-
-	// in this case, the filesystem could not locate the block in question
-
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
 	std::string blk;
