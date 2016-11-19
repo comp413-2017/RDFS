@@ -9,6 +9,7 @@
 #include <chrono>
 #include <sys/time.h>
 #include "zk_lock.h"
+#include "zk_queue.h"
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
@@ -42,32 +43,180 @@ namespace zkclient{
     }
 
     void ZkNnClient::register_watches() {
-
-        int error_code;
-        std::vector <std::string> children = std::vector <std::string>();
-
-        /* Place a watch on the health subtree */
-
-
-        if (!(zk->wget_children(HEALTH, children, zk->watcher_health_factory(ZkClientCommon::HEALTH_BACKSLASH), nullptr, error_code))) {
+        int err;
+        std::vector<std::string> children = std::vector<std::string>();
+        if (!(zk->wget_children(HEALTH, children, watcher_health, this, err))) {
             // TODO: Handle error
-            LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << error_code;
+            LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << err;
         }
 
         for (int i = 0; i < children.size(); i++) {
             LOG(INFO) << CLASS_NAME << "[In register_watches] Attaching child to " << children[i] << ", ";
-            std::vector <std::string> ephem = std::vector <std::string>();
-            if(!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem, zk->watcher_health_child, nullptr, error_code))) {
+            std::vector<std::string> ephem = std::vector<std::string>();
+            if (!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem, watcher_health_child, this, err))) {
                 // TODO: Handle error
-                LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << error_code;
+                LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << err;
             }
-            /*
-               if (ephem.size() > 0) {
-               LOG(INFO) << CLASS_NAME << "Found ephem " << ephem[0];
-               } else {
-               LOG(INFO) << CLASS_NAME << "No ephem found for " << children[i];
-               }
-             */
+        }
+    }
+
+    /*
+        - watcher to check for datanodes being added
+        - /health
+        - register watcher on /heartbeat
+    - watcher to check each individual datanode for death
+        - make sure heartbeat disappeared
+        - if so, look at all blocks and put those on replication queue
+            - also add all blocks from replication queue to blocks to be replicated
+            - find datanode with block (read from)
+            - find datanode for block (write to)
+            - put on queue ^
+            - push to vector of ops
+            - recursively delete work queue
+            - recursively delete znode
+            - execute multiop
+    */
+
+    /**
+     * Static
+     */
+    void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
+        LOG(INFO) << "Health watcher triggered on " << path;
+
+        ZkNnClient *cli = (ZkNnClient *)watcherCtx;
+        auto zk = cli->zk;
+
+        int err;
+        std::vector<std::string> children = std::vector<std::string>();
+        if (!(zk->wget_children(HEALTH, children, cli->watcher_health, watcherCtx, err))) {
+            // TODO: Handle error
+            LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << err;
+        }
+
+        for (int i = 0; i < children.size(); i++) {
+            LOG(INFO) << CLASS_NAME << "[In register_watches] Attaching child to " << children[i] << ", ";
+            std::vector<std::string> ephem = std::vector<std::string>();
+            if (!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem, cli->watcher_health_child, watcherCtx, err))) {
+                // TODO: Handle error
+                LOG(ERROR) << CLASS_NAME << "[In register_watchers], wget failed " << err;
+            }
+        }
+    }
+
+    /**
+     * Static
+     */
+    void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
+        LOG(INFO) << "Health child water triggered on " << path;
+
+        ZkNnClient *cli = (ZkNnClient *)watcherCtx;
+        auto zk = cli->zk;
+        std::vector<std::string> children;
+
+        LOG(INFO) << CLASS_NAME << "[health child] Watcher triggered on path '" << path;
+        int err, rc;
+        bool ret;
+
+        const std::string &repl_q_path = std::string(path) + zkclient::ZkClientCommon::REPLICATE_QUEUES;
+        const std::string &work_q_path = std::string(path) + zkclient::ZkClientCommon::WORK_QUEUES;
+        const std::string &block_path = std::string(path) + zkclient::ZkClientCommon::BLOCKS;
+        std::vector<std::uint8_t> bytes;
+        std::vector<std::string> to_replicate;
+
+        /* Lock the znode */
+        ZKLock race_lock(*zk.get(), std::string(path));
+        if (race_lock.lock()) {
+            // Lock failed somehow
+            LOG(ERROR) << CLASS_NAME << " An error occurred while trying to lock " << path;
+            return;
+        }
+
+        ret = zk->get_children(path, children, err);
+
+        if (!ret) {
+            LOG(ERROR) << CLASS_NAME << " Failed to get children";
+            goto unlock;
+        }
+
+        /* Check for heartbeat */
+        for (int i = 0; i < children.size(); i++) {
+            if (children[i] == "heartbeat") {
+                /* Heartbeat exists! Don't do anything */
+                LOG(INFO) << " Heartbeat found while deleting";
+                goto unlock;
+            }
+        }
+        children.clear();
+
+        /* Get all replication queue items for this datanode, save it */
+        ret = zk->get_children(repl_q_path.c_str(), children, err);
+        for (auto child : children) {
+            to_replicate.push_back(child);
+        }
+        children.clear();
+
+        if (!ret) {
+            LOG(ERROR) << CLASS_NAME << " Failed to get dead datanode's replication queue";
+            goto unlock;
+        }
+
+        /* Delete all work queue items for this datanode */
+        zk->recursive_delete(work_q_path, (int &)err);
+
+        /* Put every block from /blocks on replication queue as well as any saved items from replication queue */
+        ret = zk->get_children(block_path.c_str(), children, err);
+
+        if (!ret) {
+            LOG(ERROR) << CLASS_NAME << " Failed to get children for blocks";
+            goto unlock;
+        }
+
+        /* Push blocks this datanode has onto replication to-queue list */
+        for (auto child : children) {
+            to_replicate.push_back(child);
+        }
+        children.clear();
+
+        /* Delete this datanode. */
+        zk->recursive_delete(std::string(path), (int &)err);
+
+        if (err) {
+            LOG(ERROR) << " Recursive delete failed";
+        }
+
+        /* Push all blocks needing to be replicated onto the queue */
+        for (auto repl : to_replicate) {
+            std::string read_from;
+            std::vector<std::string> target_dn;
+            std::uint32_t block_id = std::stoi(repl);
+            const char *dn_str = repl.c_str();
+            if (!cli->find_datanode_with_block(dn_str, (std::string &)read_from, err)) {
+                LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << dn_str << " is lost!";
+                continue;
+            }
+            if (!cli->find_datanode_for_block(target_dn, block_id, 1)) {
+                LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << dn_str;
+                continue;
+            }
+            std::string dn_repl_q_path = REPLICATE_QUEUES + target_dn[0];
+            std::string pushed_path;
+            bytes.clear();
+            
+            for (int i = 0; dn_str[i]; i++) {
+                bytes.push_back(dn_str[i]);
+            }
+            bytes.push_back('\0');
+
+            ret = push(zk, dn_repl_q_path, bytes, pushed_path, err);
+            if (!ret) {
+                LOG(ERROR) << CLASS_NAME << " Failed to push to replication queue!";
+            }
+        }
+
+        unlock:
+        /* Unlock the znode */
+        if (race_lock.unlock()) {
+            LOG(ERROR) << CLASS_NAME << " An error occurred while trying to unlock " << path;
         }
     }
 
