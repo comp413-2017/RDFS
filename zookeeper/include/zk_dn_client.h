@@ -56,17 +56,17 @@ public:
 	* @param ipcPort TODO
 	* @param xferPort TODO
 	*/
-	ZkClientDn(const std::string& ip, const std::string& hostname, const std::string& zkIpAndAddress,
+	ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
 			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 
-	ZkClientDn(const std::string& ip, const std::string& hostname, std::shared_ptr <ZKWrapper>,
+	ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper>, uint64_t total_disk_space,
 			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 	~ZkClientDn();
 
 	/**
 	* Registers this DataNode with Zookeeper.
 	*/
-    	void registerDataNode();
+	void registerDataNode(const std::string& ip, uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort);
 
 	/**
 	* Informs Zookeeper when the DataNode has received a block. Adds an acknowledgment
@@ -75,13 +75,17 @@ public:
 	* @param size_bytes The number of bytes in the block
 	* @return True on success, false on error.
 	*/
-    	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
+	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
-	void incrementNumXmits();
-
-	void decrementNumXmits();
-
-	int getNumXmits();
+	/**
+	* Informs Zookeeper when the DataNode has deleted a block. 
+	* @param uuid The UUID of the block deleted by the DataNode.
+	* @param size_bytes The number of bytes in the block
+	* @return True on success, false on error.
+	*/
+	bool blockDeleted(uint64_t uuid);
+	
+	bool sendStats(uint64_t free_space, uint32_t xmits);
 
 	TransferServer *server;
 
@@ -104,7 +108,6 @@ private:
 
 	DataNodeId data_node_id;
 	DataNodePayload data_node_payload;
-	std::atomic_int xmits{0};
 
 	static const std::string CLASS_NAME;
 

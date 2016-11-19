@@ -113,6 +113,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
 	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
 	auto ackThread = std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue));
+	PacketHeaderProto last_header;
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -141,14 +142,23 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 			block_data += data;
 		}
 		// Wait free queue will return false on failure to insert element. Keep trying until insert works
-		while (!ackQueue.push(p_head)) {
+		if (!last_packet) {
+			while (!ackQueue.push(p_head)) {
+			}
+		} else {
+			last_header = p_head;
 		}
 	}
 
 	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
-		dn->blockReceived(header.baseheader().block().blockid(), block_data.length());
+		if (dn->blockReceived(header.baseheader().block().blockid(), block_data.length())) {
+			while (!ackQueue.push(last_header)) {
+			}
+		} else {
+			LOG(ERROR) << "Failed to register received block with NameNode";
+		}
 	}
 
 	// TODO for the two datandoes in the list of datanodes to target that aren't me, pt the block
@@ -304,14 +314,14 @@ void TransferServer::serve(asio::io_service& io_service) {
 
 void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock){
 	std::unique_lock<std::mutex> lk(m);
-	while (dn->getNumXmits() >= max_xmits){
+	while (xmits.fetch_add(0) >= max_xmits){
 		cv.wait(lk);
 	}
-	dn->incrementNumXmits();
-	LOG(INFO) << "**********" << "num xmits is " << dn->getNumXmits();
+	xmits++;
+	LOG(INFO) << "**********" << "num xmits is " << xmits.fetch_add(0);
 	lk.unlock();
 	f(*this, sock);
-	dn->decrementNumXmits();
+	xmits--;
 	cv.notify_one();
 }
 
@@ -348,9 +358,9 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	read_block_proto.set_offset(0);
 	read_block_proto.set_sendchecksums(true);
 
-	ClientOperationHeaderProto* header = read_block_proto.mutable_header();
+	ClientOperationHeaderProto *header = read_block_proto.mutable_header();
 	header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO ??
-	
+
 	BaseHeaderProto base_proto;
 	base_proto.set_allocated_block(&blockToTarget);
 	::hadoop::common::TokenProto *token_header = base_proto.mutable_token();
@@ -429,6 +439,11 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 	}
 
 	// close the connection
-    	sock.close();
-    	return true;
+	sock.close();
+	return true;
+}
+
+bool TransferServer::sendStats() {
+	uint64_t free_space = fs->getFreeSpace();
+	return dn->sendStats(free_space, xmits.fetch_add(0));
 }

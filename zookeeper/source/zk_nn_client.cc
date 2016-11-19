@@ -1,7 +1,7 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
-#include "../include/zk_nn_client.h"
+#include "zk_nn_client.h"
 #include "zkwrapper.h"
 #include <iostream>
 #include <sstream>
@@ -248,8 +248,30 @@ namespace zkclient{
         memcpy(&data[0], znode_data, sizeof(*znode_data));
     }
 
+
+    bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
+	int error_code;
+	/* this value will eventually be read from config file */
+	int MIN_REPLICATION = 1;
+	std::vector<std::string> children;
+	std::string block_id_str = std::to_string(prev_id);
+	if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
+	    if (children.size() >= MIN_REPLICATION){
+		return true;						
+	    }
+	    return false;
+	}
+	return true;
+    }
+
     bool ZkNnClient::add_block(AddBlockRequestProto& req, AddBlockResponseProto& res) {
 
+	// make sure previous addBlock operation has completed
+	auto prev_id = req.previous().blockid();
+	if (!previousBlockComplete(prev_id)){
+	    LOG(ERROR) << "Previous Add Block Operation has not finished";
+	    return false;	 
+	}
         // Build a new block for the response
         auto block = res.mutable_block();
 
