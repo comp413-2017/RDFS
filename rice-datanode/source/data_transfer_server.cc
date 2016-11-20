@@ -359,17 +359,14 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
     ClientOperationHeaderProto *header = read_block_proto.mutable_header();
     header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO same as DFS client for now
 
-    BaseHeaderProto base_proto;
-    base_proto.set_allocated_block(&blockToTarget);
-    ::hadoop::common::TokenProto *token_header = base_proto.mutable_token();
+    BaseHeaderProto* base_proto = header->mutable_baseheader();
+    base_proto->set_allocated_block(&blockToTarget);
+    ::hadoop::common::TokenProto *token_header = base_proto->mutable_token();
 
     token_header->set_identifier("open");
     token_header->set_password("sesame");
     token_header->set_kind("foo");
     token_header->set_service("bar");
-
-
-    header->set_allocated_baseheader(&base_proto);
 
     // send the read request
     uint16_t version = 1000; // TODO what is the version
@@ -435,8 +432,8 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
         dn->blockReceived(header->baseheader().block().blockid(), read_len);
     }
 
-    // close the connection
-    sock.close();
+    base_proto->release_block();
+    LOG(INFO) << "Replication complete, closing connection.";
     return true;
 }
 

@@ -289,7 +289,11 @@ namespace zkclient{
 			memcpy(&dn_target_info, &dn_data[0], sizeof(DataNodePayload));
 			std::uint32_t xferPort = dn_target_info.xferPort;
 			// actually do the inter datanode communication
-			server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto);
+			if (server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto)) {
+				LOG(INFO) << "Replication successful.";
+			} else {
+				LOG(ERROR) << "Replication unsuccessful.";
+			}
 		}
 	}
 
