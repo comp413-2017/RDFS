@@ -23,7 +23,7 @@ int num_threads = 4;
 int max_xmits = 10;
 namespace {
 
-    /*
+
     TEST(ReplicationTest, testReadWrite) {
         ASSERT_EQ(0, system("echo 1234 > expected_testfile1234"));
         // Put it into rdfs.
@@ -50,7 +50,6 @@ namespace {
         ASSERT_EQ(block0, block1);
         ASSERT_EQ(block1, block2);
     }
-     */
 
     TEST(ReplicationTest, testReplication) {
 
@@ -117,7 +116,7 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     int res = RUN_ALL_TESTS();
     // NOTE: You'll need to scroll up a bit to see the test results
-
+    system("pkill -f namenode");
     // Remove test files and shutdown zookeeper
     return res;
 }
