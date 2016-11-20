@@ -23,6 +23,7 @@ int num_threads = 4;
 int max_xmits = 10;
 namespace {
 
+    /*
     TEST(ReplicationTest, testReadWrite) {
         ASSERT_EQ(0, system("echo 1234 > expected_testfile1234"));
         // Put it into rdfs.
@@ -49,7 +50,43 @@ namespace {
         ASSERT_EQ(block0, block1);
         ASSERT_EQ(block1, block2);
     }
+     */
+
+    TEST(ReplicationTest, testReplication) {
+
+        unsigned short xferPort = 50010;
+        unsigned short ipcPort = 50020;
+
+        ASSERT_EQ(0, system("echo 1234 > expected_testfile1234"));
+        // Put it into rdfs.
+        system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 /f");
+        // Read it from rdfs.
+        system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp");
+        system("head -c 5 temp > actual_testfile1234");
+        // Check that its contents match.
+        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
+
+        // Start a new server
+        std::string dnCliArgs = std::to_string(xferPort + 4) + " " + std::to_string(ipcPort + 4) + " tfs" + std::to_string(4) + " &";
+        std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(4) + " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+                              dnCliArgs + "\" & ";
+        system("truncate tfs4 -s 1000000000");
+        system(cmdLine.c_str());
+
+        // Kill one of the original datanodes
+        system("pkill -f ReplicationTestServer0");
+        sleep(20);
+
+        // The data should now be replicated on the new server
+        system("pkill -f ReplicationTestServer1");
+        system("pkill -f ReplicationTestServer2");
+        sleep(20);
+        system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp");
+        system("head -c 5 temp > actual_testfile1234");
+        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
+    }
 }
+
 
 int main(int argc, char **argv) {
 
