@@ -417,7 +417,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
             error = rpcserver::read_full(sock, asio::buffer(&data[offset], data_len));
             if (error) {
                 LOG(ERROR) << "Failed to read packet " << p_head.seqno();
-                break;
+                return false;
             }
             read_len += data_len;
         } else {
