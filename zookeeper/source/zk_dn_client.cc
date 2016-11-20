@@ -247,6 +247,7 @@ namespace zkclient{
 			LOG(ERROR) << "Failed to get work items!";
 			return;
 		}
+		std::vector<std::shared_ptr<ZooOp>> ops;
 
 		for (auto &block : work_items){
 			std::vector<std::string> read_from;
@@ -291,9 +292,17 @@ namespace zkclient{
 			// actually do the inter datanode communication
 			if (server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto)) {
 				LOG(INFO) << "Replication successful.";
+                auto read_from_path = util::concat_path(full_work_item_path, read_from[0]);
+				ops.push_back(zk->build_delete_op(read_from_path));
+				ops.push_back(zk->build_delete_op(full_work_item_path));
 			} else {
 				LOG(ERROR) << "Replication unsuccessful.";
 			}
+		}
+		//delete work items
+		std::vector<zoo_op_result> results;
+		if (!zk->execute_multi(ops, results, err)){
+			LOG(ERROR) << "Failed to delete sucessfully completed replicate commands!";
 		}
 	}
 
