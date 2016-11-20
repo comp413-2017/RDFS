@@ -84,6 +84,7 @@ namespace {
         system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp");
         system("head -c 5 temp > actual_testfile1234");
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
+		system("pkill -f ReplicationTestServer4");
     }
 }
 
@@ -93,6 +94,8 @@ int main(int argc, char **argv) {
     // Start up zookeeper
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+	system("~/zookeeper/bin/zkCli.sh rmr /testing");
+	system("rm -f expected_testfile1234 actual_testfile* temp*");
     system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
     sleep(3);
     //initialize 3 datanodes
@@ -100,21 +103,21 @@ int main(int argc, char **argv) {
     unsigned short ipcPort = 50020;
     system("rm tfs*");
     for (int i = 0; i < 3; i++) {
-        system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-        system(("/home/vagrant/rdfs/build/rice-datanode/datanode "  + std::to_string(xferPort + i) + " " + std::to_string(ipcPort + i) + " tfs" + std::to_string(i) + " &").c_str());
-        sleep(3);
-    }
+		system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
+		std::string dnCliArgs =
+				std::to_string(xferPort + i) + " " + std::to_string(ipcPort + i) + " tfs" + std::to_string(i) + " &";
+		std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
+							  " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+							  dnCliArgs + "\" & ";
+		system(cmdLine.c_str());
+		sleep(3);
+	}
 
-    // Initialize and run the tests
+		// Initialize and run the tests
     ::testing::InitGoogleTest(&argc, argv);
     int res = RUN_ALL_TESTS();
     // NOTE: You'll need to scroll up a bit to see the test results
 
     // Remove test files and shutdown zookeeper
-    /*
-    system("~/zookeeper/bin/zkCli.sh rmr /testing");
-    system("rm -f expected_testfile1234 actual_testfile* temp*");
-    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-     */
     return res;
 }
