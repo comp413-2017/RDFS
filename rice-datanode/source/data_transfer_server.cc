@@ -335,19 +335,13 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
 	std::string blk;
 	LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
-    if (fs == nullptr){
-        LOG(INFO) << "FS IS A NULLPTR!";
-    }
-    else{
-        LOG(INFO) << "FS IS NOT A NULLPTR :D";
-    }
+
     if (fs->getBlock(blockToTarget.blockid(), blk)) {
         LOG(INFO) << "Block already exists on this DN";
         return true;
     } else {
         LOG(INFO) << "Block not found on this DN, replicating...";
     }
-
     // connect to the datanode
     asio::io_service io_service;
     std::string port = xferport;
@@ -440,7 +434,6 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
     }
 
     //TODO send ClientReadStatusProto (delimited)
-
     if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
         LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
     } else {

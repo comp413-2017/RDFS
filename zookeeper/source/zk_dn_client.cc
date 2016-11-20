@@ -234,6 +234,10 @@ namespace zkclient{
         return true;
 	}
 
+	void ZkClientDn::setTransferServer(std::shared_ptr<TransferServer>& server){
+		this->server = server;
+	}
+
 	void ZkClientDn::handleReplicateCmds(const char *path) {
 		int err;
         auto rootless_path = zk->removeZKRoot(path);

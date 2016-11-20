@@ -87,7 +87,7 @@ public:
 	
 	bool sendStats(uint64_t free_space, uint32_t xmits);
 
-	TransferServer *server;
+	void setTransferServer(std::shared_ptr<TransferServer>& server);
 
 	/**
 	* Push the blockid onto the replication queue belonging to dn_name
@@ -98,7 +98,7 @@ public:
 	bool push_dn_on_repq(std::string dn_name, uint64_t blockid);
 
 private:
-
+	std::shared_ptr<TransferServer> server;
 	/**
 	* Builds a string of the DataNode ID.
 	* @param data_node_id The DataNode's DataNodeId object, containing the IP and port.
