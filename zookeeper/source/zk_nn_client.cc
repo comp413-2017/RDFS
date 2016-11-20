@@ -89,20 +89,25 @@ namespace zkclient{
     /**
      * Static
      */
-    void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-        LOG(INFO) << "Health child water triggered on " << path;
+    void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state, const char *raw_path, void *watcherCtx) {
+
+        LOG(INFO) << "Health child water triggered on " << raw_path;
 
         ZkNnClient *cli = (ZkNnClient *)watcherCtx;
         auto zk = cli->zk;
+        auto path = zk->removeZKRoot(std::string(raw_path));
+
         std::vector<std::string> children;
 
         LOG(INFO) << CLASS_NAME << "[health child] Watcher triggered on path '" << path;
         int err, rc;
         bool ret;
-
-        const std::string &repl_q_path = std::string(path) + zkclient::ZkClientCommon::REPLICATE_QUEUES;
-        const std::string &work_q_path = std::string(path) + zkclient::ZkClientCommon::WORK_QUEUES;
-        const std::string &block_path = std::string(path) + zkclient::ZkClientCommon::BLOCKS;
+        std::vector<std::string> split_path;
+        boost::split(split_path, path, boost::is_any_of("/"));
+        auto dn_id = split_path[split_path.size() - 1];
+        const std::string &repl_q_path = zkclient::ZkClientCommon::REPLICATE_QUEUES + dn_id;
+        const std::string &delete_q_path = zkclient::ZkClientCommon::DELETE_QUEUES + dn_id;
+        const std::string &block_path = util::concat_path(path, zkclient::ZkClientCommon::BLOCKS);
         std::vector<std::uint8_t> bytes;
         std::vector<std::string> to_replicate;
         std::vector<std::shared_ptr<ZooOp>> ops;
@@ -133,24 +138,28 @@ namespace zkclient{
         children.clear();
 
         /* Get all replication queue items for this datanode, save it */
-        ret = zk->get_children(repl_q_path.c_str(), children, err);
+        if (!zk->get_children(repl_q_path.c_str(), children, err)) {
+            LOG(ERROR) << CLASS_NAME << " Failed to get dead datanode's replication queue";
+            goto unlock;
+        }
         for (auto child : children) {
             to_replicate.push_back(child);
         }
         children.clear();
 
-        if (!ret) {
-            LOG(ERROR) << CLASS_NAME << " Failed to get dead datanode's replication queue";
+        /* Delete all work queues for this datanode */
+        if (!zk->recursive_delete(repl_q_path, err)){
+            LOG(ERROR) << CLASS_NAME << " Failed to delete dead datanode's replication queue";
+            goto unlock;
+        }
+        if (!zk->recursive_delete(delete_q_path, err)){
+            LOG(ERROR) << CLASS_NAME << " Failed to delete dead datanode's delete queue";
             goto unlock;
         }
 
-        /* Delete all work queue items for this datanode */
-        zk->recursive_delete(work_q_path, (int &)err);
-
         /* Put every block from /blocks on replication queue as well as any saved items from replication queue */
-        ret = zk->get_children(block_path.c_str(), children, err);
 
-        if (!ret) {
+        if (!zk->get_children(block_path.c_str(), children, err)) {
             LOG(ERROR) << CLASS_NAME << " Failed to get children for blocks";
             goto unlock;
         }
@@ -162,17 +171,17 @@ namespace zkclient{
         children.clear();
 
         /* Delete this datanode. */
-        zk->recursive_delete(std::string(path), (int &)err);
-
-        if (err) {
-            LOG(ERROR) << " Recursive delete failed";
+        if (!zk->recursive_delete(std::string(path), err)){
+            LOG(ERROR) << "Failed to clean up dead datanode.";
         }
 
         /* Push all blocks needing to be replicated onto the queue */
         for (auto repl : to_replicate) {
             std::string read_from;
             std::vector<std::string> target_dn;
-            std::uint32_t block_id = std::stoi(repl);
+            std::uint64_t block_id;
+            std::stringstream strm(repl);
+            strm >> block_id;
             if (!cli->find_datanode_with_block(repl, read_from, err)) {
                 LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << repl << " is lost!";
                 goto unlock;
@@ -828,7 +837,7 @@ namespace zkclient{
                     LOG(ERROR) << CLASS_NAME << "Failed to check if datanode: " + datanode << " is alive: " << error_code;
                 }
                 if (isAlive) {
-                    bool exclude;
+                    bool exclude = false;
                     if (excluded_datanodes.size() > 0) {
                         // Remove the excluded datanodes from the live list
                         std::vector<std::string>::iterator it = std::find(
@@ -836,15 +845,12 @@ namespace zkclient{
                                 excluded_datanodes.end(),
                                 datanode);
 
-                        datanodes.push_back(datanode);
                         if (it == excluded_datanodes.end()) {
                             // This datanode was not in the excluded list, so keep it
                             exclude = false;
                         } else {
                             exclude = true;
                         }
-                    } else {
-                        exclude = false;
                     }
 
                     if (!exclude) {
