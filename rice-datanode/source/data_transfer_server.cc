@@ -163,9 +163,6 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		}
 	}
 
-	// TODO for the two datandoes in the list of datanodes to target that aren't me, pt the block
-	// TODO I just wrote onto the replication queue belonging to those two datanodes!
-
 	LOG(INFO) << "Replicating onto " << proto.targets_size() << " target data nodes";
 	for (int i = 0; i < proto.targets_size(); i++) {
 		const DatanodeIDProto& dn_p = proto.targets(i).id();
@@ -329,8 +326,6 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
 
-	// TODO check if blockToTarget id is already in file system, if so, call blcokReceived and return true
-
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
 	std::string blk;
@@ -362,7 +357,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
     read_block_proto.set_sendchecksums(true);
 
     ClientOperationHeaderProto *header = read_block_proto.mutable_header();
-    header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO ??
+    header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO same as DFS client for now
 
     BaseHeaderProto base_proto;
     base_proto.set_allocated_block(&blockToTarget);
@@ -397,7 +392,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
     // read the read response
     BlockOpResponseProto read_response;
-    if (!rpcserver::read_delimited_proto(sock, read_response)) { //TODO error occurs here
+    if (!rpcserver::read_delimited_proto(sock, read_response)) { 
         LOG(ERROR) << " could not read the read response from target datanode";
         return false;
     } else {
