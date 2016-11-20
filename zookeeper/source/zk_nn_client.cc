@@ -122,7 +122,8 @@ namespace zkclient{
         const std::string &block_path = std::string(path) + zkclient::ZkClientCommon::BLOCKS;
         std::vector<std::uint8_t> bytes;
         std::vector<std::string> to_replicate;
-
+        std::vector<std::shared_ptr<ZooOp>> ops;
+        std::vector<zoo_op_result> results;
         /* Lock the znode */
         ZKLock race_lock(*zk.get(), std::string(path));
         if (race_lock.lock()) {
@@ -183,35 +184,30 @@ namespace zkclient{
         if (err) {
             LOG(ERROR) << " Recursive delete failed";
         }
+
         /* Push all blocks needing to be replicated onto the queue */
         for (auto repl : to_replicate) {
             std::string read_from;
             std::vector<std::string> target_dn;
             std::uint32_t block_id = std::stoi(repl);
-            const char *dn_str = repl.c_str();
-            if (!cli->find_datanode_with_block(dn_str, (std::string &)read_from, err)) {
-                LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << dn_str << " is lost!";
-                continue;
+            if (!cli->find_datanode_with_block(repl, read_from, err)) {
+                LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << repl << " is lost!";
+                goto unlock;
             }
-            if (!cli->find_datanode_for_block(target_dn, block_id, 1)) {
-                LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << dn_str;
-                continue;
+            if (!cli->find_datanode_for_block(target_dn, block_id, 1) || target_dn.size() != 1) {
+                LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << repl;
+                goto unlock;
             }
-            std::string dn_repl_q_path = REPLICATE_QUEUES + target_dn[0];
-            std::string pushed_path;
-            bytes.clear();
-            
-            for (int i = 0; dn_str[i]; i++) {
-                bytes.push_back(dn_str[i]);
-            }
-            bytes.push_back('\0');
-
-            ret = zkqueue::push(zk, dn_repl_q_path, bytes, pushed_path, err);
-            if (!ret) {
-                LOG(ERROR) << CLASS_NAME << " Failed to push to replication queue!";
-            }
+            auto queue = REPLICATE_QUEUES + target_dn[0];
+            auto repl_item = util::concat_path(queue, repl);
+            ops.push_back(zk->build_create_op(repl_item, ZKWrapper::EMPTY_VECTOR));
+            auto read_from_item = util::concat_path(repl_item, read_from);
+            ops.push_back(zk->build_create_op(read_from_item, ZKWrapper::EMPTY_VECTOR));
         }
-
+        if (!zk->execute_multi(ops, results, err)){
+            LOG(ERROR) << "Failed to push all items on to replication queues!";
+            goto unlock;
+        }
         unlock:
         /* Unlock the znode */
         if (race_lock.unlock()) {
@@ -893,10 +889,10 @@ namespace zkclient{
             LOG(INFO) << "There are " << targets.size() << " viable DNs. Requested: " << replication_factor;
             if (targets.size() < replication_factor) {
                 LOG(ERROR) << "Not enough available DNs! Available: " << targets.size() << " Requested: " << replication_factor;
-                return false;
+                // no return because we still want the client to write to some datanodes
             }
 
-            while (datanodes.size() < replication_factor) {
+            while (datanodes.size() < replication_factor && targets.size() > 0) {
                 LOG(INFO) << "DNs size IS : " << datanodes.size();
                 TargetDN target = targets.top();
                 datanodes.push_back(target.dn_id);
@@ -913,7 +909,7 @@ namespace zkclient{
 
         if (datanodes.size() < replication_factor) {
             LOG(ERROR) << CLASS_NAME << "Failed to find at least " << replication_factor << " datanodes at " + HEALTH;
-            return false;
+            // no return because we still want the client to write to some datanodes
         }
         return true;
     }

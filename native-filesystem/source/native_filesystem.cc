@@ -80,6 +80,7 @@ namespace nativefs {
 	NativeFS::~NativeFS() {
 		flushBlocks();
 		delete[] blocks;
+		LOG(INFO) << "destroying fs";
 	}
 
 	void NativeFS::flushBlocks() {

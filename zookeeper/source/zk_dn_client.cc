@@ -216,101 +216,77 @@ namespace zkclient{
 
 	bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
 		LOG(INFO) << "adding datanode and block to replication queue " << std::to_string(blockid);
-		std::string queue_path = ZkClientCommon::REPLICATE_QUEUES + dn_name;
-		std::string my_id = build_datanode_id(data_node_id);
-		std::vector<uint8_t> data (sizeof(uint64_t));
-		memcpy(&data[0], &blockid, sizeof(uint64_t));
-		std::string pushed_path;
+		auto queue_path = util::concat_path(ZkClientCommon::REPLICATE_QUEUES, dn_name);
+		auto my_id = build_datanode_id(data_node_id);
+		std::vector<uint8_t> block_vec (sizeof(uint64_t));
+		memcpy(&block_vec[0], &blockid, sizeof(uint64_t));
 		int error;
-		if (!zkqueue::push(zk, queue_path, data, pushed_path, error)) {
-			LOG(ERROR) << " could not add replica to queue";
-			return false;
-		}
-		zk->get(queue_path, data, error);
-		memcpy(&blockid, &data[0], sizeof(uint64_t));
-		LOG(INFO) << "adding datanode and block to replication queue " << std::to_string(blockid);
-		LOG(INFO) << "writing " << my_id << " as a child on queue";
-		if (!zk->create(pushed_path + "/" + my_id, ZKWrapper::EMPTY_VECTOR, error)) {
-			LOG(ERROR) << " could not add child to sequential node created on replcia queue";
-			return false;
-		}
-		return true;
+        std::vector<std::shared_ptr<ZooOp>> ops;
+        std::vector<zoo_op_result> results;
+        auto work_item = util::concat_path(queue_path, std::to_string(blockid));
+        ops.push_back(zk->build_create_op(work_item, ZKWrapper::EMPTY_VECTOR, 0));
+        auto read_from = util::concat_path(work_item, my_id);
+        ops.push_back(zk->build_create_op(read_from, ZKWrapper::EMPTY_VECTOR, 0));
+        if (!zk->execute_multi(ops, results, error)){
+            LOG(ERROR) << "Failed to create replication commands for pipelining!";
+            return false;
+        }
+        return true;
 	}
 
 	void ZkClientDn::handleReplicateCmds(const char *path) {
-		LOG(INFO) << "handling replicate watcher";
-		std::vector <std::uint8_t> empty_data = std::vector<std::uint8_t>(0);
-		std::vector<std::string> blocks_to_replicate;
-		const std::string children_path(path);
-		std::string work_item;
-		int error;
-
-		// TODO go through all of the work items
-
-		// take something off the queue
-		if (!zkqueue::peek(zk, children_path, work_item, error)) {
-			LOG(ERROR) << "could not pop work-item off queue";
-		}
-
-		// get the dn targets
-		LOG(INFO) << "getting dns at " << work_item;
-		std::vector<std::string> datanode_targets;
-		while (datanode_targets.size() == 0) {
-			if (!zk->get_children(work_item, datanode_targets, error)) {
-				LOG(ERROR) << "could not get the datande targets for the block" << error;
-				return;
-			}
-		}
-
-		// TODO after getting block info, check if I already have block, if so, just stop
-
-		// get the block information
-		uint64_t block_id;
-		std::vector<uint8_t> data(sizeof(uint64_t));
-		if (!zk->get(work_item, data, error)) {
-			LOG(ERROR) << "could not read block id from work item";
-		}
-		memcpy(&block_id, &data[0], sizeof(uint64_t));
-		LOG(INFO) << "replicating " << std::to_string(block_id);
-
-		if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_id), data, error)) {
-			LOG(ERROR) << "could not get the block length for " << block_id << " because of " << error;
+		int err;
+        auto rootless_path = zk->removeZKRoot(path);
+		LOG(INFO) << "handling replicate watcher for " << rootless_path;
+		std::vector<std::string> work_items;
+		if (!zk->get_children(rootless_path, work_items, err)){
+			LOG(ERROR) << "Failed to get work items!";
 			return;
 		}
-		uint64_t block_length;
-		memcpy(&block_length, &data[0], sizeof(uint64_t));
-		hadoop::hdfs::ExtendedBlockProto block_proto;
-		buildExtendedBlockProto(&block_proto, block_id, block_length);
-		LOG(INFO) << "replicating  length " << block_length << " with targets size " << datanode_targets.size();
 
-		// now read from the target
-		data.resize(sizeof(DataNodePayload));
-		for (auto dn_target_id : datanode_targets) {
-			LOG(INFO) << " looking at target " << dn_target_id;
-			// get the connection info for the datanode
-			std::vector<std::string> split_address;
-			boost::split(split_address, dn_target_id, boost::is_any_of(":"));
-			if (split_address.size() != 2) {
-				LOG(ERROR) << "dn id should just be ip:port";
-				continue;
+		for (auto &block : work_items){
+			std::vector<std::string> read_from;
+			auto full_work_item_path = util::concat_path(rootless_path, block);
+			if (!zk->get_children(full_work_item_path, read_from, err)){
+				LOG(ERROR) << "Failed to get datanode to read from!";
+				return;
 			}
+			assert(read_from.size() == 1);
+
+			// get block size
+			std::vector<std::uint8_t> block_size_vec(sizeof(std::uint64_t));
+			std::uint64_t block_size;
+			if (!zk->get(util::concat_path(BLOCK_LOCATIONS, block), block_size_vec, err, sizeof(std::uint64_t))) {
+				LOG(ERROR) << "could not get the block length for " << block << " because of " << err;
+				return;
+			}
+			memcpy(&block_size, &block_size_vec[0], sizeof(uint64_t));
+
+			//build block proto
+			hadoop::hdfs::ExtendedBlockProto block_proto;
+			std::uint64_t block_id;
+			std::stringstream strm(block);
+			strm >> block_id;
+			LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
+			buildExtendedBlockProto(&block_proto, block_id, block_size);
+
+
+			std::vector<std::string> split_address;
+			boost::split(split_address, read_from[0], boost::is_any_of(":"));
+			assert(split_address.size() == 2);
 			// get the port
 			std::string dn_ip = split_address[0];
 			DataNodePayload dn_target_info;
-			if (!zk->get(HEALTH_BACKSLASH + dn_target_id + STATS, data, error)) {
-				LOG(ERROR) << "failed to read target dn payload" << error;
-				continue;
+			std::vector<std::uint8_t> dn_data(sizeof(DataNodePayload));
+			if (!zk->get(HEALTH_BACKSLASH + read_from[0] + STATS, dn_data, err, sizeof(DataNodePayload))) {
+				LOG(ERROR) << "failed to read target dn payload" << err;
+				return;
 			}
-			memcpy(&dn_target_info, &data[0], sizeof(DataNodePayload));
-			uint32_t xferPort = dn_target_info.xferPort;
+			memcpy(&dn_target_info, &dn_data[0], sizeof(DataNodePayload));
+			std::uint32_t xferPort = dn_target_info.xferPort;
 			// actually do the inter datanode communication
-			server->replicate(block_length, dn_ip, std::to_string(xferPort), block_proto);
+			server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto);
 		}
-
-		// TODO delete work item from the queue
-
-		// TODO reattach the watcher, check if there are on work-items on me, if so, do this whole shit over again
-
 	}
 
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){

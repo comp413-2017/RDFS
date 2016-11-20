@@ -1,7 +1,3 @@
-//
-// Created by Nicholas Kwon on 11/19/16.
-//
-
 #define ELPP_THREAD_SAFE
 
 #include "zkwrapper.h"
@@ -37,44 +33,25 @@ namespace {
         // Check that its contents match.
         // TODO: This test will fail until we implement the file lengths meta-data tracking.
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
+        sleep(20);
     }
 }
 
 int main(int argc, char **argv) {
-    asio::io_service io_service;
 
     // Start up zookeeper
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-    int error_code;
-    auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-    assert(error_code == 0); // Z_OK
-
-    // initialize namenode
-    zkclient::ZkNnClient *nncli;
-    ClientNamenodeTranslator *nn_translator;
-    nncli = new zkclient::ZkNnClient(zk_shared);
-    nncli->register_watches();
-    nn_translator = new ClientNamenodeTranslator(5351, *nncli);
-    auto namenodeServer = nn_translator->getRPCServer();
-    std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
+    system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
     sleep(3);
-
-
     //initialize 3 datanodes
     unsigned short xferPort = 50010;
     unsigned short ipcPort = 50020;
-
     for (int i = 0; i < 3; i++) {
-        std::shared_ptr <zkclient::ZkClientDn> dncli;
-        TransferServer *dn_transfer_server;
         system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-        auto fs = std::make_shared<nativefs::NativeFS>("tfs" + std::to_string(i));
-        dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", zk_shared, ipcPort + i, xferPort + i);
-        dn_transfer_server = new TransferServer(xferPort + i, fs, dncli, max_xmits);
-        std::thread(&TransferServer::serve, dn_transfer_server, std::ref(io_service)).detach();
+        system(("/home/vagrant/rdfs/build/rice-datanode/datanode "  + std::to_string(xferPort + i) + " " + std::to_string(ipcPort + i) + " tfs" + std::to_string(i) + " &").c_str());
+        sleep(3);
     }
-    sleep(5);
 
     // Initialize and run the tests
     ::testing::InitGoogleTest(&argc, argv);

@@ -40,7 +40,7 @@ using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
-		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
+		TransferServer(int port, std::shared_ptr<nativefs::NativeFS>& fs, std::shared_ptr<zkclient::ZkClientDn>& dn, int max_xmits = 10);
 
 		TransferServer(const TransferServer& other) {}
 		

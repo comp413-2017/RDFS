@@ -37,13 +37,18 @@ int main(int argc, char* argv[]) {
 	if (argc >= 4) {
 		backingStore = argv[3];
 	}
+	LOG(INFO) << "my backingstore is " << backingStore;
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
+    if (fs == nullptr){
+        LOG(INFO) << "Failed to create filesystem!";
+        return -1;
+    }
 	uint64_t total_disk_space = fs->getTotalSpace();
 	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost:2181", total_disk_space, ipcPort, xferPort); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
 	TransferServer transfer_server(xferPort, fs, dncli);
 	daemon_thread::DaemonThreadFactory factory;
-	factory.create_daemon_thread(&TransferServer::sendStats, &transfer_server, 3);
+	factory.create_daemon_thread(&TransferServer::sendStats, &transfer_server, 1);
 	std::thread(&TransferServer::serve, &transfer_server, std::ref(io_service)).detach();
 	translator.getRPCServer().serve(io_service);
 }
