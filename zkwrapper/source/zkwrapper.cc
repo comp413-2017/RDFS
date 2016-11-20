@@ -60,8 +60,7 @@ void watcher(zhandle_t *zzh,
 		int state,
 		const char *path,
 		void *watcherCtx) {
-	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'"
-		;
+	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'";
 	char health[] = "/health/datanode_";
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE) {

@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	auto transfer_server = std::make_shared<TransferServer>(xferPort, fs, dncli);
     dncli->setTransferServer(transfer_server);
 	daemon_thread::DaemonThreadFactory factory;
-	factory.create_daemon_thread(&TransferServer::sendStats, transfer_server.get(), 1);
+	factory.create_daemon_thread(&TransferServer::sendStats, transfer_server.get(), 3);
 	std::thread(&TransferServer::serve, transfer_server.get(), std::ref(io_service)).detach();
 	translator.getRPCServer().serve(io_service);
 }

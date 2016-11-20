@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <easylogging++.h>
 #include <mutex>
+#include <vector>
 
 #pragma once
 
@@ -65,6 +66,11 @@ class NativeFS{
 		 */
 		uint64_t getFreeSpace();
 
+		/**
+		 * For debugging, print the free block lists.
+		 */
+		std::vector<std::uint64_t> getKnownBlocks();
+
 	private:
 		/**
 		 * Attempt to place provided block info in the block list. Returns 
@@ -80,15 +86,11 @@ class NativeFS{
 		 * Persist current block metadata to storage.
 		 */
 		void flushBlocks();
-		/**
-		 * For debugging, print the free block lists.
-		 */
-		void printFreeBlocks();
 
 		/**
-		 * For debugging, print the known blocks.
+		 * For debugging, print the free blocks.
 		 */
-		void printKnownBlocks();
+		void printFreeBlocks();
 
 		block_info* blocks;
 		mutable std::mutex listMtx;
