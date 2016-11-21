@@ -38,11 +38,7 @@ namespace zkclient{
 
 		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
 			if (!exists) {
-				if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed to create wait_for_acks/<block_uuid> " << error_code;
-					created_correctly = false;
-				}
-			} else {
+				LOG(ERROR) << CLASS_NAME << WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) << " does not exist";
 				created_correctly = false;
 			}
 			if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {

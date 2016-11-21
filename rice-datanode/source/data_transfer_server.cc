@@ -110,6 +110,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
 	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
 	auto ackThread = std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue));
+	PacketHeaderProto last_header;
 	while (!last_packet) {
 		asio::error_code error;
 		uint32_t payload_len;
@@ -138,14 +139,23 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 			block_data += data;
 		}
 		// Wait free queue will return false on failure to insert element. Keep trying until insert works
-		while (!ackQueue.push(p_head)) {
+		if (!last_packet) {
+			while (!ackQueue.push(p_head)) {
+			}
+		} else {
+			last_header = p_head;
 		}
 	}
 
 	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
 	} else {
-		dn->blockReceived(header.baseheader().block().blockid(), block_data.length());
+		if (dn->blockReceived(header.baseheader().block().blockid(), block_data.length())) {
+			while (!ackQueue.push(last_header)) {
+			}
+		} else {
+			LOG(ERROR) << "Failed to register received block with NameNode";
+		}
 	}
 
 
