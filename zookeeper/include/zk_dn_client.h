@@ -97,6 +97,8 @@ public:
 	*/
 	bool push_dn_on_repq(std::string dn_name, uint64_t blockid);
 
+	std::string get_datanode_id();
+
 private:
 	std::shared_ptr<TransferServer> server;
 	/**
@@ -117,7 +119,7 @@ private:
 	* @param queueName the name of the queue, i.e. replication or deletion
 	* @param watchFuncPtr the watcher function to be used on the queue
 	*/
-	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *));
 
 	/**
 	 * Handle all of the work items on path

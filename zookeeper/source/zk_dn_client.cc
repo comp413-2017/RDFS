@@ -186,14 +186,16 @@ namespace zkclient{
 		}
 
 		// Create the work queues, set their watchers
-		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher, id);
-		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher, id);
+		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
+		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher);
 		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
 	}
 
-	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id){
+	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *)){
 		int error_code;
 		bool exists;
+
+		std::string id = get_datanode_id();
 
 		// Create queue for this datanode
 		// TODO: Replace w/ actual queues when they're created
@@ -212,6 +214,12 @@ namespace zkclient{
 			LOG(INFO) << "getting children failed";
 		}
 
+		// After we attach the watcher, immediately check if any replication tasks had been registered in the meantime
+		if (children.size() > 0) {
+			handleReplicateCmds((queueName + id).c_str());
+			// Recursively call this function until the childrens is 0
+			initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
+		}
 	}
 
 	bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
@@ -243,6 +251,7 @@ namespace zkclient{
         auto rootless_path = zk->removeZKRoot(path);
 		LOG(INFO) << "handling replicate watcher for " << rootless_path;
 		std::vector<std::string> work_items;
+
 		if (!zk->get_children(rootless_path, work_items, err)){
 			LOG(ERROR) << "Failed to get work items!";
 			return;
@@ -309,6 +318,7 @@ namespace zkclient{
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		ZkClientDn* dn_client = static_cast<ZkClientDn*>(watcherCtx);
 		dn_client->handleReplicateCmds(path);
+		dn_client->initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
 	}
 
 	// TODO: Get children and for each of them delete it from raw disk IO (call delete block) and and say block deleted
@@ -325,7 +335,11 @@ namespace zkclient{
 	std::string ZkClientDn::build_datanode_id(DataNodeId data_node_id) {
 		return data_node_id.ip + ":" + std::to_string(data_node_id.ipcPort);
 	}
-	
+
+	std::string ZkClientDn::get_datanode_id() {
+		return build_datanode_id(this->data_node_id);
+	}
+
 	bool ZkClientDn::sendStats(uint64_t free_space, uint32_t xmits) {
 		int error_code;
 		
