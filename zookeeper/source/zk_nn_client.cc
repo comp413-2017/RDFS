@@ -384,7 +384,8 @@ namespace zkclient{
 		}
 		if (file_blocks.size() == 0) {
 			LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
-			res.set_result(false);
+			//res.set_result(false);
+			res.set_result(true);
 			return;
 		}
 		// TODO: This loop could be two multi-ops instead
@@ -526,7 +527,15 @@ namespace zkclient{
 						read_file_znode(child_data, child_path);
 						HdfsFileStatusProto *status = listing->add_partiallisting();
 						set_file_info(status, child_path, child_data);
-					}
+                        // set up the value for LocatedBlocksProto
+                        //LocatedBlocksProto *blocklocation = status->set_location();
+                        //GetBlockLocationsRequestProto location_req;
+                        LocatedBlocksProto* blocks = status->mutable_locations();
+                        // TODO: 134217728 should be a variable
+                        get_block_locations(child_path, 0, 134217728, blocks);
+                        //get_block_locations()
+
+                    }
 				}
 			}
 			listing->set_remainingentries(0);
@@ -536,18 +545,21 @@ namespace zkclient{
 		}
 		return true;
 	}
-	
+
+
     void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
+        const std::string &src = req.src();
+        google::protobuf::uint64 offset = req.offset();
+        google::protobuf::uint64 length = req.length();
+        LocatedBlocksProto* blocks = res.mutable_locations();
+        get_block_locations(src, offset, length, blocks);
+    }
+
+
+    void ZkNnClient::get_block_locations(const std::string &src, google::protobuf::uint64 offset, google::protobuf::uint64 length, LocatedBlocksProto* blocks) {
 
 	int error_code;
-
-	const std::string &src = req.src();
 	const std::string zk_path = ZookeeperPath(src);
-
-	google::protobuf::uint64 offset = req.offset();
-	google::protobuf::uint64 length = req.length();
-
-	LocatedBlocksProto* blocks = res.mutable_locations();
 
 	FileZNode znode_data;
 	read_file_znode(znode_data, src);

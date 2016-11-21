@@ -84,7 +84,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * ensure that the blocks get replicated
 		 */
 		bool check_acks();
-	private:
+
+		// get locations given src, offset, and length
+		void get_block_locations(const std::string &src, google::protobuf::uint64 offset, google::protobuf::uint64 length, LocatedBlocksProto* blocks);
+
+private:
 
 		/**
 		 * Set the file status proto with information from the znode struct and the path
