@@ -195,8 +195,20 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
-		SetPermissionResponseProto res;
+	SetPermissionResponseProto res;
+	return Serialize(res);
+}
+
+std::string ClientNamenodeTranslator::getListing(std::string input) {
+	GetListingRequestProto req;
+	GetListingResponseProto res;
+	req.ParseFromString(input);
+	logMessage(req, "GetListing ");
+	if (zk.get_listing(req, res)) {
 		return Serialize(res);
+	} else {
+		throw GetErrorRPCHeader("Could not get listing", "");
+	}
 }
 
 std::string ClientNamenodeTranslator::setReplication(std::string input) {
@@ -358,6 +370,8 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
 	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
     server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
+	server.register_handler("getListing", std::bind(&ClientNamenodeTranslator::getListing, this, _1));
+
 }
 
 /**

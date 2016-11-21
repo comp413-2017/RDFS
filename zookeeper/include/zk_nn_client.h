@@ -58,6 +58,7 @@ class ZkNnClient : public ZkClientCommon {
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 		void rename(RenameRequestProto& req, RenameResponseProto& res);
+		bool get_listing(GetListingRequestProto& req, GetListingResponseProto& res);
 		/**
 		 * Add block.
 		 */

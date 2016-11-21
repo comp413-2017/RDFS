@@ -495,6 +495,48 @@ namespace zkclient{
         }
         return true;
     }
+	
+	bool ZkNnClient::get_listing(GetListingRequestProto& req, GetListingResponseProto& res) {
+		int error_code;
+		
+		const std::string& src = req.src();
+		const std::string& start_after = req.startafter();
+		const bool need_location = req.needlocation();
+		
+		DirectoryListingProto *listing = res.mutable_dirlist();
+		
+		// if src is a file then just return that file with remaining = 0
+		// otherwise return first 1000 files in src dir starting at start_after and set remaining to the number left after that first 1000
+		// TODO handle lengths of more than 1000 files
+		if (file_exists(src)) {
+			FileZNode znode_data;
+			read_file_znode(znode_data, src);
+			if (znode_data.filetype == IS_FILE) {
+				HdfsFileStatusProto *status = listing->add_partiallisting();
+				set_file_info(status, src, znode_data);
+			} else {
+				std::vector<std::string> children;
+				if (!zk->get_children(ZookeeperPath(src), children, error_code)) {
+					LOG(FATAL) << "Failed to get children for " << ZookeeperPath(src);
+					return false;
+				} else {
+					for (auto& child : children) {
+						auto child_path = util::concat_path(src, child);
+						FileZNode child_data;
+						read_file_znode(child_data, child_path);
+						HdfsFileStatusProto *status = listing->add_partiallisting();
+						set_file_info(status, child_path, child_data);
+					}
+				}
+			}
+			listing->set_remainingentries(0);
+		} else {
+			LOG(ERROR) << CLASS_NAME << "File does not exist with name " << src;
+			return false;
+		}
+		return true;
+	}
+	
     void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto& req, GetBlockLocationsResponseProto& res) {
 
 	int error_code;
