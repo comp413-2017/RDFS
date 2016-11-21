@@ -184,26 +184,33 @@ namespace zkclient{
     */
     bool ZkNnClient::abandon_block(AbandonBlockRequestProto& req, AbandonBlockResponseProto& res) {
         LOG(INFO) << CLASS_NAME << "Attempting to abandon block";
-        const std::string& src = req.src();
-        const std::string& holder = req.src(); // TODO who is the holder??
+        const std::string& file_path = req.src();
+        const std::string& holder = req.holder(); // I believe this is the lease holder?
 
-        LOG(INFO) << CLASS_NAME << "Getting block info for this file... " << src;
-        LOG(INFO) << CLASS_NAME << "(btw, what is the 'holder' field?)... " << holder;
-        const std::string file_path = src;
+        LOG(INFO) << CLASS_NAME << "(what is the 'holder' field?)... " << holder;
 
         //uint64 generationStamp (as well as the optional uint64 numBytes)
         const ExtendedBlockProto& block = req.b();
         const std::string poolId = block.poolid();
         const uint64_t blockId = block.blockid();
         const uint64_t generation_stamp = block.generationstamp();
+        LOG(INFO) << CLASS_NAME << "Requested to abandon block: " << blockId;
+        LOG(INFO) << CLASS_NAME << "This block is in pool " << poolId;
+        LOG(INFO) << CLASS_NAME << "Its generation stamp is " << generation_stamp;
 
         const std::string block_id_str = std::to_string(blockId);
-        LOG(INFO) << CLASS_NAME << "Got block info. Checking file exists... " << file_path;
+        LOG(INFO) << CLASS_NAME << "...Also, converted blockid to a string: " << block_id_str;
+
+        LOG(INFO) << CLASS_NAME << "Checking file exists: " << file_path;
         
         //TODO - once leases get implemented, need to use them here.
         //Java implementation looks like the following:
             //INodeFileUnderConstruction file = checkLease(src, holder);
             //dir.removeBlock(src, file, b); <- this basically is what our multiop is for
+        
+	//Our equivalent to dir.removeBlock will be the 3 zookeeper ops below
+        //(Java implementation modifies file->block and blocksMap)
+
      
         //double check the file exists first 
         FileZNode znode_data;
@@ -216,36 +223,44 @@ namespace zkclient{
             LOG(ERROR) << CLASS_NAME << "Requested file " << file_path << " is not a file";
             return false;
         }
-        LOG(INFO) << CLASS_NAME << "File exists. Building multi op to abandon block... " << file_path;
+        LOG(INFO) << CLASS_NAME << "File exists. Building multi op to abandon block";
 
-        //Our equivalent to dir.removeBlock will be the 3 zookeeper ops below
-        //(Java implementation modifies file->block and blocksMap)
-       
-        //Build the multi op - it's a reverse of the one's in add_block
-        //TODO - should probably change the generations from -1 if version checking ever
-        //gets implemented (right now I don't believe it is).
-        //-1 just means don't check the version)
-       
-        //TODO - check this first line is correct. (The build_create_op definitely creates 
-        //a node at this location; surprisingly, the *data* written at it is the blockId). 
-        auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path + "/block_"), -1);
-        auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/" + block_id_str, -1);
-        auto undo_block_location_op = zk->build_delete_op("/block_locations/" + block_id_str, -1);
+	// Before we can build the multi op, we gotta gotta figure out which block under
+	// the file is the latest block (we can tell by the 9 digit numbers on the end)
+	int error_code;
+	auto sorted_fs_znodes = std::vector<std::string>();
+	if(!zk->get_children(ZookeeperPath(file_path), sorted_fs_znodes, error_code)) {
+		LOG(ERROR) << CLASS_NAME << "Failed getting children of " << ZookeeperPath(file_path) << " with error: " << error_code;
+	}
+     	// Now once we sort this vector, the znode for the latest block created will be at the end.
+	// This is because each znode name looks like block_000000000, block_000000001, and so on
+	std::sort(sorted_fs_znodes.begin(), sorted_fs_znodes.end());
 
+	// Build the multi op - it's a reverse of the one's in add_block.
+	// Note that it was due to the ZOO_SEQUENCE flag that this first
+	// znode's path has the 9 digit number on the end.
+        auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path + sorted_fs_znodes.back()), generation_stamp);
+        auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/" + block_id_str, generation_stamp);
+        auto undo_block_location_op = zk->build_delete_op("/block_locations/" + block_id_str, generation_stamp);
+
+        //std::vector<std::shared_ptr<ZooOp>> ops = {undo_seq_file_block_op};
+        //std::vector<std::shared_ptr<ZooOp>> ops = {undo_ack_op, undo_block_location_op};
         std::vector<std::shared_ptr<ZooOp>> ops = {undo_seq_file_block_op, undo_ack_op, undo_block_location_op};
 
         auto results = std::vector <zoo_op_result>();
         int err;
 
         LOG(INFO) << CLASS_NAME << "Built multi op. Executing multi op to abandon block... " << file_path;
-        // TODO: Perhaps we have to perform a more fine grained analysis of the results
         if (!zk->execute_multi(ops, results, err)) {
             LOG(ERROR) << CLASS_NAME << "Failed to write the abandon_block multiop, ZK state was not changed";
             ZKWrapper::print_error(err);
+            for (int i = 0; i < results.size(); i++) {
+                LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+            }
             return false;
         }
     	return true;
-	}
+    }
 
 
     void ZkNnClient::get_info(GetFileInfoRequestProto& req, GetFileInfoResponseProto& res) {
@@ -739,6 +754,8 @@ namespace zkclient{
         LOG(INFO) << CLASS_NAME << "Generating block for " << ZookeeperPath(file_path);
 
         // ZooKeeper multi-op to add block
+	// (Note the actual path of the znode the first create op makes will have a 9
+	// digit number appended onto the end because of the ZOO_SEQUENCE flag)
         auto seq_file_block_op = zk->build_create_op(ZookeeperPath(file_path + "/block_"), data, ZOO_SEQUENCE);
         auto ack_op = zk->build_create_op("/work_queues/wait_for_acks/" + block_id_str, ZKWrapper::EMPTY_VECTOR);
         auto block_location_op = zk->build_create_op("/block_locations/" + block_id_str, ZKWrapper::EMPTY_VECTOR);
