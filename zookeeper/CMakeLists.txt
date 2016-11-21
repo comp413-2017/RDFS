@@ -1,5 +1,6 @@
 include_directories(${CMAKE_SOURCE_DIR}/zkwrapper/include
         ${CMAKE_SOURCE_DIR}/zookeeper/include
+		${CMAKE_SOURCE_DIR}/native-filesystem/include
         ${CMAKE_SOURCE_DIR}/utility/config-reader
         ${CMAKE_SOURCE_DIR}/utility/logging
         ${CMAKE_SOURCE_DIR}/utility/include)
@@ -13,6 +14,7 @@ target_link_libraries(zk_client_dn zk_client_common)
 target_link_libraries(zk_client_dn easylogging++)
 target_link_libraries(zk_client_dn zk_lock)
 target_link_libraries(zk_client_dn zk_queue)
+target_link_libraries(zk_client_dn native-fs)
 
 add_library(zk_client_nn source/zk_nn_client.cc)
 target_link_libraries(zk_client_nn zk_client_common)

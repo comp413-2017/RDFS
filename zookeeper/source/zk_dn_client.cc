@@ -4,21 +4,22 @@
 #include "zk_dn_client.h"
 #include "zk_lock.h"
 #include "zk_queue.h"
+#include "native_filesystem.h"
 #include <easylogging++.h>
 
 namespace zkclient{
 
 	const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
 
-	ZkClientDn::ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper> zk_in, uint64_t total_disk_space,
-		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
-
+	ZkClientDn::ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper> zk_in, std::shared_ptr <nativefs::NativeFS> fs_in,
+		 uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
+		fs = fs_in;
 		registerDataNode(ip, total_disk_space, ipcPort, xferPort);
 	}
 
-	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
-		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
-
+	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, std::shared_ptr <nativefs::NativeFS> fs_in,
+		uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
+		fs = fs_in;
 		registerDataNode(ip, total_disk_space, ipcPort, xferPort);
 	}
 
@@ -183,23 +184,23 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks " << error_code;
 		}
 
-		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, id);
+//		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, id);
 		ZkClientDn::initWorkQueue(DELETE_QUEUES, id);
 
 		// Register the queue watchers for this dn
 		std::vector <std::string> children = std::vector <std::string>();
-		if(!zk->wget_children(REPLICATE_QUEUES + id, children, ZkClientDn::thisDNReplicationQueueWatcher, this, error_code)){
-			LOG(INFO) << "getting children for replicate queue failed";
-		}
+		// if(!zk->wget_children(REPLICATE_QUEUES + id, children, ZkClientDn::thisDNReplicationQueueWatcher, this, error_code)){
+		// 	LOG(INFO) << "getting children for replicate queue failed";
+		// }
 		if(!zk->wget_children(DELETE_QUEUES + id, children, ZkClientDn::thisDNDeleteQueueWatcher, this, error_code)){
-			LOG(INFO) << "getting children for delete queue failed";
+			LOG(ERROR) << CLASS_NAME << "Registering delete queue watchers failed";
 		}
 
-        // TODO: For debugging only
-		std::vector <std::uint8_t> replUUID (1);
-		std::string push_path;
-		replUUID[0] = 12;
-        push(zk, REPLICATE_QUEUES + id, replUUID, push_path, error_code);
+        // // TODO: For debugging only
+		// std::vector <std::uint8_t> replUUID (1);
+		// std::string push_path;
+		// replUUID[0] = 12;
+        // push(zk, REPLICATE_QUEUES + id, replUUID, push_path, error_code);
 	}
 
 	void ZkClientDn::initWorkQueue(std::string queueName, std::string id){
@@ -210,64 +211,106 @@ namespace zkclient{
         // TODO: Replace w/ actual queues when they're created
         if (zk->exists(queueName + id, exists, error_code)){
             if (!exists){
-                LOG(INFO) << "doesn't exist, trying to make it";
+                LOG(INFO) << CLASS_NAME << "Initializing queue: " << queueName;
                 if (!zk->create(queueName + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
-                    LOG(INFO) << "Creation failed";
+                    LOG(ERROR) << CLASS_NAME << "Queue creation failed";
                 }
             }
         }
 	}
 
-	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
-		LOG(INFO) << "In the replication watcher";
-		LOG(INFO) << "Replication watcher triggered on path: " << path;
-		int error_code;
-
-		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
-		thisDn->processReplQueue(path);
-	}
+	// void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
+	// 	LOG(INFO) << "In the replication watcher";
+	// 	LOG(INFO) << "Replication watcher triggered on path: " << path;
+	// 	int error_code;
+	//
+	// 	ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
+	// 	thisDn->processReplQueue(path);
+	// }
 
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
-		LOG(INFO) << "Delete watcher triggered on path: " << path;
+		LOG(INFO) << CLASS_NAME << "Delete watcher triggered on path: " << path;
 
 		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
 		thisDn->processDeleteQueue(path);
 	}
 
-	void ZkClientDn::processReplQueue(std::string path){
-                int error_code;
-                bool exists;
-		std::string peeked;
-		std::string pop_path;
-		std::vector<uint8_t> queue_vec(1); //TODO: Size?
-
-		LOG(INFO) << "In process repl queue";
-
-		peek(zk, path, peeked, error_code);
-		while(peeked != path){
-			LOG(INFO) << "Found queue item";
-			if(pop(zk, path, queue_vec, pop_path, error_code)){
-				LOG(INFO) << "Popped node w/ block id: " + std::to_string(queue_vec[0]);
-			}else{
-				LOG(INFO) << "Error popping from queue while processing Replication Queue";
-			}
-			peek(zk, path, peeked, error_code);
-		}
-	}
+	// void ZkClientDn::processReplQueue(std::string path){
+    //     int error_code;
+    //     bool exists;
+	// 	std::string peeked;
+	// 	std::string pop_path;
+	// 	std::vector<uint8_t> queue_vec(1); //TODO: Size?
+	//
+	// 	LOG(INFO) << "In process repl queue";
+	//
+	// 	peek(zk, path, peeked, error_code);
+	// 	while(peeked != path){
+	// 		LOG(INFO) << "Found queue item";
+	// 		if(pop(zk, path, queue_vec, pop_path, error_code)){
+	// 			LOG(INFO) << "Popped node w/ block id: " + std::to_string(queue_vec[0]);
+	// 		}else{
+	// 			LOG(INFO) << "Error popping from queue while processing Replication Queue";
+	// 		}
+	// 		peek(zk, path, peeked, error_code);
+	// 	}
+	// }
 
 	void ZkClientDn::processDeleteQueue(std::string path) {
 		int error_code;
 		bool exists;
+		std::string id = build_datanode_id(data_node_id);
+		uint64_t block_id;
 		std::string peeked;
+		std::string popped;
 		std::vector<uint8_t> queue_vec(1); //TODO: Size?
+		std::vector <std::string> children(1);
 
-		peek(zk, path, peeked, error_code);
-		while(peeked != path){
-			LOG(INFO) << "Found item in delete queue";
-
-			peek(zk, path, peeked, error_code);
+		if (zk->exists(path, exists, error_code)){
+			if (!exists){
+				LOG(ERROR) << CLASS_NAME << "Delete queue for DN " << id << " did not exist";
+				return;
+			}
 		}
 
+		if (!peek(zk, path, peeked, error_code)){
+			LOG(ERROR) << CLASS_NAME << "Failed queue peek " << error_code;
+		}
+
+		while(peeked != path){
+			LOG(INFO) << CLASS_NAME << "Found item in delete queue: " << peeked;
+			if (!zk->get(peeked, queue_vec, error_code)) {
+				LOG(ERROR) << "Failed to get data from peeked node " << error_code;
+				if (!peek(zk, path, peeked, error_code)){
+					LOG(ERROR) << CLASS_NAME << "Failed queue peek " << error_code;
+				}
+				continue;
+			}
+			memcpy(&block_id, &queue_vec[0], sizeof(queue_vec));
+			LOG(INFO) << CLASS_NAME << "Deleting block with ID " << block_id;
+
+			if (fs->rmBlock(block_id)){
+				blockDeleted(block_id);
+				pop(zk, path, queue_vec, popped, error_code);
+			}
+			else {
+				LOG(ERROR) << CLASS_NAME << "Failed to delete block";
+			}
+
+			if (!peek(zk, path, peeked, error_code)){
+				LOG(ERROR) << CLASS_NAME << "Failed queue peek " << error_code;
+			}
+		}
+		if(!zk->wget_children(DELETE_QUEUES + id, children, ZkClientDn::thisDNDeleteQueueWatcher, this, error_code)){
+			LOG(ERROR) << CLASS_NAME << "Registering delete queue watchers failed";
+		}
+
+		if (children.size() > 0){
+			LOG(INFO) << CLASS_NAME << "Blocks were scheduled for deletion before watcher was re-attached";
+		}
+		else {
+			LOG(INFO) << CLASS_NAME << "Delete queue processed";
+		}
 	}
 
 	ZkClientDn::~ZkClientDn() {

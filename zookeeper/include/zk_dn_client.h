@@ -2,6 +2,7 @@
 #define RDFS_ZK_CLIENT_DN_H
 
 #include "zk_client_common.h"
+#include "native_filesystem.h"
 
 namespace zkclient {
 
@@ -51,11 +52,11 @@ public:
 	* @param ipcPort TODO
 	* @param xferPort TODO
 	*/
-	ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
-			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+	ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, std::shared_ptr <nativefs::NativeFS> fs_in,
+		uint64_t total_disk_space, const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 
-	ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper>, uint64_t total_disk_space,
-			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+	ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper>, std::shared_ptr <nativefs::NativeFS> fs_in,
+		uint64_t total_disk_space, const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 	~ZkClientDn();
 
 	/**
@@ -94,7 +95,7 @@ private:
     DataNodeId data_node_id;
     DataNodePayload data_node_payload;
     static const std::string CLASS_NAME;
-
+	std::shared_ptr <nativefs::NativeFS> fs;
     /**
     * Sets up the work queue for this datanode in zookeeper, and sets the watcher
     * on that queue.  To be used for replication and deletion queues
@@ -103,9 +104,9 @@ private:
     */
     void initWorkQueue(std::string queueName, std::string id);
 
-    static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+//    static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
     static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
-    void processReplQueue(std::string path);
+//    void processReplQueue(std::string path);
 	void processDeleteQueue(std::string path);
 
 };
