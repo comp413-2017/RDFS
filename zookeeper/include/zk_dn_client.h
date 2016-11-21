@@ -100,6 +100,7 @@ public:
 	std::string get_datanode_id();
 
 private:
+
 	std::shared_ptr<TransferServer> server;
 	/**
 	* Builds a string of the DataNode ID.

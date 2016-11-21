@@ -195,6 +195,8 @@ namespace zkclient{
 		int error_code;
 		bool exists;
 
+		LOG(INFO) << "JOSEPH: " << get_datanode_id() << " INITING WORK QUEUE";
+
 		std::string id = get_datanode_id();
 
 		// Create queue for this datanode
@@ -214,11 +216,15 @@ namespace zkclient{
 			LOG(INFO) << "getting children failed";
 		}
 
+		LOG(INFO) << "JOSEPH: " << get_datanode_id() << " DONE INITING WORK QUEUE";
 		// After we attach the watcher, immediately check if any replication tasks had been registered in the meantime
 		if (children.size() > 0) {
+			LOG(INFO) << "JOSEPH: " << get_datanode_id() << " FOUND CHILDREN " << children.size();
 			handleReplicateCmds((queueName + id).c_str());
 			// Recursively call this function until the childrens is 0
 			initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
+		} else {
+			LOG(INFO) << "JOSEPH " << get_datanode_id() << " IS FREE";
 		}
 	}
 
@@ -258,7 +264,12 @@ namespace zkclient{
 		}
 		std::vector<std::shared_ptr<ZooOp>> ops;
 
+		LOG(INFO) << "JOSEPH: " << get_datanode_id() << "WORK ITEMS " << work_items.size();
+
 		for (auto &block : work_items){
+
+			LOG(INFO) << "JOSEPH: " << get_datanode_id() << "WORKING ON " << block;
+
 			std::vector<std::string> read_from;
 			auto full_work_item_path = util::concat_path(rootless_path, block);
 			if (!zk->get_children(full_work_item_path, read_from, err)){
