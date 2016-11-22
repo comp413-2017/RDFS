@@ -161,13 +161,6 @@ class ZkNnClient : public ZkClientCommon {
 
 
 		/**
-		 * Creates 'num_replicas' many work items for the given 'block_uuid' in
-		 * the replicate work queue, ensuring that the new replicas are not on
-		 * an excluded datanode
-		 */
-		bool replicate_block(const std::string &block_uuid, int num_replicas, std::vector<std::string> &excluded_datanodes);
-
-		/**
 		 * Calculates the approximate number of milliseconds that have elapsed
 		 * since the znode at the given path was created.
 		 */

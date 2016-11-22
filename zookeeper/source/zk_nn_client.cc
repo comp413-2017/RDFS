@@ -1007,7 +1007,16 @@ namespace zkclient{
                 // Block hasn't been replicated enough, request remaining replicas
                 int replicas_needed = replication_factor - existing_dn_replicas.size();
                 LOG(INFO) << CLASS_NAME << replicas_needed << " replicas are needed";
-                replicate_block(block_uuid, replicas_needed, existing_dn_replicas);
+
+				std::vector<std::string> to_replicate;
+				for (int i = 0; i < replicas_needed; i++) {
+					to_replicate.push_back(block_uuid);
+				}
+                if (!replicate_blocks(to_replicate, error_code)) {
+					LOG(ERROR) << "Failed to add necessary items to replication queue.";
+					return false;
+				}
+				LOG(INFO) << "Created " << to_replicate.size() << " items in the replication queue.";
 
             } else if (existing_dn_replicas.size() == replication_factor) {
                 LOG(INFO) << CLASS_NAME << "Enough replicas have been made, no longer need to wait on " << block_path;
@@ -1054,55 +1063,6 @@ namespace zkclient{
 		}
 	}
 
-
-    /**
-     * Creates 'num_replicas' many work items for the given 'block_uuid' in
-     * the replicate work queue, ensuring that the new replicas are not on
-     * an excluded datanode
-     */
-    bool ZkNnClient::replicate_block(const std::string &block_uuid_str, int num_replicas, std::vector<std::string> &excluded_datanodes) {
-        int error_code = 0;
-        u_int64_t block_uuid = std::strtoll(block_uuid_str.c_str(), NULL, 10);
-        auto datanodes = std::vector<std::string>();
-        if(!find_datanode_for_block(datanodes, block_uuid, num_replicas, false)) {
-            LOG(ERROR) << CLASS_NAME << "Failed to get available datanodes for replications";
-        }
-
-        // Create a payload vector containing the block_uuid
-        std::vector<std::uint8_t> data;
-        data.resize(sizeof(u_int64_t));
-        memcpy(&data[0], &block_uuid, sizeof(u_int64_t));
-
-        for (auto dest_dn_id : datanodes) {
-            // The path of the sequential node, ends in "-"
-            std::string replicate_q_path = WORK_QUEUES + REPLICATE_BACKSLASH + dest_dn_id;
-
-            std::string pushed_path;
-            // Create an item on the dest_dn's replica queue for this block
-            if (!zkqueue::push(zk, replicate_q_path, data, pushed_path, error_code)) {
-                LOG(ERROR) << "Failed to add replicate reqeust to queue: " << replicate_q_path;
-                return false;
-            }
-
-            // Get the ID of a DN which already has this block
-            std::string src_dn_id;
-            if (!find_datanode_with_block(block_uuid_str, src_dn_id, error_code)) {
-                LOG(ERROR) << "Failed to find datanode with existing replica for block: " << block_uuid_str;
-                return false;
-            }
-            std::string src_dn_path = pushed_path + "/" + src_dn_id;
-
-            // Create a child of the replication queue item indicating which dn
-            // to get the block data from
-            if (!zk->create(src_dn_path, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
-                LOG(ERROR) << CLASS_NAME << "Failed to create: " << src_dn_path;
-                return false;
-            }
-            LOG(INFO) << "Created: " << src_dn_path;
-        }
-
-        return true;
-    }
 
     bool ZkNnClient::find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code) {
         std::vector<std::string> datanodes;
