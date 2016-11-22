@@ -458,11 +458,10 @@ namespace zkclient{
                 LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
             }
             res.set_result(false);
-        }
-
-		LOG(INFO) << CLASS_NAME << "Successfully exec'd multiop to rename " << req.src() << " to " << req.dst();
-
-        res.set_result(true);
+        } else {
+			LOG(INFO) << CLASS_NAME << "Successfully exec'd multiop to rename " << req.src() << " to " << req.dst();
+	        res.set_result(true);
+		}
     }
 
     // ------- make a directory
@@ -837,8 +836,6 @@ namespace zkclient{
      * @return Boolean indicating success or failure of the rename
      */
     bool ZkNnClient::rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops) {
-        LOG(INFO) << "Adding rename ops for file '"  << src << "' to '" << dst << "'";
-
         int error_code = 0;
         auto data = std::vector<std::uint8_t>();
         std::string src_znode = ZookeeperPath(src);
@@ -852,6 +849,7 @@ namespace zkclient{
         }
 
         // Create a new znode in the filesystem for the dst
+		LOG(INFO) << "Added op#" << ops.size() << ": create " << dst_znode;
         ops.push_back(zk->build_create_op(dst_znode, data));
 
         // Copy over the data from the children of the src_znode into new children of the dst_znode
@@ -872,16 +870,18 @@ namespace zkclient{
             }
 
             // Create new child of dst_znode with this data
+			LOG(INFO) << "Added op#" << ops.size() << ": create " << dst_znode + "/" + child;
             ops.push_back(zk->build_create_op(dst_znode + "/" + child, child_data));
 
             // Delete src_znode's child
+			LOG(INFO) << "Added op#" << ops.size() << ": delete " << src_znode + "/" + child;
             ops.push_back(zk->build_delete_op(src_znode + "/" + child));
         }
 
         // Remove the old znode for the src
+		LOG(INFO) << "Added op#" << ops.size() << ": delete " << src_znode;
         ops.push_back(zk->build_delete_op(src_znode));
 
-        LOG(INFO) << "Added ops to rename: '"  << src << "' to '" << dst << "'";
         return true;
     }
 
@@ -901,6 +901,7 @@ namespace zkclient{
         }
 
         // Create a new znode in the filesystem for the dst
+		LOG(INFO) << "rename_ops_for_dir - Added op#" << ops.size() << ": create " << dst_znode;
         ops.push_back(zk->build_create_op(dst_znode, data));
 
 		// Iterate through the items in this dir
@@ -912,14 +913,16 @@ namespace zkclient{
 
 		auto nested_dirs = std::vector<std::string>();
 		for (auto child : children) {
-			std::string child_path = src_znode + "/" + child;
+			std::string child_path = src + "/" + child;
 	        FileZNode znode_data;
 	        read_file_znode(znode_data, child_path);
 			if (znode_data.filetype == IS_DIR) {
+				LOG(INFO) << "Child: " << child << " is DIR";
 				// Keep track of any nested directories
 				nested_dirs.push_back(child);
 			} else if (znode_data.filetype == IS_FILE) {
 				// Generate ops for each file in the dir
+				LOG(INFO) << "Child: " << child << " is FILE";
 				if(!rename_ops_for_file(src + "/" + child, dst + "/" + child, ops)) {
 					return false;
 				}
@@ -927,14 +930,19 @@ namespace zkclient{
 	            LOG(ERROR) << CLASS_NAME << "Requested rename source: " << child_path << " is not a file or dir";
 				return false;
 	        }
+		}
 
-			// Iterate through the found nested directories and generate ops for them
-			for (auto dir : nested_dirs) {
-				if(!rename_ops_for_dir(src + "/" + dir, dst + "/" + dir, ops)) {
-					return false;
-				}
+		// Iterate through the found nested directories and generate ops for them
+		LOG(INFO) << "Found " << nested_dirs.size() << " nested dirs";
+		for (auto dir : nested_dirs) {
+			LOG(INFO) << "Call recursively on: " << src + "/" + dir;
+			if(!rename_ops_for_dir(src + "/" + dir, dst + "/" + dir, ops)) {
+				return false;
 			}
 		}
+		// Delete the old dir
+		LOG(INFO) << "Added op#" << ops.size() << ": delete " << src_znode;
+        ops.push_back(zk->build_delete_op(src_znode));
 
 		return true;
 	}

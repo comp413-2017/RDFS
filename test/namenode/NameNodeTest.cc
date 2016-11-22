@@ -255,6 +255,66 @@ namespace {
 		ASSERT_EQ(false, exist);
 	}
 
+
+	TEST_F(NamenodeTest, testRenameDirWithFiles){
+		int error_code;
+
+		// Create a test file for renaming
+        hadoop::hdfs::CreateRequestProto create_req;
+        hadoop::hdfs::CreateResponseProto create_resp;
+		create_req.set_src("/old_dir/file1");
+		create_req.set_clientname("test_client_name");
+		create_req.set_createparent(true);
+		create_req.set_blocksize(0);
+		create_req.set_replication(1);
+		create_req.set_createflag(0);
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+		create_req.set_src("/old_dir/file2");
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+		create_req.set_src("/old_dir/nested_dir/nested_file");
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+
+		// Rename
+        hadoop::hdfs::RenameRequestProto rename_req;
+        hadoop::hdfs::RenameResponseProto rename_resp;
+        rename_req.set_src("/old_dir");
+        rename_req.set_dst("/new_dir");
+        client->rename(rename_req, rename_resp);
+		ASSERT_TRUE(rename_resp.result());
+
+		// // Ensure that the renamed node has the same data
+		zkclient::FileZNode renamed_data;
+        std::vector<std::uint8_t> data(sizeof(renamed_data));
+        ASSERT_TRUE(zk->get("/fileSystem/new_dir", data, error_code));
+        memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+		ASSERT_EQ(0, renamed_data.replication);
+		ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(1, renamed_data.filetype);
+
+        ASSERT_TRUE(zk->get("/fileSystem/new_dir/file1", data, error_code));
+        memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+		ASSERT_EQ(1, renamed_data.replication);
+		ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(2, renamed_data.filetype);
+
+        ASSERT_TRUE(zk->get("/fileSystem/new_dir/file2", data, error_code));
+        memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+		ASSERT_EQ(1, renamed_data.replication);
+		ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(2, renamed_data.filetype);
+
+        ASSERT_TRUE(zk->get("/fileSystem/new_dir/nested_dir/nested_file", data, error_code));
+        memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+		ASSERT_EQ(1, renamed_data.replication);
+		ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(2, renamed_data.filetype);
+
+		// Ensure that file nodes were deleted
+		bool exist;
+		zk->exists("/fileSystem/old_dir", exist, error_code);
+		ASSERT_EQ(false, exist);
+	}
+
 }
 
 int main(int argc, char **argv) {
