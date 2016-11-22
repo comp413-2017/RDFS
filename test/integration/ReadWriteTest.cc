@@ -72,17 +72,18 @@ int main(int argc, char **argv) {
 	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
 	assert(error_code == 0); // Z_OK
 
-	short port = 5351;
-	nncli = new zkclient::ZkNnClient(zk_shared);
-	nncli->register_watches();
-	nn_translator = new ClientNamenodeTranslator(5351, *nncli);
-	sleep(3);
-
 	unsigned short xferPort = 50010;
 	unsigned short ipcPort = 50020;
 	auto fs = std::make_shared<nativefs::NativeFS>("_RW_TEST_FS");
 	dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", zk_shared, ipcPort, xferPort);
 	dn_transfer_server = new TransferServer(xferPort, fs, dncli, max_xmits);
+
+	sleep(3);
+
+	short port = 5351;
+	nncli = new zkclient::ZkNnClient(zk_shared);
+	nncli->register_watches();
+	nn_translator = new ClientNamenodeTranslator(5351, *nncli);
 
 	asio::io_service io_service;
 	auto namenodeServer = nn_translator->getRPCServer();
