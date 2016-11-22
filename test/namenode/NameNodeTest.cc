@@ -20,7 +20,7 @@ namespace {
 				client = new zkclient::ZkNnClient(zk_shared);
 				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
 			}
-			
+
 			hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
 				hadoop::hdfs::CreateRequestProto create_req;
 				create_req.set_src(path);
@@ -199,35 +199,55 @@ namespace {
 		/* mock the directory */
 		zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
 		zk->create("/block_locations/"+std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error);
-		ASSERT_EQ(false, client->previousBlockComplete(block_id));	
+		ASSERT_EQ(false, client->previousBlockComplete(block_id));
 		/* mock the child directory */
 		zk->create("/block_locations/"+std::to_string(block_id)+"/child1", ZKWrapper::EMPTY_VECTOR, error);
-		ASSERT_EQ(true, client->previousBlockComplete(block_id));	
+		ASSERT_EQ(true, client->previousBlockComplete(block_id));
 	}
 
 	TEST_F(NamenodeTest, testRenameFile){
 		int error_code;
-		zk->create("/fileSystem/old_name", zk->get_byte_vector("File data"), error_code, false);
-		ASSERT_EQ(0, error_code);
 
+		// Create a test file for renaming
+        hadoop::hdfs::CreateRequestProto create_req;
+        hadoop::hdfs::CreateResponseProto create_resp;
+		create_req.set_src("/old_name");
+		create_req.set_clientname("test_client_name");
+		create_req.set_createparent(false);
+		create_req.set_blocksize(0);
+		create_req.set_replication(1);
+		create_req.set_createflag(0);
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+
+		// Create a child of the old file with a fake block
 		std::string new_path;
 		zk->create_sequential("/fileSystem/old_name/block-", zk->get_byte_vector("Block uuid"), new_path, false, error_code);
 		ASSERT_EQ(0, error_code);
 		ASSERT_EQ("/fileSystem/old_name/block-0000000000", new_path);
 
-		ASSERT_TRUE(client->rename_file("/old_name", "/new_name"));
+		// Rename
+        hadoop::hdfs::RenameRequestProto rename_req;
+        hadoop::hdfs::RenameResponseProto rename_resp;
+        rename_req.set_src("/old_name");
+        rename_req.set_dst("/new_name");
+        client->rename(rename_req, rename_resp);
+		ASSERT_TRUE(rename_resp.result());
 
-		auto new_file_data = std::vector<std::uint8_t>();
-		zk->get("/fileSystem/new_name", new_file_data, error_code);
-		ASSERT_EQ(0, error_code);
-		ASSERT_EQ("File data", std::string(new_file_data.begin(), new_file_data.end()));
-		LOG(INFO) << "New: " << std::string(new_file_data.begin(), new_file_data.end());
+		// Ensure that the renamed node has the same data
+		zkclient::FileZNode renamed_data;
+        std::vector<std::uint8_t> data(sizeof(renamed_data));
+        ASSERT_TRUE(zk->get("/fileSystem/new_name", data, error_code));
+        std::uint8_t *buffer = &data[0];
+        memcpy(&renamed_data, buffer, sizeof(renamed_data));
+		ASSERT_EQ(1, renamed_data.replication);
+		ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(2, renamed_data.filetype);
 
+		// Ensure that the file's child indicating block_id was renamed as well
 		auto new_block_data = std::vector<std::uint8_t>();
 		zk->get("/fileSystem/new_name/block-0000000000", new_block_data, error_code);
 		ASSERT_EQ(0, error_code);
 		ASSERT_EQ("Block uuid", std::string(new_block_data.begin(), new_block_data.end()));
-		LOG(INFO) << "New: " << std::string(new_block_data.begin(), new_block_data.end());
 
 		// Ensure that old_name was delete
 		bool exist;

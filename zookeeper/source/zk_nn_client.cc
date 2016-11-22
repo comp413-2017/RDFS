@@ -109,7 +109,7 @@ namespace zkclient{
 	std::string block_id_str = std::to_string(prev_id);
 	if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
 	    if (children.size() >= MIN_REPLICATION){
-		return true;						
+		return true;
 	    }
 	    return false;
 	}
@@ -122,7 +122,7 @@ namespace zkclient{
 	auto prev_id = req.previous().blockid();
 	if (!previousBlockComplete(prev_id)){
 	    LOG(ERROR) << "Previous Add Block Operation has not finished";
-	    return false;	 
+	    return false;
 	}
         // Build a new block for the response
         auto block = res.mutable_block();
@@ -421,9 +421,47 @@ namespace zkclient{
      * Rename a file in the zookeeper filesystem
      */
     void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
-        if(!rename_file(req.src(), req.dst())) {
+		std::string file_path = req.src();
+
+        FileZNode znode_data;
+        read_file_znode(znode_data, file_path);
+        if (!file_exists(file_path)) {
+            LOG(ERROR) << CLASS_NAME << "Requested rename source: " << file_path << " does not exist";
             res.set_result(false);
         }
+
+        auto ops = std::vector<std::shared_ptr<ZooOp>>();
+		if (znode_data.filetype == IS_DIR) {
+			if(!rename_ops_for_dir(req.src(), req.dst(), ops)) {
+				LOG(ERROR) << CLASS_NAME << "Failed to generate reame operatons for: " << file_path;
+	            res.set_result(false);
+			}
+
+		} else if (znode_data.filetype == IS_FILE) {
+			if(!rename_ops_for_file(req.src(), req.dst(), ops)) {
+				LOG(ERROR) << CLASS_NAME << "Failed to generate reame operatons for: " << file_path;
+	            res.set_result(false);
+			}
+
+		} else {
+            LOG(ERROR) << CLASS_NAME << "Requested rename source: " << file_path << " is not a file or dir";
+            res.set_result(false);
+        }
+
+		LOG(INFO) << CLASS_NAME << "Renameing multiop has " << ops.size() << " operations. Executing...";
+
+		int error_code;
+        std::vector<zoo_op_result> results;
+        if (!zk->execute_multi(ops, results, error_code)) {
+            LOG(ERROR) << "Failed multiop when renaming: '" << req.src() << "' to '" << req.dst() << "'";
+            for (int i = 0; i < results.size(); i++) {
+                LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+            }
+            res.set_result(false);
+        }
+
+		LOG(INFO) << CLASS_NAME << "Successfully exec'd multiop to rename " << req.src() << " to " << req.dst();
+
         res.set_result(true);
     }
 
@@ -459,14 +497,14 @@ namespace zkclient{
      * if necessary.
      */
     bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
-       	LOG(INFO) << "mkdir_helper called with input " << path; 
+       	LOG(INFO) << "mkdir_helper called with input " << path;
 	if (create_parent) {
 	    std::vector<std::string> split_path;
             boost::split(split_path, path, boost::is_any_of("/"));
             bool not_exist = false;
             std::string unroll;
             std::string p_path = "";
-            // Start at index 1 because it includes "/" as the first element 
+            // Start at index 1 because it includes "/" as the first element
 	    // in the array when we do NOT want that
 	    for (int i = 1; i < split_path.size(); i++) {
                 p_path += "/" + split_path[i];
@@ -496,16 +534,16 @@ namespace zkclient{
         }
         return true;
     }
-	
+
 	bool ZkNnClient::get_listing(GetListingRequestProto& req, GetListingResponseProto& res) {
 		int error_code;
-		
+
 		const std::string& src = req.src();
 		const std::string& start_after = req.startafter();
 		const bool need_location = req.needlocation();
-		
+
 		DirectoryListingProto *listing = res.mutable_dirlist();
-		
+
 		// if src is a file then just return that file with remaining = 0
 		// otherwise return first 1000 files in src dir starting at start_after and set remaining to the number left after that first 1000
 		// TODO handle lengths of more than 1000 files
@@ -792,22 +830,19 @@ namespace zkclient{
     }
 
     /**
-     * Updates /fileSystem in ZK to reflect a file rename
+     * Generates multiop ops for renaming src to dst
      * @param src The path to the source file (not znode) within the filesystem
      * @param dst The path to the renamed destination file (not znode) within the filesystem
+	 * @param ops The vector of multiops which will make up the overall atomic rename operation
      * @return Boolean indicating success or failure of the rename
      */
-    bool ZkNnClient::rename_file(std::string src, std::string dst) {
-        LOG(INFO) << "Renaming '"  << src << "' to '" << dst << "'";
+    bool ZkNnClient::rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops) {
+        LOG(INFO) << "Adding rename ops for file '"  << src << "' to '" << dst << "'";
 
         int error_code = 0;
         auto data = std::vector<std::uint8_t>();
-        auto ops = std::vector<std::shared_ptr<ZooOp>>();
-
         std::string src_znode = ZookeeperPath(src);
         std::string dst_znode = ZookeeperPath(dst);
-
-        // TODO: if one of these fails, should we try to undo? Use a multiop here?
 
         // Get the payload from the old filesystem znode for the src
         zk->get(src_znode, data, error_code);
@@ -846,18 +881,63 @@ namespace zkclient{
         // Remove the old znode for the src
         ops.push_back(zk->build_delete_op(src_znode));
 
-        std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
-        if (!zk->execute_multi(ops, results, error_code)) {
-            LOG(ERROR) << "Failed multiop when renaming: '" << src << "' to '" << dst << "'";
-            for (int i = 0; i < results.size(); i++) {
-                LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
-            }
+        LOG(INFO) << "Added ops to rename: '"  << src << "' to '" << dst << "'";
+        return true;
+    }
+
+
+    bool ZkNnClient::rename_ops_for_dir(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops) {
+		// Create a znode for the dst dir
+        int error_code = 0;
+        auto data = std::vector<std::uint8_t>();
+        std::string src_znode = ZookeeperPath(src);
+        std::string dst_znode = ZookeeperPath(dst);
+
+        // Get the payload from the old filesystem znode for the src
+        zk->get(src_znode, data, error_code);
+        if (error_code != ZOK) {
+            LOG(ERROR) << "Failed to get data from '" << src_znode << "' when renaming.";
             return false;
         }
 
-        LOG(INFO) << "Successfully renamed '"  << src << "' to '" << dst << "'";
-        return true;
-    }
+        // Create a new znode in the filesystem for the dst
+        ops.push_back(zk->build_create_op(dst_znode, data));
+
+		// Iterate through the items in this dir
+		auto children = std::vector<std::string>();
+        if (!zk->get_children(src_znode, children, error_code)) {
+            LOG(ERROR) << "Failed to get children of znode '" << src_znode << "' when renaming.";
+            return false;
+        }
+
+		auto nested_dirs = std::vector<std::string>();
+		for (auto child : children) {
+			std::string child_path = src_znode + "/" + child;
+	        FileZNode znode_data;
+	        read_file_znode(znode_data, child_path);
+			if (znode_data.filetype == IS_DIR) {
+				// Keep track of any nested directories
+				nested_dirs.push_back(child);
+			} else if (znode_data.filetype == IS_FILE) {
+				// Generate ops for each file in the dir
+				if(!rename_ops_for_file(src + "/" + child, dst + "/" + child, ops)) {
+					return false;
+				}
+			} else {
+	            LOG(ERROR) << CLASS_NAME << "Requested rename source: " << child_path << " is not a file or dir";
+				return false;
+	        }
+
+			// Iterate through the found nested directories and generate ops for them
+			for (auto dir : nested_dirs) {
+				if(!rename_ops_for_dir(src + "/" + dir, dst + "/" + dir, ops)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
 
     /**
      * Checks that each block UUID in the wait_for_acks dir:
@@ -1013,7 +1093,7 @@ namespace zkclient{
         id->set_xferport(payload->xferPort);
         id->set_infoport(50020);
         id->set_ipcport(payload->ipcPort);
-      
+
 		return true;
     }
 

@@ -76,7 +76,8 @@ class ZkNnClient : public ZkClientCommon {
 		// TODO lil doc string and move to private (why does this cause compiler problems?)
 		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
 		bool find_datanode_for_block(std::vector<std::string>& datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock = false);
-		bool rename_file(std::string src, std::string dst);
+	    bool rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
+	    bool rename_ops_for_dir(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
 
 		/**
 		 * Look through the wait_for_acks work queue to check the replication
@@ -192,4 +193,3 @@ private:
 } // namespace
 
 #endif //RDFS_ZKNNCLIENT_H
-
