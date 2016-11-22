@@ -44,23 +44,43 @@ namespace {
 
 	TEST_F(NamenodeTest, findDataNodes){
 
-		int error;
-		zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2181/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
-		zk->create("/health/localhost:2182/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
+	int error;
+	zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
+	zk->create("/health/localhost:2181/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
+	zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
+	zk->create("/health/localhost:2182/heartbeat", ZKWrapper::EMPTY_VECTOR, error);
 
-		auto datanodes = std::vector<std::string>();
-		u_int64_t block_id;
-		LOG(INFO) << "Finding dn's for block " << block_id;
-		util::generate_uuid(block_id);
-		client->find_datanode_for_block(datanodes, block_id, 1, true);
+	zkclient::DataNodePayload data_node_payload = zkclient::DataNodePayload();
+	data_node_payload.ipcPort = 1;
+	data_node_payload.xferPort = 1;
+	data_node_payload.disk_bytes = 1;
+	data_node_payload.free_bytes = 1024;
+	data_node_payload.xmits = 5;
 
-		for (auto datanode : datanodes) {
-			LOG(INFO) << "Returned datanode " << datanode;
-		}
-		ASSERT_EQ(1, datanodes.size());
+	std::vector<uint8_t> stats_vec;
+	stats_vec.resize(sizeof(zkclient::DataNodePayload));
+	memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
+	zk->create("/health/localhost:2181/stats", stats_vec, error);
+
+	data_node_payload.xmits = 3;
+	memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
+	zk->create("/health/localhost:2182/stats", stats_vec, error);
+
+	auto datanodes = std::vector<std::string>();
+	u_int64_t block_id;
+	LOG(INFO) << "Finding dn's for block " << block_id;
+	util::generate_uuid(block_id);
+	int rep_factor = 1;
+	client->find_datanode_for_block(datanodes, block_id, rep_factor, true);
+
+	for (auto datanode : datanodes) {
+	LOG(INFO) << "Returned datanode " << datanode;
 	}
+	ASSERT_EQ(rep_factor, datanodes.size());
+	// Check that the DN with fewer transmists was returned
+	ASSERT_EQ("localhost:2182", datanodes[0]);
+	}
+
 
 	TEST_F(NamenodeTest, findDataNodesWithReplicas){
 		// Check if we can find datanodes, without overlapping with ones that already contain a replica
