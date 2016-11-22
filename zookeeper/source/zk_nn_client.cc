@@ -240,7 +240,16 @@ namespace zkclient{
     	std::vector<std::string> children;
     	std::string block_id_str = std::to_string(prev_id);
     	if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
-            return children.size() >= MIN_REPLICATION;
+            if(children.size() >= MIN_REPLICATION) {
+				return true;
+			} else {
+				LOG(INFO) << "Had to sync: previous block failed";
+				// If we failed initially attempt to sync the changes, then check again
+				zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + block_id_str), true);
+				if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
+					return children.size() >= MIN_REPLICATION;
+				}
+			}
     	}
     	return false;
     }

@@ -32,7 +32,7 @@ namespace {
         // system("head -c 5 temp > actual_testfile1234");
         // Check that its contents match.
         // TODO: This test will fail until we implement the file lengths meta-data tracking.
-        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
+        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 
         sleep(10);
         using namespace nativefs;
@@ -72,7 +72,7 @@ namespace {
 		sleep(10);
         // Kill one of the original datanodes
         system("pkill -f ReplicationTestServer0");
-        sleep(45);
+        sleep(30);
 
         // The data should now be replicated on the new server
         system("pkill -f ReplicationTestServer1");

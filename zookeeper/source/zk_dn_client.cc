@@ -47,7 +47,7 @@ namespace zkclient{
 				LOG(ERROR) << CLASS_NAME << WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) << " does not exist";
 				created_correctly = false;
 			}
-			if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+			if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true, false)) {
 				LOG(ERROR) << CLASS_NAME <<  "Failed to create wait_for_acks/<block_uuid>/datanode_id " << error_code;
 				created_correctly = false;
 			}
@@ -65,13 +65,13 @@ namespace zkclient{
 				block_data.block_size = size_bytes;
 				std::vector<std::uint8_t> data_vect(sizeof(block_data));
 				memcpy(&data_vect[0], &block_data, sizeof(block_data));
-				if(!zk->set(BLOCK_LOCATIONS + std::to_string(uuid), data_vect, error_code)) {
+				if(!zk->set(BLOCK_LOCATIONS + std::to_string(uuid), data_vect, error_code, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed writing block size to /block_locations/<block_uuid> " << error_code;
 					created_correctly = false;
 				}
 
 				// Add this datanode as the block's location in block_locations
-				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
+				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<datanode_id> " << error_code;
 					created_correctly = false;
 				}
@@ -85,7 +85,7 @@ namespace zkclient{
 		// Write block to /blocks
 		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS, exists, error_code)) {
 			if (exists) {
-				if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code)) {
+				if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code, false, false)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks/<block_uuid> " << error_code;
 				}
 			}
@@ -244,20 +244,25 @@ namespace zkclient{
 	}
 
 	bool ZkClientDn::poll_replication_queue() {
-		LOG(INFO) << " poll replication queue";
+		// LOG(INFO) << " poll replication queue";
 		handleReplicateCmds(util::concat_path(REPLICATE_QUEUES, get_datanode_id()));
 		return true;
 	}
 
 	void ZkClientDn::handleReplicateCmds(const std::string& path) {
 		int err;
-		LOG(ERROR) << "handling replicate watcher for " << path;
+		// LOG(ERROR) << "handling replicate watcher for " << path;
 		std::vector<std::string> work_items;
 
 		if (!zk->get_children(path, work_items, err)){
 			LOG(ERROR) << "Failed to get work items!";
 			return;
 		}
+
+		if (work_items.size() > 0) {
+			LOG(INFO) << get_datanode_id() <<"FOUND " << work_items.size() << " work items";
+		}
+
 		std::vector<std::shared_ptr<ZooOp>> ops;
 		for (auto &block : work_items){
 			auto full_work_item_path = util::concat_path(path, block);
@@ -343,7 +348,7 @@ namespace zkclient{
 		std::vector<uint8_t> data;
 		data.resize(sizeof(DataNodePayload));
 		memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
-		if (!zk->set(HEALTH_BACKSLASH + id + STATS, data, error_code)) {
+		if (!zk->set(HEALTH_BACKSLASH + id + STATS, data, error_code, false)) {
 			LOG(ERROR) << CLASS_NAME <<  "Failed setting /health/<data_node_id>/stats with error " << error_code;
 			return false;
 		}

@@ -440,7 +440,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
 bool TransferServer::sendStats() {
 	uint64_t free_space = fs->getFreeSpace();
-    LOG(INFO) << "Sending stats " << free_space;
+    // LOG(INFO) << "Sending stats " << free_space;
     return dn->sendStats(free_space, xmits.fetch_add(0));
 }
 

@@ -20,12 +20,15 @@ int main(int argc, char* argv[]) {
 	el::Loggers::reconfigureAllLoggers(conf);
 	el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
 
+	int error_code = 0;
+
 	asio::io_service io_service;
 	short port = 5351;
 	if (argc == 2) {
 		port = std::atoi(argv[1]);
 	}
-	zkclient::ZkNnClient nncli("localhost:2181");
+	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
+	zkclient::ZkNnClient nncli(zk_shared);
 	nncli.register_watches();
 	std::cout << "Namenode is starting" << std::endl;
 	ClientNamenodeTranslator translator(port, nncli);
