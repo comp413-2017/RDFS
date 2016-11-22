@@ -153,6 +153,14 @@ class ZkNnClient : public ZkClientCommon {
         bool destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops);
 
 		/**
+		 * Give a vector of block IDs, executes a multiop which creates items in
+		 * the replicate queue and children nodes indicating which datanote to
+		 * read from for those items.
+		 */
+		bool replicate_blocks(const std::vector<std::string> &to_replicate, int error_code);
+
+
+		/**
 		 * Creates 'num_replicas' many work items for the given 'block_uuid' in
 		 * the replicate work queue, ensuring that the new replicas are not on
 		 * an excluded datanode

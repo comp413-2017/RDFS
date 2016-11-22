@@ -110,8 +110,6 @@ namespace zkclient{
         const std::string &block_path = util::concat_path(path, zkclient::ZkClientCommon::BLOCKS);
         std::vector<std::uint8_t> bytes;
         std::vector<std::string> to_replicate;
-        std::vector<std::shared_ptr<ZooOp>> ops;
-        std::vector<zoo_op_result> results;
         /* Lock the znode */
         ZKLock race_lock(*zk.get(), std::string(path));
         if (race_lock.lock()) {
@@ -176,27 +174,7 @@ namespace zkclient{
         }
 
         /* Push all blocks needing to be replicated onto the queue */
-        for (auto repl : to_replicate) {
-            std::string read_from;
-            std::vector<std::string> target_dn;
-            std::uint64_t block_id;
-            std::stringstream strm(repl);
-            strm >> block_id;
-            if (!cli->find_datanode_with_block(repl, read_from, err)) {
-                LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << repl << " is lost!";
-                goto unlock;
-            }
-            if (!cli->find_datanode_for_block(target_dn, block_id, 1) || target_dn.size() != 1) {
-                LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << repl;
-                goto unlock;
-            }
-            auto queue = REPLICATE_QUEUES + target_dn[0];
-            auto repl_item = util::concat_path(queue, repl);
-            ops.push_back(zk->build_create_op(repl_item, ZKWrapper::EMPTY_VECTOR));
-            auto read_from_item = util::concat_path(repl_item, read_from);
-            ops.push_back(zk->build_create_op(read_from_item, ZKWrapper::EMPTY_VECTOR));
-        }
-        if (!zk->execute_multi(ops, results, err)){
+        if (!cli->replicate_blocks(to_replicate, err)){
             LOG(ERROR) << "Failed to push all items on to replication queues!";
             goto unlock;
         }
@@ -1044,6 +1022,38 @@ namespace zkclient{
 
         return true;
     }
+
+	bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate, int err) {
+	        std::vector<std::shared_ptr<ZooOp>> ops;
+	        std::vector<zoo_op_result> results;
+
+		for (auto repl : to_replicate) {
+			std::string read_from;
+			std::vector<std::string> target_dn;
+			std::uint64_t block_id;
+			std::stringstream strm(repl);
+			strm >> block_id;
+			if (!find_datanode_with_block(repl, read_from, err)) {
+				LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << repl << " is lost!";
+				return false;
+			}
+			if (!find_datanode_for_block(target_dn, block_id, 1) || target_dn.size() != 1) {
+				LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << repl;
+				return false;
+			}
+			auto queue = REPLICATE_QUEUES + target_dn[0];
+			auto repl_item = util::concat_path(queue, repl);
+			ops.push_back(zk->build_create_op(repl_item, ZKWrapper::EMPTY_VECTOR));
+			auto read_from_item = util::concat_path(repl_item, read_from);
+			ops.push_back(zk->build_create_op(read_from_item, ZKWrapper::EMPTY_VECTOR));
+		}
+
+		if (!zk->execute_multi(ops, results, err)){
+			LOG(ERROR) << "Failed to execute multiop for replicate_blocks";
+			return false;
+		}
+	}
+
 
     /**
      * Creates 'num_replicas' many work items for the given 'block_uuid' in
