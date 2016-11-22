@@ -79,7 +79,7 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
 	const std::string& src = req.src();
 	const bool recursive = req.recursive();
 	DeleteResponseProto res;
-	//zk.destroy(req, res);
+	zk.destroy(req, res);
 	return Serialize(res);
 }
 
