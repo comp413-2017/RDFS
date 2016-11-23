@@ -38,6 +38,7 @@ static void resetBlock(nativefs::block_info& blk) {
 	blk.blockid = 0;
 	blk.offset = nativefs::DISK_SIZE;
 	blk.len = 0;
+	blk.free = true;
 }
 
 namespace nativefs {
@@ -50,21 +51,40 @@ namespace nativefs {
 		disk.seekg(0);
 		disk.read(&magic[0], magic.size());
 		if (magic == MAGIC) {
-			LOG(INFO) << "Reloading existing block list...";
+			LOG(INFO) << CLASS_NAME << "Reloading existing block list...";
 			disk.read((char *) &blocks[0], BLOCK_LIST_SIZE);
 		} else {
-			LOG(INFO) << "No block list found, constructing from scratch...";
+			LOG(INFO) << CLASS_NAME << "No block list found, constructing from scratch...";
 			std::for_each(&blocks[0], &blocks[BLOCK_LIST_LEN], resetBlock);
 			flushBlocks();
 		}
+		constructFreeLists();
+	}
+
+	NativeFS::~NativeFS() {
+		flushBlocks();
+		delete[] blocks;
+	}
+
+	void NativeFS::flushBlocks() {
+		LOG(INFO) << CLASS_NAME << "Flushing blocks to storage.";
+		disk.seekp(0);
+		disk.write(&MAGIC[0], MAGIC.size());
+		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
+		disk.flush();
+	}
+
+	void NativeFS::constructFreeLists() {
+		freeLists.clear();
 		freeLists.resize(FREE_LIST_SIZE);
+		// Sort blocks by order of offset on disk.
 		std::sort(&blocks[0], &blocks[BLOCK_LIST_LEN],
 				[](const block_info& a, const block_info& b) -> bool {
 					return a.offset < b.offset;
 				});
 
 		// Add free space before the first block.
-		freeRange(0, blocks[0].offset);
+		freeRange(RESERVED_SIZE, blocks[0].offset);
 		// Add free space between blocks.
 		for (size_t i = 0; i < BLOCK_LIST_LEN - 1; i++) {
 			if (blocks[i].offset + blocks[i].len == blocks[i+1].offset) {
@@ -74,20 +94,6 @@ namespace nativefs {
 		}
 		// Add free space between the last block and the end of disk.
 		freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].len, DISK_SIZE);
-		// printFreeBlocks();
-	}
-
-	NativeFS::~NativeFS() {
-		flushBlocks();
-		delete[] blocks;
-	}
-
-	void NativeFS::flushBlocks() {
-		LOG(INFO) << "Flushing blocks to storage.";
-		disk.seekp(0);
-		disk.write(&MAGIC[0], MAGIC.size());
-		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
-		disk.flush();
 	}
 
 	void NativeFS::freeRange(uint64_t start, uint64_t end) {
@@ -140,7 +146,7 @@ namespace nativefs {
 		size = std::max(MIN_BLOCK_SIZE, size);
 		size_t ceiling = powerup(size);
 		if (ceiling > MAX_BLOCK_POWER) {
-			LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
+			LOG(ERROR) << CLASS_NAME << "Failed attempting to allocated block of power " << ceiling;
 			return false;
 		}
 		auto& freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
@@ -181,6 +187,7 @@ namespace nativefs {
 		info.blockid = id;
 		info.offset = offset;
 		info.len = len;
+		info.free = false;
 
 		std::lock_guard<std::mutex> lock(listMtx);
 		switch (addBlock(info)) {
@@ -188,10 +195,10 @@ namespace nativefs {
 				flushBlocks();
 				break;
 			case 1:
-				LOG(ERROR) << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+				LOG(ERROR) << CLASS_NAME << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
 				return false;
 			case 2:
-				LOG(ERROR) << "Block wih id " << info.blockid << " already exists on this DataNode";
+				LOG(ERROR) << CLASS_NAME << "Block wih id " << info.blockid << " already exists on this DataNode";
 				return false;
 		}
 
@@ -205,7 +212,7 @@ namespace nativefs {
 	int NativeFS::addBlock(const block_info& info) {
 		// Make sure this block doesn't already exist on this datanode
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-			if (blocks[i].blockid == info.blockid) {
+			if (blocks[i].blockid == info.blockid && !blocks[i].free) {
 				return 2;
 			}
 		}
@@ -230,7 +237,7 @@ namespace nativefs {
 			// Look up the block info for this id.
 			bool found = false;
 			for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-				if (blocks[i].blockid == id) {
+				if (blocks[i].blockid == id && !blocks[i].free) {
 					info = blocks[i];
 					found = true;
 					break;
@@ -240,7 +247,7 @@ namespace nativefs {
 				return false;
 			}
 		}
-		LOG(INFO) << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
+		LOG(INFO) << CLASS_NAME << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
 		blk.resize(info.len);
 		disk.seekg(info.offset);
 		disk.read(&blk[0], info.len);
@@ -253,12 +260,12 @@ namespace nativefs {
 	bool NativeFS::rmBlock(uint64_t id) {
 		std::lock_guard<std::mutex> lock(listMtx);
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-			if (blocks[i].blockid == id) {
+			if (blocks[i].blockid == id && !blocks[i].free) {
 				uint64_t offset = blocks[i].offset;
 				uint32_t len = blocks[i].len;
-				// Make sure the interval provided is a power of two.
-				freeRange(offset, offset + std::pow(2, powerup(len)));
 				resetBlock(blocks[i]);
+				// Coalesce by reconstructing the free lists.
+				constructFreeLists();
 				flushBlocks();
 				return true;
 			}
