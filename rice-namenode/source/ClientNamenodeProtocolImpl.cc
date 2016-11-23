@@ -221,6 +221,11 @@ std::string ClientNamenodeTranslator::getEZForPath(std::string input) {
 	GetEZForPathResponseProto res;
 	return Serialize(res);
 }
+
+std::string ClientNamenodeTranslator::setOwner(std::string input) {
+	SetOwnerResponseProto res;
+	return Serialize(res);
+}
 /**
  * While we expect clients to renew their lease, we should never allow
  * a client to "recover" a lease, since we only allow a write-once system
@@ -376,6 +381,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
     server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 	server.register_handler("getListing", std::bind(&ClientNamenodeTranslator::getListing, this, _1));
 	server.register_handler("getEZForPath", std::bind(&ClientNamenodeTranslator::getEZForPath, this, _1));
+	server.register_handler("setOwner", std::bind(&ClientNamenodeTranslator::setOwner, this, _1));
 
 }
 

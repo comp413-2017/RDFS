@@ -53,6 +53,8 @@ class ClientNamenodeTranslator {
 		std::string recoverLease(std::string);
 		std::string concat(std::string);
 		std::string getEZForPath(std::string input);
+		std::string setOwner(std::string input);
+
 
 
 		// lease manager interactions
