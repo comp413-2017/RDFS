@@ -16,13 +16,9 @@ namespace rpcserver {
 	 */
 	asio::error_code read_full(tcp::socket& sock, asio::mutable_buffers_1 buf) {
 		size_t size = asio::buffer_size(buf);
-		size_t offset = 0;
 		// The default constructor for error_code is success.
 		asio::error_code error;
-		while (offset < size && !error) {
-			offset += sock.read_some(buf, error);
-			buf = asio::buffer(buf + offset);
-		}
+		asio::read(sock, buf, asio::transfer_exactly(size), error);
 		LOG(INFO) << "socket error " << error;
 		return error;
 	}
@@ -35,7 +31,6 @@ namespace rpcserver {
         unsigned char read[1];
         asio::error_code error = read_full(sock, asio::buffer(read, 1));
         *byte = read[0];
-        std::cout << "FUCKKKER " << read[1];
         return !error;
     }
 
