@@ -52,6 +52,8 @@ class ClientNamenodeTranslator {
 		std::string setPermission(std::string);
 		std::string recoverLease(std::string);
 		std::string concat(std::string);
+		std::string getEZForPath(std::string input);
+
 
 		// lease manager interactions
 		std::string abandonBlock(std::string input);

@@ -569,7 +569,8 @@ namespace zkclient{
                         //GetBlockLocationsRequestProto location_req;
                         LocatedBlocksProto* blocks = status->mutable_locations();
                         // TODO: 134217728 should be a variable
-                        get_block_locations(child_path, 0, 134217728, blocks);
+                        LOG(INFO) << "[child data length is] " << child_data.length;
+                        get_block_locations(child_path, 0, child_data.length, blocks);
                         //get_block_locations()
 
                     }
