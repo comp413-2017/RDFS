@@ -13,7 +13,7 @@
  */
 namespace lease {
 
-const int LEASE_EXPIRATION_TIME = 10; // close file if its been an hour
+const int LEASE_EXPIRATION_TIME = 3600; // close file if its been an hour
 
 Lease::Lease(std::string in) : filename(in) {}
 
