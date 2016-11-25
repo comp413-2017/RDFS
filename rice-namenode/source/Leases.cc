@@ -13,7 +13,7 @@
  */
 namespace lease {
 
-const int Lease::LEASE_EXPIRATION_TIME = 3600; // close file if its been an hour 
+const int LEASE_EXPIRATION_TIME = 10; // close file if its been an hour
 
 Lease::Lease(std::string in) : filename(in) {}
 
@@ -21,25 +21,12 @@ Lease::Lease(std::string in) : filename(in) {}
  * This happens upon a renewal of a lease
  */
 void Lease::resetTimer() {
-	time = 0;
+	my_time = 0;
 }
 
-/**
- * This happens every LEASE_CHECK_TIME seconds. If the file is
- * expired, then we forcibly close it. Otherwise, we add 60
- * seconds onto the timer 
- */
-bool Lease::isExpired(int check_time) {
-	// TODO close the file and recover the blocks
-	if (time >= LEASE_EXPIRATION_TIME) {
-		return true;
-	}
-	time += check_time;
-	return false;
-}
 
 std::string Lease::getFile() {
-	return filename; 
+	return filename;
 }
 
 LeaseManager::LeaseManager() {}
@@ -62,17 +49,21 @@ bool LeaseManager::addLease(const std::string& client, const std::string& file) 
  * Remove the lease associated with the client and file
  */
 bool LeaseManager::removeLease(const std::string& client, const std::string& file) {
-	LOG(DEBUG) << "Removing lease for  " << client << " and " << file;
 	int i = 0;
+	if (leases.find(client) == leases.end()) { // if this client is not in the map, init the vector
+		std::vector<Lease> clientLeases;
+		leases[client] = clientLeases;
+		return false;
+	}
 	for (Lease lease : leases[client]) {
 		if (lease.getFile() == file) {
 			leases[client].erase(leases[client].begin() + i);
 			LOG(DEBUG) << "Removing lease for  " << client << " and " << file << " success";
-			return true; 
+			return true;
 		}
 		i++;
 	}
-	LOG(DEBUG) << "Removing lease for  " << client << " and " << file << " failed";
+	LOG(DEBUG) << "Could not remove lease for " << client << " and " << file;
 	return false; // could not find the lease
 }
 
@@ -80,9 +71,42 @@ bool LeaseManager::removeLease(const std::string& client, const std::string& fil
  * Reset the timer for all leases belonging to client
  */ 
 void LeaseManager::renewLeases(std::string client) {
+	LOG(DEBUG) << "Renewing leases for " << client;
+	int i = 0;
 	for (Lease lease : leases[client]) {
-		lease.resetTimer();
+		lease.my_time = 0;
+		leases[client][i++] = lease;
 	}
+}
+
+void LeaseManager::renameLease(std::string file, std::string new_name) {
+	for (const auto &myPair : leases ) {
+		for (auto lease : myPair.second) {
+			if (file == lease.getFile()) {
+				removeLease(myPair.first, file);
+				addLease(myPair.first, file);
+				return;
+			}
+		}
+	}
+}
+
+bool LeaseManager::checkLease(const std::string& client, const std::string& file) {
+	LOG(DEBUG) << "Checking if lease for  " << client << " and " << file << " exists";
+	int i = 0;
+	if (leases.find(client) == leases.end()) { // if this client is not in the map, init the vector
+		std::vector<Lease> clientLeases;
+		leases[client] = clientLeases;
+		return false;
+	}
+	for (Lease& lease : leases[client]) {
+		if (lease.getFile() == file) {
+			LOG(DEBUG) << "Found lease for  " << client << " and " << file << " with time " << lease.my_time ;
+			return true;
+		}
+		i++;
+	}
+	return false;
 }
 
 /**
@@ -90,16 +114,20 @@ void LeaseManager::renewLeases(std::string client) {
  */
 std::vector<std::pair<std::string, std::string>> LeaseManager::checkLeases(int time) {
 	std::vector<std::pair<std::string, std::string>> expiredFiles;
-	// LOG(DEBUG) << "Checking leases for time " << time;
+	LOG(DEBUG) << "Checking for expired leases " << time;
 	// iterate through map, and for each lease, call isExpired() 
 	for (auto x = leases.begin(); x != leases.end(); x++) {
 		std::string client = x->first;
 		std::vector<Lease> clientLeases = x->second;
+		int k = 0;
 		for (Lease lease : clientLeases) {
-			if (lease.isExpired(time)) {
-				LOG(INFO) << "Expiring lease for  " << client << " and " << lease.getFile() << " at time " << time;
+			lease.my_time += time;
+			LOG(DEBUG) << "Updated lease " << lease.getFile() << " with current time " << lease.my_time;
+			if (lease.my_time >= LEASE_EXPIRATION_TIME) {
+				LOG(DEBUG) << "Expired lease for client  " << client << " with file " << lease.getFile() << " at time" << time;
 				expiredFiles.push_back(std::make_pair(client, lease.getFile()));
 			}
+			leases[client][k++] = lease;
 		}
 	}
 	return expiredFiles; 

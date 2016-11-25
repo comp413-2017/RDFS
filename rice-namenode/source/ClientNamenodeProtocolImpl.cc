@@ -38,9 +38,11 @@ namespace client_namenode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
+const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 2; // in seconds
 
 const std::string ClientNamenodeTranslator::CLASS_NAME = ": **ClientNamenodeTranslator** : ";
+
+std::string demo_client;
 
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
@@ -88,6 +90,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
 	CreateResponseProto res;
+	demo_client = req.clientname();
 	if (zk.create_file(req, res))
 		lease_manager.addLease(req.clientname(), req.src());
 	else {
@@ -162,6 +165,9 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	AbandonBlockRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "AbandonBlock ");
+	if (!lease_manager.checkLease(req.holder(), req.src())) {
+		throw GetErrorRPCHeader("Could not add block because client does not own lease", "");
+	}
 	const ExtendedBlockProto& blockProto = req.b();
 	const std::string& src = req.src();
 	const std::string& holder = req.src(); // TODO who is the holder??
@@ -178,6 +184,10 @@ std::string ClientNamenodeTranslator::addBlock(std::string input) {
 	AddBlockResponseProto res;
 	req.ParseFromString(input);
 	logMessage(req, "AddBlock ");
+
+	if (!lease_manager.checkLease(req.clientname(), req.src())) {
+		throw GetErrorRPCHeader("Could not add block because client does not own lease", "");
+	}
 	if(zk.add_block(req, res)){
 		return Serialize(res);}
 	else{
@@ -191,12 +201,13 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Rename ");
 	zk.rename(req, res);
+	lease_manager.renameLease(req.src(), req.dst());
 	return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
-		SetPermissionResponseProto res;
-		return Serialize(res);
+	SetPermissionResponseProto res;
+	return Serialize(res);
 }
 
 
@@ -335,7 +346,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
 
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
-    	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
 	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
 	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
@@ -352,7 +363,6 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
 	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
 	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
-
 }
 
 /**
@@ -375,6 +385,7 @@ void ClientNamenodeTranslator::leaseCheck() {
 	LOG(INFO) << CLASS_NAME <<  "Lease manager check initialized";
 	for (;;) {
 		sleep(LEASE_CHECK_TIME); // only check every 60 seconds
+		LOG(INFO) << CLASS_NAME << "Checking leases";
 		std::vector<std::pair<std::string, std::string>> expiredFiles = lease_manager.checkLeases(LEASE_CHECK_TIME);
 		for (auto client_file : expiredFiles) {
 			std::string client = client_file.first;
@@ -382,6 +393,7 @@ void ClientNamenodeTranslator::leaseCheck() {
 			CompleteRequestProto req;
 			req.set_src(file);
 			req.set_clientname(client);
+			LOG(INFO) << "Force closing of file " << file << " on behalf of client " << client;
 			complete(Serialize(req));
 		}
 	}
