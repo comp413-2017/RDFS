@@ -87,6 +87,12 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		bool file_exists(const std::string& path);
 
+
+		/**
+		 * Reads the blocksize of the given block_id from zookeeper and returns
+		 */
+		bool get_block_size(const u_int64_t &block_id, uint64_t &blocksize);
+
 		// this is public because we have not member functions in this file
 		static const std::string CLASS_NAME;
 
@@ -212,10 +218,8 @@ class ZkNnClient : public ZkClientCommon {
 		const int IS_DIR = 1;
 		// TODO: Should eventually be read from a conf file
         const int ACK_TIMEOUT = 600000; // in millisecons, 10 minute timeout when waiting for replication acknowledgements
-        const int BLOCKSIZE = 64; // TODO: Is this a const or should this be read for each block?
 };
 
 } // namespace
 
 #endif //RDFS_ZKNNCLIENT_H
-

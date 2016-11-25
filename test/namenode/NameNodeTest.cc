@@ -61,16 +61,24 @@ namespace {
 	std::vector<uint8_t> stats_vec;
 	stats_vec.resize(sizeof(zkclient::DataNodePayload));
 	memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-	zk->create("/health/localhost:2181/stats", stats_vec, error);
+	ASSERT_TRUE(zk->create("/health/localhost:2181/stats", stats_vec, error));
 
 	data_node_payload.xmits = 3;
 	memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-	zk->create("/health/localhost:2182/stats", stats_vec, error);
+	ASSERT_TRUE(zk->create("/health/localhost:2182/stats", stats_vec, error));
+
 
 	auto datanodes = std::vector<std::string>();
 	u_int64_t block_id;
-	LOG(INFO) << "Finding dn's for block " << block_id;
 	util::generate_uuid(block_id);
+
+	zkclient::BlockZNode block_data;
+	block_data.block_size = 64;
+	std::vector<std::uint8_t> data_vect(sizeof(block_data));
+	memcpy(&data_vect[0], &block_data, sizeof(block_data));
+	ASSERT_TRUE(zk->create("/block_locations/" + std::to_string(block_id), data_vect, error));
+
+	LOG(INFO) << "Finding dn's for block " << block_id;
 	int rep_factor = 1;
 	client->find_datanode_for_block(datanodes, block_id, rep_factor, true);
 

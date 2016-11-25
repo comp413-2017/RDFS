@@ -195,7 +195,23 @@ namespace zkclient{
         }
     }
 
+	bool ZkNnClient::get_block_size(const u_int64_t &block_id, uint64_t &blocksize) {
+		int error_code;
+		std::string block_path = BLOCK_LOCATIONS + std::to_string(block_id);
 
+		BlockZNode block_data;
+		std::vector<std::uint8_t> data(sizeof(block_data));
+		if (!zk->get(block_path, data, error_code)) {
+			LOG(ERROR) << "We could not read the block at " << block_path;
+			return false;
+		}
+		std::uint8_t *buffer = &data[0];
+		memcpy(&block_data, &data[0], sizeof(block_data));
+
+		blocksize = block_data.block_size;
+		LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
+		return true;
+	}
 
     // --------------------------- PROTOCOL CALLS ---------------------------------------
 
@@ -842,7 +858,13 @@ namespace zkclient{
                         DataNodePayload stats = DataNodePayload();
                         memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
                         LOG(INFO) << "\t DN stats - free_bytes: " << unsigned(stats.free_bytes);
-                        if (stats.free_bytes > BLOCKSIZE) {
+
+						uint64_t blocksize;
+						if (!get_block_size(blockId, blocksize)) {
+							LOG(ERROR) << "We could not read the block info for block: " << blockId;
+							return false;
+						}
+                        if (stats.free_bytes > blocksize) {
                             LOG(INFO) << "Pushed target: " << datanode << " with " << stats.xmits << " xmits";
                             targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
                         }
