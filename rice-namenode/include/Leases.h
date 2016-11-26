@@ -28,20 +28,14 @@ class Lease {
 		void resetTimer();
 
 		/**
-		 * Return true if this lease is expired
-		 * @param exp_time the time that the file will expire at
-		 */
-		bool isExpired(int exp_time);
-
-		/**
 		 * Get the name of the file
 		 */
 		std::string getFile();
 
+		int my_time = 0;
+
 	private:
-		int time = 0;
-		static const int LEASE_EXPIRATION_TIME;		
-		std::string filename; 
+		std::string filename;
 };
 
 /**
@@ -66,11 +60,19 @@ class LeaseManager {
 		 */
 
 		bool removeLease(const std::string& client, const std::string& file);
+
 		/**
 		 * Reset the timer on all leases for a client
 		 * @param client
 		 */
 		void renewLeases(std::string client);
+
+		void renameLease(std::string file, std::string new_name);
+
+		/**
+		 * check if this client owns this file
+		 */
+		bool checkLease(const std::string& client, const std::string& file);
 
 		/**
 		 * Check all the leases in the system.

@@ -9,6 +9,7 @@
 
 #include <easylogging++.h>
 INITIALIZE_EASYLOGGINGPP
+
 using ::testing::AtLeast;
 
 using namespace zkclient;

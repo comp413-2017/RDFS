@@ -61,19 +61,6 @@ namespace nativefs {
 		constructFreeLists();
 	}
 
-	NativeFS::~NativeFS() {
-		flushBlocks();
-		delete[] blocks;
-	}
-
-	void NativeFS::flushBlocks() {
-		LOG(INFO) << CLASS_NAME << "Flushing blocks to storage.";
-		disk.seekp(0);
-		disk.write(&MAGIC[0], MAGIC.size());
-		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
-		disk.flush();
-	}
-
 	void NativeFS::constructFreeLists() {
 		freeLists.clear();
 		freeLists.resize(FREE_LIST_SIZE);
@@ -94,6 +81,19 @@ namespace nativefs {
 		}
 		// Add free space between the last block and the end of disk.
 		freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].len, DISK_SIZE);
+	}
+
+	NativeFS::~NativeFS() {
+		flushBlocks();
+		delete[] blocks;
+	}
+
+	void NativeFS::flushBlocks() {
+		LOG(INFO) << CLASS_NAME << "Flushing blocks to storage.";
+		disk.seekp(0);
+		disk.write(&MAGIC[0], MAGIC.size());
+		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
+		disk.flush();
 	}
 
 	void NativeFS::freeRange(uint64_t start, uint64_t end) {
@@ -131,14 +131,16 @@ namespace nativefs {
 		}
 	}
 
-	void NativeFS::printKnownBlocks() {
+	std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
+        std::vector<std::uint64_t> vector;
         LOG(INFO) << "Known blocks:";
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len != 0) {
 				auto info = blocks[i];
-				LOG(INFO) << "Found block: " << info.blockid << " at " << info.offset << " with len " << info.len;
+				vector.push_back(info.blockid);
 			}
 		}
+        return vector;
 	}
 
 	bool NativeFS::allocateBlock(size_t size, uint64_t& offset) {

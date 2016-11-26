@@ -4,6 +4,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include <datatransfer.pb.h>
+#include <hdfs.pb.h>
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -39,12 +40,23 @@ using namespace hadoop::hdfs;
 
 class TransferServer {
 	public:
-		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
+		TransferServer(int port, std::shared_ptr<nativefs::NativeFS>& fs, std::shared_ptr<zkclient::ZkClientDn>& dn, int max_xmits = 10);
 
 		TransferServer(const TransferServer& other) {}
 		
 		void serve(asio::io_service& io_service);
 		bool sendStats();
+
+		/**
+		 * @param len the length of the block
+		 * @param ip the ip of the datanode we are sending the read request to
+		 * @param xferport the xfer port of the datandoe we are sending the read request to
+		 * @param blockToTarget the block info of the block to replicate
+		 *
+		 * Send a read request to anotehr datanode for a certain block, stream in the packets and write them
+		 * to our disk
+		 */
+		bool replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget);
 
 	private:
 		int max_xmits;
@@ -57,6 +69,7 @@ class TransferServer {
 		std::condition_variable cv;
 
 		bool receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type);
+		bool write_header(tcp::socket& sock, uint16_t version, unsigned char type);
 		void handle_connection(tcp::socket sock);
 		void processWriteRequest(tcp::socket& sock);
 		void processReadRequest(tcp::socket& sock);
