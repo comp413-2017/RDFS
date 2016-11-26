@@ -256,7 +256,7 @@ namespace zkclient{
 	void ZkClientDn::handleReplicateCmds(const char *path) {
 		int err;
         auto rootless_path = zk->removeZKRoot(path);
-		LOG(INFO) << "handling replicate watcher for " << rootless_path;
+		LOG(INFO) << "handling replicate watcher for " << rootless_path << " " << path;
 		std::vector<std::string> work_items;
 
 		if (!zk->get_children(rootless_path, work_items, err)){
@@ -371,6 +371,7 @@ namespace zkclient{
 			}
 			memcpy(&block_id, &block_id_vec[0], sizeof(uint64_t));
             if (server->rmBlock(block_id)){
+				ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));
                 if (!blockDeleted(block_id)) {
                     LOG(ERROR) << CLASS_NAME << "Failed to delete the metadata for block " << block;
                 }
@@ -378,7 +379,6 @@ namespace zkclient{
             else {
                 LOG(ERROR) << CLASS_NAME << "Failed to delete block";
             }
-            ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));
         }
 		std::vector<zoo_op_result> results;
         if (!zk->execute_multi(ops, results, err)){
