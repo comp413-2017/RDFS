@@ -202,16 +202,7 @@ namespace zkclient{
         LOG(INFO) << CLASS_NAME << "...Also, converted blockid to a string: " << block_id_str;
 
         LOG(INFO) << CLASS_NAME << "Checking file exists: " << file_path;
-        
-        //TODO - once leases get implemented, need to use them here.
-        //Java implementation looks like the following:
-            //INodeFileUnderConstruction file = checkLease(src, holder);
-            //dir.removeBlock(src, file, b); <- this basically is what our multiop is for
-        
-	//Our equivalent to dir.removeBlock will be the 3 zookeeper ops below
-        //(Java implementation modifies file->block and blocksMap)
 
-     
         //double check the file exists first 
         FileZNode znode_data;
         if (!file_exists(file_path)) {
@@ -225,27 +216,23 @@ namespace zkclient{
         }
         LOG(INFO) << CLASS_NAME << "File exists. Building multi op to abandon block";
 
-	// Before we can build the multi op, we gotta gotta figure out which block under
-	// the file is the latest block (we can tell by the 9 digit numbers on the end)
-	int error_code;
-	auto sorted_fs_znodes = std::vector<std::string>();
-	if(!zk->get_children(ZookeeperPath(file_path), sorted_fs_znodes, error_code)) {
-		LOG(ERROR) << CLASS_NAME << "Failed getting children of " << ZookeeperPath(file_path) << " with error: " << error_code;
-	}
-     	// Now once we sort this vector, the znode for the latest block created will be at the end.
-	// This is because each znode name looks like block_000000000, block_000000001, and so on
-	std::sort(sorted_fs_znodes.begin(), sorted_fs_znodes.end());
+        // Before we can build the multi op, we gotta gotta figure out which block under
+        // the file is the latest block (we can tell by the 9 digit numbers on the end)
+        int error_code;
+        std::vector<std::string> sorted_fs_znodes;
+        if(!zk->get_children(ZookeeperPath(file_path), sorted_fs_znodes, error_code)) {
+            LOG(ERROR) << CLASS_NAME << "Failed getting children of " << ZookeeperPath(file_path) << " with error: " << error_code;
+        }
+        std::sort(sorted_fs_znodes.begin(), sorted_fs_znodes.end());
 
-	// Build the multi op - it's a reverse of the one's in add_block.
-	// Note that it was due to the ZOO_SEQUENCE flag that this first
-	// znode's path has the 9 digit number on the end.
-        auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path + sorted_fs_znodes.back()), generation_stamp);
-        auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/" + block_id_str, generation_stamp);
-        auto undo_block_location_op = zk->build_delete_op("/block_locations/" + block_id_str, generation_stamp);
+        // Build the multi op - it's a reverse of the one's in add_block.
+        // Note that it was due to the ZOO_SEQUENCE flag that this first
+        // znode's path has the 9 digit number on the end.
+        auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path + sorted_fs_znodes.back()));
+        auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/" + block_id_str);
+        auto delete_queue_op = zk->build_create_op("/work_queues/");
 
-        //std::vector<std::shared_ptr<ZooOp>> ops = {undo_seq_file_block_op};
-        //std::vector<std::shared_ptr<ZooOp>> ops = {undo_ack_op, undo_block_location_op};
-        std::vector<std::shared_ptr<ZooOp>> ops = {undo_seq_file_block_op, undo_ack_op, undo_block_location_op};
+        std::vector<std::shared_ptr<ZooOp>> ops = {undo_seq_file_block_op, undo_ack_op};
 
         auto results = std::vector <zoo_op_result>();
         int err;
