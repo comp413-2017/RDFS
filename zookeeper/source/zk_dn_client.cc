@@ -215,42 +215,12 @@ namespace zkclient{
         }
 	}
 
-	// void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
-	// 	LOG(INFO) << "In the replication watcher";
-	// 	LOG(INFO) << "Replication watcher triggered on path: " << path;
-	// 	int error_code;
-	//
-	// 	ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
-	// 	thisDn->processReplQueue(path);
-	// }
-
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << CLASS_NAME << "Delete watcher triggered on path: " << path;
 
 		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
 		thisDn->processDeleteQueue(path);
 	}
-
-	// void ZkClientDn::processReplQueue(std::string path){
-    //     int error_code;
-    //     bool exists;
-	// 	std::string peeked;
-	// 	std::string pop_path;
-	// 	std::vector<uint8_t> queue_vec(1); //TODO: Size?
-	//
-	// 	LOG(INFO) << "In process repl queue";
-	//
-	// 	peek(zk, path, peeked, error_code);
-	// 	while(peeked != path){
-	// 		LOG(INFO) << "Found queue item";
-	// 		if(pop(zk, path, queue_vec, pop_path, error_code)){
-	// 			LOG(INFO) << "Popped node w/ block id: " + std::to_string(queue_vec[0]);
-	// 		}else{
-	// 			LOG(INFO) << "Error popping from queue while processing Replication Queue";
-	// 		}
-	// 		peek(zk, path, peeked, error_code);
-	// 	}
-	// }
 
 	void ZkClientDn::processDeleteQueue(std::string path) {
 		int error_code;
@@ -307,6 +277,7 @@ namespace zkclient{
 		else {
 			LOG(INFO) << CLASS_NAME << "Delete queue processed";
 		}
+
 	}
 
 	ZkClientDn::~ZkClientDn() {
