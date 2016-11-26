@@ -134,6 +134,7 @@ namespace zkclient{
 			}
 			return false;
  		}
+ 		return true;
 	}
 
 	void ZkClientDn::registerDataNode(const std::string& ip, uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) {
@@ -334,9 +335,9 @@ namespace zkclient{
 
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << CLASS_NAME << "Delete watcher triggered on path: " << path;
-
 		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
 		thisDn->processDeleteQueue(path);
+		thisDn->initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher);
 	}
 
 	void ZkClientDn::processDeleteQueue(std::string path) {
@@ -345,6 +346,7 @@ namespace zkclient{
 		std::string id = build_datanode_id(data_node_id);
 		uint64_t block_id;
 		std::vector<uint8_t> queue_vec;
+		std::vector<std::shared_ptr<ZooOp>> ops;
 
         int err;
         auto rootless_path = zk->removeZKRoot(path);
@@ -376,6 +378,11 @@ namespace zkclient{
             else {
                 LOG(ERROR) << CLASS_NAME << "Failed to delete block";
             }
+            ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));
+        }
+		std::vector<zoo_op_result> results;
+        if (!zk->execute_multi(ops, results, err)){
+            LOG(ERROR) << "Failed to delete sucessfully completed delete commands!";
         }
 	}
 
