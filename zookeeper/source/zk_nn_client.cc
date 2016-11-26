@@ -259,8 +259,7 @@ namespace zkclient{
                 for (auto& dn : datanodes){
                     auto delete_queue = util::concat_path(DELETE_QUEUES, dn);
                     auto delete_item = util::concat_path(delete_queue, "block-");
-                    // TODO: saving this until DataNode team creates delete work queues
-                    //ops.push_back(zk->build_create_op(delete_item, block_vec, ZOO_SEQUENCE));
+                    ops.push_back(zk->build_create_op(delete_item, block_vec, ZOO_SEQUENCE));
                 }
             }
         }

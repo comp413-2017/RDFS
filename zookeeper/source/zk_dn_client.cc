@@ -227,57 +227,33 @@ namespace zkclient{
 		bool exists;
 		std::string id = build_datanode_id(data_node_id);
 		uint64_t block_id;
-		std::string peeked;
-		std::string popped;
-		std::vector<uint8_t> queue_vec(1); //TODO: Size?
-		std::vector <std::string> children(1);
+		std::vector<uint8_t> queue_vec;
 
-		if (zk->exists(path, exists, error_code)){
-			if (!exists){
-				LOG(ERROR) << CLASS_NAME << "Delete queue for DN " << id << " did not exist";
-				return;
-			}
-		}
+        int err;
+        auto rootless_path = zk->removeZKRoot(path);
+        LOG(INFO) << "handling delete watcher for " << rootless_path;
+        std::vector<std::string> work_items;
 
-		if (!peek(zk, path, peeked, error_code)){
-			LOG(ERROR) << CLASS_NAME << "Failed queue peek " << error_code;
-		}
+        if (!zk->get_children(rootless_path, work_items, err)){
+            LOG(ERROR) << "Failed to get work items!";
+            return;
+        }
 
-		while(peeked != path){
-			LOG(INFO) << CLASS_NAME << "Found item in delete queue: " << peeked;
-			if (!zk->get(peeked, queue_vec, error_code)) {
-				LOG(ERROR) << "Failed to get data from peeked node " << error_code;
-				if (!peek(zk, path, peeked, error_code)){
-					LOG(ERROR) << CLASS_NAME << "Failed queue peek " << error_code;
-				}
-				continue;
-			}
-			memcpy(&block_id, &queue_vec[0], sizeof(queue_vec));
-			LOG(INFO) << CLASS_NAME << "Deleting block with ID " << block_id;
+        LOG(INFO) << "STUART: WORK ITEMS " << work_items.size();
 
-			if (fs->rmBlock(block_id)){
-				blockDeleted(block_id);
-				pop(zk, path, queue_vec, popped, error_code);
-			}
-			else {
-				LOG(ERROR) << CLASS_NAME << "Failed to delete block";
-			}
-
-			if (!peek(zk, path, peeked, error_code)){
-				LOG(ERROR) << CLASS_NAME << "Failed queue peek " << error_code;
-			}
-		}
-		if(!zk->wget_children(DELETE_QUEUES + id, children, ZkClientDn::thisDNDeleteQueueWatcher, this, error_code)){
-			LOG(ERROR) << CLASS_NAME << "Registering delete queue watchers failed";
-		}
-
-		if (children.size() > 0){
-			LOG(INFO) << CLASS_NAME << "Blocks were scheduled for deletion before watcher was re-attached";
-		}
-		else {
-			LOG(INFO) << CLASS_NAME << "Delete queue processed";
-		}
-
+        for (auto &block : work_items) {
+			LOG(INFO) << "STUART: WORKING ON " << block;
+            std::istringstream stream (block);
+            stream >> block_id;
+            if (fs->rmBlock(block_id)){
+                if (!blockDeleted(block_id)) {
+                    LOG(ERROR) << CLASS_NAME << "Failed to delete the metadata for block " << block;
+                }
+            }
+            else {
+                LOG(ERROR) << CLASS_NAME << "Failed to delete block";
+            }
+        }
 	}
 
 	ZkClientDn::~ZkClientDn() {
