@@ -22,9 +22,8 @@ protected:
 		ipcPort = 50020;
 		int error_code = 0;
 		zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-		auto fs = std::make_shared<nativefs::NativeFS>("/dev/sdb");
 		ASSERT_EQ("ZOK", zk->translate_error(error_code)); // Z_OK
-		client = new ZkClientDn("127.0.0.1", zk, fs, block_size * 10, ipcPort, xferPort);
+		client = new ZkClientDn("127.0.0.1", zk, block_size * 10, ipcPort, xferPort);
 		dn_id = "127.0.0.1:50020";
 	}
 	virtual void TearDown() {
