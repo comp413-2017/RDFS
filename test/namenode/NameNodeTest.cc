@@ -80,7 +80,7 @@ namespace {
 
 	LOG(INFO) << "Finding dn's for block " << block_id;
 	int rep_factor = 1;
-	client->find_datanode_for_block(datanodes, block_id, rep_factor, true);
+	client->find_datanode_for_block(datanodes, block_id, rep_factor, true, block_data.block_size);
 
 	for (auto datanode : datanodes) {
 	LOG(INFO) << "Returned datanode " << datanode;

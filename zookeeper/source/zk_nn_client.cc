@@ -771,7 +771,7 @@ namespace zkclient{
         block_id_str = std::to_string(block_id);
         LOG(INFO) << CLASS_NAME << "Generated block id " << block_id_str;
 
-        if (!find_datanode_for_block(data_nodes, block_id, replicationFactor, true)) {
+        if (!find_datanode_for_block(data_nodes, block_id, replicationFactor, true, znode_data.blocksize)) {
             return false;
         }
 
@@ -803,7 +803,7 @@ namespace zkclient{
 
     // TODO: To simplify signature, could just get rid of the newBlock param
     // and always check for preexisting replicas
-    bool ZkNnClient::find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock) {
+    bool ZkNnClient::find_datanode_for_block(std::vector<std::string>& datanodes, const u_int64_t blockId, uint32_t replication_factor, bool newBlock, uint64_t blocksize) {
         // TODO: Actually perform this action
         // TODO: Perhaps we should keep a cached list of nodes
 
@@ -858,12 +858,6 @@ namespace zkclient{
                         DataNodePayload stats = DataNodePayload();
                         memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
                         LOG(INFO) << "\t DN stats - free_bytes: " << unsigned(stats.free_bytes);
-
-						uint64_t blocksize;
-						if (!get_block_size(blockId, blocksize)) {
-							LOG(ERROR) << "We could not read the block info for block: " << blockId;
-							return false;
-						}
                         if (stats.free_bytes > blocksize) {
                             LOG(INFO) << "Pushed target: " << datanode << " with " << stats.xmits << " xmits";
                             targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
@@ -1068,7 +1062,12 @@ namespace zkclient{
 				LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << repl << " is lost!";
 				return false;
 			}
-			if (!find_datanode_for_block(target_dn, block_id, 1) || target_dn.size() != 1) {
+			uint64_t blocksize;
+			if (!get_block_size(block_id, blocksize)) {
+				LOG(ERROR) << CLASS_NAME << "Replicate could not read the block size for block: " << block_id;
+				return false;
+			}
+			if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize) || target_dn.size() != 1) {
 				LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << repl;
 				return false;
 			}
