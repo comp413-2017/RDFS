@@ -370,15 +370,14 @@ namespace zkclient{
 				return;
 			}
 			memcpy(&block_id, &block_id_vec[0], sizeof(uint64_t));
-            if (server->rmBlock(block_id)){
-				ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));
-                if (!blockDeleted(block_id)) {
-                    LOG(ERROR) << CLASS_NAME << "Failed to delete the metadata for block " << block;
-                }
+            if (!server->rmBlock(block_id)){
+                LOG(ERROR) << CLASS_NAME << "Block is not in fs " << block;
             }
-            else {
-                LOG(ERROR) << CLASS_NAME << "Failed to delete block";
+            if (!blockDeleted(block_id)) {
+                LOG(ERROR) << CLASS_NAME << "Failed to delete the metadata for block " << block;
             }
+            // just delete the thing from the queue
+            ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));
         }
 		std::vector<zoo_op_result> results;
         if (!zk->execute_multi(ops, results, err)){
