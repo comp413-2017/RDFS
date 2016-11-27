@@ -95,47 +95,6 @@ namespace zkclient{
 		return created_correctly;
 	}
 
-	bool ZkClientDn::blockDeleted(uint64_t uuid) {
-		int error_code;
-		bool exists;
-
-		LOG(INFO) << "DataNode deleted a block with UUID " << std::to_string(uuid);
-		std::string id = build_datanode_id(data_node_id);
-
-		auto ops = std::vector<std::shared_ptr<ZooOp>>();
-
-		// Delete block locations
-		if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, exists, error_code)) {
-			if (exists) {
-				ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id));
-				// If deleted last child of block locations, delete block locations
-				std::vector <std::string> children = std::vector <std::string>();
-				if(!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid), children, error_code)){
-					LOG(ERROR) << "getting children failed";
-				}
-				if (children.size() == 1) {
-					ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid)));
-				}
-			}
-		}
-
-		// Delete blocks
-		if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), exists, error_code)) {
-			if (exists) {
-				ops.push_back(zk->build_delete_op(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid)));
-			}
-		}
-
-		std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
-		if (!zk->execute_multi(ops, results, error_code)) {
-			LOG(ERROR) << "Failed multiop when deleting block" << std::to_string(uuid);
-			for (int i = 0; i < results.size(); i++) {
-				LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
-			}
-			return false;
- 		}
- 		return true;
-	}
 
 	void ZkClientDn::registerDataNode(const std::string& ip, uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) {
 		// TODO: Consider using startup time of the DN along with the ip and port
@@ -372,9 +331,6 @@ namespace zkclient{
 			memcpy(&block_id, &block_id_vec[0], sizeof(uint64_t));
             if (!server->rmBlock(block_id)){
                 LOG(ERROR) << CLASS_NAME << "Block is not in fs " << block;
-            }
-            if (!blockDeleted(block_id)) {
-                LOG(ERROR) << CLASS_NAME << "Failed to delete the metadata for block " << block;
             }
             // just delete the thing from the queue
             ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));

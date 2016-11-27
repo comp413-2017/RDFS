@@ -78,12 +78,6 @@ TEST_F(ZKDNClientTest, CanDeleteBlock) {
 
 	client->blockReceived(block_id, block_size);
 	ASSERT_TRUE(zk->get(path + "/" + dn_id, data, error_code));
-
-	client->blockDeleted(block_id);
-	ASSERT_FALSE(zk->get(path + "/" + dn_id, data, error_code));
-
-	// Check that /block_reports/ znode also deleted if no children
-	ASSERT_FALSE(zk->get(path, data, error_code));
 }
 
 

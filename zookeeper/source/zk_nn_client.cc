@@ -372,7 +372,9 @@ namespace zkclient{
             auto delete_queue = util::concat_path(DELETE_QUEUES, dn);
             auto delete_item = util::concat_path(delete_queue, "block-");
             ops.push_back(zk->build_create_op(delete_item, block_vec, ZOO_SEQUENCE));
+            blockDeleted(blockId, dn);
         }
+        ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(blockId)));
 
         auto results = std::vector <zoo_op_result>();
         int err;
@@ -436,6 +438,44 @@ namespace zkclient{
         return 0;
     }
 
+    bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
+        int error_code;
+        bool exists;
+
+        LOG(INFO) << "DataNode deleted a block with UUID " << std::to_string(uuid);
+
+        auto ops = std::vector<std::shared_ptr<ZooOp>>();
+
+        // Delete block locations
+        if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, exists, error_code)) {
+            if (exists) {
+                ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id));
+                // If deleted last child of block locations, delete block locations
+                std::vector <std::string> children = std::vector <std::string>();
+                if(!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid), children, error_code)){
+                    LOG(ERROR) << "getting children failed";
+                }
+            }
+        }
+
+        // Delete blocks
+        if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), exists, error_code)) {
+            if (exists) {
+                ops.push_back(zk->build_delete_op(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid)));
+            }
+        }
+
+        std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
+        if (!zk->execute_multi(ops, results, error_code)) {
+            LOG(ERROR) << "Failed multiop when deleting block" << std::to_string(uuid);
+            for (int i = 0; i < results.size(); i++) {
+                LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+            }
+            return false;
+        }
+        return true;
+    }
+
     bool ZkNnClient::destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops){
         LOG(INFO) << "Destroying " << path;
         if (!file_exists(path)){
@@ -484,7 +524,9 @@ namespace zkclient{
                     auto delete_queue = util::concat_path(DELETE_QUEUES, dn);
                     auto delete_item = util::concat_path(delete_queue, "block-");
                     ops.push_back(zk->build_create_op(delete_item, block_vec, ZOO_SEQUENCE));
+                    blockDeleted(block, dn);
                 }
+                ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(block)));
             }
         }
         ops.push_back(zk->build_delete_op(ZookeeperPath(path)));

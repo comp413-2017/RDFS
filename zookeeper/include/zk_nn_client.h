@@ -217,6 +217,14 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		uint64_t current_time_ms();
 
+        /**
+        * Informs Zookeeper when the DataNode has deleted a block.
+        * @param uuid The UUID of the block deleted by the DataNode.
+        * @param size_bytes The number of bytes in the block
+        * @return True on success, false on error.
+        */
+        bool blockDeleted(uint64_t uuid, std::string id);
+
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
 		const int UNDER_DESTRUCTION = 2;
