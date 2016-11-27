@@ -102,4 +102,3 @@ int main(int argc, char **argv) {
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
 }
-

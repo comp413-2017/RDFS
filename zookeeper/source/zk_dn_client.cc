@@ -16,14 +16,14 @@ namespace zkclient{
 
 	const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
 
-	ZkClientDn::ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper> zk_in, uint64_t total_disk_space,
-		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
+	ZkClientDn::ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper> zk_in,
+		 uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
 
 		registerDataNode(ip, total_disk_space, ipcPort, xferPort);
 	}
 
-	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
-		const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
+	ZkClientDn::ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress,
+		uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zkIpAndAddress) {
 
 		registerDataNode(ip, total_disk_space, ipcPort, xferPort);
 	}
@@ -134,13 +134,14 @@ namespace zkclient{
 			}
 			return false;
  		}
+ 		return true;
 	}
 
 	void ZkClientDn::registerDataNode(const std::string& ip, uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) {
 		// TODO: Consider using startup time of the DN along with the ip and port
 		int error_code;
 		bool exists;
-		
+
 		data_node_id = DataNodeId();
 		data_node_id.ip = ip;
 		data_node_id.ipcPort = ipcPort;
@@ -210,7 +211,7 @@ namespace zkclient{
 				}
 		}
 
-		// Register the replication watcher for this dn
+		// Register the queue watchers for this dn
 		std::vector <std::string> children = std::vector <std::string>();
 		if(!zk->wget_children(queueName + id, children, watchFuncPtr, this, error_code)){
 			LOG(INFO) << "getting children failed";
@@ -255,7 +256,7 @@ namespace zkclient{
 	void ZkClientDn::handleReplicateCmds(const char *path) {
 		int err;
         auto rootless_path = zk->removeZKRoot(path);
-		LOG(INFO) << "handling replicate watcher for " << rootless_path;
+		LOG(INFO) << "handling replicate watcher for " << rootless_path << " " << path;
 		std::vector<std::string> work_items;
 
 		if (!zk->get_children(rootless_path, work_items, err)){
@@ -332,11 +333,56 @@ namespace zkclient{
 		dn_client->initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
 	}
 
-	// TODO: Get children and for each of them delete it from raw disk IO (call delete block) and and say block deleted
-	// and then re-attach watcher. Before need to call get children agian and see if there are more delete commands
-	// Make sure to delete actual work item from queue
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
-		LOG(INFO) << "Delete watcher triggered on path: " << path;
+		LOG(INFO) << CLASS_NAME << "Delete watcher triggered on path: " << path;
+		ZkClientDn *thisDn = static_cast<ZkClientDn *>(watcherCtx);
+		thisDn->processDeleteQueue(path);
+		thisDn->initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher);
+	}
+
+	void ZkClientDn::processDeleteQueue(std::string path) {
+		int error_code;
+		bool exists;
+		std::string id = build_datanode_id(data_node_id);
+		uint64_t block_id;
+		std::vector<uint8_t> queue_vec;
+		std::vector<std::shared_ptr<ZooOp>> ops;
+
+        int err;
+        auto rootless_path = zk->removeZKRoot(path);
+        LOG(INFO) << "handling delete watcher for " << rootless_path;
+        std::vector<std::string> work_items;
+
+        if (!zk->get_children(rootless_path, work_items, err)){
+            LOG(ERROR) << "Failed to get work items!";
+            return;
+        }
+
+        LOG(INFO) << "STUART: WORK ITEMS " << work_items.size();
+
+        for (auto &block : work_items) {
+			LOG(INFO) << "STUART: WORKING ON " << block;
+			// get block id
+			std::vector<std::uint8_t> block_id_vec(sizeof(std::uint64_t));
+			std::uint64_t block_id;
+			if (!zk->get(util::concat_path(rootless_path, block), block_id_vec, err, sizeof(std::uint64_t))) {
+				LOG(ERROR) << "could not get the block id " << block << " because of " << err;
+				return;
+			}
+			memcpy(&block_id, &block_id_vec[0], sizeof(uint64_t));
+            if (!server->rmBlock(block_id)){
+                LOG(ERROR) << CLASS_NAME << "Block is not in fs " << block;
+            }
+            if (!blockDeleted(block_id)) {
+                LOG(ERROR) << CLASS_NAME << "Failed to delete the metadata for block " << block;
+            }
+            // just delete the thing from the queue
+            ops.push_back(zk->build_delete_op(util::concat_path(rootless_path, block)));
+        }
+		std::vector<zoo_op_result> results;
+        if (!zk->execute_multi(ops, results, err)){
+            LOG(ERROR) << "Failed to delete sucessfully completed delete commands!";
+        }
 	}
 
 	ZkClientDn::~ZkClientDn() {
@@ -347,13 +393,14 @@ namespace zkclient{
 		return data_node_id.ip + ":" + std::to_string(data_node_id.ipcPort);
 	}
 
+
 	std::string ZkClientDn::get_datanode_id() {
 		return build_datanode_id(this->data_node_id);
 	}
 
 	bool ZkClientDn::sendStats(uint64_t free_space, uint32_t xmits) {
 		int error_code;
-		
+
 		std::string id = build_datanode_id(data_node_id);
 		data_node_payload.free_bytes = free_space;
 		data_node_payload.xmits = xmits;

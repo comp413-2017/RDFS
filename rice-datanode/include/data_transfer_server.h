@@ -58,6 +58,8 @@ class TransferServer {
 		 */
 		bool replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget);
 
+		bool rmBlock(uint64_t block_id);
+
 	private:
 		int max_xmits;
 		int port;

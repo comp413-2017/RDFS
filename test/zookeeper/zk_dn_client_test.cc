@@ -41,12 +41,11 @@ protected:
 TEST_F(ZKDNClientTest, RegisterMakesWorkQueues){
     bool exists;
     int error_code;
-    uint64_t size;
- 
-    std::vector<std::uint8_t> data(sizeof(BlockZNode));
-    std::string path = "/work_queues/replicate/" + dn_id;
- 
- 	ASSERT_TRUE(zk->get(path, data, error_code));
+
+    std::string path = "/work_queues/delete/" + dn_id;
+
+ 	ASSERT_TRUE(zk->exists(path, exists, error_code));
+	ASSERT_TRUE(exists);
  }
 
 

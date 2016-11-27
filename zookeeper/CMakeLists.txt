@@ -1,5 +1,6 @@
 include_directories(${CMAKE_SOURCE_DIR}/zkwrapper/include
         ${CMAKE_SOURCE_DIR}/zookeeper/include
+		${CMAKE_SOURCE_DIR}/native-filesystem/include
         ${CMAKE_SOURCE_DIR}/utility/config-reader
         ${CMAKE_SOURCE_DIR}/utility/logging
         ${CMAKE_SOURCE_DIR}/utility/logging

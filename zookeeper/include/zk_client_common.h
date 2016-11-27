@@ -14,6 +14,7 @@ namespace zkclient {
 
         void init();
         std::shared_ptr <ZKWrapper> zk;
+		
 
         // constants used by the clients
         static const std::string NAMESPACE_PATH;
