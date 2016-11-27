@@ -2,6 +2,8 @@
 #include <asio.hpp>
 #include <netinet/in.h>
 #include "socket_reads.h"
+#include <easylogging++.h>
+
 
 using asio::ip::tcp;
 
@@ -14,13 +16,10 @@ namespace rpcserver {
 	 */
 	asio::error_code read_full(tcp::socket& sock, asio::mutable_buffers_1 buf) {
 		size_t size = asio::buffer_size(buf);
-		size_t offset = 0;
 		// The default constructor for error_code is success.
 		asio::error_code error;
-		while (offset < size && !error) {
-			offset += sock.read_some(buf, error);
-			buf = asio::buffer(buf + offset);
-		}
+		asio::read(sock, buf, asio::transfer_exactly(size), error);
+		LOG(INFO) << "socket error " << error;
 		return error;
 	}
 
@@ -116,6 +115,15 @@ namespace rpcserver {
         if (consumed != NULL) {
             *consumed = skip + len;
         }
+
+	if (error)
+		LOG(ERROR) << "read_full returned error in delim";
+	else
+		LOG(INFO) << "no error from read_full";
+
+	LOG(INFO) << "buf: " << std::endl;
+	LOG(INFO) << buf << std::endl;
+
         return !error && proto.ParseFromString(buf);
     }
 	

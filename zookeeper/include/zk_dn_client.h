@@ -2,6 +2,11 @@
 #define RDFS_ZK_CLIENT_DN_H
 
 #include "zk_client_common.h"
+#include <atomic>
+#include <google/protobuf/message.h>
+#include "hdfs.pb.h"
+
+class TransferServer;
 
 namespace zkclient {
 
@@ -82,8 +87,21 @@ public:
 	
 	bool sendStats(uint64_t free_space, uint32_t xmits);
 
+	void setTransferServer(std::shared_ptr<TransferServer>& server);
+
+	/**
+	* Push the blockid onto the replication queue belonging to dn_name
+	* @param dn_name the queue to add onto
+	* @param blockid the id of the block to be replicated
+	* @return true if success
+	*/
+	bool push_dn_on_repq(std::string dn_name, uint64_t blockid);
+
+	std::string get_datanode_id();
+
 private:
 
+	std::shared_ptr<TransferServer> server;
 	/**
 	* Builds a string of the DataNode ID.
 	* @param data_node_id The DataNode's DataNodeId object, containing the IP and port.
@@ -102,10 +120,21 @@ private:
 	* @param queueName the name of the queue, i.e. replication or deletion
 	* @param watchFuncPtr the watcher function to be used on the queue
 	*/
-	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id);
+	void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *));
+
+	/**
+	 * Handle all of the work items on path
+	 */
+	void handleReplicateCmds(const char *path);
 
 	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+	/**
+	 * Copied from nn client, create block proto
+	 */
+	bool buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto* eb, const std::uint64_t& block_id,
+    											 const uint64_t& block_size);
 };
 }
 

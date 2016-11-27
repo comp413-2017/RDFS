@@ -60,8 +60,7 @@ void watcher(zhandle_t *zzh,
 		int state,
 		const char *path,
 		void *watcherCtx) {
-	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'"
-		;
+	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'";
 	char health[] = "/health/datanode_";
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE) {
@@ -73,76 +72,6 @@ void watcher(zhandle_t *zzh,
 			zookeeper_close(zzh);
 			exit(1);
 		}
-	}
-}
-
-
-watcher_fn ZKWrapper::watcher_health_factory(std::string inputpath){
-	class factory_wrapper{
-		public:
-
-			static void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-
-				struct String_vector stvector;
-				struct String_vector *vector = &stvector;
-				/* reinstall watcher */
-				int rc = zoo_wget_children(zzh, path, watcher_health, nullptr, vector);
-				LOG(INFO)  <<  "[In watcher_health rc] health:" << rc;
-				int i;
-				std::vector <std::string> children;
-				for (i = 0; i < stvector.count; i++) {
-					children.push_back(stvector.data[i]);
-				}
-
-				if (children.size() == 0){
-					// ZkNnClient::CLASS_NAME is not in scope when put into zkwrapper
-					LOG(INFO) <<  "no childs to retrieve";
-				}
-				constexpr int MAX_BUF = 65535;
-				for (int i = 0; i < children.size(); i++) {
-					char str[MAX_BUF];
-					memset(str, MAX_BUF, '\0');
-					LOG(INFO) << "[In factory] value of i is " << i;
-					LOG(INFO) << "[In factory] children.size() is " << children.size();
-					LOG(INFO) <<  "[In watcher_health] Attaching child to " << children[i];
-					//ZkClientCommon::HEALTH_BACKSLASH + children[i]).c_str(),
-					strcat(str, path);
-					strcat(str, "/");
-					strcat(str, children[i].c_str());
-					LOG(INFO) << "[In factory] path is " << path;
-					LOG(INFO) << "[In factory] str is " << str;
-					int rc = zoo_wget_children(zzh, str,
-							ZKWrapper::watcher_health_child, nullptr,
-							vector);
-					LOG(INFO) << "[In factory] rc value is" << rc;
-				}
-			}
-	};
-	LOG(INFO) <<  "[In factory], factory ready to return";
-	return factory_wrapper::watcher_health;
-}
-
-/*
- * Watcher for health child node (/health/datanode_)
- */
-void ZKWrapper::watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-	LOG(INFO) << CLASS_NAME << "[health child] Watcher triggered on path '" << path;
-	char health[] = "/health/datanode_";
-	LOG(INFO) << CLASS_NAME << "[health child] Receive a heartbeat. A child has been added under path" << path;
-
-	struct String_vector stvector;
-	struct String_vector *vector = &stvector;
-	int rc = zoo_wget_children(zzh, path, watcher_health_child, nullptr, vector);
-	int i = 0;
-	if (vector->count == 0){
-		// client needs to pass a function ptr so they will be notified
-		LOG(INFO) << CLASS_NAME << "no childs to retrieve";
-	}
-	while (i < vector->count) {
-		LOG(INFO) <<  CLASS_NAME << "Children" << vector->data[i++];
-	}
-	if (vector->count) {
-		deallocate_String_vector(vector);
 	}
 }
 
@@ -408,6 +337,29 @@ bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
 		return false;
 	}
 	return true;
+}
+
+bool ZKWrapper::get_info(const std::string &path,
+                         struct Stat &stat,
+                         int &error_code) const {
+
+    std::vector<std::uint8_t> data;
+    int len = MAX_PAYLOAD;
+    data.resize(len);
+
+    error_code = zoo_get(zh,
+                         prepend_zk_root(path).c_str(),
+                         0,
+                         reinterpret_cast<char *>(data.data()),
+                         &len,
+                         &stat);
+    if (error_code != ZOK) {
+        LOG(ERROR) << CLASS_NAME <<  "get on " << path << " failed";
+        print_error(error_code);
+        return false;
+    }
+    data.resize(len);
+    return true;
 }
 
 // TODO: Modify

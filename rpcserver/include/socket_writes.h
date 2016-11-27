@@ -20,11 +20,16 @@ namespace rpcserver {
 	 */
 	bool write_int16(tcp::socket& sock, uint16_t val);
 	/**
+	 * Write given byte uint8 value to socket. Return true if successful,
+	 * otherwise false.
+	 */
+	bool write_byte(tcp::socket& sock, unsigned char byte);
+	/**
 	 * Write given uint32 value to socket, encoded as a varint. Return true if
 	 * successful, otherwise false.
 	 */
 	bool write_varint(tcp::socket& sock, uint32_t val);
-	/**
+	/**åå
 	 * Write given proto to the socket. Return true if successful, otherwise
 	 * false.
 	 */

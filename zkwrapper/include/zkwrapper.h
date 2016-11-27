@@ -237,6 +237,19 @@ public:
              int length = MAX_PAYLOAD) const;
 
     /**
+     * Gets the info associated with a znode
+     *
+     * @param path The path to the node
+     * @param stat Reference to a stat struct to be filled with znode info
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     *		   False otherwise (caller should check 'error_code' value)
+     */
+    bool get_info(const std::string &path,
+                  struct Stat &stat,
+                  int &error_code) const;
+
+    /**
      * This function is similar to 'get' except it allows one to specify
      * a watcher object rather than a boolean watch flag.
      *
@@ -325,24 +338,6 @@ public:
     }
 
     static const std::vector <std::uint8_t> EMPTY_VECTOR;
-	
-	/**
-	 * Takes a string and returns a pointer of type watcher function that 
-	 * can be used as an input of wget()
-	 * 
-	 * This watcher should be used on /health/datanode_ level, not a datanode's child level
-	 * @param path, a string of path to health. Generally, the value will be
-	 * ZkNnClient::CLASS_NAME. 
-	 */
-	watcher_fn watcher_health_factory(std::string path);
-	
-	/**
-	 * Returns a pointer of type watcher function that can be used as an input of wget()
-	 *
-	 * This watcher should be used on /health/datanode_123/health level (a datanode's child level)
-	 * @param (defined in zookeeper.h)
-	 */
-	static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
 
 private:

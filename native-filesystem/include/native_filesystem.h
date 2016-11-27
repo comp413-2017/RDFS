@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <easylogging++.h>
 #include <mutex>
+#include <vector>
 
 #pragma once
 
@@ -15,6 +16,7 @@ namespace nativefs {
 		uint64_t blockid;
 		uint64_t offset;
 		uint32_t len;
+		bool free;
 	} block_info;
 
 	const size_t MIN_BLOCK_POWER = 13;
@@ -26,7 +28,7 @@ namespace nativefs {
 	constexpr size_t BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;
 	constexpr size_t BLOCK_LIST_SIZE = BLOCK_LIST_LEN * sizeof(block_info);
 	// If MAGIC changes, make sure to change the 8 in RESERVED_SIZE too.
-	const std::string MAGIC = "OPNSESME";
+	const std::string MAGIC = "DEADBEEF";
 	// Reserved space for magic bytes + block_info array.
 	constexpr size_t RESERVED_SIZE = BLOCK_LIST_SIZE + 8;
 
@@ -65,6 +67,11 @@ class NativeFS{
 		 */
 		uint64_t getFreeSpace();
 
+		/**
+		 * For debugging, print the free block lists.
+		 */
+		std::vector<std::uint64_t> getKnownBlocks();
+
 	private:
 		/**
 		 * Attempt to place provided block info in the block list. Returns 
@@ -75,20 +82,24 @@ class NativeFS{
 		 * Mark the area of disk from start to end as free.
 		 */
 		void freeRange(uint64_t start, uint64_t end);
+		/**
+		 * Allocate space to fit provided size, write position to offset.
+		 * Return true if space was found, otherwise false.
+		 */
 		bool allocateBlock(size_t size, uint64_t& offset);
+		/**
+		 * Build the free ranges from allocated blocks.
+		 */
+		void constructFreeLists();
 		/**
 		 * Persist current block metadata to storage.
 		 */
 		void flushBlocks();
-		/**
-		 * For debugging, print the free block lists.
-		 */
-		void printFreeBlocks();
 
 		/**
-		 * For debugging, print the known blocks.
+		 * For debugging, print the free blocks.
 		 */
-		void printKnownBlocks();
+		void printFreeBlocks();
 
 		block_info* blocks;
 		mutable std::mutex listMtx;

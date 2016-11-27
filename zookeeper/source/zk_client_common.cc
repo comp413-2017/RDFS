@@ -30,7 +30,7 @@ namespace zkclient {
     ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 
         int error_code;
-        zk = std::make_shared<ZKWrapper>(hostAndIp, error_code);
+        zk = std::make_shared<ZKWrapper>(hostAndIp, error_code, "/testing");
         init();
     }
 
