@@ -366,7 +366,7 @@ namespace zkclient{
 			std::vector<std::uint8_t> block_id_vec(sizeof(std::uint64_t));
 			std::uint64_t block_id;
 			if (!zk->get(util::concat_path(rootless_path, block), block_id_vec, err, sizeof(std::uint64_t))) {
-				LOG(ERROR) << "could not get the block length for " << block << " because of " << err;
+				LOG(ERROR) << "could not get the block id " << block << " because of " << err;
 				return;
 			}
 			memcpy(&block_id, &block_id_vec[0], sizeof(uint64_t));
