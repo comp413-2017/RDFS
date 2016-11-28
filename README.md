@@ -47,6 +47,8 @@ The Google Test framework is now included in the development environment. You ma
 Tests should be placed in the home/vagrant/rdfs/test directory.
 After creating a new test file, you can modify the CMakeLists.txt file to create an executable
 to run those tests.
+There is a file, tests/run-all/run-all-tests.cc, that creates an executable running all tests.
+If you create a new test executable, modify this to add yours.
 There is currently a file in the test directory, tests.cc, with a sample test. You can run it by
 executing
 ```
