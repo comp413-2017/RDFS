@@ -59,7 +59,11 @@ class ZkNnClient : public ZkClientCommon {
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 		void rename(RenameRequestProto& req, RenameResponseProto& res);
 		bool get_listing(GetListingRequestProto& req, GetListingResponseProto& res);
-		/**
+		void get_content(GetContentSummaryRequestProto& req, GetContentSummaryResponseProto& res);
+
+		void set_file_info_content(ContentSummaryProto* status, const std::string& path, FileZNode& znode_data);
+
+	/**
 		 * Add block.
 		 */
 		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);

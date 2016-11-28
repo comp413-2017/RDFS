@@ -680,6 +680,72 @@ namespace zkclient{
         return zkpath;
     }
 
+
+    void ZkNnClient::get_content(GetContentSummaryRequestProto& req, GetContentSummaryResponseProto& res) {
+        const std::string& path = req.path();
+
+        if (file_exists(path)) {
+            LOG(INFO) << CLASS_NAME << "File exists";
+            // read the node into the file node struct
+            FileZNode znode_data;
+            read_file_znode(znode_data, path);
+
+            // set the file status in the get file info response res
+            ContentSummaryProto* status = res.mutable_summary();
+
+            set_file_info_content(status, path, znode_data);
+            LOG(INFO) << CLASS_NAME << "Got info for file ";
+            return;
+        }
+        LOG(INFO) << CLASS_NAME << "No file to get info for";
+        return;
+    }
+
+    void ZkNnClient::set_file_info_content(ContentSummaryProto* status, const std::string& path, FileZNode& znode_data) {
+        // get the filetype, since we do not want to serialize an enum
+        int error_code = 0;
+        if (znode_data.filetype == IS_FILE){
+                    int num_file = 0;
+                    int num_dir = 0;
+                    std::vector<std::string> children;
+                    if (!zk->get_children(ZookeeperPath(path), children, error_code)) {
+                        LOG(FATAL) << "Failed to get children for " << ZookeeperPath(path);
+                    } else {
+                        for (auto& child : children) {
+                            auto child_path = util::concat_path(path, child);
+                            FileZNode child_data;
+                            read_file_znode(child_data, child_path);
+                            if (znode_data.filetype == IS_FILE){
+                                num_file += 1;
+                            }
+                            else {
+                                num_dir += 1;
+                            }
+
+                        }
+                    }
+
+
+                status->set_filecount(num_file);
+                status->set_directorycount(num_dir);
+        }
+        else {
+            status->set_filecount(1);
+            status->set_directorycount(0);
+        }
+
+
+        //status->set_filetype(filetype);
+        //status->set_path(path);
+        status->set_length(znode_data.length);
+        status->set_quota(1);
+        status->set_spaceconsumed(1);
+        status->set_spacequota(100000);
+
+
+        LOG(INFO) << CLASS_NAME << "Successfully set the file info ";
+    }
+
     void ZkNnClient::set_file_info(HdfsFileStatusProto* status, const std::string& path, FileZNode& znode_data) {
         HdfsFileStatusProto_FileType filetype;
         // get the filetype, since we do not want to serialize an enum
