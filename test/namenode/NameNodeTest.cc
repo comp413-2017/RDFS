@@ -1,3 +1,6 @@
+#define ELPP_FRESH_LOG_FILE
+#define ELPP_THREAD_SAFE
+
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "zk_dn_client.h"
