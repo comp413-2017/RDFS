@@ -194,9 +194,6 @@ namespace zkclient{
 	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *)){
 		int error_code;
 		bool exists;
-
-		LOG(INFO) << "JOSEPH: " << get_datanode_id() << " INITING WORK QUEUE";
-
 		std::string id = get_datanode_id();
 
 		// Create queue for this datanode
@@ -211,20 +208,19 @@ namespace zkclient{
 		}
 
 		// Register the replication watcher for this dn
-		std::vector <std::string> children = std::vector <std::string>();
+		std::vector <std::string> children;
+
 		if(!zk->wget_children(queueName + id, children, watchFuncPtr, this, error_code)){
 			LOG(INFO) << "getting children failed";
 		}
 
-		LOG(INFO) << "JOSEPH: " << get_datanode_id() << " DONE INITING WORK QUEUE";
-		// After we attach the watcher, immediately check if any replication tasks had been registered in the meantime
-		if (children.size() > 0) {
-			LOG(INFO) << "JOSEPH: " << get_datanode_id() << " FOUND CHILDREN " << children.size();
+		// While we still have work items continue to pull them off
+		while (children.size() > 0) {
 			handleReplicateCmds((queueName + id).c_str());
-			// Recursively call this function until the childrens is 0
-			initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
-		} else {
-			LOG(INFO) << "JOSEPH " << get_datanode_id() << " IS FREE";
+			children = std::vector <std::string>();
+			if(!zk->wget_children(queueName + id, children, watchFuncPtr, this, error_code)){
+				LOG(INFO) << "getting children failed";
+			}
 		}
 	}
 
@@ -252,26 +248,19 @@ namespace zkclient{
 		this->server = server;
 	}
 
-	void ZkClientDn::handleReplicateCmds(const char *path) {
+	void ZkClientDn::handleReplicateCmds(const std::string& path) {
 		int err;
-        auto rootless_path = zk->removeZKRoot(path);
-		LOG(INFO) << "handling replicate watcher for " << rootless_path;
+		LOG(ERROR) << "handling replicate watcher for " << path;
 		std::vector<std::string> work_items;
 
-		if (!zk->get_children(rootless_path, work_items, err)){
+		if (!zk->get_children(path, work_items, err)){
 			LOG(ERROR) << "Failed to get work items!";
 			return;
 		}
 		std::vector<std::shared_ptr<ZooOp>> ops;
-
-		LOG(INFO) << "JOSEPH: " << get_datanode_id() << "WORK ITEMS " << work_items.size();
-
 		for (auto &block : work_items){
-
-			LOG(INFO) << "JOSEPH: " << get_datanode_id() << "WORKING ON " << block;
-
 			std::vector<std::string> read_from;
-			auto full_work_item_path = util::concat_path(rootless_path, block);
+			auto full_work_item_path = util::concat_path(path, block);
 			if (!zk->get_children(full_work_item_path, read_from, err)){
 				LOG(ERROR) << "Failed to get datanode to read from!";
 				return;
@@ -328,7 +317,8 @@ namespace zkclient{
 
 	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		ZkClientDn* dn_client = static_cast<ZkClientDn*>(watcherCtx);
-		dn_client->handleReplicateCmds(path);
+		dn_client->handleReplicateCmds(dn_client->zk->removeZKRoot(path));
+		// We have to reattach the watcher function
 		dn_client->initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher);
 	}
 

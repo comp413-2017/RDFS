@@ -118,7 +118,10 @@ std::string ZKWrapper::prepend_zk_root(const std::string& path) const {
 }
 
 std::string ZKWrapper::removeZKRoot(const std::string& path) const {
-	return path.substr(root.size());
+	if (path.substr(0, root.size()) == root) {
+		return path.substr(root.size());
+	}
+	return path;
 }
 
 /* Wrapper Implementation of Zookeeper Functions */

@@ -408,7 +408,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
         rpcserver::read_int16(sock, &header_len);
         PacketHeaderProto p_head;
         rpcserver::read_proto(sock, p_head, header_len);
-        LOG(INFO) << "Receiving packet " << p_head.seqno();
+        // LOG(INFO) << "Receiving packet " << p_head.seqno();
         // read in the data
         if (!p_head.lastpacketinblock()) {
             uint64_t data_len = p_head.datalen();
@@ -439,6 +439,6 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
 bool TransferServer::sendStats() {
 	uint64_t free_space = fs->getFreeSpace();
-    LOG(INFO) << "Sending stats " << port;
+    // LOG(INFO) << "Sending stats " << port;
     return dn->sendStats(free_space, xmits.fetch_add(0));
 }

@@ -125,7 +125,7 @@ private:
 	/**
 	 * Handle all of the work items on path
 	 */
-	void handleReplicateCmds(const char *path);
+	void handleReplicateCmds(const std::string& path);
 
 	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);

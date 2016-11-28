@@ -19,7 +19,7 @@ namespace rpcserver {
 		// The default constructor for error_code is success.
 		asio::error_code error;
 		asio::read(sock, buf, asio::transfer_exactly(size), error);
-		LOG(INFO) << "socket error " << error;
+		// LOG(INFO) << "socket error " << error;
 		return error;
 	}
 
