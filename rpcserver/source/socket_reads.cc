@@ -118,11 +118,11 @@ namespace rpcserver {
 
 	if (error)
 		LOG(ERROR) << "read_full returned error in delim";
-	else
-		LOG(INFO) << "no error from read_full";
+	//else
+		//LOG(INFO) << "no error from read_full";
 
-	LOG(INFO) << "buf: " << std::endl;
-	LOG(INFO) << buf << std::endl;
+	//LOG(INFO) << "buf: " << std::endl;
+	//LOG(INFO) << buf << std::endl;
 
         return !error && proto.ParseFromString(buf);
     }

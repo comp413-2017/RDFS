@@ -80,14 +80,14 @@ namespace rpcserver {
                                                         proto_bytes.size()), error);
 	if (write_len != proto_bytes.size())
 		LOG(ERROR) << "write_len " << write_len << "protob size " << proto_bytes.size() << std::endl;
-	else
+	//else
 		// LOG(INFO) << "size written correctly" << std::endl;
 
 	if (error)
 		LOG(ERROR) << "sock.write_some returned error" << std::endl;
-	else 
+	//else
 		// LOG(INFO) << "no error on socket" << std::endl;
-        return write_len == proto_bytes.size() && !error;
+    return write_len == proto_bytes.size() && !error;
     }
 
 }

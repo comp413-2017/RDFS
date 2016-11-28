@@ -29,7 +29,7 @@ namespace rpcserver {
 	 * successful, otherwise false.
 	 */
 	bool write_varint(tcp::socket& sock, uint32_t val);
-	/**åå
+	/**
 	 * Write given proto to the socket. Return true if successful, otherwise
 	 * false.
 	 */

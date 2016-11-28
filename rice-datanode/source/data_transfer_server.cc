@@ -37,7 +37,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		if (receive_header(sock, &version, &type)) {
 			LOG(INFO) << "Got header version=" << version << ", type=" << (int) type;
 		} else {
-			ERROR_AND_RETURN("Failed to receive header.");
+			ERROR_AND_RETURN("Failed to receive header, maybe connection closed.");
 		}
 		// TODO: implement proto handlers based on type
 		switch (type) {
