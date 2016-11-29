@@ -60,7 +60,7 @@ echo 'python /home/vagrant/rdfs/utility/provision_diff.py' >> /home/vagrant/.bas
 wget --quiet http://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
 tar -xf zookeeper-3.4.9.tar.gz
 mv zookeeper-3.4.9 /home/vagrant/zookeeper
-rm zookeeper-3.4.9.tar.gz 
+rm zookeeper-3.4.9.tar.gz
 cat > /home/vagrant/zookeeper/conf/zoo.cfg <<EOF
 tickTime=2000
 dataDir=/var/zookeeper
@@ -104,6 +104,9 @@ cd valgrind-3.11.0
 ./configure --prefix=/usr && sudo make && sudo make install
 cd ../..
 rm -r valgrindtemp
+
+# Add Maven
+sudo apt install maven
 
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
