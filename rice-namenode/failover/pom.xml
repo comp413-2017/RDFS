@@ -1,43 +1,31 @@
 <project>
 
 <modelVersion>4.0.0</modelVersion>
-<groupId>rice-rdfs</groupId>
-<artifactId>my-app</artifactId>
+<groupId>rice-namenode</groupId>
+<artifactId>failover</artifactId>
 <version>1</version>
-<packaging>pom</packaging>
+<packaging>jar</packaging>
 
-<repositories>
-<repository>
-     <id>cloudera</id>
-     <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
-     <releases>
-          <enabled>true</enabled>
-     </releases>
-     <snapshots>
-          <enabled>true</enabled>
-     </snapshots>
-</repository>
-</repositories>
 <dependencies>
 <dependency>
     <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-hdfs</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.0-alpha1</version>
+	<scope>compile</scope>
 </dependency>
 <dependency>
     <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-auth</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.0-alpha1</version>
+	<scope>compile</scope>
 </dependency>
 <dependency>
     <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-common</artifactId>
-    <version>3.0.0</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.hadoop</groupId>
-    <artifactId>hadoop-core</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.0-alpha1</version>
+	<scope>compile</scope>
 </dependency>
 </dependencies>
+
+
 </project>

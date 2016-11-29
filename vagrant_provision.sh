@@ -53,8 +53,11 @@ cat > /home/vagrant/hadoop/etc/hdfs-site.xml <<EOF
 EOF
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
+# add hadoop to classpath
+echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/hadoop/share/hadoop/common/*' >> /home/vagrant/.bashrc
 # add diff detector to path
 echo 'python /home/vagrant/rdfs/utility/provision_diff.py' >> /home/vagrant/.bashrc
+
 
 # Setup Apache zookeeper
 wget --quiet http://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
@@ -107,7 +110,6 @@ rm -r valgrindtemp
 
 # Add Maven
 sudo apt install maven
-
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
