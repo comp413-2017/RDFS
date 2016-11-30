@@ -96,7 +96,7 @@ service mysql start
 sysv-rc-conf mysql on
 
 # TODO: finish this Setup Apache Hue and tell it to use mysql
-apt-get --assume-yes install maven libkrb5-dev libmysqlclient-dev libssl-dev libsasl2-dev libsasl2-modules-gssapi-mit libsqlite3-dev libtidy-0.99-0 libxml2-dev libxslt-dev libldap2-dev maven python-setuptools libgmp3-dev
+apt-get --assume-yes install maven libkrb5-dev libmysqlclient-dev libssl-dev libsasl2-dev libsasl2-modules-gssapi-mit libsqlite3-dev libtidy-0.99-0 libxml2-dev libxslt-dev libldap2-dev maven python-setuptools libgmp3-dev libffi-dev
 git clone https://github.com/cloudera/hue.git
 cd /home/vagrant/hue
 make apps
