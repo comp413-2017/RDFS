@@ -17,9 +17,7 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
 
-TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS>& fs, std::shared_ptr<zkclient::ZkClientDn>& dn, int max_xmits) : port(port), fs(fs), dn(dn), max_xmits(max_xmits) {
-    LOG(INFO) << "***************** fs size is " << fs->getTotalSpace();
-}
+TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS>& fs, std::shared_ptr<zkclient::ZkClientDn>& dn, int max_xmits) : port(port), fs(fs), dn(dn), max_xmits(max_xmits) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
@@ -439,6 +437,6 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 
 bool TransferServer::sendStats() {
 	uint64_t free_space = fs->getFreeSpace();
-    // LOG(INFO) << "Sending stats " << port;
+    LOG(INFO) << "Sending stats " << free_space;
     return dn->sendStats(free_space, xmits.fetch_add(0));
 }

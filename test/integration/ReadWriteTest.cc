@@ -66,39 +66,16 @@ int main(int argc, char **argv) {
 	system("rm -f _RW_TEST_FS expected_testfile1234 actual_testfile* temp*");
 	system("truncate _RW_TEST_FS -s 1000000000");
 
-	zkclient::ZkNnClient *nncli;
-	ClientNamenodeTranslator *nn_translator;
-	std::shared_ptr<zkclient::ZkClientDn> dncli;
-	TransferServer *dn_transfer_server;
-	int error_code;
-	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-	assert(error_code == 0); // Z_OK
-
-	unsigned short xferPort = 50010;
-	unsigned short ipcPort = 50020;
-	auto fs = std::make_shared<nativefs::NativeFS>("_RW_TEST_FS");
-	dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", zk_shared, ipcPort, xferPort);
-	dn_transfer_server = new TransferServer(xferPort, fs, dncli, max_xmits);
-
-	sleep(3);
-
-	short port = 5351;
-	nncli = new zkclient::ZkNnClient(zk_shared);
-	nncli->register_watches();
-	nn_translator = new ClientNamenodeTranslator(5351, *nncli);
-
-	asio::io_service io_service;
-	auto namenodeServer = nn_translator->getRPCServer();
-	std::thread(&TransferServer::serve, dn_transfer_server, std::ref(io_service)).detach();
-	std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
+	system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
 	sleep(5);
-
+	system("/home/vagrant/rdfs/build/rice-datanode/datanode 50010 50020 _RW_TEST_FS &");
+	sleep(5);
 	// Initialize and run the tests
 	::testing::InitGoogleTest(&argc, argv);
 	int res = RUN_ALL_TESTS();
-	// NOTE: You'll need to scroll up a bit to see the test results
 
-	// Remove test files and shutdown zookeeper
+	system("pkill -f namenode");
+	system("pkill -f datanode");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	return res;
 }
