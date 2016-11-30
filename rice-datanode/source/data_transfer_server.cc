@@ -1,8 +1,8 @@
 #include <iostream>
 #include <asio.hpp>
+#include <boost/crc.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
-#include <vector>
 #include <functional>
 #include <easylogging++.h>
 
@@ -223,6 +223,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (offset > block.size()) {
 		len = 0;
 	}
+	bool send_chksums = proto.sendchecksums();
 
 	uint64_t seq = 0;
 	while (len > 0) {
@@ -236,7 +237,18 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		p_head.set_datalen(payload_size);
 		p_head.set_syncblock(false);
 
-		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
+		std::vector<std::uint32_t> cksums;
+		std::uint32_t cksum_len = payload_size;
+		// Loop is never entered if send_chksums is false
+		while (send_chksums && cksum_len > 0) {
+			uint32_t cur = (cksum_len >= BYTES_PER_CKSUM) ? BYTES_PER_CKSUM : cksum_len;
+			std::size_t size = cksums.size();
+			std::uint32_t cksum = crc(&block[0], size * payload_size + offset, cur);
+			cksums.push_back(cksum);
+			cksum_len -= cur;
+		}
+
+		if (writePacket(sock, p_head, cksums, asio::buffer(&block[offset], payload_size))) {
 			// LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			// LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
 		} else {
@@ -275,7 +287,8 @@ bool TransferServer::writeFinalPacket(tcp::socket& sock, uint64_t offset, uint64
 		p_head.set_lastpacketinblock(true);
 		p_head.set_datalen(0);
 		// No payload, so empty string.
-		return writePacket(sock, p_head, asio::buffer(""));
+		std::vector<std::uint32_t> dummy_cksums;
+		return writePacket(sock, p_head, dummy_cksums, asio::buffer(""));
 }
 
 void TransferServer::buildBlockOpResponse(std::string& response_string) {
@@ -321,4 +334,10 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 bool TransferServer::sendStats() {
 	uint64_t free_space = fs->getFreeSpace();
 	return dn->sendStats(free_space, xmits.fetch_add(0));
+}
+
+std::uint32_t TransferServer::crc(const std::string& my_string, std::uint16_t off, std::uint16_t len) {
+    boost::crc_32_type result;
+    result.process_bytes(my_string.data() + off, len);
+    return result.checksum();
 }
