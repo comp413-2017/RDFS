@@ -859,6 +859,16 @@ namespace zkclient{
                         memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
                         LOG(INFO) << "\t DN stats - free_bytes: " << unsigned(stats.free_bytes);
                         if (stats.free_bytes > blocksize) {
+							auto queue = REPLICATE_QUEUES + datanode;
+							auto repl_item = util::concat_path(queue, std::to_string(blockId));
+							bool alreadyOnQueue;
+
+							if (zk->exists(repl_item, alreadyOnQueue, error_code)) {
+								if (alreadyOnQueue) {
+                                    LOG(INFO) << "Skipping target" << datanode;
+                                    continue;
+								}
+							}
                             LOG(INFO) << "Pushed target: " << datanode << " with " << stats.xmits << " xmits";
                             targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
                         }
@@ -1067,7 +1077,7 @@ namespace zkclient{
 				LOG(ERROR) << CLASS_NAME << "Replicate could not read the block size for block: " << block_id;
 				return false;
 			}
-			if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize) || target_dn.size() != 1) {
+			if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize) || target_dn.size() == 0) {
 				LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << repl;
 				return false;
 			}

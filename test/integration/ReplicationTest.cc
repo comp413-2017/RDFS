@@ -34,7 +34,7 @@ namespace {
         // TODO: This test will fail until we implement the file lengths meta-data tracking.
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
 
-        sleep(10);
+        sleep(20);
         std::uint64_t block_id;
         using namespace nativefs;
         NativeFS fs0("tfs0");
@@ -77,8 +77,8 @@ namespace {
         // The data should now be replicated on the new server
         system("pkill -f ReplicationTestServer1");
         system("pkill -f ReplicationTestServer2");
-        sleep(5);
-        system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile12345");
+        sleep(10);
+        system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile12345 > /dev/null"));
     }
 }
