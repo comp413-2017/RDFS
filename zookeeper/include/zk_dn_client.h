@@ -87,6 +87,9 @@ public:
 	
 	bool sendStats(uint64_t free_space, uint32_t xmits);
 
+	/**
+	 * Set the transfer server that this dn uses for read/writes
+	 */
 	void setTransferServer(std::shared_ptr<TransferServer>& server);
 
 	/**
@@ -104,6 +107,7 @@ public:
 private:
 
 	std::shared_ptr<TransferServer> server;
+
 	/**
 	* Builds a string of the DataNode ID.
 	* @param data_node_id The DataNode's DataNodeId object, containing the IP and port.

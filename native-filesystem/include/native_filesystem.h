@@ -54,6 +54,11 @@ class NativeFS{
 		 */
 		bool getBlock(uint64_t, std::string&);
 		/**
+		 * Return whether this instance of NativeFS knows about a block with
+		 * given id.
+		 */
+		bool hasBlock(uint64_t);
+		/**
 		 * Delete contents of provided block id from this datanode. Return true
 		 * if delete successful, false otherwise (block id not found).
 		 */
@@ -73,6 +78,11 @@ class NativeFS{
 		std::vector<std::uint64_t> getKnownBlocks();
 
 	private:
+		/**
+		 * Attempt to fetch block info for block of given id, write to info
+		 * reference. Return whether it exists.
+		 */
+		bool fetchBlock(uint64_t, block_info& info);
 		/**
 		 * Attempt to place provided block info in the block list. Returns 
 		 * 0 on success, 1 if no space, 2 if already exists

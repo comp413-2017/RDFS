@@ -42,13 +42,9 @@ const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
 const std::string ClientNamenodeTranslator::CLASS_NAME = ": **ClientNamenodeTranslator** : ";
 
-std::string demo_client;
-
-
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
 	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
-	std::thread(&ClientNamenodeTranslator::leaseCheck, this).detach();
 	LOG(INFO) << CLASS_NAME <<  "Created client namenode translator.";
 }
 
@@ -90,9 +86,8 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
 	CreateResponseProto res;
-	demo_client = req.clientname();
-	if (zk.create_file(req, res))
-		lease_manager.addLease(req.clientname(), req.src());
+	if (zk.create_file(req, res)) {
+	}
 	else {
 		throw GetErrorRPCHeader("Could not create file", "");
 	}
@@ -130,9 +125,6 @@ std::string ClientNamenodeTranslator::renewLease(std::string input) {
 	RenewLeaseRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "RenewLease ");
-	const std::string& clientname = req.clientname();
-	// renew the lease for all files associated with this client 
-	lease_manager.renewLeases(clientname);
 	RenewLeaseResponseProto res;
 	return Serialize(res);
 }
@@ -143,16 +135,7 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	logMessage(req, "Complete ");
 	CompleteResponseProto res;
 	// TODO some optional fields need to be read
-	bool succ = lease_manager.removeLease(req.clientname(), req.src());
-	if (!succ) {
-		LOG(ERROR) << CLASS_NAME <<  "A client tried to close a file which is not theirs";
-		res.set_result(false);
-	} else {
-		zk.complete(req, res);
-		if (res.result() == false) {
-			lease_manager.addLease(req.clientname(), req.src());
-		}
-	}
+	zk.complete(req, res);
 	return Serialize(res);
 }
 
@@ -165,9 +148,6 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	AbandonBlockRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "AbandonBlock ");
-	if (!lease_manager.checkLease(req.holder(), req.src())) {
-		throw GetErrorRPCHeader("Could not add block because client does not own lease", "");
-	}
 	const ExtendedBlockProto& blockProto = req.b();
 	const std::string& src = req.src();
 	const std::string& holder = req.src(); // TODO who is the holder??
@@ -184,10 +164,6 @@ std::string ClientNamenodeTranslator::addBlock(std::string input) {
 	AddBlockResponseProto res;
 	req.ParseFromString(input);
 	logMessage(req, "AddBlock ");
-
-	if (!lease_manager.checkLease(req.clientname(), req.src())) {
-		throw GetErrorRPCHeader("Could not add block because client does not own lease", "");
-	}
 	if(zk.add_block(req, res)){
 		return Serialize(res);}
 	else{
@@ -201,7 +177,6 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Rename ");
 	zk.rename(req, res);
-	lease_manager.renameLease(req.src(), req.dst());
 	return Serialize(res);
 }
 
@@ -380,24 +355,6 @@ int ClientNamenodeTranslator::getPort() {
 }
 
 // ------------------------------- LEASES ----------------------------
-
-void ClientNamenodeTranslator::leaseCheck() {
-	LOG(INFO) << CLASS_NAME <<  "Lease manager check initialized";
-	for (;;) {
-		sleep(LEASE_CHECK_TIME); // only check every 60 seconds
-		LOG(INFO) << CLASS_NAME << "Checking leases";
-		std::vector<std::pair<std::string, std::string>> expiredFiles = lease_manager.checkLeases(LEASE_CHECK_TIME);
-		for (auto client_file : expiredFiles) {
-			std::string client = client_file.first;
-			std::string file = client_file.second;
-			CompleteRequestProto req;
-			req.set_src(file);
-			req.set_clientname(client);
-			LOG(INFO) << "Force closing of file " << file << " on behalf of client " << client;
-			complete(Serialize(req));
-		}
-	}
-}
 
 // ------------------------------- HELPERS -----------------------------
 
