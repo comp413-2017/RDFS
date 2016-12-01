@@ -51,6 +51,11 @@ cat > /home/vagrant/hadoop/etc/hdfs-site.xml <<EOF
     </property>
 </configuration>
 EOF
+
+# add custom config files to Hadoop
+cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop/etc/hadoop/hdfs-site.xml
+cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop/etc/hadoop/core-site.xml
+
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 # add hadoop to classpath
