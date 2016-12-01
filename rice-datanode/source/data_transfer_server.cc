@@ -326,10 +326,9 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
-	std::string blk;
 	LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
 
-    if (fs->getBlock(blockToTarget.blockid(), blk)) {
+    if (fs->hasBlock(blockToTarget.blockid())) {
         LOG(INFO) << "Block already exists on this DN";
         return true;
     } else {

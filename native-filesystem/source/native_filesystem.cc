@@ -229,23 +229,36 @@ namespace nativefs {
 	}
 
 	/**
+	 * Fetch block_info for an id. Assumes it has a lock on the block list.
+	 */
+	bool NativeFS::fetchBlock(uint64_t id, block_info& info) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
+			if (blocks[i].blockid == id && !blocks[i].free) {
+				info = blocks[i];
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check existence of block with given id.
+	 */
+	bool NativeFS::hasBlock(uint64_t id) {
+		block_info info;
+		std::lock_guard<std::mutex> lock(listMtx);
+		return fetchBlock(id, info);
+	}
+
+	/**
 	* Read the contents of given block id.
-	**/
+	*/
 	bool NativeFS::getBlock(uint64_t id, std::string& blk) {
 		// Look in map and get filename
 		block_info info;
 		{
 			std::lock_guard<std::mutex> lock(listMtx);
-			// Look up the block info for this id.
-			bool found = false;
-			for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-				if (blocks[i].blockid == id && !blocks[i].free) {
-					info = blocks[i];
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
+			if (!fetchBlock(id, info)) {
 				return false;
 			}
 		}
