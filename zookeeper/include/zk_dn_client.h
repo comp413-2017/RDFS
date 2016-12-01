@@ -97,6 +97,8 @@ public:
 	*/
 	bool push_dn_on_repq(std::string dn_name, uint64_t blockid);
 
+	bool poll_replication_queue();
+
 	std::string get_datanode_id();
 
 private:
@@ -130,11 +132,15 @@ private:
 	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
+	bool find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code);
+
 	/**
 	 * Copied from nn client, create block proto
 	 */
 	bool buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto* eb, const std::uint64_t& block_id,
     											 const uint64_t& block_size);
+
+
 };
 }
 

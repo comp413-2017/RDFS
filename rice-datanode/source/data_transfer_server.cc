@@ -152,12 +152,14 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 
 	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
+		return;
 	} else {
 		if (dn->blockReceived(header.baseheader().block().blockid(), block_data.length())) {
 			while (!ackQueue.push(last_header)) {
 			}
 		} else {
 			LOG(ERROR) << "Failed to register received block with NameNode";
+			return;
 		}
 	}
 
@@ -439,4 +441,8 @@ bool TransferServer::sendStats() {
 	uint64_t free_space = fs->getFreeSpace();
     LOG(INFO) << "Sending stats " << free_space;
     return dn->sendStats(free_space, xmits.fetch_add(0));
+}
+
+bool TransferServer::poll_replicate() {
+	return dn->poll_replication_queue();
 }
