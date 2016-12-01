@@ -166,6 +166,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		const DatanodeIDProto& dn_p = proto.targets(i).id();
 		std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
 		if (!dn->push_dn_on_repq(dn_name, header.baseheader().block().blockid())) {
+			// do nothing, check for acks will pick this up (hopefully!)
 		}
 	}
 
@@ -323,7 +324,6 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 }
 
 bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
-
 	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
 
 	std::string blk;
@@ -395,6 +395,15 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
     }
     std::string data(len, 0);
 
+	// LOCK
+	std::unique_lock<std::mutex> lk(m);
+	while (xmits.fetch_add(0) >= max_xmits){
+		cv.wait(lk);
+	}
+	xmits++;
+	LOG(INFO) << "**********" << "num xmits is " << xmits.fetch_add(0);
+	lk.unlock();
+
     // read in the packets while we still have them, and we haven't processed the final packet
     int read_len = 0;
     bool last_packet = false;
@@ -412,20 +421,31 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
             uint64_t data_len = p_head.datalen();
             uint64_t seqno = p_head.seqno();
             uint64_t offset = p_head.offsetinblock();
+			if (data_len + offset > len) {
+				LOG(ERROR) << "ERROR BAD BAD BAD ERROR BAD WITH DATA LEN";
+				xmits--;
+				cv.notify_one();
+				return false;
+			}
             error = rpcserver::read_full(sock, asio::buffer(&data[offset], data_len));
             if (error) {
                 LOG(ERROR) << "Failed to read packet " << p_head.seqno();
-                return false;
+				xmits--;
+				cv.notify_one();
+				return false;
             }
             read_len += data_len;
         } else {
             last_packet = true;
         }
     }
+	xmits--;
+	cv.notify_one();
 
     //TODO send ClientReadStatusProto (delimited)
     if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
         LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
+        return false;
     } else {
         dn->blockReceived(header->baseheader().block().blockid(), read_len);
     }

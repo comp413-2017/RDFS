@@ -263,7 +263,7 @@ namespace zkclient{
 			auto full_work_item_path = util::concat_path(path, block);
 			if (!zk->get_children(full_work_item_path, read_from, err)){
 				LOG(ERROR) << "Failed to get datanode to read from!";
-				return;
+				continue;
 			}
 			assert(read_from.size() == 1);
 
@@ -272,7 +272,7 @@ namespace zkclient{
 			std::uint64_t block_size;
 			if (!zk->get(util::concat_path(BLOCK_LOCATIONS, block), block_size_vec, err, sizeof(std::uint64_t))) {
 				LOG(ERROR) << "could not get the block length for " << block << " because of " << err;
-				return;
+				continue;
 			}
 			memcpy(&block_size, &block_size_vec[0], sizeof(uint64_t));
 
@@ -294,7 +294,7 @@ namespace zkclient{
 			std::vector<std::uint8_t> dn_data(sizeof(DataNodePayload));
 			if (!zk->get(HEALTH_BACKSLASH + read_from[0] + STATS, dn_data, err, sizeof(DataNodePayload))) {
 				LOG(ERROR) << "failed to read target dn payload" << err;
-				return;
+				continue;
 			}
 			memcpy(&dn_target_info, &dn_data[0], sizeof(DataNodePayload));
 			std::uint32_t xferPort = dn_target_info.xferPort;
