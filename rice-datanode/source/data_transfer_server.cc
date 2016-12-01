@@ -450,3 +450,7 @@ bool TransferServer::sendStats() {
 bool TransferServer::poll_replicate() {
 	return dn->poll_replication_queue();
 }
+
+bool TransferServer::poll_delete() {
+	return dn->poll_delete_queue();
+}

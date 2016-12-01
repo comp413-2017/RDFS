@@ -91,6 +91,8 @@ public:
 
 	bool poll_replication_queue();
 
+	bool poll_delete_queue();
+
 	std::string get_datanode_id();
 
 private:
