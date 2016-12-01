@@ -33,16 +33,16 @@ rm hadoop-3.0.0-alpha1.tar.gz
 ln -s hadoop3 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
-cat > /home/vagrant/hadoop/etc/core-site.xml <<EOF
+cat > /home/vagrant/hadoop3/etc/hadoop/core-site.xml <<EOF
 <configuration>
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://localhost:9000</value>
+        <value>hdfs://localhost:5351</value>
     </property>
 </configuration>
 EOF
 
-cat > /home/vagrant/hadoop/etc/hdfs-site.xml <<EOF
+cat > /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml <<EOF
 <configuration>
     <property>
         <name>dfs.replication</name>
@@ -60,6 +60,8 @@ wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/had
 tar -xf hadoop-2.7.3.tar.gz
 mv hadoop-2.7.3 /home/vagrant/hadoop2
 rm hadoop-2.7.3.tar.gz
+cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
+cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
 # Setup Apache zookeeper
 wget --quiet http://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
