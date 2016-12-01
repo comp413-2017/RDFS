@@ -19,7 +19,6 @@ namespace rpcserver {
 		// The default constructor for error_code is success.
 		asio::error_code error;
 		asio::read(sock, buf, asio::transfer_exactly(size), error);
-		LOG(INFO) << "socket error " << error;
 		return error;
 	}
 
@@ -118,11 +117,6 @@ namespace rpcserver {
 
 	if (error)
 		LOG(ERROR) << "read_full returned error in delim";
-	else
-		LOG(INFO) << "no error from read_full";
-
-	LOG(INFO) << "buf: " << std::endl;
-	LOG(INFO) << buf << std::endl;
 
         return !error && proto.ParseFromString(buf);
     }

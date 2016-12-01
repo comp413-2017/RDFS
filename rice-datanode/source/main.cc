@@ -50,6 +50,7 @@ int main(int argc, char* argv[]) {
     dncli->setTransferServer(transfer_server);
 	daemon_thread::DaemonThreadFactory factory;
 	factory.create_daemon_thread(&TransferServer::sendStats, transfer_server.get(), 3);
+	factory.create_daemon_thread(&TransferServer::poll_replicate, transfer_server.get(), 3);
 	std::thread(&TransferServer::serve, transfer_server.get(), std::ref(io_service)).detach();
 	translator.getRPCServer().serve(io_service);
 }

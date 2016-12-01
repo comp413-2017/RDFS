@@ -35,7 +35,6 @@ namespace rpcserver {
     bool write_byte(tcp::socket& sock, unsigned char byte) {
         asio::error_code error;
         uint8_t val_net = byte;
-        std::cout << " writing byte! " << byte << " as " << val_net << std::endl;
         size_t write_len = sock.write_some(asio::buffer(&val_net, 1), error);
         return !error && write_len == 1;
     }
@@ -67,7 +66,6 @@ namespace rpcserver {
             LOG(ERROR) << "varint failed hahaha " << proto_bytes.size() << std::endl;
             return false;
         }
-	LOG(INFO) << "writing proto, varint success" << std::endl;
         return write_proto(sock, proto_bytes);
     }
 
@@ -80,14 +78,11 @@ namespace rpcserver {
                                                         proto_bytes.size()), error);
 	if (write_len != proto_bytes.size())
 		LOG(ERROR) << "write_len " << write_len << "protob size " << proto_bytes.size() << std::endl;
-	else
-		LOG(INFO) << "size written correctly" << std::endl;
 
 	if (error)
 		LOG(ERROR) << "sock.write_some returned error" << std::endl;
-	else 
-		LOG(INFO) << "no error on socket" << std::endl;
-        return write_len == proto_bytes.size() && !error;
+
+    return write_len == proto_bytes.size() && !error;
     }
 
 }

@@ -1000,6 +1000,16 @@ namespace zkclient{
                         memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
                         LOG(INFO) << "\t DN stats - free_bytes: " << unsigned(stats.free_bytes);
                         if (stats.free_bytes > blocksize) {
+							auto queue = REPLICATE_QUEUES + datanode;
+							auto repl_item = util::concat_path(queue, std::to_string(blockId));
+							bool alreadyOnQueue;
+
+							if (zk->exists(repl_item, alreadyOnQueue, error_code)) {
+								if (alreadyOnQueue) {
+                                    LOG(INFO) << "Skipping target" << datanode;
+                                    continue;
+								}
+							}
                             LOG(INFO) << "Pushed target: " << datanode << " with " << stats.xmits << " xmits";
                             targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
                         }
@@ -1199,24 +1209,18 @@ namespace zkclient{
 			std::uint64_t block_id;
 			std::stringstream strm(repl);
 			strm >> block_id;
-			if (!find_datanode_with_block(repl, read_from, err)) {
-				LOG(ERROR) << CLASS_NAME << " Failed to find datanode with this block! " << repl << " is lost!";
-				return false;
-			}
 			uint64_t blocksize;
 			if (!get_block_size(block_id, blocksize)) {
 				LOG(ERROR) << CLASS_NAME << "Replicate could not read the block size for block: " << block_id;
 				return false;
 			}
-			if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize) || target_dn.size() != 1) {
+			if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize) || target_dn.size() == 0) {
 				LOG(ERROR) << CLASS_NAME << " Failed to find datanode for this block! " << repl;
 				return false;
 			}
 			auto queue = REPLICATE_QUEUES + target_dn[0];
 			auto repl_item = util::concat_path(queue, repl);
 			ops.push_back(zk->build_create_op(repl_item, ZKWrapper::EMPTY_VECTOR));
-			auto read_from_item = util::concat_path(repl_item, read_from);
-			ops.push_back(zk->build_create_op(read_from_item, ZKWrapper::EMPTY_VECTOR));
 		}
 
 		if (!zk->execute_multi(ops, results, err)){
@@ -1225,26 +1229,6 @@ namespace zkclient{
 		}
 	}
 
-
-    bool ZkNnClient::find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code) {
-        std::vector<std::string> datanodes;
-        std::string block_loc_path = BLOCK_LOCATIONS + block_uuid_str;
-
-        if (!zk->get_children(block_loc_path, datanodes, error_code)) {
-            LOG(ERROR) << "Failed to get children of: " << block_loc_path;
-            return false;
-        }
-        if (datanodes.size() < 1) {
-            LOG(ERROR) << "There are no datanodes with a replica of block " << block_uuid_str;
-            // TODO: set error_code
-            return false;
-        }
-        // TODO: Pick the datanode which has fewer transmits
-
-        datanode = datanodes[0];
-        LOG(INFO) << "Found DN: " << datanode << " which has a replica of: " << block_uuid_str;
-        return true;
-    }
 
     bool ZkNnClient::find_all_datanodes_with_block(const std::string &block_uuid_str, std::vector<std::string>
         &rdatanodes, int &error_code) {
