@@ -862,7 +862,7 @@ namespace zkclient{
 							auto queue = REPLICATE_QUEUES + datanode;
 							auto repl_item = util::concat_path(queue, std::to_string(blockId));
 							bool alreadyOnQueue;
-
+                            // do not put something on queue if its already on there
 							if (zk->exists(repl_item, alreadyOnQueue, error_code)) {
 								if (alreadyOnQueue) {
                                     LOG(INFO) << "Skipping target" << datanode;

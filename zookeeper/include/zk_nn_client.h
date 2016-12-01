@@ -98,6 +98,7 @@ class ZkNnClient : public ZkClientCommon {
 
 		// TODO lil doc string and move to private (why does this cause compiler problems?)
 		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
+
 		bool find_datanode_for_block(std::vector<std::string>& datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock, uint64_t blocksize);
 
 		bool rename_file(std::string src, std::string dst);

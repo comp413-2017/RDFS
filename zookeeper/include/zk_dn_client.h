@@ -129,9 +129,11 @@ private:
 	 */
 	void handleReplicateCmds(const std::string& path);
 
-	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
+	/**
+	 * Find one datanode that has the block_uuid
+	 */
 	bool find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code);
 
 	/**
