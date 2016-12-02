@@ -46,7 +46,14 @@
 		<name>dfs.namenode.http-address.rdfs-nn.nn2</name>
 		<value>localhost:9820</value>
 	</property>
-
+	<property>
+		<name>dfs.ha.fencing.methods</name>
+		<vallue>sshfence</value>
+	</property>
+	<property>
+		<name>dfs.ha.fencing.methods</name>
+		<value>sshfence</value>
+	</property>
 	<property>
 		<name>dfs.client.failover.proxy.provider.rdfs-nn</name>
 		<value>ConfiguredFailoverProxyProvider</value>
