@@ -48,7 +48,7 @@
 	</property>
 	<property>
 		<name>dfs.ha.fencing.methods</name>
-		<vallue>sshfence</value>
+		<value>shell(/bin/true)</value>
 	</property>
 	<property>
 		<name>dfs.ha.fencing.methods</name>

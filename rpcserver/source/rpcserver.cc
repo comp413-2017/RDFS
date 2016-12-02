@@ -148,6 +148,17 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                 LOG(ERROR) << CLASS_NAME <<  "failed to write response to client.";
             }
         } else {
+                LOG(INFO) << "method name: " << request_header.methodname();
+            if (request_header.methodname() == "getServiceStatus") {
+                LOG(INFO) << "Method is getServiceStatus";
+                hadoop::common::RpcResponseHeaderProto response_header;
+                response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
+                LOG(INFO) << "Set response header";
+                write_success = write_int32(sock, 2);
+                LOG (INFO) << "Past wrote success";
+                return;
+            }
+
             // In this case, we see that the lookup for a function to handle the 
             // requested command (for example, see ClientNamenodeProtocolImpl)  using
             // the dispatch table failed. As such, all we must send is a 
