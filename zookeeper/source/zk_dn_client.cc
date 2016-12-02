@@ -3,7 +3,6 @@
 
 #include "zk_dn_client.h"
 #include "zk_lock.h"
-#include "zk_queue.h"
 #include <easylogging++.h>
 #include <google/protobuf/message.h>
 #include "hdfs.pb.h"

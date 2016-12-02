@@ -69,11 +69,6 @@ target_link_libraries(ZKLockTest zk_lock zkwrapper /usr/local/lib/libzookeeper_m
 target_link_libraries(ZKLockTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ZKLockTest ${GTEST})
 
-add_executable(ZKQueueTest zkwrapper/ZKQueueTest.cc)
-target_link_libraries(ZKQueueTest zk_queue zk_lock zkwrapper /usr/local/lib/libzookeeper_mt.so)
-target_link_libraries(ZKQueueTest ${GTEST_LIBRARIES} pthread)
-target_link_libraries(ZKQueueTest ${GTEST})
-
 add_executable(NativeFsTest native-filesystem/native_fs_tests.cc)
 target_link_libraries(NativeFsTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(NativeFsTest ${GTEST})
