@@ -195,8 +195,8 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
-		SetPermissionResponseProto res;
-		return Serialize(res);
+	SetPermissionResponseProto res;
+	return Serialize(res);
 }
 
 
@@ -213,6 +213,7 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
 	res.set_result(false);
 	return Serialize(res);
 }
+
 
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
@@ -352,7 +353,6 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
 	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
 	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
-
 }
 
 /**

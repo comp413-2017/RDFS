@@ -150,12 +150,18 @@ void RPCServer::handle_rpc(tcp::socket sock) {
         } else {
                 LOG(INFO) << "method name: " << request_header.methodname();
             if (request_header.methodname() == "getServiceStatus") {
-                LOG(INFO) << "Method is getServiceStatus";
                 hadoop::common::RpcResponseHeaderProto response_header;
+                //hadoop::hdfs::GetServiceStatusResponseProto service_status;
+                response_header.set_callid(rpc_request_header.callid());
+                response_header.set_clientid(rpc_request_header.clientid());
+                size_t response_varint_size;
+                std::string response = "2";
                 response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
-                LOG(INFO) << "Set response header";
-                write_success = write_int32(sock, 2);
-                LOG (INFO) << "Past wrote success";
+                response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
+                size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
+                response_header.SerializeToString(&response_header_str);
+                write_int32(sock, header_varint_size + response_header_str.size());
+                write_delimited_proto(sock, response_header_str);
                 return;
             }
 
