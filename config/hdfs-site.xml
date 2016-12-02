@@ -61,4 +61,11 @@
 		</description>
 	</property>
 
+
+    <property>
+        <name>dfs.safemode.threshold.pct</name>
+        <value>0</value>
+    </property>
+
+
 </configuration>

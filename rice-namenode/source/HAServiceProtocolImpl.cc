@@ -20,23 +20,29 @@
 #include <ConfigReader.h>
 
 #include "Leases.h"
-#include "HAServiceProtocolImpl.h"
+#include "HaServiceProtocolImpl.h"
 #include "zk_nn_client.h"
 
 namespace ha_service_translator {
 
 
 // the .proto file implementation's namespace, used for messages
-using namespace hadoop::hdfs;
+using namespace hadoop::common;
 
 const int HaServiceTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
 const std::string HaServiceTranslator::CLASS_NAME = ": **HaServiceTranslator** : ";
 
-HaServiceTranslator::HaServiceTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
-	: port(port_arg), server(port), zk(zk_arg) {
+HaServiceTranslator::HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnClient& zk_arg, int port_arg)
+	: server(server_arg), zk(zk_arg), port(port_arg) {
 	//InitServer();
-	RegisterClientRPCHandlers();
+	RegisterServiceRPCHandlers();
+	if (port == 5351){ // means 5351 is always the active node initially
+		state = ACTIVE;
+	}
+	else {
+		state = STANDBY;
+	}
 	//std::thread(&HaServiceTranslator::leaseCheck, this).detach();
 	LOG(INFO) << CLASS_NAME <<  "Created ha service translator.";
 }
@@ -54,13 +60,15 @@ std::string HaServiceTranslator::getServiceStatus(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, " Get Serice Status ");
 	GetServiceStatusResponseProto res;
+	res.set_state(state);
+	res.set_readytobecomeactive(true);
 	return Serialize(res);
 }
 
 // ----------------------- HANDLER HELPERS --------------------------------
 /**
  * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
- * If it succeeds, we simly return the serialized string. 
+ * If it succeeds, we simly return the serialized string.
  */
 std::string HaServiceTranslator::Serialize(google::protobuf::Message& res) {
 	std::string out;
@@ -78,7 +86,7 @@ std::string HaServiceTranslator::Serialize(google::protobuf::Message& res) {
  * support a command being called. Those cases should be handled back in
  * rpcserver.cc, which will be using a very similar - but different - function)
  */
-hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHeader(std::string error_msg,
+hadoop::common::RpcResponseHeaderProto HaServiceTranslator::GetErrorRPCHeader(std::string error_msg,
 		std::string exception_classname) {
 	hadoop::common::RpcResponseHeaderProto response_header;
 	response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
@@ -92,13 +100,13 @@ hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHead
 
 // ------------------------------------ RPC SERVER INTERACTIONS --------------------------
 
-void HaServiceTranslator::RegisterClientRPCHandlers() {
+void HaServiceTranslator::RegisterServiceRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
-
+	LOG(INFO) << CLASS_NAME << "Registering RPC Handlers";
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
     	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
-	server.register_handler("transitionToActive", std::bind(&HaServiceTranslator::transitionToActive, this, _1));
-	server.register_handler("getServiceStatus", std::bind(&HaServiceTranslator::getServiceStatus, this, _1));
+	server->register_handler("transitionToActive", std::bind(&HaServiceTranslator::transitionToActive, this, _1));
+	server->register_handler("getServiceStatus", std::bind(&HaServiceTranslator::getServiceStatus, this, _1));
 }
 
 
@@ -112,4 +120,3 @@ HaServiceTranslator::~HaServiceTranslator() {
 	// TODO handle being shut down
 }
 } //namespace
-

@@ -14,9 +14,7 @@ link_directories(${Boost_LIBRARY_DIR})
 include_directories(/usr/include/asio)
 
 add_subdirectory(proto)
-add_subdirectory(proto3.0)
 include_directories(${ProtobufIncludePath})
-include_directories(${Protobuf3IncludePath})
 
 add_subdirectory(utility)
 add_subdirectory(rpcserver)
