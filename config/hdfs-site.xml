@@ -50,6 +50,8 @@
 		<name>dfs.ha.fencing.methods</name>
 		<value>shell(/bin/true)</value>
 	</property>
+
+	<!-- TODO: client can't find our file -->
 	<!-- <property>
 		<name>dfs.client.failover.proxy.provider.rdfs-nn</name>
 		<value>ConfiguredFailoverProxyProvider</value>

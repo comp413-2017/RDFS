@@ -117,20 +117,11 @@ void RPCServer::handle_rpc(tcp::socket sock) {
 	    LOG(INFO) << CLASS_NAME << "RPC_METHOD_FOUND: [[" << request_header.methodname()
 		    << "]]\n";
 
-		typedef std::unordered_map<std::string, std::function<std::string(std::string)>>::iterator it_type;
-		for(it_type iterator = dispatch_table.begin(); iterator != dispatch_table.end(); iterator++) {
-			LOG(INFO) << CLASS_NAME << "ITEM IN TABLE: " << iterator->first;
-	    // iterator->first = key
-	    // iterator->second = value
-	    // Repeat if you also want to iterate through the second map.
-		}
-
-
-		//The if-statement is true only if there is a corresponding handler in
-		//for the requested command in on of the Namenode or datanode ProtocolImpl.cc files.
-		std::string response_header_str;
-		bool write_success;
-		if (iter != dispatch_table.end()) {
+	//The if-statement is true only if there is a corresponding handler in
+	//for the requested command in on of the Namenode or datanode ProtocolImpl.cc files.
+	std::string response_header_str;
+	bool write_success;
+	if (iter != dispatch_table.end()) {
             LOG(INFO) << CLASS_NAME <<  "dispatching handler for " << request_header.methodname();
             // Send the response back on the socket.
             hadoop::common::RpcResponseHeaderProto response_header;
@@ -157,23 +148,6 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                 LOG(ERROR) << CLASS_NAME <<  "failed to write response to client.";
             }
         } else {
-            LOG(INFO) << CLASS_NAME << "No handler found for " << request_header.methodname();
-            if (request_header.methodname() == "getServiceStatus") {
-                hadoop::common::RpcResponseHeaderProto response_header;
-                //hadoop::hdfs::GetServiceStatusResponseProto service_status;
-                response_header.set_callid(rpc_request_header.callid());
-                response_header.set_clientid(rpc_request_header.clientid());
-                size_t response_varint_size;
-                std::string response = "2";
-                response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_SUCCESS);
-                response_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response.size());
-                size_t header_varint_size = ::google::protobuf::io::CodedOutputStream::VarintSize32(response_header_str.size());
-                response_header.SerializeToString(&response_header_str);
-                write_int32(sock, header_varint_size + response_header_str.size());
-                write_delimited_proto(sock, response_header_str);
-                return;
-            }
-
             // In this case, we see that the lookup for a function to handle the
             // requested command (for example, see ClientNamenodeProtocolImpl)  using
             // the dispatch table failed. As such, all we must send is a
@@ -229,16 +203,7 @@ bool RPCServer::send_error_header(
  * specified output Proto.
  */
 void RPCServer::register_handler(std::string key, std::function<std::string(std::string)> handler) {
-	LOG(INFO) << CLASS_NAME << "Registering handler for method " << key;
     this->dispatch_table[key] = handler;
-	LOG(INFO) << CLASS_NAME << "Registered handler. ";
-	typedef std::unordered_map<std::string, std::function<std::string(std::string)>>::iterator it_type;
-	for(it_type iterator = dispatch_table.begin(); iterator != dispatch_table.end(); iterator++) {
-		LOG(INFO) << CLASS_NAME << "ITEM IN TABLE: " << iterator->first;
-	// iterator->first = key
-	// iterator->second = value
-	// Repeat if you also want to iterate through the second map.
-	}
 }
 
 /**

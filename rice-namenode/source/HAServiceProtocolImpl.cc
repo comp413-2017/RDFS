@@ -25,28 +25,22 @@
 
 namespace ha_service_translator {
 
-
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::common;
-
-const int HaServiceTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
 const std::string HaServiceTranslator::CLASS_NAME = ": **HaServiceTranslator** : ";
 
 HaServiceTranslator::HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnClient& zk_arg, int port_arg)
 	: server(server_arg), zk(zk_arg), port(port_arg) {
-	//InitServer();
 	RegisterServiceRPCHandlers();
 	if (port == 5351){ // means 5351 is always the active node initially
-		LOG(INFO) << CLASS_NAME << "NameNode in ACTIVE state";
+		LOG(INFO) << CLASS_NAME << "NameNode running in ACTIVE state";
 		state = ACTIVE;
 	}
 	else {
-		LOG(INFO) << CLASS_NAME << "NameNode in STANDBY state";
+		LOG(INFO) << CLASS_NAME << "NameNode running in STANDBY state";
 		state = STANDBY;
 	}
-	//std::thread(&HaServiceTranslator::leaseCheck, this).detach();
-	LOG(INFO) << CLASS_NAME <<  "Created ha service translator.";
 }
 
 std::string HaServiceTranslator::transitionToActive(std::string input) {
