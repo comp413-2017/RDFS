@@ -59,6 +59,16 @@ std::string HaServiceTranslator::transitionToActive(std::string input) {
 	return Serialize(res);
 }
 
+std::string HaServiceTranslator::transitionToStandby(std::string input) {
+	TransitionToStandbyRequestProto req;
+	req.ParseFromString(input);
+	logMessage(req, " Transition to Standby ");
+	LOG(INFO) << CLASS_NAME << "NameNode transitioning to STANDBY state";
+	state = STANDBY;
+	TransitionToStandbyResponseProto res;
+	return Serialize(res);
+}
+
 std::string HaServiceTranslator::getServiceStatus(std::string input) {
 	GetServiceStatusRequestProto req;
 	req.ParseFromString(input);
@@ -118,6 +128,7 @@ void HaServiceTranslator::RegisterServiceRPCHandlers() {
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
     	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server->register_handler("transitionToActive", std::bind(&HaServiceTranslator::transitionToActive, this, _1));
+	server->register_handler("transitionToStandby", std::bind(&HaServiceTranslator::transitionToStandby, this, _1));
 	server->register_handler("getServiceStatus", std::bind(&HaServiceTranslator::getServiceStatus, this, _1));
 	server->register_handler("monitorHealth", std::bind(&HaServiceTranslator::monitorHealth, this, _1));
 }

@@ -50,7 +50,7 @@
 		<name>dfs.ha.fencing.methods</name>
 		<value>shell(/bin/true)</value>
 	</property>
-	<property>
+	<!-- <property>
 		<name>dfs.client.failover.proxy.provider.rdfs-nn</name>
 		<value>ConfiguredFailoverProxyProvider</value>
 		<description>
@@ -59,7 +59,20 @@
 			information, please consult the "Configuration Details" section of
 			the HDFS High Availability documentation.
 		</description>
+	</property> -->
+
+	<property>
+		<name>dfs.client.failover.proxy.provider.rdfs-nn</name>
+		<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+		<description>
+			The prefix (plus a required nameservice ID) for the class name of the
+			configured Failover proxy provider for the host.  For more detailed
+			information, please consult the "Configuration Details" section of
+			the HDFS High Availability documentation.
+		</description>
 	</property>
+
+
 
 
     <property>

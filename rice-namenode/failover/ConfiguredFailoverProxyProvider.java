@@ -90,6 +90,8 @@ public class ConfiguredFailoverProxyProvider<T> extends AbstractNNFailoverProxyP
 	// @VisibleForTesting
 	ConfiguredFailoverProxyProvider(Configuration conf, URI uri, Class<T> xface, ProxyFactory<T> factory) {
 
+		System.out.println("---Constructing Proxy Providor for URI " + uri.toString());
+
 		// Preconditions.checkArgument( xface.isAssignableFrom(NamenodeProtocols.class), "Interface class %s is not a valid NameNode protocol!");
 		this.xface = xface;
 
@@ -155,6 +157,7 @@ public class ConfiguredFailoverProxyProvider<T> extends AbstractNNFailoverProxyP
 
 	@Override
 	public void performFailover(T currentProxy) {
+		System.out.println("----Performing a failover");
 		incrementProxyIndex();
 	}
 

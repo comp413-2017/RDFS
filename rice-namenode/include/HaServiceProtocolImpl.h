@@ -34,6 +34,7 @@ class HaServiceTranslator {
 		// RPC calls which we support. Each take a string which comes form
 		// the rpc call, and it is then deserialized into their proto msg
 		std::string transitionToActive(std::string);
+		std::string transitionToStandby(std::string);
 		std::string getServiceStatus(std::string);
 		std::string monitorHealth(std::string input);
 
