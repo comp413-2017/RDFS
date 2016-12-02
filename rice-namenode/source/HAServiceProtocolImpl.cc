@@ -38,9 +38,11 @@ HaServiceTranslator::HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnCl
 	//InitServer();
 	RegisterServiceRPCHandlers();
 	if (port == 5351){ // means 5351 is always the active node initially
+		LOG(INFO) << CLASS_NAME << "NameNode in ACTIVE state";
 		state = ACTIVE;
 	}
 	else {
+		LOG(INFO) << CLASS_NAME << "NameNode in STANDBY state";
 		state = STANDBY;
 	}
 	//std::thread(&HaServiceTranslator::leaseCheck, this).detach();
@@ -51,6 +53,8 @@ std::string HaServiceTranslator::transitionToActive(std::string input) {
 	TransitionToActiveRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, " Transition to Active ");
+	LOG(INFO) << CLASS_NAME << "NameNode transitioning to ACTIVE state";
+	state = ACTIVE;
 	TransitionToActiveResponseProto res;
 	return Serialize(res);
 }
@@ -62,6 +66,14 @@ std::string HaServiceTranslator::getServiceStatus(std::string input) {
 	GetServiceStatusResponseProto res;
 	res.set_state(state);
 	res.set_readytobecomeactive(true);
+	return Serialize(res);
+}
+
+std::string HaServiceTranslator::monitorHealth(std::string input) {
+	MonitorHealthRequestProto req;
+	req.ParseFromString(input);
+	logMessage(req, " Monitor health ");
+	MonitorHealthResponseProto res;
 	return Serialize(res);
 }
 
@@ -107,6 +119,7 @@ void HaServiceTranslator::RegisterServiceRPCHandlers() {
     	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server->register_handler("transitionToActive", std::bind(&HaServiceTranslator::transitionToActive, this, _1));
 	server->register_handler("getServiceStatus", std::bind(&HaServiceTranslator::getServiceStatus, this, _1));
+	server->register_handler("monitorHealth", std::bind(&HaServiceTranslator::monitorHealth, this, _1));
 }
 
 

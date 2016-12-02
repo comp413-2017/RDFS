@@ -35,6 +35,7 @@ class HaServiceTranslator {
 		// the rpc call, and it is then deserialized into their proto msg
 		std::string transitionToActive(std::string);
 		std::string getServiceStatus(std::string);
+		std::string monitorHealth(std::string input);
 
 	private:
 		std::string Serialize(google::protobuf::Message&);
