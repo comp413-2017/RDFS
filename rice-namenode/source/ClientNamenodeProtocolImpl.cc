@@ -19,7 +19,6 @@
 #include <zkwrapper.h>
 #include <ConfigReader.h>
 
-#include "Leases.h"
 #include "ClientNamenodeProtocolImpl.h"
 #include "zk_nn_client.h"
 
@@ -37,8 +36,6 @@ namespace client_namenode_translator {
 
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
-
-const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
 
 const std::string ClientNamenodeTranslator::CLASS_NAME = ": **ClientNamenodeTranslator** : ";
 

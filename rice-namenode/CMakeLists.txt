@@ -6,7 +6,7 @@ include_directories(${CMAKE_SOURCE_DIR}/rpcserver/include
         ${CMAKE_SOURCE_DIR}/rice-namenode/include
         ${CMAKE_SOURCE_DIR}/utility/include)
 
-add_library(namenode_protos source/ClientNamenodeProtocolImpl.cc source/Leases.cc)
+add_library(namenode_protos source/ClientNamenodeProtocolImpl.cc)
 target_link_libraries( namenode_protos rpcserver )
 target_link_libraries( namenode_protos zkwrapper )
 target_link_libraries( namenode_protos rpcserver )
