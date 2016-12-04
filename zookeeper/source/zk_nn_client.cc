@@ -9,7 +9,6 @@
 #include <chrono>
 #include <sys/time.h>
 #include "zk_lock.h"
-#include "zk_queue.h"
 
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
