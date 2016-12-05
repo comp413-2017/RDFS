@@ -113,9 +113,6 @@ cd valgrind-3.11.0
 cd ../..
 rm -r valgrindtemp
 
-# Add Maven
-sudo apt install maven
-
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
 chown -R vagrant:vagrant /home/vagrant/.ssh/*
