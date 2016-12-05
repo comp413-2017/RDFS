@@ -8,6 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <vector>
 
 #include "native_filesystem.h"
 #include "socket_reads.h"
@@ -37,6 +38,8 @@
 using asio::ip::tcp;
 using namespace hadoop::hdfs;
 
+const size_t BYTES_PER_CKSUM = 512;
+
 class TransferServer {
 	public:
 		TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits = 10);
@@ -65,21 +68,32 @@ class TransferServer {
 
 		bool writeFinalPacket(tcp::socket& sock, uint64_t, uint64_t);
 		template <typename BufType>
-		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload);
+		bool writePacket(tcp::socket& sock, PacketHeaderProto p_head, std::vector<std::uint32_t> cksums, const BufType& data);
 		void synchronize(std::function<void(TransferServer&, tcp::socket&)> f, tcp::socket& sock);
+		std::uint32_t crc(const std::string& my_string, std::uint16_t off, std::uint16_t len);
 };
 
 // Templated method to be generic across any asio buffer type.
 template <typename BufType>
-bool TransferServer::writePacket(tcp::socket& sock, PacketHeaderProto p_head, const BufType& payload) {
+bool TransferServer::writePacket(tcp::socket& sock, PacketHeaderProto p_head, std::vector<std::uint32_t> cksums, const BufType& data) {
 	std::string p_head_str;
 	p_head.SerializeToString(&p_head_str);
 	const uint16_t header_len = p_head_str.length();
+	const uint32_t cksum_len = sizeof(std::uint32_t) * cksums.size();
 	// Add 4 to account for the size of uint32_t.
-	const uint32_t payload_len = 4 + asio::buffer_size(payload);
+	// Also add in |cksums| u4s; these are a part of the payload and thus the payload length
+	const uint32_t payload_len = 4 + asio::buffer_size(data) + cksum_len;
 	// Write payload length, header length, header, payload.
-	return (rpcserver::write_int32(sock, payload_len) &&
-			rpcserver::write_int16(sock, header_len) &&
-			rpcserver::write_proto(sock, p_head_str) &&
-			payload_len - 4 == sock.write_some(payload));
+
+	// Short circuit write calls
+	bool write_ok = true;
+	write_ok &= rpcserver::write_int32(sock, payload_len);
+	write_ok &= rpcserver::write_int16(sock, header_len);
+	write_ok &= rpcserver::write_proto(sock, p_head_str);
+
+	for (auto cksum : cksums) {
+		write_ok &= rpcserver::write_int32(sock, cksum);
+	}
+
+	return write_ok && asio::buffer_size(data) == sock.write_some(data);
 }
