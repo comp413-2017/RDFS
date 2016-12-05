@@ -24,7 +24,7 @@
 
 	<property>
 		<name>dfs.ha.namenodes.rdfs-nn</name>
-		<value>nn1,nn2</value>
+		<value>nn1,nn2,nn3</value>
 	</property>
 
 	<property>
@@ -38,6 +38,11 @@
 	</property>
 
 	<property>
+		<name>dfs.namenode.rpc-address.rdfs-nn.nn3</name>
+		<value>localhost:10030</value>
+	</property>
+
+	<property>
 		<name>dfs.namenode.http-address.rdfs-nn.nn1</name>
 		<value>localhost:5351</value>
 	</property>
@@ -46,6 +51,12 @@
 		<name>dfs.namenode.http-address.rdfs-nn.nn2</name>
 		<value>localhost:9820</value>
 	</property>
+
+	<property>
+		<name>dfs.namenode.http-address.rdfs-nn.nn3</name>
+		<value>localhost:10030</value>
+	</property>
+
 	<property>
 		<name>dfs.ha.fencing.methods</name>
 		<value>shell(/bin/true)</value>
