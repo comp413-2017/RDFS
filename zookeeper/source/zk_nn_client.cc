@@ -1058,10 +1058,18 @@ namespace zkclient{
 
         // TODO: Read strategy from config, but as of now select the first few blocks that are valid
 
+        /* Select a random subset of the datanodes if we've gotten more than the # requested. */
+        while (datanodes.size() > replication_factor) {
+            auto rem = rand() % datanodes.size();
+            std::swap(datanodes[rem], datanodes.back());
+            datanodes.pop_back();
+        }
+
         if (datanodes.size() < replication_factor) {
             LOG(ERROR) << CLASS_NAME << "Failed to find at least " << replication_factor << " datanodes at " + HEALTH;
             // no return because we still want the client to write to some datanodes
         }
+
         return true;
     }
 
