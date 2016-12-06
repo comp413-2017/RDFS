@@ -42,6 +42,10 @@ class ClientNamenodeTranslator {
 		std::string complete(std::string);
 		std::string setReplication(std::string);
 		std::string addBlock(std::string input);
+		std::string getListing(std::string input);
+		std::string getEZForPath(std::string input);
+		std::string setOwner(std::string input);
+		std::string getContentSummary(std::string input);
 
 		// RPC calls which are not supported
 		std::string rename(std::string);
@@ -50,6 +54,8 @@ class ClientNamenodeTranslator {
 		std::string setPermission(std::string);
 		std::string recoverLease(std::string);
 		std::string concat(std::string);
+
+
 
 		// lease manager interactions
 		std::string abandonBlock(std::string input);

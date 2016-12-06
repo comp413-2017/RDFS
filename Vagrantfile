@@ -24,7 +24,8 @@ Vagrant.configure("2") do |config|
     # Add to /etc/hosts: 33.33.33.33 rdfs
     config.vm.network "private_network", ip: "33.33.33.33"
     # TODO: do we need to forward any ports?
-    # config.vm.network "forwarded_port", guest: 80, host: 8000
+    config.vm.network :forwarded_port, guest: 8000, host: 8000
+
 
     # Mount the current folder to /home/vagrant/rdfs.
     config.vm.synced_folder ".", MOUNT_POINT

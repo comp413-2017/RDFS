@@ -1,8 +1,8 @@
 #include <iostream>
 #include <asio.hpp>
+#include <boost/crc.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <thread>
-#include <vector>
 #include <functional>
 #include <easylogging++.h>
 
@@ -242,7 +242,6 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
 		p_head.set_datalen(payload_size);
 		p_head.set_syncblock(false);
-
 		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
 			// LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			// LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";

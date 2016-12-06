@@ -24,7 +24,7 @@ namespace {
 				client = new zkclient::ZkNnClient(zk_shared);
 				zk = new ZKWrapper("localhost:2181", error_code, "/testing");
 			}
-			
+
 			hadoop::hdfs::CreateRequestProto getCreateRequestProto(const std::string& path){
 				hadoop::hdfs::CreateRequestProto create_req;
 				create_req.set_src(path);
@@ -134,92 +134,92 @@ namespace {
 		ASSERT_EQ(0, children.size());
 	}
 
-    TEST_F(NamenodeTest, DeleteEmptyDirNonRecursive){
-        int error;
-        hadoop::hdfs::MkdirsRequestProto mkdir_req;
-        hadoop::hdfs::MkdirsResponseProto mkdir_resp;
-        mkdir_req.set_src("dir1");
-        mkdir_req.set_createparent(false);
-        client->mkdir(mkdir_req, mkdir_resp);
-        ASSERT_TRUE(mkdir_resp.result());
+	TEST_F(NamenodeTest, DeleteEmptyDirNonRecursive){
+		int error;
+		hadoop::hdfs::MkdirsRequestProto mkdir_req;
+		hadoop::hdfs::MkdirsResponseProto mkdir_resp;
+		mkdir_req.set_src("dir1");
+		mkdir_req.set_createparent(false);
+		client->mkdir(mkdir_req, mkdir_resp);
+		ASSERT_TRUE(mkdir_resp.result());
 
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("dir1");
-        del_req.set_recursive(false);
-        client->destroy(del_req, del_resp);
-        ASSERT_FALSE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/dir1", exists, error));
-        ASSERT_TRUE(exists);
-    }
+		hadoop::hdfs::DeleteRequestProto del_req;
+		hadoop::hdfs::DeleteResponseProto del_resp;
+		del_req.set_src("dir1");
+		del_req.set_recursive(false);
+		client->destroy(del_req, del_resp);
+		ASSERT_FALSE(del_resp.result());
+		bool exists;
+		ASSERT_TRUE(zk->exists("/fileSystem/dir1", exists, error));
+		ASSERT_TRUE(exists);
+	}
 
-    TEST_F(NamenodeTest, DeleteEmptyDirRecursive){
-        int error;
-        hadoop::hdfs::MkdirsRequestProto mkdir_req;
-        hadoop::hdfs::MkdirsResponseProto mkdir_resp;
-        mkdir_req.set_src("dir2");
-        mkdir_req.set_createparent(false);
-        client->mkdir(mkdir_req, mkdir_resp);
-        ASSERT_TRUE(mkdir_resp.result());
+	TEST_F(NamenodeTest, DeleteEmptyDirRecursive){
+		int error;
+		hadoop::hdfs::MkdirsRequestProto mkdir_req;
+		hadoop::hdfs::MkdirsResponseProto mkdir_resp;
+		mkdir_req.set_src("dir2");
+		mkdir_req.set_createparent(false);
+		client->mkdir(mkdir_req, mkdir_resp);
+		ASSERT_TRUE(mkdir_resp.result());
 
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("dir2");
-        del_req.set_recursive(true);
-        client->destroy(del_req, del_resp);
-        ASSERT_TRUE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/dir2", exists, error));
-        ASSERT_FALSE(exists);
-    }
+		hadoop::hdfs::DeleteRequestProto del_req;
+		hadoop::hdfs::DeleteResponseProto del_resp;
+		del_req.set_src("dir2");
+		del_req.set_recursive(true);
+		client->destroy(del_req, del_resp);
+		ASSERT_TRUE(del_resp.result());
+		bool exists;
+		ASSERT_TRUE(zk->exists("/fileSystem/dir2", exists, error));
+		ASSERT_FALSE(exists);
+	}
 
-    TEST_F(NamenodeTest, DeleteUnclosedFile){
-        int error;
-        hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file1");
-        hadoop::hdfs::CreateResponseProto create_resp;
-        ASSERT_EQ(1, client->create_file(create_req, create_resp));
+	TEST_F(NamenodeTest, DeleteUnclosedFile){
+	int error;
+	hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file1");
+	hadoop::hdfs::CreateResponseProto create_resp;
+	ASSERT_EQ(1, client->create_file(create_req, create_resp));
 
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("file1");
-        del_req.set_recursive(false);
-        client->destroy(del_req, del_resp);
-        ASSERT_FALSE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/file1", exists, error));
-        ASSERT_TRUE(exists);
-    }
+	hadoop::hdfs::DeleteRequestProto del_req;
+	hadoop::hdfs::DeleteResponseProto del_resp;
+	del_req.set_src("file1");
+	del_req.set_recursive(false);
+	client->destroy(del_req, del_resp);
+	ASSERT_FALSE(del_resp.result());
+	bool exists;
+	ASSERT_TRUE(zk->exists("/fileSystem/file1", exists, error));
+	ASSERT_TRUE(exists);
+	}
 
-    TEST_F(NamenodeTest, DeleteClosedFileWithBlock){
-        int error;
-        hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file2");
-        hadoop::hdfs::CreateResponseProto create_resp;
-        ASSERT_EQ(1, client->create_file(create_req, create_resp));
+	TEST_F(NamenodeTest, DeleteClosedFileWithBlock){
+		int error;
+		hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file2");
+		hadoop::hdfs::CreateResponseProto create_resp;
+		ASSERT_EQ(1, client->create_file(create_req, create_resp));
 		std::uint64_t block_id = 1234;
 		std::vector<std::uint8_t> block_vec(sizeof(std::uint64_t));
 		memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
-        ASSERT_TRUE(zk->create("/fileSystem/file2/block-0000000000", block_vec, error));
-        ASSERT_TRUE(zk->create("/block_locations/1234", ZKWrapper::EMPTY_VECTOR, error));
+		ASSERT_TRUE(zk->create("/fileSystem/file2/block-0000000000", block_vec, error));
+		ASSERT_TRUE(zk->create("/block_locations/1234", ZKWrapper::EMPTY_VECTOR, error));
 
-        // TODO: create real block_locations for this block once we start doing complete legitimately
+		// TODO: create real block_locations for this block once we start doing complete legitimately
 
-        hadoop::hdfs::CompleteRequestProto complete_req;
-        hadoop::hdfs::CompleteResponseProto complete_resp;
-        complete_req.set_src("file2");
-        client->complete(complete_req, complete_resp);
-        ASSERT_TRUE(complete_resp.result());
+		hadoop::hdfs::CompleteRequestProto complete_req;
+		hadoop::hdfs::CompleteResponseProto complete_resp;
+		complete_req.set_src("file2");
+		client->complete(complete_req, complete_resp);
+		ASSERT_TRUE(complete_resp.result());
 
-        hadoop::hdfs::DeleteRequestProto del_req;
-        hadoop::hdfs::DeleteResponseProto del_resp;
-        del_req.set_src("file2");
-        del_req.set_recursive(false);
-        client->destroy(del_req, del_resp);
-        ASSERT_TRUE(del_resp.result());
-        bool exists;
-        ASSERT_TRUE(zk->exists("/fileSystem/file2", exists, error));
-        ASSERT_FALSE(exists);
-    }
+		hadoop::hdfs::DeleteRequestProto del_req;
+		hadoop::hdfs::DeleteResponseProto del_resp;
+		del_req.set_src("file2");
+		del_req.set_recursive(false);
+		client->destroy(del_req, del_resp);
+		ASSERT_TRUE(del_resp.result());
+		bool exists;
+		ASSERT_TRUE(zk->exists("/fileSystem/file2", exists, error));
+		ASSERT_FALSE(exists);
+	}
 
 	TEST_F(NamenodeTest, previousBlockComplete){
 		int error;
@@ -231,39 +231,119 @@ namespace {
 		/* mock the directory */
 		zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
 		zk->create("/block_locations/"+std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error);
-		ASSERT_EQ(false, client->previousBlockComplete(block_id));	
+		ASSERT_EQ(false, client->previousBlockComplete(block_id));
 		/* mock the child directory */
 		zk->create("/block_locations/"+std::to_string(block_id)+"/child1", ZKWrapper::EMPTY_VECTOR, error);
-		ASSERT_EQ(true, client->previousBlockComplete(block_id));	
+		ASSERT_EQ(true, client->previousBlockComplete(block_id));
 	}
 
 	TEST_F(NamenodeTest, testRenameFile){
 		int error_code;
-		zk->create("/fileSystem/old_name", zk->get_byte_vector("File data"), error_code, false);
-		ASSERT_EQ(0, error_code);
 
+		// Create a test file for renaming
+		hadoop::hdfs::CreateRequestProto create_req;
+		hadoop::hdfs::CreateResponseProto create_resp;
+		create_req.set_src("/old_name");
+		create_req.set_clientname("test_client_name");
+		create_req.set_createparent(false);
+		create_req.set_blocksize(0);
+		create_req.set_replication(1);
+		create_req.set_createflag(0);
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+
+		// Create a child of the old file with a fake block
 		std::string new_path;
 		zk->create_sequential("/fileSystem/old_name/block-", zk->get_byte_vector("Block uuid"), new_path, false, error_code);
 		ASSERT_EQ(0, error_code);
 		ASSERT_EQ("/fileSystem/old_name/block-0000000000", new_path);
 
-		ASSERT_TRUE(client->rename_file("/old_name", "/new_name"));
+		// Rename
+		hadoop::hdfs::RenameRequestProto rename_req;
+		hadoop::hdfs::RenameResponseProto rename_resp;
+		rename_req.set_src("/old_name");
+		rename_req.set_dst("/new_name");
+		client->rename(rename_req, rename_resp);
+		ASSERT_TRUE(rename_resp.result());
 
-		auto new_file_data = std::vector<std::uint8_t>();
-		zk->get("/fileSystem/new_name", new_file_data, error_code);
-		ASSERT_EQ(0, error_code);
-		ASSERT_EQ("File data", std::string(new_file_data.begin(), new_file_data.end()));
-		LOG(INFO) << "New: " << std::string(new_file_data.begin(), new_file_data.end());
+		// Ensure that the renamed node has the same data
+		zkclient::FileZNode renamed_data;
+		std::vector<std::uint8_t> data(sizeof(renamed_data));
+		ASSERT_TRUE(zk->get("/fileSystem/new_name", data, error_code));
+		std::uint8_t *buffer = &data[0];
+		memcpy(&renamed_data, buffer, sizeof(renamed_data));
+		ASSERT_EQ(1, renamed_data.replication);
+		ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(2, renamed_data.filetype);
 
+		// Ensure that the file's child indicating block_id was renamed as well
 		auto new_block_data = std::vector<std::uint8_t>();
 		zk->get("/fileSystem/new_name/block-0000000000", new_block_data, error_code);
 		ASSERT_EQ(0, error_code);
 		ASSERT_EQ("Block uuid", std::string(new_block_data.begin(), new_block_data.end()));
-		LOG(INFO) << "New: " << std::string(new_block_data.begin(), new_block_data.end());
 
 		// Ensure that old_name was delete
 		bool exist;
 		zk->exists("/fileSystem/old_name", exist, error_code);
+		ASSERT_EQ(false, exist);
+	}
+
+
+	TEST_F(NamenodeTest, testRenameDirWithFiles){
+		int error_code;
+
+		// Create a test file for renaming
+		hadoop::hdfs::CreateRequestProto create_req;
+		hadoop::hdfs::CreateResponseProto create_resp;
+		create_req.set_src("/old_dir/file1");
+		create_req.set_clientname("test_client_name");
+		create_req.set_createparent(true);
+		create_req.set_blocksize(0);
+		create_req.set_replication(1);
+		create_req.set_createflag(0);
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+		create_req.set_src("/old_dir/file2");
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+		create_req.set_src("/old_dir/nested_dir/nested_file");
+		ASSERT_TRUE(client->create_file(create_req, create_resp));
+
+	// Rename
+	hadoop::hdfs::RenameRequestProto rename_req;
+	hadoop::hdfs::RenameResponseProto rename_resp;
+	rename_req.set_src("/old_dir");
+	rename_req.set_dst("/new_dir");
+	client->rename(rename_req, rename_resp);
+	ASSERT_TRUE(rename_resp.result());
+
+	// // Ensure that the renamed node has the same data
+	zkclient::FileZNode renamed_data;
+	std::vector<std::uint8_t> data(sizeof(renamed_data));
+	ASSERT_TRUE(zk->get("/fileSystem/new_dir", data, error_code));
+	memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+	ASSERT_EQ(0, renamed_data.replication);
+	ASSERT_EQ(0, renamed_data.blocksize);
+	ASSERT_EQ(1, renamed_data.filetype);
+
+	ASSERT_TRUE(zk->get("/fileSystem/new_dir/file1", data, error_code));
+	memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+	ASSERT_EQ(1, renamed_data.replication);
+	ASSERT_EQ(0, renamed_data.blocksize);
+	ASSERT_EQ(2, renamed_data.filetype);
+
+	ASSERT_TRUE(zk->get("/fileSystem/new_dir/file2", data, error_code));
+	memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+	ASSERT_EQ(1, renamed_data.replication);
+	ASSERT_EQ(0, renamed_data.blocksize);
+	ASSERT_EQ(2, renamed_data.filetype);
+
+	ASSERT_TRUE(zk->get("/fileSystem/new_dir/nested_dir/nested_file", data, error_code));
+	memcpy(&renamed_data, &data[0], sizeof(renamed_data));
+	ASSERT_EQ(1, renamed_data.replication);
+	ASSERT_EQ(0, renamed_data.blocksize);
+		ASSERT_EQ(2, renamed_data.filetype);
+
+		// Ensure that file nodes were deleted
+		bool exist;
+		zk->exists("/fileSystem/old_dir", exist, error_code);
 		ASSERT_EQ(false, exist);
 	}
 

@@ -91,10 +91,12 @@ bool TransferServer::writePacket(tcp::socket& sock, PacketHeaderProto p_head, co
 	p_head.SerializeToString(&p_head_str);
 	const uint16_t header_len = p_head_str.length();
 	// Add 4 to account for the size of uint32_t.
+	// Also add in |cksums| u4s; these are a part of the payload and thus the payload length
 	const uint32_t payload_len = 4 + asio::buffer_size(payload);
 	// Write payload length, header length, header, payload.
-	return (rpcserver::write_int32(sock, payload_len) &&
-			rpcserver::write_int16(sock, header_len) &&
-			rpcserver::write_proto(sock, p_head_str) &&
-			payload_len - 4 == sock.write_some(payload));
+
+    return (rpcserver::write_int32(sock, payload_len) &&
+            rpcserver::write_int16(sock, header_len) &&
+            rpcserver::write_proto(sock, p_head_str) &&
+            payload_len - 4 == sock.write_some(payload));
 }
