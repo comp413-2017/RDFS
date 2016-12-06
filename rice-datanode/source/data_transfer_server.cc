@@ -17,10 +17,14 @@ using namespace hadoop::hdfs;
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
 
-TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS> &fs, std::shared_ptr<zkclient::ZkClientDn> &dn, int max_xmits) : port(port), fs(fs), dn(dn), max_xmits(max_xmits) {}
+TransferServer::TransferServer(int port, std::shared_ptr<nativefs::NativeFS>& fs, std::shared_ptr<zkclient::ZkClientDn>& dn, int max_xmits) : port(port), fs(fs), dn(dn), max_xmits(max_xmits) {}
 
 bool TransferServer::receive_header(tcp::socket& sock, uint16_t* version, unsigned char* type) {
 	return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
+}
+
+bool TransferServer::write_header(tcp::socket& sock, uint16_t version, unsigned char type) {
+	return (rpcserver::write_int16(sock, version) && rpcserver::write_byte(sock, type));
 }
 
 void TransferServer::handle_connection(tcp::socket sock) {
@@ -28,11 +32,10 @@ void TransferServer::handle_connection(tcp::socket sock) {
 		asio::error_code error;
 		uint16_t version;
 		unsigned char type;
-		uint64_t payload_size;
 		if (receive_header(sock, &version, &type)) {
 			LOG(INFO) << "Got header version=" << version << ", type=" << (int) type;
 		} else {
-			ERROR_AND_RETURN("Failed to receive header.");
+			ERROR_AND_RETURN("Failed to receive header, maybe connection closed.");
 		}
 		// TODO: implement proto handlers based on type
 		switch (type) {
@@ -149,21 +152,25 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 
 	if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
 		LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
+		return;
 	} else {
 		if (dn->blockReceived(header.baseheader().block().blockid(), block_data.length())) {
 			while (!ackQueue.push(last_header)) {
 			}
 		} else {
 			LOG(ERROR) << "Failed to register received block with NameNode";
+			return;
 		}
 	}
 
-
-	//TODO set proto source to this DataNode, remove this DataNode from
-	//	the proto targets, and send this proto along to other
-	//	DataNodes in targets
-	//TODO read in a response (?)
-	//TODO send packets to targets
+	LOG(INFO) << "Replicating onto " << proto.targets_size() << " target data nodes";
+	for (int i = 0; i < proto.targets_size(); i++) {
+		const DatanodeIDProto& dn_p = proto.targets(i).id();
+		std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
+		if (!dn->push_dn_on_repq(dn_name, header.baseheader().block().blockid())) {
+			// do nothing, check for acks will pick this up (hopefully!)
+		}
+	}
 
 	LOG(INFO) << "Wait for acks to finish. ";
 	ackThread.join();
@@ -223,7 +230,6 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 	if (offset > block.size()) {
 		len = 0;
 	}
-	bool send_chksums = proto.sendchecksums();
 
 	uint64_t seq = 0;
 	while (len > 0) {
@@ -236,19 +242,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 		uint64_t payload_size = std::min(len, PACKET_PAYLOAD_BYTES);
 		p_head.set_datalen(payload_size);
 		p_head.set_syncblock(false);
-
-		std::vector<std::uint32_t> cksums;
-		std::uint32_t cksum_len = payload_size;
-		// Loop is never entered if send_chksums is false
-		while (send_chksums && cksum_len > 0) {
-			uint32_t cur = (cksum_len >= BYTES_PER_CKSUM) ? BYTES_PER_CKSUM : cksum_len;
-			std::size_t size = cksums.size();
-			std::uint32_t cksum = crc(&block[0], size * payload_size + offset, cur);
-			cksums.push_back(cksum);
-			cksum_len -= cur;
-		}
-
-		if (writePacket(sock, p_head, cksums, asio::buffer(&block[offset], payload_size))) {
+		if (writePacket(sock, p_head, asio::buffer(&block[offset], payload_size))) {
 			// LOG(INFO) << "Successfully sent packet " << seq << " to client";
 			// LOG(INFO) << "Packet " << seq << " had " << payload_size << " bytes";
 		} else {
@@ -287,8 +281,7 @@ bool TransferServer::writeFinalPacket(tcp::socket& sock, uint64_t offset, uint64
 		p_head.set_lastpacketinblock(true);
 		p_head.set_datalen(0);
 		// No payload, so empty string.
-		std::vector<std::uint32_t> dummy_cksums;
-		return writePacket(sock, p_head, dummy_cksums, asio::buffer(""));
+		return writePacket(sock, p_head, asio::buffer(""));
 }
 
 void TransferServer::buildBlockOpResponse(std::string& response_string) {
@@ -331,13 +324,143 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 	cv.notify_one();
 }
 
-bool TransferServer::sendStats() {
-	uint64_t free_space = fs->getFreeSpace();
-	return dn->sendStats(free_space, xmits.fetch_add(0));
+bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
+	LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
+
+	LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
+
+    if (fs->hasBlock(blockToTarget.blockid())) {
+        LOG(INFO) << "Block already exists on this DN";
+        return true;
+    } else {
+        LOG(INFO) << "Block not found on this DN, replicating...";
+    }
+    // connect to the datanode
+    asio::io_service io_service;
+    std::string port = xferport;
+    tcp::resolver resolver(io_service);
+    tcp::resolver::query query(ip, port);
+    tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+
+    tcp::socket sock(io_service);
+    asio::connect(sock, endpoint_iterator);
+
+    // construct the rpc op_read request
+    std::string read_string;
+    OpReadBlockProto read_block_proto;
+    read_block_proto.set_len(len);
+    LOG(INFO) << "Requesting replica of length " << len << std::endl;
+
+    read_block_proto.set_offset(0);
+    read_block_proto.set_sendchecksums(true);
+
+    ClientOperationHeaderProto *header = read_block_proto.mutable_header();
+    header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO same as DFS client for now
+
+    BaseHeaderProto* base_proto = header->mutable_baseheader();
+    base_proto->set_allocated_block(&blockToTarget);
+    ::hadoop::common::TokenProto *token_header = base_proto->mutable_token();
+
+    token_header->set_identifier("open");
+    token_header->set_password("sesame");
+    token_header->set_kind("foo");
+    token_header->set_service("bar");
+
+    // send the read request
+    uint16_t version = 1000; // TODO what is the version
+    unsigned char read_request = READ_BLOCK;
+    read_block_proto.SerializeToString(&read_string);
+    LOG(INFO) << " writing read request " << std::to_string(read_request);
+    if (!write_header(sock, version, read_request)) {
+        LOG(ERROR) << " could not write the header request to target datanode";
+        return false;
+    } else {
+        LOG(INFO) << " successfully wrote the header request to target datanode";
+    }
+
+    if (!rpcserver::write_delimited_proto(sock, read_string)) {
+        LOG(ERROR) << " could not write the delimited read request to target datanode";
+        return false;
+    } else {
+        LOG(INFO) << " successfully wrote the delimited read request to target datanode";
+    }
+
+    // read the read response
+    BlockOpResponseProto read_response;
+    if (!rpcserver::read_delimited_proto(sock, read_response)) { 
+        LOG(ERROR) << " could not read the read response from target datanode";
+        return false;
+    } else {
+        LOG(INFO) << " successfully read the read response from target datanode";
+    }
+    std::string data(len, 0);
+
+	// LOCK
+	std::unique_lock<std::mutex> lk(m);
+	while (xmits.fetch_add(0) >= max_xmits){
+		cv.wait(lk);
+	}
+	xmits++;
+	LOG(INFO) << "**********" << "num xmits is " << xmits.fetch_add(0);
+	lk.unlock();
+
+    // read in the packets while we still have them, and we haven't processed the final packet
+    int read_len = 0;
+    bool last_packet = false;
+    while (read_len < len && !last_packet) {
+        asio::error_code error;
+        uint32_t payload_len;
+        rpcserver::read_int32(sock, &payload_len);
+        uint16_t header_len;
+        rpcserver::read_int16(sock, &header_len);
+        PacketHeaderProto p_head;
+        rpcserver::read_proto(sock, p_head, header_len);
+        // LOG(INFO) << "Receiving packet " << p_head.seqno();
+        // read in the data
+        if (!p_head.lastpacketinblock()) {
+            uint64_t data_len = p_head.datalen();
+            uint64_t seqno = p_head.seqno();
+            uint64_t offset = p_head.offsetinblock();
+			if (data_len + offset > len) {
+				LOG(ERROR) << "ERROR BAD BAD BAD ERROR BAD WITH DATA LEN";
+				xmits--;
+				cv.notify_one();
+				return false;
+			}
+            error = rpcserver::read_full(sock, asio::buffer(&data[offset], data_len));
+            if (error) {
+                LOG(ERROR) << "Failed to read packet " << p_head.seqno();
+				xmits--;
+				cv.notify_one();
+				return false;
+            }
+            read_len += data_len;
+        } else {
+            last_packet = true;
+        }
+    }
+	xmits--;
+	cv.notify_one();
+
+    //TODO send ClientReadStatusProto (delimited)
+    if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
+        LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
+        return false;
+    } else {
+        dn->blockReceived(header->baseheader().block().blockid(), read_len);
+    }
+
+    base_proto->release_block();
+    LOG(INFO) << "Replication complete, closing connection.";
+    return true;
 }
 
-std::uint32_t TransferServer::crc(const std::string& my_string, std::uint16_t off, std::uint16_t len) {
-    boost::crc_32_type result;
-    result.process_bytes(my_string.data() + off, len);
-    return result.checksum();
+bool TransferServer::sendStats() {
+	uint64_t free_space = fs->getFreeSpace();
+    LOG(INFO) << "Sending stats " << free_space;
+    return dn->sendStats(free_space, xmits.fetch_add(0));
+}
+
+bool TransferServer::poll_replicate() {
+	return dn->poll_replication_queue();
 }

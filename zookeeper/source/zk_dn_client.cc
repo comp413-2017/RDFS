@@ -4,8 +4,14 @@
 #include "zk_dn_client.h"
 #include "zk_lock.h"
 #include <easylogging++.h>
+#include <google/protobuf/message.h>
+#include "hdfs.pb.h"
+#include "util.h"
+#include "data_transfer_server.h"
 
 namespace zkclient{
+
+    using namespace hadoop::hdfs;
 
 	const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
 
@@ -65,7 +71,7 @@ namespace zkclient{
 				}
 
 				// Add this datanode as the block's location in block_locations
-				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+				if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
 					LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<datanode_id> " << error_code;
 					created_correctly = false;
 				}
@@ -179,14 +185,23 @@ namespace zkclient{
 		}
 
 		// Create the work queues, set their watchers
-		ZkClientDn::initWorkQueue(REPLICATE_QUEUES, ZkClientDn::thisDNReplicationQueueWatcher, id);
-		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher, id);
+		ZkClientDn::initWorkQueue(DELETE_QUEUES, ZkClientDn::thisDNDeleteQueueWatcher);
+		// Create the replicate queue
+		if (zk->exists(REPLICATE_QUEUES + id, exists, error_code)){
+				if (!exists){
+						LOG(INFO) << "doesn't exist, trying to make it";
+						if (!zk->create(REPLICATE_QUEUES + id, ZKWrapper::EMPTY_VECTOR, error_code, false)){
+								LOG(INFO) << "Creation failed";
+						}
+				}
+		}
 		LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
 	}
 
-	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *), std::string id){
+	void ZkClientDn::initWorkQueue(std::string queueName, void (* watchFuncPtr)(zhandle_t *, int, int, const char *, void *)){
 		int error_code;
 		bool exists;
+		std::string id = get_datanode_id();
 
 		// Create queue for this datanode
 		// TODO: Replace w/ actual queues when they're created
@@ -200,20 +215,109 @@ namespace zkclient{
 		}
 
 		// Register the replication watcher for this dn
-		std::vector <std::string> children = std::vector <std::string>();
-		if(!zk->wget_children(queueName + id, children, watchFuncPtr, nullptr, error_code)){
+		std::vector <std::string> children;
+
+		if(!zk->wget_children(queueName + id, children, watchFuncPtr, this, error_code)){
 			LOG(INFO) << "getting children failed";
 		}
-
 	}
 
-	void ZkClientDn::thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
-		LOG(INFO) << "Replication watcher triggered on path: " << path;
+	bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
+		auto queue_path = util::concat_path(ZkClientCommon::REPLICATE_QUEUES, dn_name);
+		auto my_id = build_datanode_id(data_node_id);
+		LOG(INFO) << "adding datanode and block to replication queue " << dn_name << " " << std::to_string(blockid);
+		std::vector<uint8_t> block_vec (sizeof(uint64_t));
+		memcpy(&block_vec[0], &blockid, sizeof(uint64_t));
+		int error;
+        std::vector<std::shared_ptr<ZooOp>> ops;
+        std::vector<zoo_op_result> results;
+        auto work_item = util::concat_path(queue_path, std::to_string(blockid));
+        if (!zk->create(work_item, ZKWrapper::EMPTY_VECTOR, error)){
+            LOG(ERROR) << "Failed to create replication commands for pipelining!";
+            return false;
+        }
+        return true;
 	}
 
-	// TODO: Get children and for each of them delete it from raw disk IO (call delete block) and and say block deleted
-	// and then re-attach watcher. Before need to call get children agian and see if there are more delete commands
-	// Make sure to delete actual work item from queue
+	void ZkClientDn::setTransferServer(std::shared_ptr<TransferServer>& server){
+		this->server = server;
+	}
+
+	bool ZkClientDn::poll_replication_queue() {
+		LOG(INFO) << " poll replication queue";
+		handleReplicateCmds(util::concat_path(REPLICATE_QUEUES, get_datanode_id()));
+		return true;
+	}
+
+	void ZkClientDn::handleReplicateCmds(const std::string& path) {
+		int err;
+		LOG(ERROR) << "handling replicate watcher for " << path;
+		std::vector<std::string> work_items;
+
+		if (!zk->get_children(path, work_items, err)){
+			LOG(ERROR) << "Failed to get work items!";
+			return;
+		}
+		std::vector<std::shared_ptr<ZooOp>> ops;
+		for (auto &block : work_items){
+			auto full_work_item_path = util::concat_path(path, block);
+
+			std::string read_from;
+			// get block size
+			std::vector<std::uint8_t> block_size_vec(sizeof(std::uint64_t));
+			std::uint64_t block_size;
+			if (!zk->get(util::concat_path(BLOCK_LOCATIONS, block), block_size_vec, err, sizeof(std::uint64_t))) {
+				LOG(ERROR) << "could not get the block length for " << block << " because of " << err;
+				continue;
+			}
+			memcpy(&block_size, &block_size_vec[0], sizeof(uint64_t));
+
+			//build block proto
+			hadoop::hdfs::ExtendedBlockProto block_proto;
+			std::uint64_t block_id;
+			std::stringstream strm(block);
+			strm >> block_id;
+			LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
+			buildExtendedBlockProto(&block_proto, block_id, block_size);
+
+			bool delete_item = false;
+			if (!find_datanode_with_block(std::to_string(block_id), read_from, err)) {
+				LOG(ERROR) << "Could not find datanode with block, going to delete";
+				delete_item = true; // delete it
+			} else {
+				std::vector<std::string> split_address;
+				boost::split(split_address, read_from, boost::is_any_of(":"));
+				assert(split_address.size() == 2);
+				// get the port
+				std::string dn_ip = split_address[0];
+				DataNodePayload dn_target_info;
+				std::vector<std::uint8_t> dn_data(sizeof(DataNodePayload));
+				if (!zk->get(HEALTH_BACKSLASH + read_from + STATS, dn_data, err, sizeof(DataNodePayload))) {
+					LOG(ERROR) << "failed to read target dn payload" << err;
+					continue;
+				}
+				memcpy(&dn_target_info, &dn_data[0], sizeof(DataNodePayload));
+				std::uint32_t xferPort = dn_target_info.xferPort;
+				// actually do the inter datanode communication, try twice (short circuit)
+				if (server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto)) {
+					LOG(INFO) << "Replication successful.";
+					delete_item = true;
+				} else {
+					LOG(ERROR) << "Replication unsuccessful. Gonna try again later";
+				}
+			}
+			if (delete_item) {
+				// delete it no matter what
+				ops.push_back(zk->build_delete_op(full_work_item_path));
+			}
+		}
+		//delete work items
+		std::vector<zoo_op_result> results;
+		if (!zk->execute_multi(ops, results, err)){
+			LOG(ERROR) << "Failed to delete successfully completed replicate commands!";
+		}
+	}
+
 	void ZkClientDn::thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx){
 		LOG(INFO) << "Delete watcher triggered on path: " << path;
 	}
@@ -225,7 +329,11 @@ namespace zkclient{
 	std::string ZkClientDn::build_datanode_id(DataNodeId data_node_id) {
 		return data_node_id.ip + ":" + std::to_string(data_node_id.ipcPort);
 	}
-	
+
+	std::string ZkClientDn::get_datanode_id() {
+		return build_datanode_id(this->data_node_id);
+	}
+
 	bool ZkClientDn::sendStats(uint64_t free_space, uint32_t xmits) {
 		int error_code;
 		
@@ -239,6 +347,35 @@ namespace zkclient{
 			LOG(ERROR) << CLASS_NAME <<  "Failed setting /health/<data_node_id>/stats with error " << error_code;
 			return false;
 		}
+		return true;
+	}
+
+	bool ZkClientDn::buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto* eb, const std::uint64_t& block_id,
+											 const uint64_t& block_size) {
+		eb->set_poolid("0");
+		eb->set_blockid(block_id);
+		eb->set_generationstamp(1);
+		eb->set_numbytes(block_size);
+		return true;
+	}
+
+	bool ZkClientDn::find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code) {
+		std::vector<std::string> datanodes;
+		std::string block_loc_path = BLOCK_LOCATIONS + block_uuid_str;
+
+		if (!zk->get_children(block_loc_path, datanodes, error_code)) {
+			LOG(ERROR) << "Failed to get children of: " << block_loc_path;
+			return false;
+		}
+		if (datanodes.size() < 1) {
+			LOG(ERROR) << "There are no datanodes with a replica of block " << block_uuid_str;
+			// TODO: set error_code
+			return false;
+		}
+		// TODO: Pick the datanode which has fewer transmits
+
+		datanode = datanodes[0];
+		LOG(INFO) << "Found DN: " << datanode << " which has a replica of: " << block_uuid_str;
 		return true;
 	}
 }

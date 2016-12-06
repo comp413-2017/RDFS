@@ -28,6 +28,7 @@ TEST_F(NativeFSTest, CanGetBlock) {
 	bool write_success = filesystem.writeBlock(2, blk);
 	ASSERT_EQ(true, write_success);
 	std::string newBlock;
+	ASSERT_EQ(true, filesystem.hasBlock(2));
 	bool success = filesystem.getBlock(2, newBlock);
 	ASSERT_EQ(true, success);
 	ASSERT_EQ(blk[0], newBlock[0]);
@@ -36,7 +37,9 @@ TEST_F(NativeFSTest, CanGetBlock) {
 TEST_F(NativeFSTest, CanRemoveBlock) {
 	NativeFS filesystem(backing);
 	ASSERT_EQ(true, filesystem.rmBlock(1));
+	ASSERT_EQ(false, filesystem.hasBlock(1));
 	ASSERT_EQ(true, filesystem.rmBlock(2));
+	ASSERT_EQ(false, filesystem.hasBlock(2));
 }
 
 TEST_F(NativeFSTest, RemoveNonExistBlockReturnsError) {
