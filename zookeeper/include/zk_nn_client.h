@@ -76,7 +76,12 @@ class ZkNnClient : public ZkClientCommon {
 		void destroy(DeleteRequestProto& req, DeleteResponseProto& res);
 		void complete(CompleteRequestProto& req, CompleteResponseProto& res);
 		void rename(RenameRequestProto& req, RenameResponseProto& res);
-		/**
+		bool get_listing(GetListingRequestProto& req, GetListingResponseProto& res);
+		void get_content(GetContentSummaryRequestProto& req, GetContentSummaryResponseProto& res);
+
+		void set_file_info_content(ContentSummaryProto* status, const std::string& path, FileZNode& znode_data);
+
+	/**
 		 * Add block.
 		 */
 		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
@@ -109,7 +114,8 @@ class ZkNnClient : public ZkClientCommon {
 		bool find_all_datanodes_with_block(const std::string &block_uuid_str, std::vector<std::string> &rdatanodes,
 		int &error_code);
 
-		bool rename_file(std::string src, std::string dst);
+	    bool rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
+	    bool rename_ops_for_dir(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
 
 		/**
 		 * Look through the wait_for_acks work queue to check the replication
@@ -117,7 +123,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * ensure that the blocks get replicated
 		 */
 		bool check_acks();
-	private:
+
+		// get locations given src, offset, and length
+		void get_block_locations(const std::string &src, google::protobuf::uint64 offset, google::protobuf::uint64 length, LocatedBlocksProto* blocks);
+
+private:
 
 		/**
 		 * Set the file status proto with information from the znode struct and the path

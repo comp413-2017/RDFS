@@ -3,7 +3,6 @@
 
 #include "zk_dn_client.h"
 #include "zk_lock.h"
-#include "zk_queue.h"
 #include <easylogging++.h>
 #include <google/protobuf/message.h>
 #include "hdfs.pb.h"
@@ -211,6 +210,7 @@ namespace zkclient{
 		std::vector<std::shared_ptr<ZooOp>> ops;
 		for (auto &block : work_items){
 			auto full_work_item_path = util::concat_path(path, block);
+
 			std::string read_from;
 			// get block size
 			std::vector<std::uint8_t> block_size_vec(sizeof(std::uint64_t));
@@ -228,6 +228,7 @@ namespace zkclient{
 			strm >> block_id;
 			LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
 			buildExtendedBlockProto(&block_proto, block_id, block_size);
+
 			bool delete_item = false;
 			if (!find_datanode_with_block(std::to_string(block_id), read_from, err)) {
 				LOG(ERROR) << "Could not find datanode with block, going to delete";
@@ -247,8 +248,7 @@ namespace zkclient{
 				memcpy(&dn_target_info, &dn_data[0], sizeof(DataNodePayload));
 				std::uint32_t xferPort = dn_target_info.xferPort;
 				// actually do the inter datanode communication, try twice (short circuit)
-				if (server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto) ||
-						server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto)) {
+				if (server->replicate(block_size, dn_ip, std::to_string(xferPort), block_proto)) {
 					LOG(INFO) << "Replication successful.";
 					delete_item = true;
 				} else {

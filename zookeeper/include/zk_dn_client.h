@@ -79,6 +79,9 @@ public:
 
 	bool sendStats(uint64_t free_space, uint32_t xmits);
 
+	/**
+	 * Set the transfer server that this dn uses for read/writes
+	 */
 	void setTransferServer(std::shared_ptr<TransferServer>& server);
 
 	/**
@@ -98,6 +101,7 @@ public:
 private:
 
 	std::shared_ptr<TransferServer> server;
+
 	/**
 	* Builds a string of the DataNode ID.
 	* @param data_node_id The DataNode's DataNodeId object, containing the IP and port.
@@ -126,9 +130,11 @@ private:
 	 */
 	void handleReplicateCmds(const std::string& path);
 
-	static void thisDNReplicationQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 	static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
+	/**
+	 * Find one datanode that has the block_uuid
+	 */
 	bool find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code);
 
 	/**

@@ -35,18 +35,19 @@ namespace {
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234"));
 
         sleep(10);
-        std::uint64_t block_id;
         using namespace nativefs;
         NativeFS fs0("tfs0");
         NativeFS fs1("tfs1");
         NativeFS fs2("tfs2");
-        block_id = fs0.getKnownBlocks()[0];
-        std::string block0, block1, block2;
-        ASSERT_TRUE(fs0.getBlock(block_id, block0));
-        ASSERT_TRUE(fs1.getBlock(block_id, block1));
-        ASSERT_TRUE(fs2.getBlock(block_id, block2));
-        ASSERT_EQ(block0, block1);
-        ASSERT_EQ(block1, block2);
+        auto block_ids = fs0.getKnownBlocks();
+        for (auto block_id : block_ids) {
+            std::string block0, block1, block2;
+            ASSERT_TRUE(fs0.getBlock(block_id, block0));
+            ASSERT_TRUE(fs1.getBlock(block_id, block1));
+            ASSERT_TRUE(fs2.getBlock(block_id, block2));
+            ASSERT_EQ(block0, block1);
+            ASSERT_EQ(block1, block2);
+        }
     }
     TEST(ReplicationTest, testReplication) {
 
@@ -71,7 +72,7 @@ namespace {
 		sleep(10);
         // Kill one of the original datanodes
         system("pkill -f ReplicationTestServer0");
-        sleep(30);
+        sleep(45);
 
         // The data should now be replicated on the new server
         system("pkill -f ReplicationTestServer1");
