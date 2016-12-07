@@ -560,6 +560,13 @@ bool ZKWrapper::flush(const std::string& full_path, bool synchronous) const {
 
 		int rc = zoo_async(zh, full_path.c_str(), completion, flag);
 
+		// Exit early if async failed
+		if (rc) {
+			LOG(ERROR) << "Flushing " << full_path << " failed";
+			print_error(rc);
+			return rc;
+		}
+
 		// Wait for the asynchronous function to complete
 		int count = 0;
 		// ZooKeeper is guaranteed to be synced within 2 seconds

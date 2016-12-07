@@ -962,8 +962,8 @@ namespace zkclient{
 
         auto results = std::vector <zoo_op_result>();
         int err;
-        // TODO: Perhaps we have to perform a more fine grained analysis of the results
-        if (!zk->execute_multi(ops, results, err)) {
+		// We do not need to sync this multi-op immediately
+        if (!zk->execute_multi(ops, results, err, false)) {
             LOG(ERROR) << CLASS_NAME << "Failed to write the addBlock multiop, ZK state was not changed";
             ZKWrapper::print_error(err);
             return false;
@@ -1311,7 +1311,8 @@ namespace zkclient{
 			ops.push_back(zk->build_create_op(repl_item, ZKWrapper::EMPTY_VECTOR));
 		}
 
-		if (!zk->execute_multi(ops, results, err)){
+		// We do not need to sync this multi-op immediately
+		if (!zk->execute_multi(ops, results, err, false)){
 			LOG(ERROR) << "Failed to execute multiop for replicate_blocks";
 			return false;
 		}
