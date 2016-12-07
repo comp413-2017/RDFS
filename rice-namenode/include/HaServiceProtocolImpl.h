@@ -28,7 +28,6 @@ using namespace hadoop::common;
 class HaServiceTranslator {
 	public:
 		HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnClient& zk_arg, int port_arg);
-		~HaServiceTranslator();
 
 		// RPC calls which we support. Each take a string which comes form
 		// the rpc call, and it is then deserialized into their proto msg
@@ -62,8 +61,6 @@ class HaServiceTranslator {
 		 */
 		hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
         		std::string exception_classname);
-
-        static const int LEASE_CHECK_TIME; 	// in seconds, how often the namenode checks all leases
 
 		static const std::string CLASS_NAME;
 

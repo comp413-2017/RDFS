@@ -66,7 +66,7 @@ std::string HaServiceTranslator::transitionToStandby(std::string input) {
 std::string HaServiceTranslator::getServiceStatus(std::string input) {
 	GetServiceStatusRequestProto req;
 	req.ParseFromString(input);
-	logMessage(req, " Get Serice Status ");
+	logMessage(req, " Get Service Status ");
 	GetServiceStatusResponseProto res;
 	res.set_state(state);
 	res.set_readytobecomeactive(true);
@@ -134,7 +134,4 @@ void HaServiceTranslator::logMessage(google::protobuf::Message& req, std::string
 	LOG(INFO) << CLASS_NAME <<  "Got message " << req_name << ": " << req.DebugString();
 }
 
-HaServiceTranslator::~HaServiceTranslator() {
-	// TODO handle being shut down
-}
 } //namespace
