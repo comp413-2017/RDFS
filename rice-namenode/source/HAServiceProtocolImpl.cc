@@ -33,22 +33,13 @@ const std::string HaServiceTranslator::CLASS_NAME = ": **HaServiceTranslator** :
 HaServiceTranslator::HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnClient& zk_arg, int port_arg)
 	: server(server_arg), zk(zk_arg), port(port_arg) {
 	RegisterServiceRPCHandlers();
-	if (port == 5351){ // means 5351 is always the active node initially
-		LOG(INFO) << CLASS_NAME << "NameNode running in ACTIVE state";
-		state = ACTIVE;
-	}
-	else {
-		LOG(INFO) << CLASS_NAME << "NameNode running in STANDBY state";
-		state = STANDBY;
-	}
+	state = ACTIVE;
 }
 
 std::string HaServiceTranslator::transitionToActive(std::string input) {
 	TransitionToActiveRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, " Transition to Active ");
-	LOG(INFO) << CLASS_NAME << "NameNode transitioning to ACTIVE state";
-	state = ACTIVE;
 	TransitionToActiveResponseProto res;
 	return Serialize(res);
 }
@@ -57,8 +48,6 @@ std::string HaServiceTranslator::transitionToStandby(std::string input) {
 	TransitionToStandbyRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, " Transition to Standby ");
-	LOG(INFO) << CLASS_NAME << "NameNode transitioning to STANDBY state";
-	state = STANDBY;
 	TransitionToStandbyResponseProto res;
 	return Serialize(res);
 }
