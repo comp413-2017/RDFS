@@ -85,6 +85,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * Add block.
 		 */
 		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
+        
+        /**
+         * Abandons the block - basically reverses all of add block's multiops
+         */
+		bool abandon_block(AbandonBlockRequestProto& req, AbandonBlockResponseProto& res);
 
 		bool previousBlockComplete(uint64_t prev_id);
 		/**
@@ -105,6 +110,9 @@ class ZkNnClient : public ZkClientCommon {
 		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
 
 		bool find_datanode_for_block(std::vector<std::string>& datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock, uint64_t blocksize);
+
+		bool find_all_datanodes_with_block(const std::string &block_uuid_str, std::vector<std::string> &rdatanodes,
+		int &error_code);
 
 	    bool rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
 	    bool rename_ops_for_dir(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
@@ -219,6 +227,14 @@ private:
 		 * Returns the current timestamp in milliseconds
 		 */
 		uint64_t current_time_ms();
+
+        /**
+        * Informs Zookeeper when the DataNode has deleted a block.
+        * @param uuid The UUID of the block deleted by the DataNode.
+        * @param size_bytes The number of bytes in the block
+        * @return True on success, false on error.
+        */
+        bool blockDeleted(uint64_t uuid, std::string id);
 
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;

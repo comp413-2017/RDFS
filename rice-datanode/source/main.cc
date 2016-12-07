@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 	daemon_thread::DaemonThreadFactory factory;
 	factory.create_daemon_thread(&TransferServer::sendStats, transfer_server.get(), 3);
 	factory.create_daemon_thread(&TransferServer::poll_replicate, transfer_server.get(), 2);
-
+	factory.create_daemon_thread(&TransferServer::poll_delete, transfer_server.get(), 5);
 	std::thread(&TransferServer::serve, transfer_server.get(), std::ref(io_service)).detach();
 	translator.getRPCServer().serve(io_service);
 }

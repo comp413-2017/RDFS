@@ -438,6 +438,10 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
     return true;
 }
 
+bool TransferServer::rmBlock(uint64_t block_id) {
+	return fs->rmBlock(block_id);
+}
+
 bool TransferServer::sendStats() {
 	uint64_t free_space = fs->getFreeSpace();
     LOG(INFO) << "Sending stats " << free_space;
@@ -446,4 +450,8 @@ bool TransferServer::sendStats() {
 
 bool TransferServer::poll_replicate() {
 	return dn->poll_replication_queue();
+}
+
+bool TransferServer::poll_delete() {
+	return dn->poll_delete_queue();
 }

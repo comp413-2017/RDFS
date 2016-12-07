@@ -143,17 +143,14 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
  */
 std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	AbandonBlockRequestProto req;
+	AbandonBlockResponseProto res; 
 	req.ParseFromString(input);
 	logMessage(req, "AbandonBlock ");
-	const ExtendedBlockProto& blockProto = req.b();
-	const std::string& src = req.src();
-	const std::string& holder = req.src(); // TODO who is the holder??
-	// TODO some optional fields
-	// TODO tell zookeeper to get rid of the last block (should not need to 
-	// (talk to datanode as far as i am aware)
-
-	AbandonBlockResponseProto res; 
-	return Serialize(res);	
+	if(zk.abandon_block(req, res)){
+		return Serialize(res);}
+	else{
+		throw GetErrorRPCHeader("Could not abandon block", "");
+	}
 }
 
 std::string ClientNamenodeTranslator::addBlock(std::string input) {

@@ -56,11 +56,11 @@ public:
 	* @param ipcPort TODO
 	* @param xferPort TODO
 	*/
-	ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress, uint64_t total_disk_space,
-			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+	ZkClientDn(const std::string& ip, const std::string& zkIpAndAddress,
+		uint64_t total_disk_space, const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 
-	ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper>, uint64_t total_disk_space,
-			const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+	ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper>,
+		uint64_t total_disk_space, const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
 	~ZkClientDn();
 
 	/**
@@ -77,14 +77,6 @@ public:
 	*/
 	bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
-	/**
-	* Informs Zookeeper when the DataNode has deleted a block. 
-	* @param uuid The UUID of the block deleted by the DataNode.
-	* @param size_bytes The number of bytes in the block
-	* @return True on success, false on error.
-	*/
-	bool blockDeleted(uint64_t uuid);
-	
 	bool sendStats(uint64_t free_space, uint32_t xmits);
 
 	/**
@@ -102,6 +94,8 @@ public:
 
 	bool poll_replication_queue();
 
+	bool poll_delete_queue();
+
 	std::string get_datanode_id();
 
 private:
@@ -113,6 +107,9 @@ private:
 	* @param data_node_id The DataNode's DataNodeId object, containing the IP and port.
 	* @return The ID string
 	*/
+
+	void processDeleteQueue();
+
 	std::string build_datanode_id(DataNodeId data_node_id);
 
 	DataNodeId data_node_id;
