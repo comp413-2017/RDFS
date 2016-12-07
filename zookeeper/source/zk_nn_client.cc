@@ -923,10 +923,20 @@ namespace zkclient{
 
 			LOG(INFO) << CLASS_NAME << "Found block locations " << data_nodes.size();
 
-			for (auto data_node = data_nodes.begin(); data_node != data_nodes.end(); ++data_node) {
-			    LOG(INFO) << "Block DN Loc: " << *data_node;
-			    buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+			auto sorted_data_nodes = std::vector<std::string>();
+			if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
+				for (auto data_node = sorted_data_nodes.begin(); data_node != sorted_data_nodes.end(); ++data_node) {
+				    LOG(INFO) << "Block DN Loc: " << *data_node;
+				    buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+				}
+			} else {
+				LOG(ERROR) << "Unable to sort DNs by # xmits in get_block_locations. Using unsorted instead.";
+				for (auto data_node = data_nodes.begin(); data_node != data_nodes.end(); ++data_node) {
+				    LOG(INFO) << "Block DN Loc: " << *data_node;
+				    buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+				}
 			}
+
 			buildTokenProto(located_block->mutable_blocktoken());
 	    	}
 		size += block_size;
@@ -935,6 +945,30 @@ namespace zkclient{
 
 
     // ---------------------------------------- HELPERS ----------------------------------------
+
+	bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids, std::vector<std::string> &sorted_dn_ids) {
+		int error_code;
+        std::priority_queue<TargetDN> targets;
+
+		for (auto datanode : unsorted_dn_ids) {
+	        std::string dn_stats_path = HEALTH_BACKSLASH + datanode + STATS;
+	        std::vector<uint8_t> stats_payload;
+	        stats_payload.resize(sizeof(DataNodePayload));
+	        if (!zk->get(dn_stats_path, stats_payload, error_code, sizeof(DataNodePayload))) {
+	            LOG(ERROR) << CLASS_NAME << "Failed to get " << dn_stats_path;
+	            return false;
+	        }
+	        DataNodePayload stats = DataNodePayload();
+	        memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
+            targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
+		}
+
+		while (targets.size() > 0) {
+            TargetDN target = targets.top();
+            sorted_dn_ids.push_back(target.dn_id);
+            targets.pop();
+		}
+	}
 
     std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath){
         std::string zkpath = NAMESPACE_PATH;

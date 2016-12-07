@@ -130,6 +130,12 @@ class ZkNnClient : public ZkClientCommon {
 private:
 
 		/**
+		 * Given a vector of DN IDs, sorts them from fewest to most number of transmits
+		 */
+		bool sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids, std::vector<std::string> &sorted_dn_ids);
+
+
+		/**
 		 * Set the file status proto with information from the znode struct and the path
 		 */
 		void set_file_info(HdfsFileStatusProto* fs, const std::string& path, FileZNode& node);
