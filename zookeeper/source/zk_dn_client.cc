@@ -194,7 +194,7 @@ namespace zkclient{
 
 	bool ZkClientDn::poll_delete_queue() {
 		LOG(INFO) << " poll delete queue";
-		processDeleteQueue(util::concat_path(DELETE_QUEUES, get_datanode_id()));
+		processDeleteQueue();
 		return true;
 	}
 
@@ -266,7 +266,8 @@ namespace zkclient{
 		}
 	}
 
-	void ZkClientDn::processDeleteQueue(std::string path) {
+	void ZkClientDn::processDeleteQueue() {
+	    std::string path = util::concat_path(DELETE_QUEUES, get_datanode_id());
 		int error_code;
 		bool exists;
 		int err;

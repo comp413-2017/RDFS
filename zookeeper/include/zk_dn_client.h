@@ -108,7 +108,7 @@ private:
 	* @return The ID string
 	*/
 
-	void processDeleteQueue(std::string path);
+	void processDeleteQueue();
 
 	std::string build_datanode_id(DataNodeId data_node_id);
 

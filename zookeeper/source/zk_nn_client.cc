@@ -377,7 +377,6 @@ namespace zkclient{
             ops.push_back(zk->build_create_op(delete_item, block_vec, ZOO_SEQUENCE));
             blockDeleted(blockId, dn);
         }
-        ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(blockId)));
 
         auto results = std::vector <zoo_op_result>();
         int err;
@@ -453,10 +452,13 @@ namespace zkclient{
         if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, exists, error_code)) {
             if (exists) {
                 ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id));
-                // If deleted last child of block locations, delete block locations
                 std::vector <std::string> children = std::vector <std::string>();
                 if(!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid), children, error_code)){
                     LOG(ERROR) << "getting children failed";
+                }
+                // If deleting last child of block locations, delete block locations at this block uuid
+                if (children.size() == 1) {
+                    ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid)));
                 }
             }
         }
@@ -529,7 +531,6 @@ namespace zkclient{
                     ops.push_back(zk->build_create_op(delete_item, block_vec, ZOO_SEQUENCE));
                     blockDeleted(block, dn);
                 }
-                ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(block)));
             }
         }
         ops.push_back(zk->build_delete_op(ZookeeperPath(path)));
@@ -1453,20 +1454,16 @@ namespace zkclient{
     bool ZkNnClient::find_all_datanodes_with_block(const std::string &block_uuid_str, std::vector<std::string>
         &rdatanodes, int &error_code) {
 
-        std::vector<std::string> datanodes;
         std::string block_loc_path = BLOCK_LOCATIONS + block_uuid_str;
 
-        if (!zk->get_children(block_loc_path, datanodes, error_code)) {
+        if (!zk->get_children(block_loc_path, rdatanodes, error_code)) {
             LOG(ERROR) << "Failed to get children of: " << block_loc_path;
             return false;
         }
-        if (datanodes.size() < 1) {
+        if (rdatanodes.size() < 1) {
             LOG(ERROR) << "There are no datanodes with a replica of block " << block_uuid_str;
-            // TODO: set error_code
             return false;
         }
-        // TODO: Pick the datanode which has fewer transmits
-        rdatanodes = datanodes;
         return true;
     }
 
