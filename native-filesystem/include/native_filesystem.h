@@ -104,7 +104,11 @@ class NativeFS{
 		/**
 		 * Persist current block metadata to storage.
 		 */
-		void flushBlocks();
+		void flushAllBlocks();
+		/**
+		 * Persist one particular block to storage.
+		 */
+		void flushBlock(long block_index);
 
 		/**
 		 * For debugging, print the free blocks.
