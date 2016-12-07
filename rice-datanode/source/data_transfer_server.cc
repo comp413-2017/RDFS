@@ -111,8 +111,6 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	bool last_packet = false;
 	std::string block_data;
 	int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
-	boost::lockfree::spsc_queue<PacketHeaderProto> ackQueue(max_capacity);
-	auto ackThread = std::thread(&TransferServer::ackPackets, this, std::ref(sock), std::ref(ackQueue));
 	PacketHeaderProto last_header;
 	while (!last_packet) {
 		asio::error_code error;
@@ -143,8 +141,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		}
 		// Wait free queue will return false on failure to insert element. Keep trying until insert works
 		if (!last_packet) {
-			while (!ackQueue.push(p_head)) {
-			}
+			ackPacket(sock, p_head);
 		} else {
 			last_header = p_head;
 		}
@@ -155,8 +152,7 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 		return;
 	} else {
 		if (dn->blockReceived(header.baseheader().block().blockid(), block_data.length())) {
-			while (!ackQueue.push(last_header)) {
-			}
+			ackPacket(sock, last_header);
 		} else {
 			LOG(ERROR) << "Failed to register received block with NameNode";
 			return;
@@ -171,34 +167,21 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 			// do nothing, check for acks will pick this up (hopefully!)
 		}
 	}
-
-	LOG(INFO) << "Wait for acks to finish. ";
-	ackThread.join();
 }
 
-void TransferServer::ackPackets(tcp::socket& sock, boost::lockfree::spsc_queue<PacketHeaderProto>& ackQueue) {
-	bool last_packet = false;
-	PacketHeaderProto p_head;
-	do {
-		// wait for packets to ack
-		if (!ackQueue.pop(&p_head)) {
-			continue;
-		}
-
-		// ack packet
-		last_packet = p_head.lastpacketinblock();
-		PipelineAckProto ack;
-		ack.set_seqno(p_head.seqno());
-		// LOG(INFO) << "Acking " << p_head.seqno();
-		ack.add_reply(SUCCESS);
-		std::string ack_string;
-		ack.SerializeToString(&ack_string);
-		if (rpcserver::write_delimited_proto(sock, ack_string)) {
-			// LOG(INFO) << "Successfully sent ack to client";
-		} else {
-			LOG(ERROR) << "Could not send ack to client";
-		}
-	} while (!last_packet);
+void TransferServer::ackPacket(tcp::socket& sock, PacketHeaderProto& p_head) {
+	// ack packet
+	PipelineAckProto ack;
+	ack.set_seqno(p_head.seqno());
+	// LOG(INFO) << "Acking " << p_head.seqno();
+	ack.add_reply(SUCCESS);
+	std::string ack_string;
+	ack.SerializeToString(&ack_string);
+	if (rpcserver::write_delimited_proto(sock, ack_string)) {
+		// LOG(INFO) << "Successfully sent ack to client";
+	} else {
+		LOG(ERROR) << "Could not send ack to client";
+	}
 }
 
 void TransferServer::processReadRequest(tcp::socket& sock) {

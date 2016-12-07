@@ -39,6 +39,14 @@ cat > /home/vagrant/hadoop3/etc/hadoop/core-site.xml <<EOF
         <name>fs.defaultFS</name>
         <value>hdfs://localhost:5351</value>
     </property>
+    <property>
+        <name>dfs.client.read.shortcircuit</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>dfs.client.write.shortcircuit</name>
+        <value>false</value>
+    </property>
 </configuration>
 EOF
 
