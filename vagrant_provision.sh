@@ -33,25 +33,6 @@ rm hadoop-3.0.0-alpha1.tar.gz
 ln -s hadoop3 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
-cat > /home/vagrant/hadoop3/etc/hadoop/core-site.xml <<EOF
-<configuration>
-    <property>
-        <name>fs.defaultFS</name>
-        <value>hdfs://localhost:5351</value>
-    </property>
-</configuration>
-EOF
-
-cat > /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml <<EOF
-<configuration>
-    <property>
-        <name>dfs.replication</name>
-        <value>1</value>
-        <name>dfs.name.dir</name>
-        <value>/home/vagrant/hadoop/cache/dfs/name</value>
-    </property>
-</configuration>
-EOF
 
 # add custom config files to Hadoop
 cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop/etc/hadoop/hdfs-site.xml
