@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 	system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
 	sleep(5);
 	system("/home/vagrant/rdfs/build/rice-datanode/datanode 50010 50020 _RW_TEST_FS &");
-	sleep(5);
+	sleep(10);
 	// Initialize and run the tests
 	::testing::InitGoogleTest(&argc, argv);
 	int res = RUN_ALL_TESTS();

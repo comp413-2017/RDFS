@@ -240,7 +240,16 @@ namespace zkclient{
     	std::vector<std::string> children;
     	std::string block_id_str = std::to_string(prev_id);
     	if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
-            return children.size() >= MIN_REPLICATION;
+            if(children.size() >= MIN_REPLICATION) {
+				return true;
+			} else {
+				LOG(INFO) << "Had to sync: previous block failed";
+				// If we failed initially attempt to sync the changes, then check again
+				zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + block_id_str), true);
+				if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
+					return children.size() >= MIN_REPLICATION;
+				}
+			}
     	}
     	return false;
     }
@@ -1129,8 +1138,8 @@ namespace zkclient{
 
         auto results = std::vector <zoo_op_result>();
         int err;
-        // TODO: Perhaps we have to perform a more fine grained analysis of the results
-        if (!zk->execute_multi(ops, results, err)) {
+		// We do not need to sync this multi-op immediately
+        if (!zk->execute_multi(ops, results, err, false)) {
             LOG(ERROR) << CLASS_NAME << "Failed to write the addBlock multiop, ZK state was not changed";
             ZKWrapper::print_error(err);
             return false;
@@ -1478,7 +1487,8 @@ namespace zkclient{
 			ops.push_back(zk->build_create_op(repl_item, ZKWrapper::EMPTY_VECTOR));
 		}
 
-		if (!zk->execute_multi(ops, results, err)){
+		// We do not need to sync this multi-op immediately
+		if (!zk->execute_multi(ops, results, err, false)){
 			LOG(ERROR) << "Failed to execute multiop for replicate_blocks";
 			return false;
 		}

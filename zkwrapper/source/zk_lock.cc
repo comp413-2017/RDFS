@@ -23,12 +23,12 @@ int ZKLock::lock() {
         LOG(ERROR) << CLASS_NAME <<  "ZKLock::lock(): Failed to check existence for " << my_locknode;
         return error_code;
     }
-    if (!exists && !zkWrapper.recursive_create(my_locknode, ZKWrapper::EMPTY_VECTOR, error_code)){
+    if (!exists && !zkWrapper.recursive_create(my_locknode, ZKWrapper::EMPTY_VECTOR, error_code, false)){
         LOG(ERROR) << CLASS_NAME <<  "ZKLock::lock(): Failed to recursively create " << my_locknode;
         return error_code;
     }
     std::string my_lock(my_locknode + "/lock-");
-    if (!zkWrapper.create_sequential(my_lock, ZKWrapper::EMPTY_VECTOR, locknode_with_seq, true, error_code)) {
+    if (!zkWrapper.create_sequential(my_lock, ZKWrapper::EMPTY_VECTOR, locknode_with_seq, true, error_code, false)) {
         LOG(ERROR) << CLASS_NAME <<  "ZKLock::lock(): Failed to create sequential " << my_lock;
         return error_code;
     }

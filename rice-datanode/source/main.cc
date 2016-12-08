@@ -24,6 +24,8 @@ int main(int argc, char* argv[]) {
 	el::Configurations conf(LOG_CONFIG_FILE);
 	el::Loggers::reconfigureAllLoggers(conf);
 
+	int error_code = 0;
+
 	asio::io_service io_service;
 	unsigned short xferPort = 50010;
 	unsigned short ipcPort = 50020;
@@ -44,7 +46,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 	uint64_t total_disk_space = fs->getTotalSpace();
-	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", "localhost:2181", total_disk_space, ipcPort, xferPort); // TODO: Change the datanode id
+	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
+	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", zk_shared, total_disk_space, ipcPort, xferPort); // TODO: Change the datanode id
 	ClientDatanodeTranslator translator(ipcPort);
 	auto transfer_server = std::make_shared<TransferServer>(xferPort, fs, dncli);
     dncli->setTransferServer(transfer_server);
