@@ -29,32 +29,32 @@
 
 	<property>
 		<name>dfs.namenode.rpc-address.rdfs-nn.nn1</name>
-		<value>localhost:5351</value>
+		<value>34.193.194.126:5351</value>
 	</property>
 
 	<property>
 		<name>dfs.namenode.rpc-address.rdfs-nn.nn2</name>
-		<value>localhost:9820</value>
+		<value>34.193.211.220:5351</value>
 	</property>
 
 	<property>
 		<name>dfs.namenode.rpc-address.rdfs-nn.nn3</name>
-		<value>localhost:10030</value>
+		<value>34.193.211.220:5351</value>
 	</property>
 
 	<property>
 		<name>dfs.namenode.http-address.rdfs-nn.nn1</name>
-		<value>localhost:5351</value>
+		<value>34.193.194.126:5351</value>
 	</property>
 
 	<property>
 		<name>dfs.namenode.http-address.rdfs-nn.nn2</name>
-		<value>localhost:9820</value>
+		<value>34.193.211.220:5351</value>
 	</property>
 
 	<property>
 		<name>dfs.namenode.http-address.rdfs-nn.nn3</name>
-		<value>localhost:10030</value>
+		<value>34.193.211.220:5351</value>
 	</property>
 
 	<property>
