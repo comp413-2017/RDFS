@@ -97,12 +97,14 @@ public:
     bool create(const std::string &path,
                 const std::vector <std::uint8_t> &data,
                 int &error_code,
-                bool ephemeral = false) const;
+                bool ephemeral = false,
+                bool sync = true) const;
 
 
     bool create_ephemeral(const std::string &path,
                 const std::vector <std::uint8_t> &data,
-                int &error_code, bool prependRoot = true) const;
+                int &error_code,
+                bool sync = true) const;
 
     /**
      * Creates a sequential znode
@@ -121,7 +123,8 @@ public:
                            const std::vector <std::uint8_t> &data,
                            std::string &new_path,
                            bool ephemeral,
-                           int &error_code) const;
+                           int &error_code,
+                           bool sync = true) const;
 
     /**
      * Recursively creates a new znode, non-existent znodes in the specified path
@@ -135,7 +138,8 @@ public:
      */
     bool recursive_create(const std::string &path,
                           const std::vector <std::uint8_t> &data,
-                          int &error_code) const;
+                          int &error_code,
+						  bool sync = true) const;
 
     /**
      * Checks if a znode exists or not.
@@ -174,7 +178,7 @@ public:
      * @return True if the operation completed successfully,
      * 		   False otherwise (caller should check 'error_code' value)
      */
-    bool delete_node(const std::string &path, int &error_code) const;
+    bool delete_node(const std::string &path, int &error_code, bool sync = true) const;
 
     /**
      * Recursively deletes the znode specified in the path and any children of that path
@@ -237,6 +241,19 @@ public:
              int length = MAX_PAYLOAD) const;
 
     /**
+     * Gets the info associated with a znode
+     *
+     * @param path The path to the node
+     * @param stat Reference to a stat struct to be filled with znode info
+     * @param error_code Int reference, set to a value in ZK_ERRORS
+     * @return True if the operation completed successfully,
+     *		   False otherwise (caller should check 'error_code' value)
+     */
+    bool get_info(const std::string &path,
+                  struct Stat &stat,
+                  int &error_code) const;
+
+    /**
      * This function is similar to 'get' except it allows one to specify
      * a watcher object rather than a boolean watch flag.
      *
@@ -269,7 +286,8 @@ public:
     bool set(const std::string &path,
              const std::vector <std::uint8_t> &data,
              int &error_code,
-             int version = -1)const;
+             bool sync = true,
+			 int version = -1)const;
 
     /**
      * @param path path of znode
@@ -314,7 +332,16 @@ public:
      */
     bool execute_multi(const std::vector <std::shared_ptr<ZooOp>> operations,
                        std::vector <zoo_op_result> &results,
-                       int &error_code) const;
+                       int &error_code,
+                       bool sync = true) const;
+
+	/**
+	 * Flush changes inside of ZooKeeper
+	 * @param full_path the full path of the znode directory to be flushed. Must be qualified with the ZooKeeper root
+	 * @param synchronous Whether this operation is blocking
+	 * @return true on success
+	 */
+	bool flush(const std::string& full_path, bool synchronous = true) const;
 
     void close();
 
@@ -325,24 +352,6 @@ public:
     }
 
     static const std::vector <std::uint8_t> EMPTY_VECTOR;
-	
-	/**
-	 * Takes a string and returns a pointer of type watcher function that 
-	 * can be used as an input of wget()
-	 * 
-	 * This watcher should be used on /health/datanode_ level, not a datanode's child level
-	 * @param path, a string of path to health. Generally, the value will be
-	 * ZkNnClient::CLASS_NAME. 
-	 */
-	watcher_fn watcher_health_factory(std::string path);
-	
-	/**
-	 * Returns a pointer of type watcher function that can be used as an input of wget()
-	 *
-	 * This watcher should be used on /health/datanode_123/health level (a datanode's child level)
-	 * @param (defined in zookeeper.h)
-	 */
-	static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
 
 
 private:

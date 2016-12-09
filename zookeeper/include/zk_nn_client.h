@@ -2,7 +2,7 @@
 #define RDFS_ZKNNCLIENT_H
 
 #include "zk_client_common.h"
-
+#include <queue>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <google/protobuf/message.h>
@@ -27,6 +27,24 @@ typedef struct
 	char owner[256]; // the client who created the file
 	char group[256];
 }FileZNode;
+
+
+struct TargetDN
+{
+	std::string dn_id;
+	uint64_t free_bytes;	//free space on disk
+	uint32_t num_xmits;		//current number of xmits
+
+	TargetDN(std::string id, int bytes, int xmits) : dn_id(id), free_bytes(bytes), num_xmits(xmits)
+	{
+	}
+
+	bool operator<(const struct TargetDN& other) const
+	{
+		// Minimizes num_xmits
+		return num_xmits > other.num_xmits;
+	}
+};
 
 using namespace hadoop::hdfs;
 
@@ -67,6 +85,11 @@ class ZkNnClient : public ZkClientCommon {
 		 * Add block.
 		 */
 		bool add_block(AddBlockRequestProto& req, AddBlockResponseProto& res);
+        
+        /**
+         * Abandons the block - basically reverses all of add block's multiops
+         */
+		bool abandon_block(AbandonBlockRequestProto& req, AbandonBlockResponseProto& res);
 
 		bool previousBlockComplete(uint64_t prev_id);
 		/**
@@ -74,12 +97,23 @@ class ZkNnClient : public ZkClientCommon {
 		 */
 		bool file_exists(const std::string& path);
 
+
+		/**
+		 * Reads the blocksize of the given block_id from zookeeper and returns
+		 */
+		bool get_block_size(const u_int64_t &block_id, uint64_t &blocksize);
+
 		// this is public because we have not member functions in this file
 		static const std::string CLASS_NAME;
 
 		// TODO lil doc string and move to private (why does this cause compiler problems?)
 		bool add_block(const std::string& fileName, u_int64_t& block_id, std::vector<std::string> & dataNodes, uint32_t replication_factor);
-		bool find_datanode_for_block(std::vector<std::string>& datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock = false);
+
+		bool find_datanode_for_block(std::vector<std::string>& datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock, uint64_t blocksize);
+
+		bool find_all_datanodes_with_block(const std::string &block_uuid_str, std::vector<std::string> &rdatanodes,
+		int &error_code);
+
 	    bool rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
 	    bool rename_ops_for_dir(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
 
@@ -94,6 +128,12 @@ class ZkNnClient : public ZkClientCommon {
 		void get_block_locations(const std::string &src, google::protobuf::uint64 offset, google::protobuf::uint64 length, LocatedBlocksProto* blocks);
 
 private:
+
+		/**
+		 * Given a vector of DN IDs, sorts them from fewest to most number of transmits
+		 */
+		bool sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids, std::vector<std::string> &sorted_dn_ids);
+
 
 		/**
 		 * Set the file status proto with information from the znode struct and the path
@@ -143,17 +183,18 @@ private:
         bool destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops);
 
 		/**
-		 * Creates 'num_replicas' many work items for the given 'block_uuid' in
-		 * the replicate work queue, ensuring that the new replicas are not on
-		 * an excluded datanode
+		 * Give a vector of block IDs, executes a multiop which creates items in
+		 * the replicate queue and children nodes indicating which datanote to
+		 * read from for those items.
 		 */
-		bool replicate_block(const std::string &block_uuid, int num_replicas, std::vector<std::string> &excluded_datanodes);
+		bool replicate_blocks(const std::vector<std::string> &to_replicate, int error_code);
+
 
 		/**
-		 * Calculates the approximate number of seconds that have elapsed since
-		 * the znode at the given path was created.
+		 * Calculates the approximate number of milliseconds that have elapsed
+		 * since the znode at the given path was created.
 		 */
-		int seconds_since_creation(std::string &path);
+		int ms_since_creation(std::string &path);
 
 		/**
 		 * Modifies the LocatedBlockProto with the proper block information
@@ -179,9 +220,27 @@ private:
                                             const uint64_t& block_size);
 
 		/**
+		 * Watches /health for new datanodes, attaches watchers to new datanodes' heartbeats.
+		 */
+		static void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+		
+		/**
+		 * Watches datanode heartbeats.
+		 */
+		static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+
+		/**
 		 * Returns the current timestamp in milliseconds
 		 */
 		uint64_t current_time_ms();
+
+        /**
+        * Informs Zookeeper when the DataNode has deleted a block.
+        * @param uuid The UUID of the block deleted by the DataNode.
+        * @param size_bytes The number of bytes in the block
+        * @return True on success, false on error.
+        */
+        bool blockDeleted(uint64_t uuid, std::string id);
 
 		const int UNDER_CONSTRUCTION = 1;
 		const int FILE_COMPLETE = 0;
@@ -190,8 +249,7 @@ private:
 		const int IS_FILE = 2;
 		const int IS_DIR = 1;
 		// TODO: Should eventually be read from a conf file
-		const int ACK_TIMEOUT = 60; // 60 second timeout when waiting for replication acknowledgements
-
+        const int ACK_TIMEOUT = 600000; // in millisecons, 10 minute timeout when waiting for replication acknowledgements
 };
 
 } // namespace

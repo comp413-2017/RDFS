@@ -56,22 +56,9 @@ namespace nativefs {
 		} else {
 			LOG(INFO) << CLASS_NAME << "No block list found, constructing from scratch...";
 			std::for_each(&blocks[0], &blocks[BLOCK_LIST_LEN], resetBlock);
-			flushBlocks();
+			flushAllBlocks();
 		}
 		constructFreeLists();
-	}
-
-	NativeFS::~NativeFS() {
-		flushBlocks();
-		delete[] blocks;
-	}
-
-	void NativeFS::flushBlocks() {
-		LOG(INFO) << CLASS_NAME << "Flushing blocks to storage.";
-		disk.seekp(0);
-		disk.write(&MAGIC[0], MAGIC.size());
-		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
-		disk.flush();
 	}
 
 	void NativeFS::constructFreeLists() {
@@ -94,6 +81,26 @@ namespace nativefs {
 		}
 		// Add free space between the last block and the end of disk.
 		freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].len, DISK_SIZE);
+	}
+
+	NativeFS::~NativeFS() {
+		flushAllBlocks();
+		delete[] blocks;
+	}
+
+	void NativeFS::flushAllBlocks() {
+		LOG(INFO) << CLASS_NAME << "Flushing blocks to storage.";
+		disk.seekp(0);
+		disk.write(&MAGIC[0], MAGIC.size());
+		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
+		disk.flush();
+	}
+
+	void NativeFS::flushBlock(long block_index) {
+		LOG(INFO) << CLASS_NAME << "Flushing block " << block_index << " to storage.";
+		disk.seekp(MAGIC.size() + block_index * sizeof(block_info));
+		disk.write((const char*) &blocks[block_index], sizeof(block_info));
+		disk.flush();
 	}
 
 	void NativeFS::freeRange(uint64_t start, uint64_t end) {
@@ -131,14 +138,16 @@ namespace nativefs {
 		}
 	}
 
-	void NativeFS::printKnownBlocks() {
+	std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
+        std::vector<std::uint64_t> vector;
         LOG(INFO) << "Known blocks:";
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len != 0) {
 				auto info = blocks[i];
-				LOG(INFO) << "Found block: " << info.blockid << " at " << info.offset << " with len " << info.len;
+				vector.push_back(info.blockid);
 			}
 		}
+        return vector;
 	}
 
 	bool NativeFS::allocateBlock(size_t size, uint64_t& offset) {
@@ -190,16 +199,16 @@ namespace nativefs {
 		info.free = false;
 
 		std::lock_guard<std::mutex> lock(listMtx);
-		switch (addBlock(info)) {
-			case 0:
-				flushBlocks();
-				break;
-			case 1:
-				LOG(ERROR) << CLASS_NAME << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
-				return false;
-			case 2:
+		int added_index = addBlock(info);
+		switch (added_index) {
+			case -1:
 				LOG(ERROR) << CLASS_NAME << "Block wih id " << info.blockid << " already exists on this DataNode";
 				return false;
+			case -2:
+				LOG(ERROR) << CLASS_NAME << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+				return false;
+			default:
+				flushBlock(added_index);
 		}
 
 		return true;
@@ -207,43 +216,57 @@ namespace nativefs {
 	}
 
 	/**
-	 * Returns 0 on success, 1 if no space, 2 if already exists
+	 * Returns the index added on success. If already exists, return -1. If no
+	 * space, return -2.
 	 */
 	int NativeFS::addBlock(const block_info& info) {
 		// Make sure this block doesn't already exist on this datanode
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].blockid == info.blockid && !blocks[i].free) {
-				return 2;
+				return -1;
 			}
 		}
-		// Instead block_info into array
+		// Insert block_info into array
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-			if (blocks[i].len == 0) {
+			if (blocks[i].len == 0 && blocks[i].free == true) {
 				blocks[i] = info;
-				return 0;
+				return i;
 			}
 		}
-		return 1;
+		return -2;
+	}
+
+	/**
+	 * Fetch block_info for an id. Assumes it has a lock on the block list.
+	 */
+	bool NativeFS::fetchBlock(uint64_t id, block_info& info) {
+		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
+			if (blocks[i].blockid == id && !blocks[i].free) {
+				info = blocks[i];
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check existence of block with given id.
+	 */
+	bool NativeFS::hasBlock(uint64_t id) {
+		block_info info;
+		std::lock_guard<std::mutex> lock(listMtx);
+		return fetchBlock(id, info);
 	}
 
 	/**
 	* Read the contents of given block id.
-	**/
+	*/
 	bool NativeFS::getBlock(uint64_t id, std::string& blk) {
 		// Look in map and get filename
 		block_info info;
 		{
 			std::lock_guard<std::mutex> lock(listMtx);
-			// Look up the block info for this id.
-			bool found = false;
-			for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-				if (blocks[i].blockid == id && !blocks[i].free) {
-					info = blocks[i];
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
+			if (!fetchBlock(id, info)) {
 				return false;
 			}
 		}
@@ -266,7 +289,7 @@ namespace nativefs {
 				resetBlock(blocks[i]);
 				// Coalesce by reconstructing the free lists.
 				constructFreeLists();
-				flushBlocks();
+				flushBlock(i);
 				return true;
 			}
 		}

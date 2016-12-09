@@ -7,6 +7,10 @@
 
 #include "zkwrapper.h"
 
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+
 const std::string ZKWrapper::CLASS_NAME = ": **ZkWrapper** : ";
 
 int init = 0;
@@ -60,8 +64,7 @@ void watcher(zhandle_t *zzh,
 		int state,
 		const char *path,
 		void *watcherCtx) {
-	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'"
-		;
+	LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'";
 	char health[] = "/health/datanode_";
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE) {
@@ -73,76 +76,6 @@ void watcher(zhandle_t *zzh,
 			zookeeper_close(zzh);
 			exit(1);
 		}
-	}
-}
-
-
-watcher_fn ZKWrapper::watcher_health_factory(std::string inputpath){
-	class factory_wrapper{
-		public:
-
-			static void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-
-				struct String_vector stvector;
-				struct String_vector *vector = &stvector;
-				/* reinstall watcher */
-				int rc = zoo_wget_children(zzh, path, watcher_health, nullptr, vector);
-				LOG(INFO)  <<  "[In watcher_health rc] health:" << rc;
-				int i;
-				std::vector <std::string> children;
-				for (i = 0; i < stvector.count; i++) {
-					children.push_back(stvector.data[i]);
-				}
-
-				if (children.size() == 0){
-					// ZkNnClient::CLASS_NAME is not in scope when put into zkwrapper
-					LOG(INFO) <<  "no childs to retrieve";
-				}
-				constexpr int MAX_BUF = 65535;
-				for (int i = 0; i < children.size(); i++) {
-					char str[MAX_BUF];
-					memset(str, MAX_BUF, '\0');
-					LOG(INFO) << "[In factory] value of i is " << i;
-					LOG(INFO) << "[In factory] children.size() is " << children.size();
-					LOG(INFO) <<  "[In watcher_health] Attaching child to " << children[i];
-					//ZkClientCommon::HEALTH_BACKSLASH + children[i]).c_str(),
-					strcat(str, path);
-					strcat(str, "/");
-					strcat(str, children[i].c_str());
-					LOG(INFO) << "[In factory] path is " << path;
-					LOG(INFO) << "[In factory] str is " << str;
-					int rc = zoo_wget_children(zzh, str,
-							ZKWrapper::watcher_health_child, nullptr,
-							vector);
-					LOG(INFO) << "[In factory] rc value is" << rc;
-				}
-			}
-	};
-	LOG(INFO) <<  "[In factory], factory ready to return";
-	return factory_wrapper::watcher_health;
-}
-
-/*
- * Watcher for health child node (/health/datanode_)
- */
-void ZKWrapper::watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-	LOG(INFO) << CLASS_NAME << "[health child] Watcher triggered on path '" << path;
-	char health[] = "/health/datanode_";
-	LOG(INFO) << CLASS_NAME << "[health child] Receive a heartbeat. A child has been added under path" << path;
-
-	struct String_vector stvector;
-	struct String_vector *vector = &stvector;
-	int rc = zoo_wget_children(zzh, path, watcher_health_child, nullptr, vector);
-	int i = 0;
-	if (vector->count == 0){
-		// client needs to pass a function ptr so they will be notified
-		LOG(INFO) << CLASS_NAME << "no childs to retrieve";
-	}
-	while (i < vector->count) {
-		LOG(INFO) <<  CLASS_NAME << "Children" << vector->data[i++];
-	}
-	if (vector->count) {
-		deallocate_String_vector(vector);
 	}
 }
 
@@ -161,20 +94,28 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
 	}
 	init = 1;
 	if (root_path.size() != 0) {
-		bool root_exists;
-		if (!exists(root_path, root_exists, error_code)){
-			LOG(ERROR) << CLASS_NAME <<  "Failed to check if root directory " << root << " exists " << error_code;
-			init = -1;
-			return;
+
+		bool root_exists = false;
+		while (!root_exists) {
+			if (!exists(root_path, root_exists, error_code)){
+				LOG(ERROR) << CLASS_NAME <<  "Failed to check if root directory " << root << " exists " << error_code;
+			}
+			if (!root_exists) {
+				if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
+					LOG(ERROR) << CLASS_NAME <<  "Failed to create root directory " << root << " with error " << error_code;
+				} else {
+					break;
+				}
+			}
 		}
+
 		if (!root_exists) {
 			if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
 				LOG(ERROR) << CLASS_NAME <<  "Failed to create root directory " << root << " with error " << error_code;
-				init = -1;
-				return;
 			}
 		}
 	}
+	LOG(INFO) << "SUCCESSFULLY STARTED ZKWRAPPER";
 	root = root_path;
 }
 
@@ -189,7 +130,10 @@ std::string ZKWrapper::prepend_zk_root(const std::string& path) const {
 }
 
 std::string ZKWrapper::removeZKRoot(const std::string& path) const {
-	return path.substr(root.size());
+	if (path.substr(0, root.size()) == root) {
+		return path.substr(root.size());
+	}
+	return path;
 }
 
 /* Wrapper Implementation of Zookeeper Functions */
@@ -197,7 +141,8 @@ std::string ZKWrapper::removeZKRoot(const std::string& path) const {
 bool ZKWrapper::create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		int &error_code,
-		bool ephemeral) const {
+		bool ephemeral,
+		bool sync) const {
 	if (!init) {
 		LOG(ERROR) << CLASS_NAME <<  "Attempt to create before init!";
 		error_code = -999;
@@ -215,6 +160,11 @@ bool ZKWrapper::create(const std::string &path,
 			nullptr,
 			0);
 	error_code = rc;
+
+	if (sync && !rc) {
+		flush(prepend_zk_root(path));
+	}
+
 	if (!rc)
 		return true;
 	LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
@@ -227,7 +177,8 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		std::string &new_path,
 		bool ephemeral,
-		int &error_code) const {
+		int &error_code,
+		bool sync) const {
 
 	LOG(INFO) << CLASS_NAME <<	"Starting sequential for " << path;
 	if (!init) {
@@ -260,18 +211,25 @@ bool ZKWrapper::create_sequential(const std::string &path,
 	int i = 0;
 	LOG(INFO) << CLASS_NAME <<	"NEW path is " << new_path;
 	new_path.resize(len + NUM_SEQUENTIAL_DIGITS);
+
+	if (sync && !rc) {
+		flush(new_path);
+	}
+
 	new_path = removeZKRoot(new_path);
 	LOG(INFO) << CLASS_NAME <<	"NEW path is now this" << new_path;
+
 	return true;
 }
 
 bool ZKWrapper::recursive_create(const std::string &path,
 		const std::vector <std::uint8_t> &data,
-		int &error_code) const {
+		int &error_code,
+		bool sync) const {
 	for (int i=1; i<path.length(); ++i){
 		if (path[i] == '/'){
 			LOG(INFO) << CLASS_NAME <<	"Generating " << path.substr(0, i);
-			if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code)){
+			if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code, false, false)){
 				if (error_code != ZNODEEXISTS){
 					LOG(ERROR) << CLASS_NAME <<  "Failed to recursively create " << path;
 					print_error(error_code);
@@ -282,7 +240,7 @@ bool ZKWrapper::recursive_create(const std::string &path,
 		}
 	}
 	LOG(INFO) << CLASS_NAME <<	"Generating " << path;
-	return create(path, data, error_code);
+	return create(path, data, error_code, false, sync);
 
 }
 
@@ -342,6 +300,7 @@ bool ZKWrapper::get(const std::string &path,
 bool ZKWrapper::set(const std::string &path,
 		const std::vector <std::uint8_t> &data,
 		int &error_code,
+		bool sync,
 		int version) const {
 
 	error_code = zoo_set(zh,
@@ -354,6 +313,11 @@ bool ZKWrapper::set(const std::string &path,
 		print_error(error_code);
 		return false;
 	}
+
+	if (sync) {
+		flush(prepend_zk_root(path));
+	}
+
 	return true;
 }
 
@@ -399,7 +363,7 @@ bool ZKWrapper::wexists(const std::string &path,
 	}
 }
 
-bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
+bool ZKWrapper::delete_node(const std::string &path, int &error_code, bool sync) const {
 	// NOTE: use -1 for version, check will not take place.
 	error_code = zoo_delete(zh, prepend_zk_root(path).c_str(), -1);
 	if (error_code != ZOK) {
@@ -407,7 +371,35 @@ bool ZKWrapper::delete_node(const std::string &path, int &error_code) const {
 		print_error(error_code);
 		return false;
 	}
+
+	// TODO
+	if (sync && !error_code) {
+		flush(prepend_zk_root(path));
+	}
 	return true;
+}
+
+bool ZKWrapper::get_info(const std::string &path,
+                         struct Stat &stat,
+                         int &error_code) const {
+
+    std::vector<std::uint8_t> data;
+    int len = MAX_PAYLOAD;
+    data.resize(len);
+
+    error_code = zoo_get(zh,
+                         prepend_zk_root(path).c_str(),
+                         0,
+                         reinterpret_cast<char *>(data.data()),
+                         &len,
+                         &stat);
+    if (error_code != ZOK) {
+        LOG(ERROR) << CLASS_NAME <<  "get on " << path << " failed";
+        print_error(error_code);
+        return false;
+    }
+    data.resize(len);
+    return true;
 }
 
 // TODO: Modify
@@ -523,7 +515,7 @@ std::shared_ptr <ZooOp> ZKWrapper::build_set_op(const std::string &path,
 }
 
 bool ZKWrapper::execute_multi(const std::vector <std::shared_ptr<ZooOp>> ops,
-		std::vector <zoo_op_result> &results, int &error_code) const {
+		std::vector <zoo_op_result> &results, int &error_code, bool sync) const {
 	std::vector <zoo_op_t> trueOps = std::vector<zoo_op_t>();
 	results.resize(ops.size());
 	for (auto op : ops) {
@@ -535,6 +527,10 @@ bool ZKWrapper::execute_multi(const std::vector <std::shared_ptr<ZooOp>> ops,
 		print_error(error_code);
 		return false;
 	}
+
+	if (sync && !error_code) {
+		flush(root);
+	}
 	return true;
 }
 
@@ -545,4 +541,45 @@ std::vector <uint8_t> ZKWrapper::get_byte_vector(const std::string &string) {
 
 void ZKWrapper::close() {
 	zookeeper_close(zh);
+}
+
+bool ZKWrapper::flush(const std::string& full_path, bool synchronous) const {
+	// flush is only blocking when the synchronous flag is set
+	if (synchronous) {
+
+		// I tried using condition variables, but it ended up failing on occasion, so sadly I resort to polling :(
+		bool * flag = (bool *)malloc(sizeof(bool));
+
+		// Lambda to call on function completion
+		string_completion_t completion = [](int rc, const char *value, const void *data){
+			bool * flag_ptr = const_cast<bool *>(reinterpret_cast<const bool *>(data));
+			* flag_ptr = true;
+			std::this_thread::sleep_for (std::chrono::milliseconds(1000));
+			free(flag_ptr);
+		};
+
+		int rc = zoo_async(zh, full_path.c_str(), completion, flag);
+
+		// Exit early if async failed
+		if (rc) {
+			LOG(ERROR) << "Flushing " << full_path << " failed";
+			print_error(rc);
+			return rc;
+		}
+
+		// Wait for the asynchronous function to complete
+		int count = 0;
+		// ZooKeeper is guaranteed to be synced within 2 seconds
+		while (!(* flag) && count < 2000) {
+			count++;
+			std::this_thread::sleep_for (std::chrono::milliseconds(1));
+		}
+		if (count == 2000) {
+			LOG(ERROR) << "SYNC FOR" << full_path << " was slow";
+		}
+		return rc;
+	} else {
+		auto no_op = [&](int rc, const char *value, const void *data){ /* no-op */ };
+		return zoo_async(zh, full_path.c_str(), no_op, nullptr);
+	}
 }

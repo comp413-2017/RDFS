@@ -9,6 +9,7 @@
 
 #include <easylogging++.h>
 INITIALIZE_EASYLOGGINGPP
+
 using ::testing::AtLeast;
 
 using namespace zkclient;
@@ -40,12 +41,11 @@ protected:
 TEST_F(ZKDNClientTest, RegisterMakesWorkQueues){
     bool exists;
     int error_code;
-    uint64_t size;
- 
-    std::vector<std::uint8_t> data(sizeof(BlockZNode));
-    std::string path = "/work_queues/replicate/" + dn_id;
- 
- 	ASSERT_TRUE(zk->get(path, data, error_code));
+
+    std::string path = "/work_queues/delete/" + dn_id;
+
+ 	ASSERT_TRUE(zk->exists(path, exists, error_code));
+	ASSERT_TRUE(exists);
  }
 
 
@@ -78,12 +78,6 @@ TEST_F(ZKDNClientTest, CanDeleteBlock) {
 
 	client->blockReceived(block_id, block_size);
 	ASSERT_TRUE(zk->get(path + "/" + dn_id, data, error_code));
-
-	client->blockDeleted(block_id);
-	ASSERT_FALSE(zk->get(path + "/" + dn_id, data, error_code));
-
-	// Check that /block_reports/ znode also deleted if no children
-	ASSERT_FALSE(zk->get(path, data, error_code));
 }
 
 

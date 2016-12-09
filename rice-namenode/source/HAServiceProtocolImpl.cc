@@ -19,7 +19,6 @@
 #include <zkwrapper.h>
 #include <ConfigReader.h>
 
-#include "Leases.h"
 #include "HaServiceProtocolImpl.h"
 #include "zk_nn_client.h"
 

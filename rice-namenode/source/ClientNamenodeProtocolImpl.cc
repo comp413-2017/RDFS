@@ -19,7 +19,6 @@
 #include <zkwrapper.h>
 #include <ConfigReader.h>
 
-#include "Leases.h"
 #include "ClientNamenodeProtocolImpl.h"
 #include "zk_nn_client.h"
 
@@ -38,15 +37,11 @@ namespace client_namenode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-const int ClientNamenodeTranslator::LEASE_CHECK_TIME = 60; // in seconds
-
 const std::string ClientNamenodeTranslator::CLASS_NAME = ": **ClientNamenodeTranslator** : ";
-
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
 	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
-	std::thread(&ClientNamenodeTranslator::leaseCheck, this).detach();
 	LOG(INFO) << CLASS_NAME <<  "Created client namenode translator.";
 }
 
@@ -88,8 +83,8 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 	req.ParseFromString(input);
 	logMessage(req, "Create ");
 	CreateResponseProto res;
-	if (zk.create_file(req, res))
-		lease_manager.addLease(req.clientname(), req.src());
+	if (zk.create_file(req, res)) {
+	}
 	else {
 		throw GetErrorRPCHeader("Could not create file", "");
 	}
@@ -127,9 +122,6 @@ std::string ClientNamenodeTranslator::renewLease(std::string input) {
 	RenewLeaseRequestProto req;
 	req.ParseFromString(input);
 	logMessage(req, "RenewLease ");
-	const std::string& clientname = req.clientname();
-	// renew the lease for all files associated with this client
-	lease_manager.renewLeases(clientname);
 	RenewLeaseResponseProto res;
 	return Serialize(res);
 }
@@ -140,16 +132,7 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
 	logMessage(req, "Complete ");
 	CompleteResponseProto res;
 	// TODO some optional fields need to be read
-	bool succ = lease_manager.removeLease(req.clientname(), req.src());
-	if (!succ) {
-		LOG(ERROR) << CLASS_NAME <<  "A client tried to close a file which is not theirs";
-		res.set_result(false);
-	} else {
-		zk.complete(req, res);
-		if (res.result() == false) {
-			lease_manager.addLease(req.clientname(), req.src());
-		}
-	}
+	zk.complete(req, res);
 	return Serialize(res);
 }
 
@@ -160,17 +143,14 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
  */
 std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
 	AbandonBlockRequestProto req;
+	AbandonBlockResponseProto res; 
 	req.ParseFromString(input);
 	logMessage(req, "AbandonBlock ");
-	const ExtendedBlockProto& blockProto = req.b();
-	const std::string& src = req.src();
-	const std::string& holder = req.src(); // TODO who is the holder??
-	// TODO some optional fields
-	// TODO tell zookeeper to get rid of the last block (should not need to
-	// (talk to datanode as far as i am aware)
-
-	AbandonBlockResponseProto res;
-	return Serialize(res);
+	if(zk.abandon_block(req, res)){
+		return Serialize(res);}
+	else{
+		throw GetErrorRPCHeader("Could not abandon block", "");
+	}
 }
 
 std::string ClientNamenodeTranslator::addBlock(std::string input) {
@@ -370,7 +350,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
 
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
-    	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
 	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
 	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
@@ -387,6 +367,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
 	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
 	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
+
     server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
 	server.register_handler("getListing", std::bind(&ClientNamenodeTranslator::getListing, this, _1));
 	server.register_handler("getEZForPath", std::bind(&ClientNamenodeTranslator::getEZForPath, this, _1));
@@ -409,22 +390,6 @@ int ClientNamenodeTranslator::getPort() {
 }
 
 // ------------------------------- LEASES ----------------------------
-
-void ClientNamenodeTranslator::leaseCheck() {
-	LOG(INFO) << CLASS_NAME <<  "Lease manager check initialized";
-	for (;;) {
-		sleep(LEASE_CHECK_TIME); // only check every 60 seconds
-		std::vector<std::pair<std::string, std::string>> expiredFiles = lease_manager.checkLeases(LEASE_CHECK_TIME);
-		for (auto client_file : expiredFiles) {
-			std::string client = client_file.first;
-			std::string file = client_file.second;
-			CompleteRequestProto req;
-			req.set_src(file);
-			req.set_clientname(client);
-			complete(Serialize(req));
-		}
-	}
-}
 
 // ------------------------------- HELPERS -----------------------------
 

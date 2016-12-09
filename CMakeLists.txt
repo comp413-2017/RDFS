@@ -22,8 +22,8 @@ add_subdirectory(rice-namenode)
 add_subdirectory(zookeeper)
 add_subdirectory(zkwrapper)
 add_subdirectory(rice-datanode)
-add_subdirectory(test)
 add_subdirectory(native-filesystem)
+add_subdirectory(test)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
 	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utility/config-reader/)

@@ -17,14 +17,16 @@ limitations under the License. See accompanying LICENSE file.
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-	<!-- <property>
-		<name>fs.default.name</name>
-		<value>hdfs://localhost:5351</value>
-	</property> -->
-
 	<property>
-	  <name>fs.defaultFS</name>
-	  <value>hdfs://rdfs-nn</value>
+		<name>fs.defaultFS</name>
+		<value>hdfs://rdfs-nn</value>
 	</property>
-
+    <property>
+        <name>dfs.client.read.shortcircuit</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>dfs.client.write.shortcircuit</name>
+        <value>false</value>
+    </property>
 </configuration>
