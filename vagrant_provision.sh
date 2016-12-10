@@ -33,35 +33,17 @@ rm hadoop-3.0.0-alpha1.tar.gz
 ln -s hadoop3 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
-cat > /home/vagrant/hadoop3/etc/hadoop/core-site.xml <<EOF
-<configuration>
-    <property>
-        <name>fs.defaultFS</name>
-        <value>hdfs://localhost:5351</value>
-    </property>
-    <property>
-        <name>dfs.client.read.shortcircuit</name>
-        <value>false</value>
-    </property>
-    <property>
-        <name>dfs.client.write.shortcircuit</name>
-        <value>false</value>
-    </property>
-</configuration>
-EOF
 
-cat > /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml <<EOF
-<configuration>
-    <property>
-        <name>dfs.replication</name>
-        <value>1</value>
-        <name>dfs.name.dir</name>
-        <value>/home/vagrant/hadoop/cache/dfs/name</value>
-    </property>
-</configuration>
-EOF
+# add custom config files to Hadoop
+cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop/etc/hadoop/hdfs-site.xml
+cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop/etc/hadoop/core-site.xml
+
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
+
+# add hadoop to classpath
+echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/hadoop/share/hadoop/common/*' >> /home/vagrant/.bashrc
+
 
 # Download hadoop 2.7.3 as well, but do not set as default.
 wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
@@ -70,6 +52,8 @@ mv hadoop-2.7.3 /home/vagrant/hadoop2
 rm hadoop-2.7.3.tar.gz
 cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
+
+
 
 # Setup Apache zookeeper
 wget --quiet http://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
@@ -159,6 +143,7 @@ wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_scrip
 wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/student.csv
 wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/csv_generator.py
 cd /home/vagrant
+
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*

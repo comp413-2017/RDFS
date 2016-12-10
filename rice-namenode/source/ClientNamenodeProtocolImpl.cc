@@ -217,7 +217,7 @@ std::string ClientNamenodeTranslator::getContentSummary(std::string input) {
 /**
  * While we expect clients to renew their lease, we should never allow
  * a client to "recover" a lease, since we only allow a write-once system
- */ 
+ */
 std::string ClientNamenodeTranslator::recoverLease(std::string input) {
 	RecoverLeaseRequestProto req;
 	req.ParseFromString(input);
@@ -228,6 +228,7 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
 	return Serialize(res);
 }
 
+
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
  * When asked to do an unsupported command, we'll be returning a
@@ -235,23 +236,23 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
  * GetErrorRPCHeader, but will actually occur further up - see rpcserver.cc's
  * method handle_rpc. Whenever (iter != dispatch_table.end()) is false, it
  * basically means that we couldn't find a corresponding method in this file
- * here. 
+ * here.
  *
  * As such, it will go ahead and create the error header and send it back
  * along, without ever having to call any methods in this file. So there is
- * no need to ever worry about methods we just flat out don't support in this 
+ * no need to ever worry about methods we just flat out don't support in this
  * file.
  *
  * That being said, the following is a short list of some common commands we don't
  * support, and our reasons for not supporting them:
  *
  * 1. setReplication:
- * The actual block replication is not expected to be performed during  
- * this method call. The blocks will be populated or removed in the 
+ * The actual block replication is not expected to be performed during
+ * this method call. The blocks will be populated or removed in the
  * background as the result of the routine block maintenance procedures.
  * Basically, cannot set replication to something new.
  *
- * 2. append: 
+ * 2. append:
  * Appends are not supported
  *
  * 3. concat:
@@ -287,7 +288,7 @@ std::string ClientNamenodeTranslator::rename2(std::string input) {
 
 /**
  * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
- * If it succeeds, we simly return the serialized string. 
+ * If it succeeds, we simly return the serialized string.
  */
 std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) {
 	std::string out;
@@ -320,7 +321,7 @@ hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHead
 // ------------------------- CONFIG AND INITIALIZATION ------------------------
 
 /**
- * Get an integer from the hdfs-defaults config 
+ * Get an integer from the hdfs-defaults config
  */
 int ClientNamenodeTranslator::getDefaultInt(std::string key) {
 	return config.getInt(key);
@@ -376,10 +377,10 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
 
 /**
  * Get the RPCServer this namenode uses to connect with clients
- */ 
+ */
 RPCServer ClientNamenodeTranslator::getRPCServer() {
-	return server; 
-} 
+	return server;
+}
 
 /**
  * Get the port this namenode listens on

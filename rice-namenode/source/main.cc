@@ -8,6 +8,7 @@
 #include <easylogging++.h>
 #include "zk_nn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
+#include "HaServiceProtocolImpl.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -32,5 +33,8 @@ int main(int argc, char* argv[]) {
 	nncli.register_watches();
 	std::cout << "Namenode is starting" << std::endl;
 	ClientNamenodeTranslator translator(port, nncli);
-	translator.getRPCServer().serve(io_service);
+	// high availability translator
+	RPCServer server = translator.getRPCServer();
+	ha_service_translator::HaServiceTranslator ha_service_translator(&server, nncli, port);
+	server.serve(io_service);
 }

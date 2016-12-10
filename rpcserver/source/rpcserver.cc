@@ -138,7 +138,7 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                     response_header_str.size()) && write_delimited_proto(sock, response_header_str) &&
                     write_delimited_proto(sock, response);
             } catch (hadoop::common::RpcResponseHeaderProto& response_header) {
-                // Some sort of failure occurred in our command's handler. 
+                // Some sort of failure occurred in our command's handler.
                 LOG(INFO) << CLASS_NAME << "Returning error rpc header to client";
             	write_success = send_error_header(rpc_request_header, response_header, response_header_str, sock);
             }
@@ -148,9 +148,9 @@ void RPCServer::handle_rpc(tcp::socket sock) {
                 LOG(ERROR) << CLASS_NAME <<  "failed to write response to client.";
             }
         } else {
-            // In this case, we see that the lookup for a function to handle the 
+            // In this case, we see that the lookup for a function to handle the
             // requested command (for example, see ClientNamenodeProtocolImpl)  using
-            // the dispatch table failed. As such, all we must send is a 
+            // the dispatch table failed. As such, all we must send is a
             // header that specifices no handler method for this command was found.
             LOG(INFO) << CLASS_NAME <<  "\n NO HANDLER FOUND FOR " << request_header.methodname();
             hadoop::common::RpcResponseHeaderProto response_header;
@@ -181,11 +181,11 @@ void RPCServer::handle_rpc(tcp::socket sock) {
  * (meaning we don't have a command handler for said command)
  */
 bool RPCServer::send_error_header(
-		hadoop::common::RpcRequestHeaderProto rpc_request_header, 
+		hadoop::common::RpcRequestHeaderProto rpc_request_header,
 		hadoop::common::RpcResponseHeaderProto response_header,
     		std::string response_header_str,
 		tcp::socket& sock) {
-    bool write_success; 
+    bool write_success;
     response_header.set_callid(rpc_request_header.callid());
     response_header.set_clientid(rpc_request_header.clientid());
     response_header.SerializeToString(&response_header_str);
