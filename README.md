@@ -8,7 +8,7 @@ Check the wiki for documentation!
 # Development
 1. Install [Virtualbox](https://www.virtualbox.org/). Works with 5.1.
 2. Install [Vagrant](https://vagrantup.com/). Works with 1.8.5.
-3. Clone the repo: `git clone https://github.com/comp413-2017/Rice-HDFS.git`
+3. Clone the repo: `git clone https://github.com/comp413-2017/HDFS.git`
 4. `cd Rice-HDFS`
 5. `vagrant up` (takes 17 minutes from scratch for me)
    - I (Stu) had to "sudo" these commands
