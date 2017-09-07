@@ -41,6 +41,16 @@ make
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`.
 
+Note: if you "cmake .." fails with a "can't find GTest" error, install it manually using the same commands from the vagrant provisioning file. i.e. :
+```
+apt-get install -y libgtest-dev
+cd /usr/src/gtest
+cmake CMakeLists.txt
+make
+cp *.a /usr/lib
+cd /home/vagrant
+```
+
 # Testing
 
 The Google Test framework is now included in the development environment. You may need to do `vagrant destroy` and `vagrant up` to install it.
