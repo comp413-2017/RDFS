@@ -1,15 +1,15 @@
 # Rice-HDFS
 
-The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code is needed by both (such as various protocols). We'll add more as we need them.
+The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code needed by both (such as various protocols). We'll add more as we need them.
 
 
 Check the wiki for documentation!
 
 # Development
 1. Install [Virtualbox](https://www.virtualbox.org/). Works with 5.1.
-2. Install [Vagrant](https://vagrantup.com/). Works with 1.8.5.
+2. Install [Vagrant](https://vagrantup.com/). Works with 1.9.8.
 3. Clone the repo: `git clone https://github.com/comp413-2017/HDFS.git`
-4. `cd Rice-HDFS`
+4. `cd HDFS`
 5. `vagrant up` (takes 17 minutes from scratch for me)
    - I (Stu) had to "sudo" these commands
    - Make sure to do this from the repo directory (otherwise it asks for vagrant install)
