@@ -67,10 +67,10 @@ clientPort=2181
 EOF
 
 # Setup Apache Hive
-wget --quiet http://mirror.symnds.com/software/Apache/hive/hive-2.1.0/apache-hive-2.1.0-bin.tar.gz
-tar -xf apache-hive-2.1.0-bin.tar.gz
-mv apache-hive-2.1.0-bin /home/vagrant/hive
-rm apache-hive-2.1.0-bin.tar.gz
+wget --quiet http://apache.claz.org/hive/hive-2.1.1/apache-hive-2.1.1-bin.tar.gz
+tar -xf apache-hive-2.1.1-bin.tar.gz
+mv apache-hive-2.1.1-bin /home/vagrant/hive
+rm apache-hive-2.1.1-bin.tar.gz
 echo 'export HIVE_HOME=/home/vagrant/hive' >> /home/vagrant/.bashrc
 echo 'export PATH=$HIVE_HOME/bin:$PATH' >> /home/vagrant/.bashrc
 
