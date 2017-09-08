@@ -1,15 +1,15 @@
 # Rice-HDFS
 
-The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code is needed by both (such as various protocols). We'll add more as we need them.
+The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code needed by both (such as various protocols). We'll add more as we need them.
 
 
 Check the wiki for documentation!
 
 # Development
 1. Install [Virtualbox](https://www.virtualbox.org/). Works with 5.1.
-2. Install [Vagrant](https://vagrantup.com/). Works with 1.8.5.
-3. Clone the repo: `git clone https://github.com/comp413-2017/Rice-HDFS.git`
-4. `cd Rice-HDFS`
+2. Install [Vagrant](https://vagrantup.com/). Works with 1.9.8.
+3. Clone the repo: `git clone https://github.com/comp413-2017/RDFS.git`
+4. `cd HDFS`
 5. `vagrant up` (takes 17 minutes from scratch for me)
    - I (Stu) had to "sudo" these commands
    - Make sure to do this from the repo directory (otherwise it asks for vagrant install)
@@ -40,6 +40,16 @@ make
 ```
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`.
+
+Note: if you "cmake .." fails with a "can't find GTest" error, install it manually using the same commands from the vagrant provisioning file. i.e. :
+```
+apt-get install -y libgtest-dev
+cd /usr/src/gtest
+cmake CMakeLists.txt
+make
+cp *.a /usr/lib
+cd /home/vagrant
+```
 
 # Testing
 
