@@ -41,7 +41,7 @@ make
 You will see a sample executable placed in `build/rice-namenode/namenode.` The
 compiled protocols are in `build/proto`.
 
-Note: if you "cmake .." fails with a "can't find GTest" error, install it manually using the same commands from the vagrant provisioning file. i.e. :
+Note: if "cmake .." fails with a "can't find GTest" error, install it manually using the same commands from the vagrant provisioning file. i.e. :
 ```
 apt-get install -y libgtest-dev
 cd /usr/src/gtest
@@ -53,20 +53,15 @@ cd /home/vagrant
 
 # Testing
 
-The Google Test framework is now included in the development environment. You may need to do `vagrant destroy` and `vagrant up` to install it.
-Tests should be placed in the home/vagrant/rdfs/test directory.
+The Google Test framework is now included in the development environment.
+Tests should be placed in the ~/rdfs/test directory.
 After creating a new test file, you can modify the CMakeLists.txt file to create an executable
 to run those tests.
 There is a file, tests/run-all/run-all-tests.cc, that creates an executable running all tests.
 If you create a new test executable, modify this to add yours.
-There is currently a file in the test directory, tests.cc, with a sample test. You can run it by
-executing
-```
-cmake CMakeLists.txt
-make
-./runTests
-```
-in the test/ directory.
+
+You can run the tests by running the executables (e.g. ./runAllTests) in ~/rdfs/build/test after following the build instructions above
+
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 
 A githook has been added at rdfs/test/pre-commit.  It's a shell script that will build and run 
