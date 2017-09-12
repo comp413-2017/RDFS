@@ -2,6 +2,7 @@
 
 The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code needed by both (such as various protocols). We'll add more as we need them.
 
+(forked from https://github.com/Rice-Comp413-2016/RDFS )
 
 Check the wiki for documentation!
 
