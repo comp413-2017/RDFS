@@ -26,10 +26,10 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
-wget --quiet http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-3.0.0-alpha1/hadoop-3.0.0-alpha1.tar.gz
-tar -xf hadoop-3.0.0-alpha1.tar.gz
-mv hadoop-3.0.0-alpha1 /home/vagrant/hadoop3
-rm hadoop-3.0.0-alpha1.tar.gz
+wget --quiet http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-3.0.0-alpha4/hadoop-3.0.0-alpha4.tar.gz
+tar -xf hadoop-3.0.0-alpha4.tar.gz
+mv hadoop-3.0.0-alpha4 /home/vagrant/hadoop3
+rm hadoop-3.0.0-alpha4.tar.gz
 ln -s hadoop3 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
@@ -46,10 +46,10 @@ echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/ha
 
 
 # Download hadoop 2.7.3 as well, but do not set as default.
-wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
-tar -xf hadoop-2.7.3.tar.gz
-mv hadoop-2.7.3 /home/vagrant/hadoop2
-rm hadoop-2.7.3.tar.gz
+wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
+tar -xf hadoop-2.7.4.tar.gz
+mv hadoop-2.7.4 /home/vagrant/hadoop2
+rm hadoop-2.7.4.tar.gz
 cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
