@@ -10,10 +10,13 @@ Check the wiki for documentation!
 1. Install [Virtualbox](https://www.virtualbox.org/). Works with 5.1.
 2. Install [Vagrant](https://vagrantup.com/). Works with 1.9.8.
 3. Clone the repo: `git clone https://github.com/comp413-2017/RDFS.git`
-4. `cd HDFS`
+4. `cd RDFS`
 5. `vagrant up` (takes 17 minutes from scratch for me)
-   - I (Stu) had to "sudo" these commands
+   - I (Stu) had to "sudo" these commands, although normally it shouldn't be
+     necessary.
    - Make sure to do this from the repo directory (otherwise it asks for vagrant install)
+   - If it gets stuck at "default: SSH auth method: password" and eventually
+     ends up with a timeout, try adding `v.customize ['modifyvm', :id, '--cableconnected1', 'on']` in the `config.vm.provider "virtualbox" do |v|` section of your Vagrantfile.
 6. `vagrant ssh`.
 7. You should be in the development environment. Things to know:
    - The username is `vagrant` and the password is `vagrant`.
