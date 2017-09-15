@@ -122,7 +122,7 @@ that all expectations on it have been satisfied.
 
 You should read through all of the Google Mock documentation located 
 at (/googletest/googlemock/docs/) before using it:
-   - [ForDummies](ForDummies.md) -- start here if you are new to Google Mock.
-   - [CheatSheet](CheatSheet.md) -- a quick reference.
-   - [CookBook](CookBook.md) -- recipes for doing various tasks using Google 
+   - [ForDummies](https://github.com/google/googletest/blob/master/googlemock/docs/ForDummies.md) -- start here if you are new to Google Mock.
+   - [CheatSheet](https://github.com/google/googletest/blob/master/googlemock/docs/CheatSheet.md) -- a quick reference.
+   - [CookBook](https://github.com/google/googletest/blob/master/googlemock/docs/CookBook.md) -- recipes for doing various tasks using Google 
      Mock.
