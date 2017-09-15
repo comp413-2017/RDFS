@@ -46,10 +46,10 @@ echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/ha
 
 
 # Download hadoop 2.7.3 as well, but do not set as default.
-wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
-tar -xf hadoop-2.7.3.tar.gz
-mv hadoop-2.7.3 /home/vagrant/hadoop2
-rm hadoop-2.7.3.tar.gz
+wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
+tar -xf hadoop-2.7.4.tar.gz
+mv hadoop-2.7.4 /home/vagrant/hadoop2
+rm hadoop-2.7.4.tar.gz
 cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
