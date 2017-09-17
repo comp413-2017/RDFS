@@ -18,7 +18,9 @@ Check the wiki for documentation!
    - If it gets stuck at "default: SSH auth method: password" and eventually
      ends up with a timeout, try adding `v.customize ['modifyvm', :id, '--cableconnected1', 'on']` in the `config.vm.provider "virtualbox" do |v|` section of your Vagrantfile.
 6. `vagrant ssh`.
-7. You should be in the development environment. Things to know:
+7. `exit` to exit the VM
+8. Remember to `vagrant halt` on your machine so you don't have the VM running in the background!
+9. You should be in the development environment. Things to know:
    - The username is `vagrant` and the password is `vagrant`.
    - The machine has 1G of memory allocated. Change Vagrantfile if you need
      more.
@@ -34,7 +36,7 @@ Check the wiki for documentation!
 # Building
 ```
 sudo apt-get install libboost-all-dev
-sudo apt-get install libasio-dev 
+sudo apt-get install libasio-dev
 
 mkdir build
 cd build
@@ -68,18 +70,18 @@ You can run the tests by running the executables (e.g. ./runAllTests) in ~/rdfs/
 
 A beginner's guide to using Google Test is located [here](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 
-A githook has been added at rdfs/test/pre-commit.  It's a shell script that will build and run 
+A githook has been added at rdfs/test/pre-commit.  It's a shell script that will build and run
 the unit tests.  To use it, copy the file to rdfs/.git/hooks.  Then, before each commit is made
 the tests will run, and a failure will halt the commit.  If this is too restrictive, renaming
 the file to pre-push will do the same thing only when you try to push.
 
 Namenode:
-Run the namenode executable from build/rice-namenode. 
+Run the namenode executable from build/rice-namenode.
 Then run something like `hdfs dfs -fs hdfs://localhost:port/ -mkdir foo`
 where port is the port used by the namenode (it will print the port used)
 
 Datanode:
-Run the datanode executable from build/rice-datanode. 
+Run the datanode executable from build/rice-datanode.
 Then run something like `hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/`
 where port is the port used by the datanode (it will print the port used)
 
@@ -99,7 +101,7 @@ Whether you use Google Mock in conjunction with Google Test is up to you.
 Google Mock should be used in conjunction with Google Test.
 
 Google Mock is not a testing framework, but a framework for writing C++ mock   
-classes. A mock class is simplified version of a real class that can be 
+classes. A mock class is simplified version of a real class that can be
 created to aid with testing. However, Google Mock does  do an automatic
 verification of expectations.      
 
@@ -120,9 +122,9 @@ using [Google Test](../../googletest/) assertions.
 6. When a mock objects is destructed, Google Mock automatically verifies
 that all expectations on it have been satisfied.
 
-You should read through all of the Google Mock documentation located 
+You should read through all of the Google Mock documentation located
 at (/googletest/googlemock/docs/) before using it:
    - [ForDummies](https://github.com/google/googletest/blob/master/googlemock/docs/ForDummies.md) -- start here if you are new to Google Mock.
    - [CheatSheet](https://github.com/google/googletest/blob/master/googlemock/docs/CheatSheet.md) -- a quick reference.
-   - [CookBook](https://github.com/google/googletest/blob/master/googlemock/docs/CookBook.md) -- recipes for doing various tasks using Google 
+   - [CookBook](https://github.com/google/googletest/blob/master/googlemock/docs/CookBook.md) -- recipes for doing various tasks using Google
      Mock.

@@ -45,7 +45,7 @@ echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/hadoop/share/hadoop/common/*' >> /home/vagrant/.bashrc
 
 
-# Download hadoop 2.7.3 as well, but do not set as default.
+# Download hadoop 2.7.4 as well, but do not set as default.
 wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
 tar -xf hadoop-2.7.4.tar.gz
 mv hadoop-2.7.4 /home/vagrant/hadoop2
