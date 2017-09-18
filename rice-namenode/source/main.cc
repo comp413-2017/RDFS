@@ -12,7 +12,8 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-#define LOG_CONFIG_FILE "nn-log-conf.conf"
+// Absolute directory from vagrant VM to config file
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/nn-log-conf.conf"
 
 using namespace client_namenode_translator;
 

@@ -16,7 +16,8 @@
 // initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
 
-#define LOG_CONFIG_FILE "dn-log-conf.conf"
+// Absolute directory from vagrant VM to config file
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/dn-log-conf.conf"
 
 using namespace client_datanode_translator;
 
