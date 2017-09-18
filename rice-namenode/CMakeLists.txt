@@ -24,7 +24,7 @@ add_executable(namenode source/main.cc )
 
 target_link_libraries(namenode namenode_protos)
 
-add_library(ha_protos source/HaServiceProtocolImpl.cc )
+add_library(ha_protos source/HAServiceProtocolImpl.cc )
 target_link_libraries( ha_protos rpcserver )
 target_link_libraries( ha_protos zkwrapper )
 target_link_libraries( ha_protos rpcserver )
