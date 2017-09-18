@@ -18,6 +18,7 @@ These contribution guidelines exist to streamline the process of merging everyon
 3. When you are ready to merge your changes, rebase your local branch against `origin/develop` and address all conflicts, if necessary, followed by pushing again.
     * This keeps Git history clean and linear by replaying your commits on top of any remote changes that may have been introduced after you branched from `develop`.
     * To do this, `git fetch --all && git rebase origin/develop`, then follow the interactive instructions.
+    * [Tutorial](https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase), if it helps.
 3. Go to the repository home page and create a pull request.
     * Base fork: `comp413-2017/RDFS/develop`.
     * HEAD fork: `<your branch name>`.
