@@ -34,6 +34,7 @@ These contribution guidelines exist to streamline the process of merging everyon
     1. Motivation (what is the purpose of this change?)
     2. Changeset (what did you actually change?)
     3. Testing (how do you know it works?)
+    4. Make sure to link to the relevant issue number to link the PR to the issue.
 
 ### Code Review
 
