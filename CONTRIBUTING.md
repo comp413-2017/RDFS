@@ -25,7 +25,7 @@ These contribution guidelines exist to streamline the process of merging everyon
     * This will merge the tip (HEAD) of your feature branch into the base branch.
 4. Tag reviewers.
     * Not sure who to tag? `git blame` is usually a good indicator of relevant stakeholders.
-5. After your changes have been approved by at least one person, close the PR by merging using the **Squash and merge** strategy. Finally, delete the remote feature branch (you can do this from the Github UI).
+5. After your changes have been approved by at least one person, close the PR by merging using the **Squash and merge** strategy (this is an option you select in the UI on the PR page). Finally, delete the remote feature branch (you can do this from the Github UI).
 
 ### Pull Request Summary
 
