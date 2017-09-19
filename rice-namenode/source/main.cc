@@ -20,6 +20,7 @@ using namespace client_namenode_translator;
 int main(int argc, char* argv[]) {
 	el::Configurations conf(LOG_CONFIG_FILE);
 	el::Loggers::reconfigureAllLoggers(conf);
+	el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 	el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
 
 	int error_code = 0;
@@ -32,7 +33,7 @@ int main(int argc, char* argv[]) {
 	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
 	zkclient::ZkNnClient nncli(zk_shared);
 	nncli.register_watches();
-	std::cout << "Namenode is starting" << std::endl;
+	// std::cout << "Namenode is starting" << std::endl;
 	ClientNamenodeTranslator translator(port, nncli);
 	// high availability translator
 	RPCServer server = translator.getRPCServer();

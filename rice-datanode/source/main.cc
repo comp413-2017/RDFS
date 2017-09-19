@@ -24,6 +24,7 @@ using namespace client_datanode_translator;
 int main(int argc, char* argv[]) {
 	el::Configurations conf(LOG_CONFIG_FILE);
 	el::Loggers::reconfigureAllLoggers(conf);
+	el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
 	int error_code = 0;
 
@@ -40,10 +41,10 @@ int main(int argc, char* argv[]) {
 	if (argc >= 4) {
 		backingStore = argv[3];
 	}
-	LOG(INFO) << "my backingstore is " << backingStore;
+
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
     if (fs == nullptr){
-        LOG(INFO) << "Failed to create filesystem!";
+        LOG(FATAL) << "Failed to create filesystem.";
         return -1;
     }
 	uint64_t total_disk_space = fs->getTotalSpace();
