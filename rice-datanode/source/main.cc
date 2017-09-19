@@ -103,6 +103,7 @@ static inline int parse_cmdline_options(int argc, char *argv[], int *xferPort, i
 int main(int argc, char* argv[]) {
 	el::Configurations conf(LOG_CONFIG_FILE);
 	el::Loggers::reconfigureAllLoggers(conf);
+	el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
 	int error_code = 0;
 
@@ -123,6 +124,7 @@ int main(int argc, char* argv[]) {
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
     if (fs == nullptr){
         LOG(FATAL) << "Failed to create filesystem!";
+
         return -1;
     }
 	uint64_t total_disk_space = fs->getTotalSpace();
