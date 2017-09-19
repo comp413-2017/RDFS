@@ -39,7 +39,7 @@ static inline int parse_cmdline_options(int argc, char *argv[], int *xferPort, i
     // By setting opterr to 0, getopt does not print its own error messages.
     opterr = 0;
 
-    // We expect to find port setting and/or verbosity setting
+    // We expect to find port setting, verbosity setting, and/or backingStore setting.
     while ((c = getopt(argc, argv, "v:p:x:b:")) != -1) {
         switch (c) {
             case 'v':
