@@ -120,7 +120,11 @@ int main(int argc, char* argv[]) {
 
     el::Loggers::setVerboseLevel(verbosity);
 
+<<<<<<< HEAD
 	LOG(DEBUG) << "BackingStore set to " << backingStore;
+=======
+	LOG(INFO) << "Backingstore is " << backingStore;
+>>>>>>> 4aea118791f2ce0d79abaa045f030bce7ccbdc7c
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
     if (fs == nullptr){
         LOG(FATAL) << "Failed to create filesystem.";

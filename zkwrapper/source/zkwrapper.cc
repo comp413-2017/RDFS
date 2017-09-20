@@ -11,8 +11,6 @@
 #include <condition_variable>
 #include <thread>
 
-const std::string ZKWrapper::CLASS_NAME = ": **ZkWrapper** : ";
-
 int init = 0;
 zhandle_t *zh;
 clientid_t myid;
@@ -89,7 +87,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
 	// TODO: Move these default values to some readable CONSTANT value
 	zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
 	if (!zh) {
-		LOG(ERROR) << CLASS_NAME <<  "zk init failed!";
+		LOG(ERROR) << "zk init failed!";
 		error_code = -999;
 	}
 	init = 1;
@@ -98,11 +96,11 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
 		bool root_exists = false;
 		while (!root_exists) {
 			if (!exists(root_path, root_exists, error_code)){
-				LOG(ERROR) << CLASS_NAME <<  "Failed to check if root directory " << root << " exists " << error_code;
+				LOG(ERROR) << "Failed to check if root directory " << root << " exists " << error_code;
 			}
 			if (!root_exists) {
 				if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed to create root directory " << root << " with error " << error_code;
+					LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
 				} else {
 					break;
 				}
@@ -111,7 +109,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
 
 		if (!root_exists) {
 			if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed to create root directory " << root << " with error " << error_code;
+				LOG(ERROR) <<  "Failed to create root directory " << root << " with error " << error_code;
 			}
 		}
 	}
@@ -144,12 +142,12 @@ bool ZKWrapper::create(const std::string &path,
 		bool ephemeral,
 		bool sync) const {
 	if (!init) {
-		LOG(ERROR) << CLASS_NAME <<  "Attempt to create before init!";
+		LOG(ERROR) << "Attempt to create before init!";
 		error_code = -999;
 		return false;
 	}
 	auto real_path = prepend_zk_root(path);
-	LOG(INFO) << CLASS_NAME <<	"creating ZNode at " << real_path;
+	LOG(INFO) << "creating ZNode at " << real_path;
 	int flag = (ephemeral) ? ZOO_EPHEMERAL : 0;
 	int rc = zoo_create(zh,
 			real_path.c_str(),
@@ -167,7 +165,7 @@ bool ZKWrapper::create(const std::string &path,
 
 	if (!rc)
 		return true;
-	LOG(ERROR) << CLASS_NAME <<  "Failed to create ZNode at " << real_path;
+	LOG(ERROR) << "Failed to create ZNode at " << real_path;
 	print_error(error_code);
 	return false;
 }
@@ -180,17 +178,17 @@ bool ZKWrapper::create_sequential(const std::string &path,
 		int &error_code,
 		bool sync) const {
 
-	LOG(INFO) << CLASS_NAME <<	"Starting sequential for " << path;
+	LOG(INFO) << "Starting sequential for " << path;
 	if (!init) {
-		LOG(ERROR) << CLASS_NAME <<  "Attempt to create sequential before init!";
+		LOG(ERROR) << "Attempt to create sequential before init!";
 		return false;
 	}
 	int flag = ZOO_SEQUENCE;
 	if (ephemeral) {
 		flag = flag | ZOO_EPHEMERAL;
 	}
-	LOG(INFO) << CLASS_NAME <<	"Attempting to generate new path" << new_path;
-	LOG(INFO) << CLASS_NAME <<	"creating seq ZNode at " << prepend_zk_root(path);
+	LOG(INFO) << "Attempting to generate new path" << new_path;
+	LOG(INFO) << "Creating seq ZNode at " << prepend_zk_root(path);
 
 	int len = prepend_zk_root(path).size();
 	new_path.resize(MAX_PATH_LEN);
@@ -204,12 +202,12 @@ bool ZKWrapper::create_sequential(const std::string &path,
 			MAX_PATH_LEN);
 	error_code = rc;
 	if (rc) { // Z_OK is 0, so if we receive anything else fail
-		LOG(ERROR) << CLASS_NAME <<  "Create for " << prepend_zk_root(path) << " failed " << rc;
+		LOG(ERROR) << "Create for " << prepend_zk_root(path) << " failed " << rc;
 		print_error(error_code);
 		return false;
 	}
 	int i = 0;
-	LOG(INFO) << CLASS_NAME <<	"NEW path is " << new_path;
+	LOG(INFO) << "NEW path is " << new_path;
 	new_path.resize(len + NUM_SEQUENTIAL_DIGITS);
 
 	if (sync && !rc) {
@@ -217,7 +215,7 @@ bool ZKWrapper::create_sequential(const std::string &path,
 	}
 
 	new_path = removeZKRoot(new_path);
-	LOG(INFO) << CLASS_NAME <<	"NEW path is now this" << new_path;
+	LOG(INFO) << "NEW path is now this" << new_path;
 
 	return true;
 }
@@ -228,10 +226,10 @@ bool ZKWrapper::recursive_create(const std::string &path,
 		bool sync) const {
 	for (int i=1; i<path.length(); ++i){
 		if (path[i] == '/'){
-			LOG(INFO) << CLASS_NAME <<	"Generating " << path.substr(0, i);
+			LOG(INFO) << "Generating " << path.substr(0, i);
 			if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code, false, false)){
 				if (error_code != ZNODEEXISTS){
-					LOG(ERROR) << CLASS_NAME <<  "Failed to recursively create " << path;
+					LOG(ERROR) <<  "Failed to recursively create " << path;
 					print_error(error_code);
 					return false;
 				}
@@ -239,7 +237,7 @@ bool ZKWrapper::recursive_create(const std::string &path,
 			error_code = ZOK;
 		}
 	}
-	LOG(INFO) << CLASS_NAME <<	"Generating " << path;
+	LOG(INFO) << "Generating " << path;
 	return create(path, data, error_code, false, sync);
 
 }
@@ -262,7 +260,7 @@ bool ZKWrapper::wget(const std::string &path,
 			&len,
 			&stat);
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "wget on " << path << " failed";
+		LOG(ERROR) <<  "wget on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -279,9 +277,7 @@ bool ZKWrapper::get(const std::string &path,
 	struct Stat stat;
 	int len = length;
 	// TODO: Perhaps we can be smarter about this
-	// LOG(INFO) << CLASS_NAME <<  "Data resizing to " << len;
 	data.resize(len);
-	// LOG(INFO) << CLASS_NAME <<  "Data resizing to 1;" << data.size();
 	error_code = zoo_get(zh,
 			prepend_zk_root(path).c_str(),
 			0,
@@ -289,7 +285,7 @@ bool ZKWrapper::get(const std::string &path,
 			&len,
 			&stat);
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "get on " << path << " failed";
+		LOG(ERROR) << "get on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -309,7 +305,7 @@ bool ZKWrapper::set(const std::string &path,
 			data.size(),
 			version);
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "set on " << path << " failed";
+		LOG(ERROR) << "set on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -335,7 +331,7 @@ bool ZKWrapper::exists(const std::string &path,
 		return true;
 	} else {
 		// NOTE: value exist is not updated in this case
-		LOG(ERROR) << CLASS_NAME <<  "exists on " << path << " failed";
+		LOG(ERROR) << "exists on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -357,7 +353,7 @@ bool ZKWrapper::wexists(const std::string &path,
 		return true;
 	} else {
 		// NOTE: value exist is not updated in this case
-		LOG(ERROR) << CLASS_NAME <<  "wexists on " << path << " failed";
+		LOG(ERROR) << "wexists on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -367,7 +363,7 @@ bool ZKWrapper::delete_node(const std::string &path, int &error_code, bool sync)
 	// NOTE: use -1 for version, check will not take place.
 	error_code = zoo_delete(zh, prepend_zk_root(path).c_str(), -1);
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "delete on " << path << " failed";
+		LOG(ERROR) << "delete on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -394,7 +390,7 @@ bool ZKWrapper::get_info(const std::string &path,
                          &len,
                          &stat);
     if (error_code != ZOK) {
-        LOG(ERROR) << CLASS_NAME <<  "get on " << path << " failed";
+        LOG(ERROR) << "get on " << path << " failed";
         print_error(error_code);
         return false;
     }
@@ -404,7 +400,7 @@ bool ZKWrapper::get_info(const std::string &path,
 
 // TODO: Modify
 bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const {
-	LOG(INFO) << CLASS_NAME <<	"Recursively deleting " << path;
+	LOG(INFO) << "Recursively deleting " << path;
 	bool root = ("/" == path);
 	bool endsSlash = path[path.size() - 1] == '/';
 	int rc = 0;
@@ -412,12 +408,12 @@ bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const
 	std::string znodePath = endsSlash ? path.substr(0, path.size() - 1) : path;
 	std::vector <std::string> children;
 	if (!get_children(root ? "/" : znodePath, children, rc)){
-		LOG(ERROR) << CLASS_NAME <<  "recursive_delete on " << path << " failed: couldn't get children";
+		LOG(ERROR) << "recursive_delete on " << path << " failed: couldn't get children";
 		return false;
 	}
 
 	for (auto child : children) {
-		LOG(INFO) << CLASS_NAME <<	"child is " << child;
+		LOG(INFO) << "child is " << child;
 		if (child.size() == 0){
 			continue;
 		}
@@ -430,7 +426,7 @@ bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const
 	rc = (result != 0) ? result : rc;
 
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "recursive_delete on " << path << " failed.";
+		LOG(ERROR) << "recursive_delete on " << path << " failed.";
 		return false;
 	}
 	return true;
@@ -444,7 +440,7 @@ bool ZKWrapper::get_children(const std::string &path,
 	struct String_vector *vector = &stvector;
 	error_code = zoo_get_children(zh, prepend_zk_root(path).c_str(), 0, vector);
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "get_children on " << path << " failed";
+		LOG(ERROR) << "get_children on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -465,7 +461,7 @@ bool ZKWrapper::wget_children(const std::string &path,
 	struct String_vector *vector = &stvector;
 	error_code = zoo_wget_children(zh, prepend_zk_root(path).c_str(), watch, watcherCtx, vector);
 	if (error_code != ZOK) {
-		LOG(ERROR) << CLASS_NAME <<  "wget_children on " << path << " failed";
+		LOG(ERROR) << "wget_children on " << path << " failed";
 		print_error(error_code);
 		return false;
 	}
@@ -523,7 +519,7 @@ bool ZKWrapper::execute_multi(const std::vector <std::shared_ptr<ZooOp>> ops,
 	}
 	error_code = zoo_multi(zh, ops.size(), &trueOps[0], &results[0]);
 	if (error_code != ZOK){
-		LOG(ERROR) << CLASS_NAME <<  "multiop failed";
+		LOG(ERROR) << "multiop failed";
 		print_error(error_code);
 		return false;
 	}

@@ -31,7 +31,7 @@ std::map <std::string, std::string> config;
 ClientDatanodeTranslator::ClientDatanodeTranslator(int port_arg)
 	: port(port_arg), server(port) {
 	InitServer();
-	std::cout << "Created client datanode translator." << std::endl;
+	LOG(INFO) << "Created client datanode translator.";
 }
 
 std::string ClientDatanodeTranslator::getReplicaVisibleLength(std::string input) {
@@ -171,7 +171,7 @@ int ClientDatanodeTranslator::getPort() {
 }
 
 void ClientDatanodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
-	LOG(INFO) << "Got message " << req_name << ": " << req.DebugString();
+	LOG(INFO) << "Got message " << req_name;
 }
 
 } //namespace

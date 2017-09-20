@@ -98,7 +98,11 @@ int main(int argc, char* argv[]) {
 	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
 	zkclient::ZkNnClient nncli(zk_shared);
 	nncli.register_watches();
+<<<<<<< HEAD
 	// std::cout << "Namenode is starting" << std::endl;
+=======
+	LOG(INFO) << "Namenode is starting";
+>>>>>>> 4aea118791f2ce0d79abaa045f030bce7ccbdc7c
 	ClientNamenodeTranslator translator(port, nncli);
 	// high availability translator
 	RPCServer server = translator.getRPCServer();
