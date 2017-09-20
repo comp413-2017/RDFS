@@ -27,17 +27,15 @@ namespace ha_service_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::common;
 
-const std::string HaServiceTranslator::CLASS_NAME = ": **HaServiceTranslator** : ";
-
 HaServiceTranslator::HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnClient& zk_arg, int port_arg)
  	: server(server_arg), zk(zk_arg), port(port_arg) {
  	RegisterServiceRPCHandlers();
  	if (port == 5351){ // means 5351 is always the active node initially
- 		LOG(INFO) << CLASS_NAME << "NameNode running in ACTIVE state";
+ 		LOG(INFO) << "NameNode running in ACTIVE state";
  		state = ACTIVE;
  	}
  	else {
- 		LOG(INFO) << CLASS_NAME << "NameNode running in STANDBY state";
+ 		LOG(INFO) << "NameNode running in STANDBY state";
  		state = STANDBY;
  	}
 }
@@ -115,7 +113,7 @@ hadoop::common::RpcResponseHeaderProto HaServiceTranslator::GetErrorRPCHeader(st
 
 void HaServiceTranslator::RegisterServiceRPCHandlers() {
 	using namespace std::placeholders; // for `_1`
-	LOG(INFO) << CLASS_NAME << "Registering RPC Handlers";
+	LOG(INFO) << "Registering RPC Handlers";
 	// The reason for these binds is because it wants static functions, but we want to give it member functions
     	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 	server->register_handler("transitionToActive", std::bind(&HaServiceTranslator::transitionToActive, this, _1));
@@ -128,7 +126,7 @@ void HaServiceTranslator::RegisterServiceRPCHandlers() {
 // ------------------------------- HELPERS -----------------------------
 
 void HaServiceTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
-	LOG(INFO) << CLASS_NAME <<  "Got message " << req_name << ": " << req.DebugString();
+	LOG(INFO) << "Got message " << req_name;
 }
 
 } //namespace

@@ -79,8 +79,8 @@ void TransferServer::handle_connection(tcp::socket sock) {
 void TransferServer::processWriteRequest(tcp::socket& sock) {
 	OpWriteBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
-		LOG(INFO) << "Op a write block proto";
-		LOG(INFO) << proto.DebugString();
+		LOG(DEBUG) << "Op a write block proto";
+		LOG(DEBUG) << proto.DebugString();
 	} else {
 		ERROR_AND_RETURN("Failed to op the write block proto.");
 	}
@@ -188,7 +188,7 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 
 	OpReadBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
-		LOG(INFO) << "Op a read block proto" << std::endl << proto.DebugString();
+		LOG(INFO) << "Op a read block proto" << std::endl;
 	} else {
 		ERROR_AND_RETURN("Failed to op the read block proto.");
 	}
@@ -245,7 +245,6 @@ void TransferServer::processReadRequest(tcp::socket& sock) {
 			ClientReadStatusProto status_proto;
 			if (rpcserver::read_delimited_proto(sock, status_proto)) {
 				LOG(INFO) << "Received read status from client.";
-				LOG(INFO) << status_proto.DebugString();
 			} else {
 				LOG(ERROR) << "Could not read status from client.";
 			}
@@ -280,7 +279,6 @@ void TransferServer::buildBlockOpResponse(std::string& response_string) {
 	checksum->set_type(CHECKSUM_NULL);
 	checksum->set_bytesperchecksum(17);
 	response.SerializeToString(&response_string);
-	LOG(INFO) << std::endl << response.DebugString();
 }
 
 void TransferServer::serve(asio::io_service& io_service) {
@@ -300,7 +298,7 @@ void TransferServer::synchronize(std::function<void(TransferServer&, tcp::socket
 		cv.wait(lk);
 	}
 	xmits++;
-	LOG(INFO) << "**********" << "num xmits is " << xmits.fetch_add(0);
+	LOG(DEBUG) << "**********" << "num xmits is " << xmits.fetch_add(0);
 	lk.unlock();
 	f(*this, sock);
 	xmits--;
@@ -384,7 +382,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
 		cv.wait(lk);
 	}
 	xmits++;
-	LOG(INFO) << "**********" << "num xmits is " << xmits.fetch_add(0);
+	LOG(DEBUG) << "**********" << "num xmits is " << xmits.fetch_add(0);
 	lk.unlock();
 
     // read in the packets while we still have them, and we haven't processed the final packet
@@ -405,7 +403,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
             uint64_t seqno = p_head.seqno();
             uint64_t offset = p_head.offsetinblock();
 			if (data_len + offset > len) {
-				LOG(ERROR) << "ERROR BAD BAD BAD ERROR BAD WITH DATA LEN";
+				LOG(ERROR) << "Bad data length encountered.";
 				xmits--;
 				cv.notify_one();
 				return false;
