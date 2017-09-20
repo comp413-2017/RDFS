@@ -38,6 +38,7 @@ Check the wiki for documentation!
 sudo apt-get install libboost-all-dev
 sudo apt-get install libasio-dev
 
+cd rdfs
 mkdir build
 cd build
 
