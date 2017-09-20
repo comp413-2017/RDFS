@@ -80,7 +80,6 @@ void TransferServer::processWriteRequest(tcp::socket& sock) {
 	OpWriteBlockProto proto;
 	if (rpcserver::read_delimited_proto(sock, proto)) {
 		LOG(DEBUG) << "Op a write block proto";
-		LOG(DEBUG) << proto.DebugString();
 	} else {
 		ERROR_AND_RETURN("Failed to op the write block proto.");
 	}
