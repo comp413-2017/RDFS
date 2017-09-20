@@ -140,7 +140,7 @@ namespace nativefs {
 
 	std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
         std::vector<std::uint64_t> vector;
-        LOG(INFO) << "Known blocks:";
+        // LOG(INFO) << "Known blocks:";
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len != 0) {
 				auto info = blocks[i];
@@ -155,7 +155,7 @@ namespace nativefs {
 		size = std::max(MIN_BLOCK_SIZE, size);
 		size_t ceiling = powerup(size);
 		if (ceiling > MAX_BLOCK_POWER) {
-			LOG(ERROR) << CLASS_NAME << "Failed attempting to allocated block of power " << ceiling;
+			LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
 			return false;
 		}
 		auto& freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
@@ -183,7 +183,7 @@ namespace nativefs {
 		{
 			std::lock_guard<std::mutex> lock(listMtx);
 			if (!allocateBlock(len, offset)) {
-				LOG(ERROR) << CLASS_NAME << "Could not find a free block to fit " << len;
+				LOG(ERROR) << "Could not find a free block to fit " << len;
 			    return false;
 			}
 		}
@@ -202,10 +202,11 @@ namespace nativefs {
 		int added_index = addBlock(info);
 		switch (added_index) {
 			case -1:
-				LOG(ERROR) << CLASS_NAME << "Block wih id " << info.blockid << " already exists on this DataNode";
+				LOG(ERROR) << "Block wih id " << info.blockid << " already exists on this DataNode";
 				return false;
 			case -2:
-				LOG(ERROR) << CLASS_NAME << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+				// This case shouldn't happen
+				LOG(ERROR) << "Could not find space for block " << info.blockid;
 				return false;
 			default:
 				flushBlock(added_index);
