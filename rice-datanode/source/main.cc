@@ -123,10 +123,10 @@ int main(int argc, char* argv[]) {
 	LOG(DEBUG) << "BackingStore set to " << backingStore;
 	auto fs = std::make_shared<nativefs::NativeFS>(backingStore);
     if (fs == nullptr){
-        LOG(FATAL) << "Failed to create filesystem!";
-
+        LOG(FATAL) << "Failed to create filesystem.";
         return -1;
     }
+
 	uint64_t total_disk_space = fs->getTotalSpace();
 	auto zk_shared = std::make_shared<ZKWrapper>("localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
 	auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1", zk_shared, total_disk_space, ipcPort, xferPort); // TODO: Change the datanode id

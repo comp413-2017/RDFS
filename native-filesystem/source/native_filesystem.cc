@@ -138,7 +138,7 @@ namespace nativefs {
 
 	std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
         std::vector<std::uint64_t> vector;
-        LOG(INFO) << "Known blocks:";
+        // LOG(INFO) << "Known blocks:";
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len != 0) {
 				auto info = blocks[i];
@@ -203,7 +203,8 @@ namespace nativefs {
 				LOG(ERROR) << "Block wih id " << info.blockid << " already exists on this DataNode";
 				return false;
 			case -2:
-				LOG(ERROR) << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+				// This case shouldn't happen
+				LOG(ERROR) << "Could not find space for block " << info.blockid;
 				return false;
 			default:
 				flushBlock(added_index);
