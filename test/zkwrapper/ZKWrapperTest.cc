@@ -9,6 +9,8 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
+
 namespace {
 
 	class ZKWrapperTest : public ::testing::Test {
@@ -316,6 +318,10 @@ namespace {
 }
 
 int main(int argc, char **argv) {
+	el::Configurations conf(LOG_CONFIG_FILE);
+	el::Loggers::reconfigureAllLoggers(conf);
+	el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+
 	system("sudo ~/zookeeper/bin/zkServer.sh start");
 	system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
 	::testing::InitGoogleTest(&argc, argv);
