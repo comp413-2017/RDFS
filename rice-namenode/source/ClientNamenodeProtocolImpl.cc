@@ -37,12 +37,10 @@ namespace client_namenode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-const std::string ClientNamenodeTranslator::CLASS_NAME = ": **ClientNamenodeTranslator** : ";
-
 ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
 	: port(port_arg), server(port), zk(zk_arg) {
 	InitServer();
-	LOG(INFO) << CLASS_NAME <<  "Created client namenode translator.";
+	LOG(INFO) << "Created client namenode translator.";
 }
 
 
@@ -331,7 +329,7 @@ int ClientNamenodeTranslator::getDefaultInt(std::string key) {
  * Initialize the rpc server
  */
 void ClientNamenodeTranslator::InitServer() {
-	LOG(INFO) << CLASS_NAME <<  "Initializing namenode server...";
+	LOG(INFO) << "Initializing namenode server...";
 	RegisterClientRPCHandlers();
 }
 
@@ -394,7 +392,7 @@ int ClientNamenodeTranslator::getPort() {
 // ------------------------------- HELPERS -----------------------------
 
 void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
-	LOG(INFO) << CLASS_NAME <<  "Got message " << req_name << ": " << req.DebugString();
+	LOG(INFO) <<   "Got message " << req_name;
 }
 
 ClientNamenodeTranslator::~ClientNamenodeTranslator() {

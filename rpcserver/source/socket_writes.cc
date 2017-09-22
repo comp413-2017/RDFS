@@ -63,7 +63,7 @@ namespace rpcserver {
      */
     bool write_delimited_proto(tcp::socket& sock, std::string& proto_bytes) {
         if (!write_varint(sock, proto_bytes.size())) {
-            LOG(ERROR) << "varint failed hahaha " << proto_bytes.size() << std::endl;
+            LOG(ERROR) << "varint failed" << proto_bytes.size() << std::endl;
             return false;
         }
         return write_proto(sock, proto_bytes);

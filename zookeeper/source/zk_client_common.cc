@@ -22,7 +22,6 @@ namespace zkclient {
     const std::string ZkClientCommon::HEALTH_BACKSLASH = "/health/";
     const std::string ZkClientCommon::STATS = "/stats";
     const std::string ZkClientCommon::HEARTBEAT = "/heartbeat";
-    const std::string ZkClientCommon::CLASS_NAME = ": **ZkNnCommon** : ";
 	const std::string ZkClientCommon::BLOCK_LOCATIONS = "/block_locations/";
     const std::string ZkClientCommon::BLOCKS = "/blocks";
 
@@ -39,7 +38,7 @@ namespace zkclient {
     }
 
     void ZkClientCommon::init() {
-        LOG(INFO) << CLASS_NAME <<  "Initializing ZkClientCommon";
+        LOG(INFO) <<  "Initializing ZkClientCommon";
         auto vec = ZKWrapper::get_byte_vector("");
 
         bool exists;
@@ -61,7 +60,7 @@ namespace zkclient {
             // TODO: Handle error
         }
         if (!zk->recursive_create("/work_queues/wait_for_acks", ZKWrapper::EMPTY_VECTOR, error_code)) {
-            LOG(ERROR) << CLASS_NAME <<  "Failed creating /work_queues/wait_for_acks: " << error_code;
+            LOG(ERROR) <<  "Failed creating /work_queues/wait_for_acks: " << error_code;
         }
         // Ensure work_queues exist
         if (zk->exists(DELETE_QUEUES_NO_BACKSLASH, exists, error_code)){
@@ -88,7 +87,7 @@ namespace zkclient {
             // TODO: Handle error
         }
 
-        LOG(INFO) << CLASS_NAME <<  "Finished ZkClientCommon";
+        LOG(INFO) << "Finished ZkClientCommon";
 
     }
 }
