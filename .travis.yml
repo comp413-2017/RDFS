@@ -23,44 +23,24 @@ addons:
       - libmysqlclient-dev
       - libmysql-java
       - sysv-rc-conf
-      - maven
-      - libkrb5-dev
-      - libssl-dev
-      - libsasl2-dev
-      - libsasl2-modules-gssapi-mit
-      - libsqlite3-dev
-      - libtidy-0.99-0
-      - libxml2-dev
-      - libxslt-dev
-      - libldap2-dev
-      - python-setuptools
-      - libgmp3-dev
-      - libffi-dev
       - ant
       - libcppunit-dev
       - libtool
       - libc6-dbg
 
-services:
-  - mysql
-
 env:
   global:
     - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
-    - HIVE_HOME=$HOME/hive
     - CLASSPATH=$HOME/hadoop/share/hadoop/hdfs/*:$HOME/hadoop/share/hadoop/common/*
 
 before_install:
   - ./.ci/install/protobuf.sh
   - ./.ci/install/hadoop.sh
   - ./.ci/install/zookeeper.sh
-  - ./.ci/install/hive.sh
-  - ./.ci/install/mysql.sh
-  - ./.ci/install/hue.sh
   - ./.ci/install/google-test.sh
   - ./.ci/install/google-mock.sh
   - ./.ci/install/valgrind.sh
-  - export PATH=$HOME/hadoop/bin:$HIVE_HOME/bin:$HOME/hue/build/env/bin:$PATH
+  - export PATH=$HOME/hadoop/bin:$PATH
 
 before_script:
   - ./.ci/test/prepare.sh
