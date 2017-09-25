@@ -1,0 +1,49 @@
+language: cpp
+sudo: required
+dist: trusty
+
+addons:
+  apt:
+    packages:
+      - language-pack-en
+      - zip
+      - unzip
+      - curl
+      - git
+      - build-essential
+      - cmake
+      - automake
+      - autoconf
+      - libtool
+      - libboost-all-dev
+      - libasio-dev
+      - ssh
+      - pdsh
+      - openjdk-8-jdk-headless
+      - libmysqlclient-dev
+      - libmysql-java
+      - sysv-rc-conf
+      - ant
+      - libcppunit-dev
+      - libtool
+      - libc6-dbg
+
+env:
+  global:
+    - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+    - CLASSPATH=$HOME/hadoop/share/hadoop/hdfs/*:$HOME/hadoop/share/hadoop/common/*
+
+before_install:
+  - ./.ci/install/protobuf.sh
+  - ./.ci/install/hadoop.sh
+  - ./.ci/install/zookeeper.sh
+  - ./.ci/install/google-test.sh
+  - ./.ci/install/google-mock.sh
+  - ./.ci/install/valgrind.sh
+  - export PATH=$HOME/hadoop/bin:$PATH
+
+before_script:
+  - ./.ci/test/prepare.sh
+
+script:
+  - ./.ci/test/main.sh
