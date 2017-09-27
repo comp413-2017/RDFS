@@ -30,7 +30,7 @@ namespace {
             nn_translator = new ClientNamenodeTranslator(5351, *nncli);
         }
 
-        // Objects declared here can be used by all tests in the test case for Foo.
+        // Objects declared here can be used by all tests in the test case.
         zkclient::ZkNnClient *nncli;
         ClientNamenodeTranslator *nn_translator;
         RPCServer *namenodeServer;
