@@ -13,8 +13,6 @@ namespace zkclient{
 
     using namespace hadoop::hdfs;
 
-	const std::string ZkClientDn::CLASS_NAME = ": **ZkClientDn** : ";
-
 	ZkClientDn::ZkClientDn(const std::string& ip, std::shared_ptr <ZKWrapper> zk_in,
 		 uint64_t total_disk_space, const uint32_t ipcPort, const uint32_t xferPort) : ZkClientCommon(zk_in) {
 
@@ -39,23 +37,23 @@ namespace zkclient{
 		/*
 		ZKLock queue_lock(*zk.get(), WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid));
 		if (queue_lock.lock() != 0) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
+			LOG(ERROR) <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 			created_correctly = false;
 		}
 
 		if (zk->exists(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid), exists, error_code)) {
 			if (!exists) {
-				LOG(ERROR) << CLASS_NAME << WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) << " does not exist";
+				LOG(ERROR) << WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) << " does not exist";
 				created_correctly = false;
 			}
 			if(!zk->create(WORK_QUEUES + WAIT_FOR_ACK_BACKSLASH + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true, false)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed to create wait_for_acks/<block_uuid>/datanode_id " << error_code;
+				LOG(ERROR) <<  "Failed to create wait_for_acks/<block_uuid>/datanode_id " << error_code;
 				created_correctly = false;
 			}
 		}
 
 		if (queue_lock.unlock() != 0) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed unlocking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
+			LOG(ERROR) <<  "Failed unlocking on /work_queues/wait_for_acks/<block_uuid> " << error_code;
 			created_correctly = false;
 		}
 	    */
@@ -66,7 +64,7 @@ namespace zkclient{
 			if (!exists) {
 				zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + std::to_string(uuid)));
 				if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code) || !exists) {
-					LOG(ERROR) << CLASS_NAME << "/block_locations/<block_uuid> did not exist " << error_code;
+					LOG(ERROR) << "/block_locations/<block_uuid> did not exist " << error_code;
 					return false;
 				}
 			}
@@ -76,14 +74,14 @@ namespace zkclient{
 			std::vector<std::uint8_t> data_vect(sizeof(block_data));
 			memcpy(&data_vect[0], &block_data, sizeof(block_data));
 			if(!zk->set(BLOCK_LOCATIONS + std::to_string(uuid), data_vect, error_code, false)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed writing block size to /block_locations/<block_uuid> " << error_code;
+				LOG(ERROR) <<  "Failed writing block size to /block_locations/<block_uuid> " << error_code;
 				created_correctly = false;
 			}
 
 			// We do not need to sync these operations immediately
 			// Add this datanode as the block's location in block_locations
 			if(!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) + "/" + id, ZKWrapper::EMPTY_VECTOR, error_code, true, false)) {
-				LOG(ERROR) << CLASS_NAME <<  "Failed creating /block_locations/<block_uuid>/<datanode_id> " << error_code;
+				LOG(ERROR) <<  "Failed creating /block_locations/<block_uuid>/<datanode_id> " << error_code;
 				created_correctly = false;
 			}
 		}
@@ -93,7 +91,7 @@ namespace zkclient{
 			if (exists) {
 				// We do not need to sync these operations immediately
 				if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS + "/" + std::to_string(uuid), ZKWrapper::EMPTY_VECTOR, error_code, false, false)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks/<block_uuid> " << error_code;
+					LOG(ERROR) <<  "Failed creating /health/<data_node_id>/blocks/<block_uuid> " << error_code;
 				}
 			}
 		}
@@ -123,20 +121,20 @@ namespace zkclient{
 		if (zk->exists(HEALTH_BACKSLASH + id, exists, error_code)) {
 			if (exists) {
 				if (!zk->recursive_delete(HEALTH_BACKSLASH + id, error_code)) {
-					LOG(ERROR) << CLASS_NAME <<  "Failed deleting /health/<data_node_id> " << error_code;
+					LOG(ERROR) <<  "Failed deleting /health/<data_node_id> " << error_code;
 				}
 			}
 		}
 
 		if (!zk->create(HEALTH_BACKSLASH + id, ZKWrapper::EMPTY_VECTOR, error_code)) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id> " << error_code;
+			LOG(ERROR) <<  "Failed creating /health/<data_node_id> " << error_code;
 		}
 
 
 		// Create an ephemeral node at /health/<datanode_id>/heartbeat
 		// if it doesn't already exist. Should have a ZOPERATIONTIMEOUT
 		if (!zk->create(HEALTH_BACKSLASH + id + HEARTBEAT, ZKWrapper::EMPTY_VECTOR, error_code, true)) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/heartbeat " << error_code;
+			LOG(ERROR) <<  "Failed creating /health/<data_node_id>/heartbeat " << error_code;
 		}
 
 		std::vector<uint8_t> data;
@@ -144,11 +142,11 @@ namespace zkclient{
 		memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
 
 		if (!zk->create(HEALTH_BACKSLASH + id + STATS, data, error_code, false)) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/stats " << error_code;
+			LOG(ERROR) <<  "Failed creating /health/<data_node_id>/stats " << error_code;
 		}
 
 		if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS, ZKWrapper::EMPTY_VECTOR, error_code)) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed creating /health/<data_node_id>/blocks " << error_code;
+			LOG(ERROR) <<  "Failed creating /health/<data_node_id>/blocks " << error_code;
 		}
 
 		// Create the delete queue
@@ -306,7 +304,7 @@ namespace zkclient{
 			}
 			memcpy(&block_id, &block_id_vec[0], sizeof(uint64_t));
             if (!server->rmBlock(block_id)){
-                LOG(ERROR) << CLASS_NAME << "Block is not in fs " << block;
+                LOG(ERROR) << "Block is not in fs " << block;
             } else {
 				// just delete the thing from the queue
 				LOG(INFO) << "successful delete " << block;
@@ -342,7 +340,7 @@ namespace zkclient{
 		data.resize(sizeof(DataNodePayload));
 		memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
 		if (!zk->set(HEALTH_BACKSLASH + id + STATS, data, error_code, false)) {
-			LOG(ERROR) << CLASS_NAME <<  "Failed setting /health/<data_node_id>/stats with error " << error_code;
+			LOG(ERROR) <<  "Failed setting /health/<data_node_id>/stats with error " << error_code;
 			return false;
 		}
 		return true;

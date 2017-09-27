@@ -42,7 +42,6 @@ static void resetBlock(nativefs::block_info& blk) {
 }
 
 namespace nativefs {
-	const std::string NativeFS::CLASS_NAME = ": **NativeFS** : ";
 
 	NativeFS::NativeFS(std::string fname) : disk(fname, std::ios::binary | std::ios::in | std::ios::out) {
 		// If the magic bytes exist, then load block info from the drive.
@@ -51,10 +50,10 @@ namespace nativefs {
 		disk.seekg(0);
 		disk.read(&magic[0], magic.size());
 		if (magic == MAGIC) {
-			LOG(INFO) << CLASS_NAME << "Reloading existing block list...";
+			LOG(INFO) << "Reloading existing block list...";
 			disk.read((char *) &blocks[0], BLOCK_LIST_SIZE);
 		} else {
-			LOG(INFO) << CLASS_NAME << "No block list found, constructing from scratch...";
+			LOG(INFO) << "No block list found, constructing from scratch...";
 			std::for_each(&blocks[0], &blocks[BLOCK_LIST_LEN], resetBlock);
 			flushAllBlocks();
 		}
@@ -89,7 +88,7 @@ namespace nativefs {
 	}
 
 	void NativeFS::flushAllBlocks() {
-		LOG(INFO) << CLASS_NAME << "Flushing blocks to storage.";
+		LOG(INFO) << "Flushing blocks to storage.";
 		disk.seekp(0);
 		disk.write(&MAGIC[0], MAGIC.size());
 		disk.write((const char*) &blocks[0], BLOCK_LIST_SIZE);
@@ -97,7 +96,7 @@ namespace nativefs {
 	}
 
 	void NativeFS::flushBlock(long block_index) {
-		LOG(INFO) << CLASS_NAME << "Flushing block " << block_index << " to storage.";
+		LOG(INFO) << "Flushing block " << block_index << " to storage.";
 		disk.seekp(MAGIC.size() + block_index * sizeof(block_info));
 		disk.write((const char*) &blocks[block_index], sizeof(block_info));
 		disk.flush();
@@ -128,19 +127,18 @@ namespace nativefs {
 	}
 
 	void NativeFS::printFreeBlocks() {
-        LOG(INFO) << "Free blocks:";
+        LOG(DEBUG) << "Free blocks:";
 		for (size_t i = 0; i < freeLists.size(); i++) {
-			std::cout << "BLOCKS " << i << ": ";
+			LOG(DEBUG) << "BLOCKS " << i << ": ";
 			for (auto offset: freeLists[i]) {
-				std::cout << offset << ",";
+				LOG(DEBUG) << offset << ",";
 			}
-			std::cout << std::endl;
 		}
 	}
 
 	std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
         std::vector<std::uint64_t> vector;
-        LOG(INFO) << "Known blocks:";
+        // LOG(INFO) << "Known blocks:";
 		for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
 			if (blocks[i].len != 0) {
 				auto info = blocks[i];
@@ -155,7 +153,7 @@ namespace nativefs {
 		size = std::max(MIN_BLOCK_SIZE, size);
 		size_t ceiling = powerup(size);
 		if (ceiling > MAX_BLOCK_POWER) {
-			LOG(ERROR) << CLASS_NAME << "Failed attempting to allocated block of power " << ceiling;
+			LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
 			return false;
 		}
 		auto& freeBlocks = freeLists[ceiling - MIN_BLOCK_POWER];
@@ -183,11 +181,11 @@ namespace nativefs {
 		{
 			std::lock_guard<std::mutex> lock(listMtx);
 			if (!allocateBlock(len, offset)) {
-				LOG(ERROR) << CLASS_NAME << "Could not find a free block to fit " << len;
+				LOG(ERROR) << "Could not find a free block to fit " << len;
 			    return false;
 			}
 		}
-		LOG(INFO) << CLASS_NAME << "Writing block " << id << " to offset " << offset;
+		LOG(INFO) << "Writing block " << id << " to offset " << offset;
 		disk.seekp(offset);
 		disk << blk;
 		disk.flush();
@@ -202,10 +200,11 @@ namespace nativefs {
 		int added_index = addBlock(info);
 		switch (added_index) {
 			case -1:
-				LOG(ERROR) << CLASS_NAME << "Block wih id " << info.blockid << " already exists on this DataNode";
+				LOG(ERROR) << "Block wih id " << info.blockid << " already exists on this DataNode";
 				return false;
 			case -2:
-				LOG(ERROR) << CLASS_NAME << "Could not find space for block " << info.blockid << " (shouldn't happen!)";
+				// This case shouldn't happen
+				LOG(ERROR) << "Could not find space for block " << info.blockid;
 				return false;
 			default:
 				flushBlock(added_index);
@@ -270,7 +269,7 @@ namespace nativefs {
 				return false;
 			}
 		}
-		LOG(INFO) << CLASS_NAME << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
+		LOG(INFO) << "Reading block " << id << " length=" << info.len << " at offset=" << info.offset;
 		blk.resize(info.len);
 		disk.seekg(info.offset);
 		disk.read(&blk[0], info.len);

@@ -26,7 +26,7 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
-wget --quiet http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-2.8.1/hadoop-2.8.1.tar.gz
+wget --quiet http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-2.8.1/hadoop-2.8.1.tar.gz
 tar -xf hadoop-2.8.1.tar.gz
 mv hadoop-2.8.1 /home/vagrant/hadoop3
 rm hadoop-2.8.1.tar.gz
@@ -56,7 +56,7 @@ cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hado
 
 
 # Setup Apache zookeeper
-wget --quiet http://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+wget --quiet http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
 tar -xf zookeeper-3.4.9.tar.gz
 mv zookeeper-3.4.9 /home/vagrant/zookeeper
 rm zookeeper-3.4.9.tar.gz
