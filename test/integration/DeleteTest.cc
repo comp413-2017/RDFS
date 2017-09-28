@@ -45,6 +45,7 @@ namespace {
         // Idle main thread to let the servers start up.
         // Put it into rdfs.
         system("hdfs dfs -fs hdfs://localhost:5351 -touchz /foo");
+        sleep(10);
         system("hdfs dfs -fs hdfs://localhost:5351 -rm /foo");
         int error;
         bool exists;

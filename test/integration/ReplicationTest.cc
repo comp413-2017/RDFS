@@ -91,7 +91,9 @@ int main(int argc, char **argv) {
     // Start up zookeeper
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-	system("~/zookeeper/bin/zkCli.sh rmr /testing");
+    sleep(10);
+	system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+    sleep(3);
 	system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
     system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
     sleep(3);

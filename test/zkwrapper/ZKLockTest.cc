@@ -64,13 +64,15 @@ namespace {
 }
 
 int main(int argc, char **argv) {
-	system("sudo ~/zookeeper/bin/zkServer.sh start");
+	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+	sleep(10);
 
 	::testing::InitGoogleTest(&argc, argv);
 	auto ret = RUN_ALL_TESTS();
 
-	system("sudo ~/zookeeper/bin/zkCli.sh rmr /_locknode_");
-	system("sudo ~/zookeeper/bin/zkServer.sh stop");
+	system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /_locknode_");
+	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 
 	return ret;
 }

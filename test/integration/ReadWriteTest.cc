@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
 	// Start up zookeeper
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+	sleep(10);
 	system("~/zookeeper/bin/zkCli.sh rmr /testing");
 	system("rm -f _RW_TEST_FS expected_testfile1234 actual_testfile* temp*");
 	system("truncate _RW_TEST_FS -s 1000000000");

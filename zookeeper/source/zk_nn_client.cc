@@ -661,9 +661,7 @@ namespace zkclient{
 		}
 		if (file_blocks.size() == 0) {
 			LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
-			//res.set_result(false);
 			res.set_result(true);
-			return;
 		}
 		// TODO: This loop could be two multi-ops instead
 		for (auto file_block : file_blocks) {
@@ -771,6 +769,7 @@ namespace zkclient{
     /**
      * Helper for creating a directory znode. Iterates over the parents and crates them
      * if necessary.
+     * @param path The path given by the create command, excluding the last component (the actual file)
      */
     bool ZkNnClient::mkdir_helper(const std::string& path, bool create_parent) {
        	LOG(INFO) << "mkdir_helper called with input " << path;
