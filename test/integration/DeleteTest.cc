@@ -16,7 +16,6 @@ using client_namenode_translator::ClientNamenodeTranslator;
 
 namespace {
 
-    // TODO: (eddiedugan) Format this like the other tests?
     class DeleteTest : public ::testing::Test {
 
     protected:
