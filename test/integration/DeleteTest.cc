@@ -16,6 +16,7 @@ using client_namenode_translator::ClientNamenodeTranslator;
 
 namespace {
 
+    // TODO: (eddiedugan) Format this like the other tests?
     class DeleteTest : public ::testing::Test {
 
     protected:
@@ -57,7 +58,9 @@ int main(int argc, char **argv) {
     // Start up zookeeper
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+
     // Give zk some time to start.
+    sleep(10);
 
     // Initialize and run the tests
     ::testing::InitGoogleTest(&argc, argv);
