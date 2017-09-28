@@ -88,23 +88,36 @@ namespace {
 
 int main(int argc, char **argv) {
 
-  // Start up zookeeper
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-  sleep(10);
-  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-  sleep(3);
-  system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  sleep(3);
+    // Start up zookeeper
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+    sleep(10);
+	system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+    sleep(3);
+	system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
+    system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
+    sleep(3);
+    //initialize 3 datanodes
+    unsigned short xferPort = 50010;
+    unsigned short ipcPort = 50020;
+    for (int i = 0; i < 3; i++) {
+		system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
+		std::string dnCliArgs =
+				std::to_string(xferPort + i) + " " + std::to_string(ipcPort + i) + " tfs" + std::to_string(i) + " &";
+		std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
+							  " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+							  dnCliArgs + "\" & ";
+		system(cmdLine.c_str());
+		sleep(3);
+	}
 
-  // Initialize and run the tests
-  ::testing::InitGoogleTest(&argc, argv);
-  int res = RUN_ALL_TESTS();
-  // NOTE: You'll need to scroll up a bit to see the test results
-  // system("pkill -f namenode");
-  // Remove test files and shutdown zookeeper
-  system("pkill -f ReplicationTestServer*");
-  system("pkill -f namenode");
-  return res;
+		// Initialize and run the tests
+    ::testing::InitGoogleTest(&argc, argv);
+    int res = RUN_ALL_TESTS();
+    // NOTE: You'll need to scroll up a bit to see the test results
+    // system("pkill -f namenode");
+    // Remove test files and shutdown zookeeper
+	system("pkill -f ReplicationTestServer*");
+	system("pkill -f namenode");
+    return res;
 }
