@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
 
 set -ex
-if [ ! -d "/home/vagrant/rdfs" ]; then
-  mkdir /home/vagrant/rdfs/
-fi
-if [ ! -d "/home/vagrant/rdfs/test" ]; then
-  mkdir /home/vagrant/rdfs/test/
-fi
-if [ ! -d "/home/vagrant/rdfs/test/integration" ]; then
-  mkdir /home/vagrant/rdfs/test/integration/
-fi
 
 # Mimic the file system structure in the development environment
 sudo ln -s $HOME /home/vagrant
