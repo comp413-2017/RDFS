@@ -4,3 +4,10 @@ build/
 .idea/
 logs/
 raw_storage.vdi
+
+# Doxygen artifacts
+html/
+latex/
+
+# Private keys
+.ci/keys/deploy_id_rsa
