@@ -20,36 +20,36 @@
  * ZKLock is a globally synchronous lock that is implemented using ZooKeeper.
  * Multiple clients can synchronize on a resource by locking onto the same path.
  */
-class ZKLock{
-public:
-    /**
-     *
-     * @param zkWrapper
-     * @param path the path to lock onto. This path does not need to exist inside ZooKeeper.
-     * @return
-     */
-    ZKLock(ZKWrapper &zkWrapper, std::string path) : zkWrapper(zkWrapper), path_to_lock(path) {}
+class ZKLock {
+ public:
+  /**
+   *
+   * @param zkWrapper
+   * @param path the path to lock onto. This path does not need to exist inside ZooKeeper.
+   * @return
+   */
+  ZKLock(ZKWrapper &zkWrapper, std::string path) : zkWrapper(zkWrapper), path_to_lock(path) {}
 
-    /**
-     * Blocks until the thread is able to lock onto the path.
-     * @return a negative value if an error occurs; 0 otherwise
-     */
-    int lock();
+  /**
+   * Blocks until the thread is able to lock onto the path.
+   * @return a negative value if an error occurs; 0 otherwise
+   */
+  int lock();
 
-    /**
-     * @return a negative value if an error occurs; 0 otherwise
-     */
-    int unlock();
+  /**
+   * @return a negative value if an error occurs; 0 otherwise
+   */
+  int unlock();
 
-private:
-    ZKWrapper zkWrapper;
+ private:
+  ZKWrapper zkWrapper;
 
-    std::string path_to_lock;
+  std::string path_to_lock;
 
-    static const std::string lock_path;
+  static const std::string lock_path;
 
-    std::string locknode_with_seq;
+  std::string locknode_with_seq;
 
-    static const std::string CLASS_NAME;
+  static const std::string CLASS_NAME;
 };
 #endif //RICE_HDFS_ZK_LOCK_H_H

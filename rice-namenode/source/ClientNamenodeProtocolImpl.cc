@@ -37,101 +37,99 @@ namespace client_namenode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient& zk_arg)
-	: port(port_arg), server(port), zk(zk_arg) {
-	InitServer();
-	LOG(INFO) << "Created client namenode translator.";
+ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient &zk_arg)
+    : port(port_arg), server(port), zk(zk_arg) {
+  InitServer();
+  LOG(INFO) << "Created client namenode translator.";
 }
 
 
 // ----------------------- RPC HANDLERS ----------------------------
 
 std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
-	GetFileInfoRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetFileInfo ");
-	GetFileInfoResponseProto res;
-	zk.get_info(req, res);
-	logMessage(res, "GetFileInfo response ");
-	return Serialize(res);
+  GetFileInfoRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetFileInfo ");
+  GetFileInfoResponseProto res;
+  zk.get_info(req, res);
+  logMessage(res, "GetFileInfo response ");
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::mkdir(std::string input) {
-	MkdirsRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Mkdir ");
-	MkdirsResponseProto res;
-	zk.mkdir(req, res);
-	return Serialize(res);
+  MkdirsRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "Mkdir ");
+  MkdirsResponseProto res;
+  zk.mkdir(req, res);
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::destroy(std::string input) {
-	DeleteRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Delete ");
-	const std::string& src = req.src();
-	const bool recursive = req.recursive();
-	DeleteResponseProto res;
-	zk.destroy(req, res);
-	return Serialize(res);
+  DeleteRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "Delete ");
+  const std::string &src = req.src();
+  const bool recursive = req.recursive();
+  DeleteResponseProto res;
+  zk.destroy(req, res);
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::create(std::string input) {
-	CreateRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Create ");
-	CreateResponseProto res;
-	if (zk.create_file(req, res)) {
-	}
-	else {
-		throw GetErrorRPCHeader("Could not create file", "");
-	}
-    return Serialize(res);
+  CreateRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "Create ");
+  CreateResponseProto res;
+  if (zk.create_file(req, res)) {
+  } else {
+    throw GetErrorRPCHeader("Could not create file", "");
+  }
+  return Serialize(res);
 }
 
-
 std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
-	GetBlockLocationsRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetBlockLocations ");
-	GetBlockLocationsResponseProto res;
-	zk.get_block_locations(req, res);
-	return Serialize(res);
+  GetBlockLocationsRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetBlockLocations ");
+  GetBlockLocationsResponseProto res;
+  zk.get_block_locations(req, res);
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
-	GetServerDefaultsRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetServerDefaults");
-	GetServerDefaultsResponseProto res;
-	FsServerDefaultsProto* def = res.mutable_serverdefaults();
-	// read all this config info
-	def->set_blocksize(getDefaultInt("dfs.blocksize"));
-	def->set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
-	def->set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
-	def->set_replication(getDefaultInt("dfs.replication"));
-	def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
-	def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
-	// TODO ChecksumTypeProto (optional)
-	return Serialize(res);
+  GetServerDefaultsRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetServerDefaults");
+  GetServerDefaultsResponseProto res;
+  FsServerDefaultsProto *def = res.mutable_serverdefaults();
+  // read all this config info
+  def->set_blocksize(getDefaultInt("dfs.blocksize"));
+  def->set_bytesperchecksum(getDefaultInt("dfs.bytes-per-checksum"));
+  def->set_writepacketsize(getDefaultInt("dfs.client-write-packet-size"));
+  def->set_replication(getDefaultInt("dfs.replication"));
+  def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
+  def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
+  // TODO ChecksumTypeProto (optional)
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::renewLease(std::string input) {
-	RenewLeaseRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "RenewLease ");
-	RenewLeaseResponseProto res;
-	return Serialize(res);
+  RenewLeaseRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "RenewLease ");
+  RenewLeaseResponseProto res;
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::complete(std::string input) {
-	CompleteRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Complete ");
-	CompleteResponseProto res;
-	// TODO some optional fields need to be read
-	zk.complete(req, res);
-	return Serialize(res);
+  CompleteRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "Complete ");
+  CompleteResponseProto res;
+  // TODO some optional fields need to be read
+  zk.complete(req, res);
+  return Serialize(res);
 }
 
 /**
@@ -140,90 +138,90 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
  * abandon the file. Any partial writes to the block will be discarded.
  */
 std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
-	AbandonBlockRequestProto req;
-	AbandonBlockResponseProto res; 
-	req.ParseFromString(input);
-	logMessage(req, "AbandonBlock ");
-	if(zk.abandon_block(req, res)){
-		return Serialize(res);}
-	else{
-		throw GetErrorRPCHeader("Could not abandon block", "");
-	}
+  AbandonBlockRequestProto req;
+  AbandonBlockResponseProto res;
+  req.ParseFromString(input);
+  logMessage(req, "AbandonBlock ");
+  if (zk.abandon_block(req, res)) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not abandon block", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::addBlock(std::string input) {
-	AddBlockRequestProto req;
-	AddBlockResponseProto res;
-	req.ParseFromString(input);
-	logMessage(req, "AddBlock ");
-	if(zk.add_block(req, res)){
-		return Serialize(res);}
-	else{
-		throw GetErrorRPCHeader("Could not add block", "");
-	}
+  AddBlockRequestProto req;
+  AddBlockResponseProto res;
+  req.ParseFromString(input);
+  logMessage(req, "AddBlock ");
+  if (zk.add_block(req, res)) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not add block", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::rename(std::string input) {
-	RenameRequestProto req;
-	RenameResponseProto res;
-	req.ParseFromString(input);
-	logMessage(req, "Rename ");
-	zk.rename(req, res);
-	return Serialize(res);
+  RenameRequestProto req;
+  RenameResponseProto res;
+  req.ParseFromString(input);
+  logMessage(req, "Rename ");
+  zk.rename(req, res);
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
-	SetPermissionResponseProto res;
-	return Serialize(res);
+  SetPermissionResponseProto res;
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::getListing(std::string input) {
-	GetListingRequestProto req;
-	GetListingResponseProto res;
-	req.ParseFromString(input);
-	logMessage(req, "GetListing ");
-	if (zk.get_listing(req, res)) {
-		return Serialize(res);
-	} else {
-		throw GetErrorRPCHeader("Could not get listing", "");
-	}
+  GetListingRequestProto req;
+  GetListingResponseProto res;
+  req.ParseFromString(input);
+  logMessage(req, "GetListing ");
+  if (zk.get_listing(req, res)) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not get listing", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::setReplication(std::string input) {
-		SetReplicationResponseProto res;
-		res.set_result(1);
-		return Serialize(res);
+  SetReplicationResponseProto res;
+  res.set_result(1);
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::getEZForPath(std::string input) {
-	GetEZForPathResponseProto res;
-	return Serialize(res);
+  GetEZForPathResponseProto res;
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::setOwner(std::string input) {
-	SetOwnerResponseProto res;
-	return Serialize(res);
+  SetOwnerResponseProto res;
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::getContentSummary(std::string input) {
-	GetContentSummaryRequestProto req;
-	req.ParseFromString(input);
-	GetContentSummaryResponseProto res;
-	zk.get_content(req, res);
-	return Serialize(res);
+  GetContentSummaryRequestProto req;
+  req.ParseFromString(input);
+  GetContentSummaryResponseProto res;
+  zk.get_content(req, res);
+  return Serialize(res);
 }
 /**
  * While we expect clients to renew their lease, we should never allow
  * a client to "recover" a lease, since we only allow a write-once system
  */
 std::string ClientNamenodeTranslator::recoverLease(std::string input) {
-	RecoverLeaseRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "RecoverLease ");
-	RecoverLeaseResponseProto res;
-	// just tell the client they could not recover the lease, so they won't try and write
-	res.set_result(false);
-	return Serialize(res);
+  RecoverLeaseRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "RecoverLease ");
+  RecoverLeaseResponseProto res;
+  // just tell the client they could not recover the lease, so they won't try and write
+  res.set_result(false);
+  return Serialize(res);
 }
 
 
@@ -273,11 +271,11 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
 // TODO what is this? It originally was inside the "commands not supported"
 // block, but it seems to be doing something?
 std::string ClientNamenodeTranslator::rename2(std::string input) {
-	Rename2RequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "Rename2 ");
-	Rename2ResponseProto res;
-	return Serialize(res);
+  Rename2RequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "Rename2 ");
+  Rename2ResponseProto res;
+  return Serialize(res);
 }
 
 
@@ -288,13 +286,13 @@ std::string ClientNamenodeTranslator::rename2(std::string input) {
  * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
  * If it succeeds, we simly return the serialized string.
  */
-std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) {
-	std::string out;
-	logMessage(res, "Responding with ");
-	if (!res.SerializeToString(&out)) {
-		// TODO handle error
-	}
-	return out;
+std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message &res) {
+  std::string out;
+  logMessage(res, "Responding with ");
+  if (!res.SerializeToString(&out)) {
+    // TODO handle error
+  }
+  return out;
 }
 
 /**
@@ -305,15 +303,15 @@ std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message& res) 
  * rpcserver.cc, which will be using a very similar - but different - function)
  */
 hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHeader(std::string error_msg,
-		std::string exception_classname) {
-	hadoop::common::RpcResponseHeaderProto response_header;
-	response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
-	response_header.set_errormsg(error_msg);
-	response_header.set_exceptionclassname(exception_classname);
-    //TODO - since this method is now only being used for failed handlers, this line seems
-    //to be incorrect. As far as I can tell, only create uses this method now.
-	response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_APPLICATION);
-	return response_header;
+                                                                                   std::string exception_classname) {
+  hadoop::common::RpcResponseHeaderProto response_header;
+  response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
+  response_header.set_errormsg(error_msg);
+  response_header.set_exceptionclassname(exception_classname);
+  //TODO - since this method is now only being used for failed handlers, this line seems
+  //to be incorrect. As far as I can tell, only create uses this method now.
+  response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_APPLICATION);
+  return response_header;
 }
 
 // ------------------------- CONFIG AND INITIALIZATION ------------------------
@@ -322,15 +320,15 @@ hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHead
  * Get an integer from the hdfs-defaults config
  */
 int ClientNamenodeTranslator::getDefaultInt(std::string key) {
-	return config.getInt(key);
+  return config.getInt(key);
 }
 
 /**
  * Initialize the rpc server
  */
 void ClientNamenodeTranslator::InitServer() {
-	LOG(INFO) << "Initializing namenode server...";
-	RegisterClientRPCHandlers();
+  LOG(INFO) << "Initializing namenode server...";
+  RegisterClientRPCHandlers();
 }
 
 // ------------------------------------ RPC SERVER INTERACTIONS --------------------------
@@ -345,57 +343,57 @@ void ClientNamenodeTranslator::InitServer() {
  * here should be for supported commands.
  */
 void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
-	using namespace std::placeholders; // for `_1`
+  using namespace std::placeholders; // for `_1`
 
-	// The reason for these binds is because it wants static functions, but we want to give it member functions
-	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
-	server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
-	server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
-	server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
-	server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
-	server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));
-	server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
-	server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
-	server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
-	server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
-	server.register_handler("addBlock", std::bind(&ClientNamenodeTranslator::addBlock, this, _1));
+  // The reason for these binds is because it wants static functions, but we want to give it member functions
+  // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+  server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
+  server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
+  server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
+  server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
+  server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));
+  server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
+  server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
+  server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
+  server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
+  server.register_handler("addBlock", std::bind(&ClientNamenodeTranslator::addBlock, this, _1));
 
-	//TODO - what is this function for? Do we still need it??
-	server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
-	server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
-	server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
-	server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
+  //TODO - what is this function for? Do we still need it??
+  server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
+  server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
+  server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
+  server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
 
-    server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
-	server.register_handler("getListing", std::bind(&ClientNamenodeTranslator::getListing, this, _1));
-	server.register_handler("getEZForPath", std::bind(&ClientNamenodeTranslator::getEZForPath, this, _1));
-	server.register_handler("setOwner", std::bind(&ClientNamenodeTranslator::setOwner, this, _1));
-	server.register_handler("getContentSummary", std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
+  server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
+  server.register_handler("getListing", std::bind(&ClientNamenodeTranslator::getListing, this, _1));
+  server.register_handler("getEZForPath", std::bind(&ClientNamenodeTranslator::getEZForPath, this, _1));
+  server.register_handler("setOwner", std::bind(&ClientNamenodeTranslator::setOwner, this, _1));
+  server.register_handler("getContentSummary", std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
 }
 
 /**
  * Get the RPCServer this namenode uses to connect with clients
  */
 RPCServer ClientNamenodeTranslator::getRPCServer() {
-	return server;
+  return server;
 }
 
 /**
  * Get the port this namenode listens on
  */
 int ClientNamenodeTranslator::getPort() {
-	return port;
+  return port;
 }
 
 // ------------------------------- LEASES ----------------------------
 
 // ------------------------------- HELPERS -----------------------------
 
-void ClientNamenodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
-	LOG(INFO) <<   "Got message " << req_name;
+void ClientNamenodeTranslator::logMessage(google::protobuf::Message &req, std::string req_name) {
+  LOG(INFO) << "Got message " << req_name;
 }
 
 ClientNamenodeTranslator::~ClientNamenodeTranslator() {
-	// TODO handle being shut down
+  // TODO handle being shut down
 }
 } //namespace
