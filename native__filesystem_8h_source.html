@@ -103,69 +103,69 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor"></span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="keyword">namespace </span>nativefs {</div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;</div>
-<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="structnativefs_1_1block__info.html">   15</a></span>&#160;    <span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;        uint64_t blockid;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;        uint64_t offset;</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;        uint32_t len;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;        <span class="keywordtype">bool</span> free;</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    } <a class="code" href="structnativefs_1_1block__info.html">block_info</a>;</div>
+<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="structnativefs_1_1block__info.html">   15</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  uint64_t blockid;</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  uint64_t offset;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  uint32_t len;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="keywordtype">bool</span> free;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;} <a class="code" href="structnativefs_1_1block__info.html">block_info</a>;</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> MIN_BLOCK_POWER = 13;</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> MAX_BLOCK_POWER = 27;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    constexpr <span class="keywordtype">size_t</span> MIN_BLOCK_SIZE = 1 &lt;&lt; MIN_BLOCK_POWER;</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    constexpr <span class="keywordtype">size_t</span> MAX_BLOCK_SIZE = 1 &lt;&lt; MAX_BLOCK_POWER;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    constexpr <span class="keywordtype">size_t</span> FREE_LIST_SIZE = MAX_BLOCK_POWER - MIN_BLOCK_POWER + 1;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    constexpr <span class="keywordtype">size_t</span> DISK_SIZE = MAX_BLOCK_SIZE * 6;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    constexpr <span class="keywordtype">size_t</span> BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    constexpr <span class="keywordtype">size_t</span> BLOCK_LIST_SIZE = BLOCK_LIST_LEN * <span class="keyword">sizeof</span>(<a class="code" href="structnativefs_1_1block__info.html">block_info</a>);</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="comment">// If MAGIC changes, make sure to change the 8 in RESERVED_SIZE too.</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keyword">const</span> std::string MAGIC = <span class="stringliteral">&quot;DEADBEEF&quot;</span>;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="comment">// Reserved space for magic bytes + block_info array.</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    constexpr <span class="keywordtype">size_t</span> RESERVED_SIZE = BLOCK_LIST_SIZE + 8;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">const</span> <span class="keywordtype">size_t</span> MIN_BLOCK_POWER = 13;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="keyword">const</span> <span class="keywordtype">size_t</span> MAX_BLOCK_POWER = 27;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;constexpr <span class="keywordtype">size_t</span> MIN_BLOCK_SIZE = 1 &lt;&lt; MIN_BLOCK_POWER;</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;constexpr <span class="keywordtype">size_t</span> MAX_BLOCK_SIZE = 1 &lt;&lt; MAX_BLOCK_POWER;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;constexpr <span class="keywordtype">size_t</span> FREE_LIST_SIZE = MAX_BLOCK_POWER - MIN_BLOCK_POWER + 1;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;constexpr <span class="keywordtype">size_t</span> DISK_SIZE = MAX_BLOCK_SIZE * 6;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;constexpr <span class="keywordtype">size_t</span> BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;constexpr <span class="keywordtype">size_t</span> BLOCK_LIST_SIZE = BLOCK_LIST_LEN * <span class="keyword">sizeof</span>(<a class="code" href="structnativefs_1_1block__info.html">block_info</a>);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment">// If MAGIC changes, make sure to change the 8 in RESERVED_SIZE too.</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keyword">const</span> std::string MAGIC = <span class="stringliteral">&quot;DEADBEEF&quot;</span>;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">// Reserved space for magic bytes + block_info array.</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;constexpr <span class="keywordtype">size_t</span> RESERVED_SIZE = BLOCK_LIST_SIZE + 8;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
-<div class="line"><a name="l00035"></a><span class="lineno"><a class="line" href="classnativefs_1_1_native_f_s.html">   35</a></span>&#160;<span class="keyword">class </span><a class="code" href="classnativefs_1_1_native_f_s.html">NativeFS</a>{</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        <a class="code" href="classnativefs_1_1_native_f_s.html#a8abf49d3f1e054620b9fbe2b8d86ac9b">NativeFS</a>(std::string);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        <a class="code" href="classnativefs_1_1_native_f_s.html#a1e146b830200a5920872f242bf0954c2">~NativeFS</a>();</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#ae141f2493b5190cdf60bdb27b6c1f39b">writeBlock</a>(uint64_t, <span class="keyword">const</span> std::string&amp;);</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#a19299efc6d412fe5ff8ad053247bab38">getBlock</a>(uint64_t, std::string&amp;);</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#ab12c6d86d17f41033859daf6ae8d5e6e">hasBlock</a>(uint64_t);</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#a91f4e9ad8f1545fb084b1732ff3ef32d">rmBlock</a>(uint64_t);</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        uint64_t <a class="code" href="classnativefs_1_1_native_f_s.html#a4b95ef93beb5ecc1dadd7f28b749877c">getTotalSpace</a>();</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        uint64_t <a class="code" href="classnativefs_1_1_native_f_s.html#a64d558ff86417f24ac73360a74993139">getFreeSpace</a>();</div>
+<div class="line"><a name="l00035"></a><span class="lineno"><a class="line" href="classnativefs_1_1_native_f_s.html">   35</a></span>&#160;<span class="keyword">class </span><a class="code" href="classnativefs_1_1_native_f_s.html">NativeFS</a> {</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <a class="code" href="classnativefs_1_1_native_f_s.html#a8abf49d3f1e054620b9fbe2b8d86ac9b">NativeFS</a>(std::string);</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <a class="code" href="classnativefs_1_1_native_f_s.html#a1e146b830200a5920872f242bf0954c2">~NativeFS</a>();</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#ae141f2493b5190cdf60bdb27b6c1f39b">writeBlock</a>(uint64_t, <span class="keyword">const</span> std::string &amp;);</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#a19299efc6d412fe5ff8ad053247bab38">getBlock</a>(uint64_t, std::string &amp;);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#ab12c6d86d17f41033859daf6ae8d5e6e">hasBlock</a>(uint64_t);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classnativefs_1_1_native_f_s.html#a91f4e9ad8f1545fb084b1732ff3ef32d">rmBlock</a>(uint64_t);</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  uint64_t <a class="code" href="classnativefs_1_1_native_f_s.html#a4b95ef93beb5ecc1dadd7f28b749877c">getTotalSpace</a>();</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  uint64_t <a class="code" href="classnativefs_1_1_native_f_s.html#a64d558ff86417f24ac73360a74993139">getFreeSpace</a>();</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        std::vector&lt;std::uint64_t&gt; <a class="code" href="classnativefs_1_1_native_f_s.html#aded8657cc348dcbcced63c66d55690ae">getKnownBlocks</a>();</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  std::vector&lt;std::uint64_t&gt; <a class="code" href="classnativefs_1_1_native_f_s.html#aded8657cc348dcbcced63c66d55690ae">getKnownBlocks</a>();</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="keywordtype">bool</span> fetchBlock(uint64_t, <a class="code" href="structnativefs_1_1block__info.html">block_info</a>&amp; info);</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <span class="keywordtype">int</span> addBlock(<span class="keyword">const</span> <a class="code" href="structnativefs_1_1block__info.html">block_info</a>&amp; info);</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        <span class="keywordtype">void</span> freeRange(uint64_t start, uint64_t end);</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <span class="keywordtype">bool</span> allocateBlock(<span class="keywordtype">size_t</span> size, uint64_t&amp; offset);</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <span class="keywordtype">void</span> constructFreeLists();</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;        <span class="keywordtype">void</span> flushAllBlocks();</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        <span class="keywordtype">void</span> flushBlock(<span class="keywordtype">long</span> block_index);</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="keywordtype">bool</span> fetchBlock(uint64_t, <a class="code" href="structnativefs_1_1block__info.html">block_info</a> &amp;info);</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordtype">int</span> addBlock(<span class="keyword">const</span> <a class="code" href="structnativefs_1_1block__info.html">block_info</a> &amp;info);</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <span class="keywordtype">void</span> freeRange(uint64_t start, uint64_t end);</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  <span class="keywordtype">bool</span> allocateBlock(<span class="keywordtype">size_t</span> size, uint64_t &amp;offset);</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  <span class="keywordtype">void</span> constructFreeLists();</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="keywordtype">void</span> flushAllBlocks();</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  <span class="keywordtype">void</span> flushBlock(<span class="keywordtype">long</span> block_index);</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        <span class="keywordtype">void</span> printFreeBlocks();</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;  <span class="keywordtype">void</span> printFreeBlocks();</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        <a class="code" href="structnativefs_1_1block__info.html">block_info</a>* blocks;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        <span class="keyword">mutable</span> std::mutex listMtx;</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        std::vector&lt;std::vector&lt;uint64_t&gt;&gt; freeLists;</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        std::fstream disk;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;        <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  <a class="code" href="structnativefs_1_1block__info.html">block_info</a> *blocks;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  <span class="keyword">mutable</span> std::mutex listMtx;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  std::vector&lt;std::vector&lt;uint64_t&gt;&gt; freeLists;</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  std::fstream disk;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;</div>
 <div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;};</div>
 <div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;</div>
 <div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;}</div>
-<div class="ttc" id="classnativefs_1_1_native_f_s_html_a19299efc6d412fe5ff8ad053247bab38"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a19299efc6d412fe5ff8ad053247bab38">nativefs::NativeFS::getBlock</a></div><div class="ttdeci">bool getBlock(uint64_t, std::string &amp;)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:263</div></div>
+<div class="ttc" id="classnativefs_1_1_native_f_s_html_a19299efc6d412fe5ff8ad053247bab38"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a19299efc6d412fe5ff8ad053247bab38">nativefs::NativeFS::getBlock</a></div><div class="ttdeci">bool getBlock(uint64_t, std::string &amp;)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:261</div></div>
 <div class="ttc" id="classnativefs_1_1_native_f_s_html"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html">nativefs::NativeFS</a></div><div class="ttdef"><b>Definition:</b> native_filesystem.h:35</div></div>
 <div class="ttc" id="structnativefs_1_1block__info_html"><div class="ttname"><a href="structnativefs_1_1block__info.html">nativefs::block_info</a></div><div class="ttdef"><b>Definition:</b> native_filesystem.h:15</div></div>
-<div class="ttc" id="classnativefs_1_1_native_f_s_html_a4b95ef93beb5ecc1dadd7f28b749877c"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a4b95ef93beb5ecc1dadd7f28b749877c">nativefs::NativeFS::getTotalSpace</a></div><div class="ttdeci">uint64_t getTotalSpace()</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:299</div></div>
+<div class="ttc" id="classnativefs_1_1_native_f_s_html_a4b95ef93beb5ecc1dadd7f28b749877c"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a4b95ef93beb5ecc1dadd7f28b749877c">nativefs::NativeFS::getTotalSpace</a></div><div class="ttdeci">uint64_t getTotalSpace()</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:297</div></div>
 <div class="ttc" id="classnativefs_1_1_native_f_s_html_aded8657cc348dcbcced63c66d55690ae"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#aded8657cc348dcbcced63c66d55690ae">nativefs::NativeFS::getKnownBlocks</a></div><div class="ttdeci">std::vector&lt; std::uint64_t &gt; getKnownBlocks()</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:139</div></div>
 <div class="ttc" id="classnativefs_1_1_native_f_s_html_ae141f2493b5190cdf60bdb27b6c1f39b"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#ae141f2493b5190cdf60bdb27b6c1f39b">nativefs::NativeFS::writeBlock</a></div><div class="ttdeci">bool writeBlock(uint64_t, const std::string &amp;)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:178</div></div>
-<div class="ttc" id="classnativefs_1_1_native_f_s_html_a64d558ff86417f24ac73360a74993139"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a64d558ff86417f24ac73360a74993139">nativefs::NativeFS::getFreeSpace</a></div><div class="ttdeci">uint64_t getFreeSpace()</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:303</div></div>
+<div class="ttc" id="classnativefs_1_1_native_f_s_html_a64d558ff86417f24ac73360a74993139"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a64d558ff86417f24ac73360a74993139">nativefs::NativeFS::getFreeSpace</a></div><div class="ttdeci">uint64_t getFreeSpace()</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:301</div></div>
 <div class="ttc" id="classnativefs_1_1_native_f_s_html_a1e146b830200a5920872f242bf0954c2"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a1e146b830200a5920872f242bf0954c2">nativefs::NativeFS::~NativeFS</a></div><div class="ttdeci">~NativeFS()</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:85</div></div>
-<div class="ttc" id="classnativefs_1_1_native_f_s_html_ab12c6d86d17f41033859daf6ae8d5e6e"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#ab12c6d86d17f41033859daf6ae8d5e6e">nativefs::NativeFS::hasBlock</a></div><div class="ttdeci">bool hasBlock(uint64_t)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:254</div></div>
-<div class="ttc" id="classnativefs_1_1_native_f_s_html_a91f4e9ad8f1545fb084b1732ff3ef32d"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a91f4e9ad8f1545fb084b1732ff3ef32d">nativefs::NativeFS::rmBlock</a></div><div class="ttdeci">bool rmBlock(uint64_t)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:282</div></div>
+<div class="ttc" id="classnativefs_1_1_native_f_s_html_ab12c6d86d17f41033859daf6ae8d5e6e"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#ab12c6d86d17f41033859daf6ae8d5e6e">nativefs::NativeFS::hasBlock</a></div><div class="ttdeci">bool hasBlock(uint64_t)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:252</div></div>
+<div class="ttc" id="classnativefs_1_1_native_f_s_html_a91f4e9ad8f1545fb084b1732ff3ef32d"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a91f4e9ad8f1545fb084b1732ff3ef32d">nativefs::NativeFS::rmBlock</a></div><div class="ttdeci">bool rmBlock(uint64_t)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:280</div></div>
 <div class="ttc" id="classnativefs_1_1_native_f_s_html_a8abf49d3f1e054620b9fbe2b8d86ac9b"><div class="ttname"><a href="classnativefs_1_1_native_f_s.html#a8abf49d3f1e054620b9fbe2b8d86ac9b">nativefs::NativeFS::NativeFS</a></div><div class="ttdeci">NativeFS(std::string)</div><div class="ttdef"><b>Definition:</b> native_filesystem.cc:46</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->

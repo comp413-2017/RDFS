@@ -100,16 +100,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="keyword">using</span> asio::ip::tcp;</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keyword">namespace </span>rpcserver {</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    asio::error_code read_full(tcp::socket&amp; sock, asio::mutable_buffers_1 buf);</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keywordtype">bool</span> read_byte(tcp::socket&amp; sock, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>* byte);</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keywordtype">bool</span> read_int16(tcp::socket&amp; sock, uint16_t* out);</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keywordtype">bool</span> read_int32(tcp::socket&amp; sock, uint32_t* out);</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keywordtype">bool</span> read_int64(tcp::socket&amp; sock, uint64_t* out);</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordtype">size_t</span> read_varint(tcp::socket&amp; sock, uint64_t* out);</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keywordtype">bool</span> read_delimited_proto(tcp::socket&amp; sock, ::google::protobuf::Message&amp; proto,</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;            uint64_t *consumed);</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keywordtype">bool</span> read_delimited_proto(tcp::socket&amp; sock, ::google::protobuf::Message&amp; proto);</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="keywordtype">bool</span> read_proto(tcp::socket&amp; sock, ::google::protobuf::Message&amp; proto, uint64_t len);</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;asio::error_code read_full(tcp::socket &amp;sock, asio::mutable_buffers_1 buf);</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keywordtype">bool</span> read_byte(tcp::socket &amp;sock, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *byte);</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keywordtype">bool</span> read_int16(tcp::socket &amp;sock, uint16_t *out);</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keywordtype">bool</span> read_int32(tcp::socket &amp;sock, uint32_t *out);</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keywordtype">bool</span> read_int64(tcp::socket &amp;sock, uint64_t *out);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keywordtype">size_t</span> read_varint(tcp::socket &amp;sock, uint64_t *out);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="keywordtype">bool</span> read_delimited_proto(tcp::socket &amp;sock, ::google::protobuf::Message &amp;proto,</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;                          uint64_t *consumed);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="keywordtype">bool</span> read_delimited_proto(tcp::socket &amp;sock, ::google::protobuf::Message &amp;proto);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="keywordtype">bool</span> read_proto(tcp::socket &amp;sock, ::google::protobuf::Message &amp;proto, uint64_t len);</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->

@@ -100,12 +100,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="keyword">using</span> asio::ip::tcp;</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keyword">namespace </span>rpcserver {</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    <span class="keywordtype">bool</span> write_int32(tcp::socket&amp; sock, uint32_t val);</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keywordtype">bool</span> write_int16(tcp::socket&amp; sock, uint16_t val);</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keywordtype">bool</span> write_byte(tcp::socket&amp; sock, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> byte);</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keywordtype">bool</span> write_varint(tcp::socket&amp; sock, uint32_t val);</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keywordtype">bool</span> write_proto(tcp::socket&amp; sock, std::string&amp; proto_bytes);</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordtype">bool</span> write_delimited_proto(tcp::socket&amp; sock, std::string&amp; proto_bytes);</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keywordtype">bool</span> write_int32(tcp::socket &amp;sock, uint32_t val);</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keywordtype">bool</span> write_int16(tcp::socket &amp;sock, uint16_t val);</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keywordtype">bool</span> write_byte(tcp::socket &amp;sock, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> byte);</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keywordtype">bool</span> write_varint(tcp::socket &amp;sock, uint32_t val);</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keywordtype">bool</span> write_proto(tcp::socket &amp;sock, std::string &amp;proto_bytes);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keywordtype">bool</span> write_delimited_proto(tcp::socket &amp;sock, std::string &amp;proto_bytes);</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->

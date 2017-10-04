@@ -107,29 +107,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;boost/algorithm/string.hpp&gt;</span></div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &quot;zkwrapper.h&quot;</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;</div>
-<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="class_z_k_lock.html">   23</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_z_k_lock.html">ZKLock</a>{</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="class_z_k_lock.html#a91ced766c6faf9ef01bf008f6be8beaf">   31</a></span>&#160;    <a class="code" href="class_z_k_lock.html#a91ced766c6faf9ef01bf008f6be8beaf">ZKLock</a>(<a class="code" href="class_z_k_wrapper.html">ZKWrapper</a> &amp;zkWrapper, std::string path) : zkWrapper(zkWrapper), path_to_lock(path) {}</div>
+<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="class_z_k_lock.html">   23</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_z_k_lock.html">ZKLock</a> {</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="class_z_k_lock.html#a91ced766c6faf9ef01bf008f6be8beaf">   31</a></span>&#160;  <a class="code" href="class_z_k_lock.html#a91ced766c6faf9ef01bf008f6be8beaf">ZKLock</a>(<a class="code" href="class_z_k_wrapper.html">ZKWrapper</a> &amp;zkWrapper, std::string path) : zkWrapper(zkWrapper), path_to_lock(path) {}</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keywordtype">int</span> <a class="code" href="class_z_k_lock.html#a38b1f1a4b6e57de609e29c1fd45b20ec">lock</a>();</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="keywordtype">int</span> <a class="code" href="class_z_k_lock.html#a38b1f1a4b6e57de609e29c1fd45b20ec">lock</a>();</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordtype">int</span> <a class="code" href="class_z_k_lock.html#a28ee7b23fb041af4b6ad28016c318007">unlock</a>();</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  <span class="keywordtype">int</span> <a class="code" href="class_z_k_lock.html#a28ee7b23fb041af4b6ad28016c318007">unlock</a>();</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <a class="code" href="class_z_k_wrapper.html">ZKWrapper</a> zkWrapper;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  <a class="code" href="class_z_k_wrapper.html">ZKWrapper</a> zkWrapper;</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    std::string path_to_lock;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  std::string path_to_lock;</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> std::string lock_path;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string lock_path;</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    std::string locknode_with_seq;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  std::string locknode_with_seq;</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;};</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">#endif //RICE_HDFS_ZK_LOCK_H_H</span></div>
 <div class="ttc" id="class_z_k_lock_html_a38b1f1a4b6e57de609e29c1fd45b20ec"><div class="ttname"><a href="class_z_k_lock.html#a38b1f1a4b6e57de609e29c1fd45b20ec">ZKLock::lock</a></div><div class="ttdeci">int lock()</div><div class="ttdef"><b>Definition:</b> zk_lock.cc:8</div></div>
 <div class="ttc" id="class_z_k_wrapper_html"><div class="ttname"><a href="class_z_k_wrapper.html">ZKWrapper</a></div><div class="ttdef"><b>Definition:</b> zkwrapper.h:56</div></div>
-<div class="ttc" id="class_z_k_lock_html_a28ee7b23fb041af4b6ad28016c318007"><div class="ttname"><a href="class_z_k_lock.html#a28ee7b23fb041af4b6ad28016c318007">ZKLock::unlock</a></div><div class="ttdeci">int unlock()</div><div class="ttdef"><b>Definition:</b> zk_lock.cc:75</div></div>
+<div class="ttc" id="class_z_k_lock_html_a28ee7b23fb041af4b6ad28016c318007"><div class="ttname"><a href="class_z_k_lock.html#a28ee7b23fb041af4b6ad28016c318007">ZKLock::unlock</a></div><div class="ttdeci">int unlock()</div><div class="ttdef"><b>Definition:</b> zk_lock.cc:73</div></div>
 <div class="ttc" id="class_z_k_lock_html_a91ced766c6faf9ef01bf008f6be8beaf"><div class="ttname"><a href="class_z_k_lock.html#a91ced766c6faf9ef01bf008f6be8beaf">ZKLock::ZKLock</a></div><div class="ttdeci">ZKLock(ZKWrapper &amp;zkWrapper, std::string path)</div><div class="ttdef"><b>Definition:</b> zk_lock.h:31</div></div>
 <div class="ttc" id="class_z_k_lock_html"><div class="ttname"><a href="class_z_k_lock.html">ZKLock</a></div><div class="ttdef"><b>Definition:</b> zk_lock.h:23</div></div>
 </div><!-- fragment --></div><!-- contents -->

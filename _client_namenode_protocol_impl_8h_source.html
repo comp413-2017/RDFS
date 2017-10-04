@@ -108,75 +108,72 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="keyword">using namespace </span>hadoop::hdfs;</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
 <div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="classclient__namenode__translator_1_1_client_namenode_translator.html">   28</a></span>&#160;<span class="keyword">class </span><a class="code" href="classclient__namenode__translator_1_1_client_namenode_translator.html">ClientNamenodeTranslator</a> {</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        <a class="code" href="classclient__namenode__translator_1_1_client_namenode_translator.html">ClientNamenodeTranslator</a>(<span class="keywordtype">int</span> port, <a class="code" href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a>&amp; zk_arg);</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        ~<a class="code" href="classclient__namenode__translator_1_1_client_namenode_translator.html">ClientNamenodeTranslator</a>();</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <a class="code" href="classclient__namenode__translator_1_1_client_namenode_translator.html">ClientNamenodeTranslator</a>(<span class="keywordtype">int</span> port, <a class="code" href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a> &amp;zk_arg);</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  ~<a class="code" href="classclient__namenode__translator_1_1_client_namenode_translator.html">ClientNamenodeTranslator</a>();</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;        <span class="comment">// RPC calls which we support. Each take a string which comes form</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        <span class="comment">// the rpc call, and it is then deserialized into their proto msg </span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        std::string getFileInfo(std::string);</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        std::string mkdir(std::string);</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        std::string destroy(std::string);</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;        std::string create(std::string);</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        std::string getBlockLocations(std::string);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        std::string getServerDefaults(std::string);</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        std::string renewLease(std::string);</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        std::string complete(std::string);</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        std::string setReplication(std::string);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        std::string addBlock(std::string input);</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        std::string getListing(std::string input);</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        std::string getEZForPath(std::string input);</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        std::string setOwner(std::string input);</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        std::string getContentSummary(std::string input);</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  <span class="comment">// RPC calls which we support. Each take a string which comes form</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  <span class="comment">// the rpc call, and it is then deserialized into their proto msg</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  std::string getFileInfo(std::string);</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  std::string mkdir(std::string);</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  std::string destroy(std::string);</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  std::string create(std::string);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  std::string getBlockLocations(std::string);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  std::string getServerDefaults(std::string);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  std::string renewLease(std::string);</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  std::string complete(std::string);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  std::string setReplication(std::string);</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  std::string addBlock(std::string input);</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  std::string getListing(std::string input);</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  std::string getEZForPath(std::string input);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  std::string setOwner(std::string input);</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  std::string getContentSummary(std::string input);</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        <span class="comment">// RPC calls which are not supported</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        std::string rename(std::string);</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        std::string rename2(std::string);</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        std::string append(std::string);</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        std::string setPermission(std::string);</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        std::string recoverLease(std::string);</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        std::string concat(std::string);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="comment">// RPC calls which are not supported</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  std::string rename(std::string);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  std::string rename2(std::string);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  std::string append(std::string);</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  std::string setPermission(std::string);</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  std::string recoverLease(std::string);</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  std::string concat(std::string);</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        <span class="comment">// lease manager interactions</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        std::string abandonBlock(std::string input);</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <span class="keywordtype">int</span> getPort();</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <a class="code" href="class_r_p_c_server.html">RPCServer</a> getRPCServer();</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    </div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        std::string Serialize(google::protobuf::Message&amp;);</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordtype">void</span> InitServer();</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <span class="keywordtype">void</span> RegisterClientRPCHandlers();</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;            std::string ZookeeperPath(<span class="keyword">const</span> std::string &amp;hadoopPath);</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        <a class="code" href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">FsServerDefaultsProto</a> server_defaults;  <span class="comment">//server defaults as read from the config</span></div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        <span class="keywordtype">int</span> port;                               <span class="comment">// port which our rpc server is using </span></div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <a class="code" href="class_r_p_c_server.html">RPCServer</a> server;                       <span class="comment">// our rpc server </span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        <a class="code" href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a>&amp; zk;               <span class="comment">// client to communicate with zookeeper</span></div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        <a class="code" href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a> config;     <span class="comment">// used to read from our config files</span></div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        <span class="keywordtype">void</span> logMessage(google::protobuf::Message&amp; req, std::string req_name);</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        </div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keywordtype">int</span> getDefaultInt(std::string);</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <a class="code" href="classhadoop_1_1common_1_1_rpc_response_header_proto.html">hadoop::common::RpcResponseHeaderProto</a> GetErrorRPCHeader(std::string error_msg,</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;                std::string exception_classname);</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;}; <span class="comment">// class</span></div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;} <span class="comment">// namespace</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <span class="comment">// lease manager interactions</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  std::string abandonBlock(std::string input);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordtype">int</span> getPort();</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;  <a class="code" href="class_r_p_c_server.html">RPCServer</a> getRPCServer();</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  std::string Serialize(google::protobuf::Message &amp;);</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="keywordtype">void</span> InitServer();</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  <span class="keywordtype">void</span> RegisterClientRPCHandlers();</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  std::string ZookeeperPath(<span class="keyword">const</span> std::string &amp;hadoopPath);</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">FsServerDefaultsProto</a> server_defaults;    <span class="comment">//server defaults as read from the config</span></div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <span class="keywordtype">int</span> port;                                <span class="comment">// port which our rpc server is using</span></div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <a class="code" href="class_r_p_c_server.html">RPCServer</a> server;                        <span class="comment">// our rpc server</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <a class="code" href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a> &amp;zk;                <span class="comment">// client to communicate with zookeeper</span></div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <a class="code" href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a> config;    <span class="comment">// used to read from our config files</span></div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordtype">void</span> logMessage(google::protobuf::Message &amp;req, std::string req_name);</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  <span class="keywordtype">int</span> getDefaultInt(std::string);</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  <a class="code" href="classhadoop_1_1common_1_1_rpc_response_header_proto.html">hadoop::common::RpcResponseHeaderProto</a> GetErrorRPCHeader(std::string error_msg,</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;                                                           std::string exception_classname);</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;}; <span class="comment">// class</span></div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;} <span class="comment">// namespace</span></div>
 <div class="ttc" id="classclient__namenode__translator_1_1_client_namenode_translator_html"><div class="ttname"><a href="classclient__namenode__translator_1_1_client_namenode_translator.html">client_namenode_translator::ClientNamenodeTranslator</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocolImpl.h:28</div></div>
 <div class="ttc" id="classconfig__reader_1_1_config_reader_html"><div class="ttname"><a href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a></div><div class="ttdef"><b>Definition:</b> ConfigReader.h:18</div></div>
 <div class="ttc" id="classhadoop_1_1common_1_1_rpc_response_header_proto_html"><div class="ttname"><a href="classhadoop_1_1common_1_1_rpc_response_header_proto.html">hadoop::common::RpcResponseHeaderProto</a></div><div class="ttdef"><b>Definition:</b> RpcHeader.pb.h:445</div></div>
 <div class="ttc" id="class_r_p_c_server_html"><div class="ttname"><a href="class_r_p_c_server.html">RPCServer</a></div><div class="ttdef"><b>Definition:</b> rpcserver.h:24</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">hadoop::hdfs::FsServerDefaultsProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3651</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:54</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:49</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
