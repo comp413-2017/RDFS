@@ -25,43 +25,42 @@ using namespace hadoop::common;
  */
 
 class HaServiceTranslator {
-	public:
-		HaServiceTranslator(RPCServer* server_arg, zkclient::ZkNnClient& zk_arg, int port_arg);
+ public:
+  HaServiceTranslator(RPCServer *server_arg, zkclient::ZkNnClient &zk_arg, int port_arg);
 
-		// RPC calls which we support. Each take a string which comes form
-		// the rpc call, and it is then deserialized into their proto msg
-		std::string transitionToActive(std::string);
-		std::string transitionToStandby(std::string);
-		std::string getServiceStatus(std::string);
-		std::string monitorHealth(std::string input);
+  // RPC calls which we support. Each take a string which comes form
+  // the rpc call, and it is then deserialized into their proto msg
+  std::string transitionToActive(std::string);
+  std::string transitionToStandby(std::string);
+  std::string getServiceStatus(std::string);
+  std::string monitorHealth(std::string input);
 
-	private:
-		std::string Serialize(google::protobuf::Message&);
+ private:
+  std::string Serialize(google::protobuf::Message &);
 
-		/**
-		 * Register all the methods with the server that handle RPC calls
-		 */
-		void RegisterServiceRPCHandlers();
+  /**
+   * Register all the methods with the server that handle RPC calls
+   */
+  void RegisterServiceRPCHandlers();
 
+  // FsServerDefaultsProto server_defaults; 	//server defaults as read from the config
+  int port;                                // port which our rpc server is using
+  RPCServer *server;                        // our rpc server
+  zkclient::ZkNnClient &zk;                // client to communicate with zookeeper
+  HAServiceStateProto state;
 
-		// FsServerDefaultsProto server_defaults; 	//server defaults as read from the config
-		int port; 								// port which our rpc server is using
-		RPCServer* server; 						// our rpc server
-		zkclient::ZkNnClient& zk; 				// client to communicate with zookeeper
-		HAServiceStateProto state;
+  /**
+   * Log incoming messages "req" for rpc call "req_name"
+   */
+  void logMessage(google::protobuf::Message &req, std::string req_name);
 
-		/**
-		 * Log incoming messages "req" for rpc call "req_name"
-		 */
-		void logMessage(google::protobuf::Message& req, std::string req_name);
+  /**
+   * Get an rpc header proto given an error message and exception classname
+   */
+  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
+                                                           std::string exception_classname);
 
-		/**
-		 * Get an rpc header proto given an error message and exception classname
-		 */
-		hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
-        		std::string exception_classname);
-
-		static const std::string CLASS_NAME;
+  static const std::string CLASS_NAME;
 
 }; // class
 } // namespace

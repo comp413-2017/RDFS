@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
         v.name = "RDFS_VM"
 
         # Give 1 gb of ram to the vm, may change if it's not enough
-        v.customize ["modifyvm", :id, "--memory", 1024]
+        v.customize ["modifyvm", :id, "--memory", 4096]
         v.customize ["setextradata", :id,
             "VBoxInternal2/SharedFoldersEnableSymlinksCreate//home/vagrant/rdfs", "1"]
 

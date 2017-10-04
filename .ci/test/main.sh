@@ -3,6 +3,8 @@
 set -ex
 
 cd build/test
+./ReplicationTest || :
+./DeleteTest || :
 ./NameNodeTest || :
 ./NativeFsTest || :
 ./ReadWriteTest || :

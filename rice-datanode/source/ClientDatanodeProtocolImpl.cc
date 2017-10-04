@@ -25,116 +25,116 @@ namespace client_datanode_translator {
 using namespace hadoop::hdfs;
 
 // config
-std::map <std::string, std::string> config;
+std::map<std::string, std::string> config;
 
 // TODO - this will probably take some zookeeper object
 ClientDatanodeTranslator::ClientDatanodeTranslator(int port_arg)
-	: port(port_arg), server(port) {
-	InitServer();
-	LOG(INFO) << "Created client datanode translator.";
+    : port(port_arg), server(port) {
+  InitServer();
+  LOG(INFO) << "Created client datanode translator.";
 }
 
 std::string ClientDatanodeTranslator::getReplicaVisibleLength(std::string input) {
-	GetReplicaVisibleLengthRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetReplicaVisibleLength ");
-	const hadoop::hdfs::ExtendedBlockProto& block = req.block();
-	GetReplicaVisibleLengthResponseProto res;
-	// TODO get the visible length of the block and set it the response
-	//res.set_length();
-	return Serialize(res);
+  GetReplicaVisibleLengthRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetReplicaVisibleLength ");
+  const hadoop::hdfs::ExtendedBlockProto &block = req.block();
+  GetReplicaVisibleLengthResponseProto res;
+  // TODO get the visible length of the block and set it the response
+  //res.set_length();
+  return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::refreshNamenodes(std::string input) {
-	RefreshNamenodesRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "RefreshNamenodes ");
-	RefreshNamenodesResponseProto res;
-	// TODO refresh the namenodes. Response contains no fields
-	return Serialize(res);
+  RefreshNamenodesRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "RefreshNamenodes ");
+  RefreshNamenodesResponseProto res;
+  // TODO refresh the namenodes. Response contains no fields
+  return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::deleteBlockPool(std::string input) {
-	DeleteBlockPoolRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "DeleteBlockPool ");
-	const std::string& block_pool = req.blockpool();
-	const bool force = req.force();
-	DeleteBlockPoolResponseProto res;
-	// TODO delete the block pool. Response contains no fields
-	return Serialize(res);
+  DeleteBlockPoolRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "DeleteBlockPool ");
+  const std::string &block_pool = req.blockpool();
+  const bool force = req.force();
+  DeleteBlockPoolResponseProto res;
+  // TODO delete the block pool. Response contains no fields
+  return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getBlockLocalPathInfo(std::string input) {
-	GetBlockLocalPathInfoRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetBlockLocalPathInfo ");
-	const hadoop::hdfs::ExtendedBlockProto& block = req.block();
-	const hadoop::common::TokenProto& token = req.token();
-	GetBlockLocalPathInfoResponseProto res;
-	// TODO get local path info for block
-	//res.set_block();
-	//res.set_localpath();
-	//res.set_localmetapath();
-	return Serialize(res);
+  GetBlockLocalPathInfoRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetBlockLocalPathInfo ");
+  const hadoop::hdfs::ExtendedBlockProto &block = req.block();
+  const hadoop::common::TokenProto &token = req.token();
+  GetBlockLocalPathInfoResponseProto res;
+  // TODO get local path info for block
+  //res.set_block();
+  //res.set_localpath();
+  //res.set_localmetapath();
+  return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getHdfsBlockLocations(std::string input) {
-	GetHdfsBlockLocationsRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetHdfsBlockLocations ");
-	const std::string& block_pool_id = req.blockpoolid();
-	for (int i = 0; i < req.tokens_size(); i++) {
-		const hadoop::common::TokenProto& token = req.tokens(i);
-	}
-	for (int i = 0; i < req.blockids_size(); i++) {
-		const int64_t block_id = req.blockids(i);
-	}
-	GetHdfsBlockLocationsResponseProto res;
-	// TODO get HDFS-specific metadata about blocks
-	//res.add_volumeids() for each volume id
-	//res.add_volumeindexes() for each volume index
-	return Serialize(res);
+  GetHdfsBlockLocationsRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetHdfsBlockLocations ");
+  const std::string &block_pool_id = req.blockpoolid();
+  for (int i = 0; i < req.tokens_size(); i++) {
+    const hadoop::common::TokenProto &token = req.tokens(i);
+  }
+  for (int i = 0; i < req.blockids_size(); i++) {
+    const int64_t block_id = req.blockids(i);
+  }
+  GetHdfsBlockLocationsResponseProto res;
+  // TODO get HDFS-specific metadata about blocks
+  //res.add_volumeids() for each volume id
+  //res.add_volumeindexes() for each volume index
+  return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::shutdownDatanode(std::string input) {
-	ShutdownDatanodeRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "ShutdownDatanode ");
-	const bool for_upgrade = req.forupgrade();
-	ShutdownDatanodeResponseProto res;
-	// TODO shut down the datanode. Response contains no fields
-	return Serialize(res);
+  ShutdownDatanodeRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "ShutdownDatanode ");
+  const bool for_upgrade = req.forupgrade();
+  ShutdownDatanodeResponseProto res;
+  // TODO shut down the datanode. Response contains no fields
+  return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getDatanodeInfo(std::string input) {
-	GetDatanodeInfoRequestProto req;
-	req.ParseFromString(input);
-	logMessage(req, "GetDatanodeInfo ");
-	GetDatanodeInfoResponseProto res;
-	// TODO get datanode info
-	//res.set_localinfo();
-	return Serialize(res);
+  GetDatanodeInfoRequestProto req;
+  req.ParseFromString(input);
+  logMessage(req, "GetDatanodeInfo ");
+  GetDatanodeInfoResponseProto res;
+  // TODO get datanode info
+  //res.set_localinfo();
+  return Serialize(res);
 }
 
 /**
  * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
  * If it succeeds, we simly return the serialized string. 
  */
-std::string ClientDatanodeTranslator::Serialize(google::protobuf::Message& res) {
-	std::string out;
-	if (!res.SerializeToString(&out)) {
-		// TODO handle error
-	}
-	return out;
+std::string ClientDatanodeTranslator::Serialize(google::protobuf::Message &res) {
+  std::string out;
+  if (!res.SerializeToString(&out)) {
+    // TODO handle error
+  }
+  return out;
 }
 
 /**
  * Initialize the rpc server
  */
 void ClientDatanodeTranslator::InitServer() {
-	LOG(INFO) << "Initializing datanode server...";
-	RegisterClientRPCHandlers();
+  LOG(INFO) << "Initializing datanode server...";
+  RegisterClientRPCHandlers();
 }
 
 /**
@@ -142,36 +142,39 @@ void ClientDatanodeTranslator::InitServer() {
  * (See rpcserver.cc - it's where these will get called from)
  */
 void ClientDatanodeTranslator::RegisterClientRPCHandlers() {
-	using namespace std::placeholders; // for `_1`
+  using namespace std::placeholders; // for `_1`
 
-	// The reason for these binds is because it wants static functions, but we want to give it member functions
-	// http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
+  // The reason for these binds is because it wants static functions, but we want to give it member functions
+  // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
 
-	server.register_handler("getReplicaVisibleLength", std::bind(&ClientDatanodeTranslator::getReplicaVisibleLength, this, _1));
-	server.register_handler("refreshNamenodes", std::bind(&ClientDatanodeTranslator::refreshNamenodes, this, _1));
-	server.register_handler("deleteBlockPool", std::bind(&ClientDatanodeTranslator::deleteBlockPool, this, _1));
-	server.register_handler("getBlockLocalPathInfo", std::bind(&ClientDatanodeTranslator::getBlockLocalPathInfo, this, _1));
-	server.register_handler("getHdfsBlockLocations", std::bind(&ClientDatanodeTranslator::getHdfsBlockLocations, this, _1));
-	server.register_handler("shutdownDatanode", std::bind(&ClientDatanodeTranslator::shutdownDatanode, this, _1));
-	server.register_handler("getDatanodeInfo", std::bind(&ClientDatanodeTranslator::getDatanodeInfo, this, _1));
+  server.register_handler("getReplicaVisibleLength",
+                          std::bind(&ClientDatanodeTranslator::getReplicaVisibleLength, this, _1));
+  server.register_handler("refreshNamenodes", std::bind(&ClientDatanodeTranslator::refreshNamenodes, this, _1));
+  server.register_handler("deleteBlockPool", std::bind(&ClientDatanodeTranslator::deleteBlockPool, this, _1));
+  server.register_handler("getBlockLocalPathInfo",
+                          std::bind(&ClientDatanodeTranslator::getBlockLocalPathInfo, this, _1));
+  server.register_handler("getHdfsBlockLocations",
+                          std::bind(&ClientDatanodeTranslator::getHdfsBlockLocations, this, _1));
+  server.register_handler("shutdownDatanode", std::bind(&ClientDatanodeTranslator::shutdownDatanode, this, _1));
+  server.register_handler("getDatanodeInfo", std::bind(&ClientDatanodeTranslator::getDatanodeInfo, this, _1));
 }
 
 /**
  * Get the RPCServer this datanode uses to connect with clients
- */ 
+ */
 RPCServer ClientDatanodeTranslator::getRPCServer() {
-	return server;
-} 
+  return server;
+}
 
 /**
  * Get the port this datanode listens on
  */
 int ClientDatanodeTranslator::getPort() {
-	return port;
+  return port;
 }
 
-void ClientDatanodeTranslator::logMessage(google::protobuf::Message& req, std::string req_name) {
-	LOG(INFO) << "Got message " << req_name;
+void ClientDatanodeTranslator::logMessage(google::protobuf::Message &req, std::string req_name) {
+  LOG(INFO) << "Got message " << req_name;
 }
 
 } //namespace
