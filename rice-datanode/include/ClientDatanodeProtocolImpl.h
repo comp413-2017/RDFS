@@ -17,31 +17,31 @@ namespace client_datanode_translator {
 using namespace hadoop::hdfs;
 
 class ClientDatanodeTranslator {
-	public:
-		ClientDatanodeTranslator(int port);
-		std::string getReplicaVisibleLength(std::string);
-		std::string refreshNamenodes(std::string);
-		std::string deleteBlockPool(std::string);
-		std::string getBlockLocalPathInfo(std::string);
-		std::string getHdfsBlockLocations(std::string);
-		std::string shutdownDatanode(std::string);
-		std::string getDatanodeInfo(std::string);
-		std::string _acceptReadBlock(std::string);
+ public:
+  ClientDatanodeTranslator(int port);
+  std::string getReplicaVisibleLength(std::string);
+  std::string refreshNamenodes(std::string);
+  std::string deleteBlockPool(std::string);
+  std::string getBlockLocalPathInfo(std::string);
+  std::string getHdfsBlockLocations(std::string);
+  std::string shutdownDatanode(std::string);
+  std::string getDatanodeInfo(std::string);
+  std::string _acceptReadBlock(std::string);
 
-		int getPort();
-		RPCServer getRPCServer();
-	private:
-		std::string Serialize(google::protobuf::Message&);
-		void InitServer();
-		void RegisterClientRPCHandlers();
-		void Config();
-		void logMessage(google::protobuf::Message& req, std::string req_name);
+  int getPort();
+  RPCServer getRPCServer();
+ private:
+  std::string Serialize(google::protobuf::Message &);
+  void InitServer();
+  void RegisterClientRPCHandlers();
+  void Config();
+  void logMessage(google::protobuf::Message &req, std::string req_name);
 
-		FsServerDefaultsProto server_defaults;
-		int port;
-		RPCServer server;
+  FsServerDefaultsProto server_defaults;
+  int port;
+  RPCServer server;
 
-		config_reader::ConfigReader config;
-		
+  config_reader::ConfigReader config;
+
 }; // class
 } // namespace

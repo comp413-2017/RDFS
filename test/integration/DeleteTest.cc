@@ -4,7 +4,6 @@
 #include <thread>
 #include <gtest/gtest.h>
 
-
 #define ELPP_THREAD_SAFE
 
 #include <easylogging++.h>
@@ -71,5 +70,6 @@ int main(int argc, char **argv) {
     system("~/zookeeper/bin/zkCli.sh rmr /testing");
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
     return res;
+
 }
 

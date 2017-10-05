@@ -5,6 +5,7 @@ dist: trusty
 addons:
   apt:
     packages:
+      - doxygen
       - language-pack-en
       - zip
       - unzip
@@ -46,4 +47,8 @@ before_script:
   - ./.ci/test/prepare.sh
 
 script:
+  - ./.ci/test/lint.sh
   - ./.ci/test/main.sh
+
+after_success:
+  - ./.ci/publish/docs.sh
