@@ -32,7 +32,7 @@ namespace {
         // system("head -c 5 temp > actual_testfile1234");
         // Check that its contents match.
         // TODO: This test will fail until we implement the file lengths meta-data tracking.
-//        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 
         sleep(10);
         using namespace nativefs;
