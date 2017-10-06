@@ -1,3 +1,5 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
 #include "rpcserver.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) <<  msg; return

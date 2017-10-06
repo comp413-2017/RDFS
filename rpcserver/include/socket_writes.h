@@ -1,3 +1,5 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
 #include <iostream>
 #include <asio.hpp>
 #include <netinet/in.h>
