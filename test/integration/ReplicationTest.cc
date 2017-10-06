@@ -32,7 +32,7 @@ namespace {
         // system("head -c 5 temp > actual_testfile1234");
         // Check that its contents match.
         // TODO: This test will fail until we implement the file lengths meta-data tracking.
-//        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+        ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 
         sleep(10);
         using namespace nativefs;
@@ -58,31 +58,42 @@ namespace {
         // Put it into rdfs.
         sleep(10);
         system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 -copyFromLocal expected_testfile1234 /g");
-        // Read it from rdfs.
+//        // Read it from rdfs.
         sleep(10);
         system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile1234");
-        // Check that its contents match.
+//        // Check that its contents match.
         sleep(10);
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 
         // Start a new server
-        std::string dnCliArgs = std::to_string(xferPort + 4) + " " + std::to_string(ipcPort + 4) + " tfs" + std::to_string(4) + " &";
-        std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(4) + " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-                              dnCliArgs + "\" & ";
-        system("truncate tfs4 -s 1000000000");
+//        std::string dnCliArgs = std::to_string(xferPort + 4) + " " + std::to_string(ipcPort + 4) + " tfs" + std::to_string(4) + " &";
+//        std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(4) + " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+//                              dnCliArgs + "\" & ";
+//        system("truncate tfs4 -s 1000000000");
+//        system(cmdLine.c_str());
+
+
+        system(("truncate tfs" + std::to_string(4) + " -s 1000000000").c_str());
+        std::string dnCliArgs = " -x " +
+            std::to_string(xferPort + 4) + " -p " + std::to_string(ipcPort + 4) + " -b tfs" + std::to_string(4) + " &";
+        std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(4) +
+            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+            dnCliArgs + "\" & ";
         system(cmdLine.c_str());
 
-		sleep(20);
+		sleep(10);
         // Kill one of the original datanodes
         system("pkill -f ReplicationTestServer0");
-        sleep(30);
+        sleep(10);
 
         // The data should now be replicated on the new server
-        system("pkill -f ReplicationTestServer1");
-        system("pkill -f ReplicationTestServer2");
-        sleep(20);
+//        system("pkill -f ReplicationTestServer1");
+//        system("pkill -f ReplicationTestServer2");
+        sleep(10);
         system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile12345 > /dev/null"));
+
+        system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
     }
 
 }
@@ -105,11 +116,12 @@ int main(int argc, char **argv) {
     unsigned short ipcPort = 50020;
     for (int i = 0; i < 3; i++) {
 		system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-		std::string dnCliArgs =
-				std::to_string(xferPort + i) + " " + std::to_string(ipcPort + i) + " tfs" + std::to_string(i) + " &";
+		std::string dnCliArgs = "-x " +
+				std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i) + " -b tfs" + std::to_string(i) + " &";
 		std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
 							  " /home/vagrant/rdfs/build/rice-datanode/datanode " +
 							  dnCliArgs + "\" & ";
+        LOG(INFO) << "CMD LINE: " << cmdLine.c_str();
 		system(cmdLine.c_str());
 		sleep(3);
 	}
