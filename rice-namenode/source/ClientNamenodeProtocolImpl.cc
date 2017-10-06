@@ -1,24 +1,25 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#include <iostream>
-#include <string>
-#include <thread>
-#include <unistd.h>
-
-#include <google/protobuf/arena.h>
-#include <google/protobuf/arenastring.h>
-#include <google/protobuf/generated_message_util.h>
-#include <google/protobuf/metadata.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/repeated_field.h>
-#include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_enum_reflection.h>
-#include <google/protobuf/unknown_field_set.h>
-#include <RpcHeader.pb.h>
-
 #include <easylogging++.h>
 #include <rpcserver.h>
 #include <zkwrapper.h>
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
+#include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/metadata.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/arena.h>
+#include <google/protobuf/arenastring.h>
+#include <google/protobuf/generated_message_util.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <string>
+#include <thread>
+
+#include <RpcHeader.pb.h>
+
 #include <ConfigReader.h>
 
 #include "ClientNamenodeProtocolImpl.h"
@@ -39,8 +40,10 @@ namespace client_namenode_translator {
 // the .proto file implementation's namespace, used for messages
 using namespace hadoop::hdfs;
 
-ClientNamenodeTranslator::ClientNamenodeTranslator(int port_arg, zkclient::ZkNnClient &zk_arg)
-    : port(port_arg), server(port), zk(zk_arg) {
+ClientNamenodeTranslator::ClientNamenodeTranslator(
+    int port_arg,
+    zkclient::ZkNnClient &zk_arg
+) : port(port_arg), server(port), zk(zk_arg) {
   InitServer();
   LOG(INFO) << "Created client namenode translator.";
 }
@@ -112,7 +115,7 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
   def->set_replication(getDefaultInt("dfs.replication"));
   def->set_filebuffersize(getDefaultInt("dfs.stream-buffer-size"));
   def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
-  // TODO ChecksumTypeProto (optional)
+  // TODO(2016): ChecksumTypeProto (optional)
   return Serialize(res);
 }
 
@@ -129,7 +132,7 @@ std::string ClientNamenodeTranslator::complete(std::string input) {
   req.ParseFromString(input);
   logMessage(req, "Complete ");
   CompleteResponseProto res;
-  // TODO some optional fields need to be read
+  // TODO(2016) some optional fields need to be read
   zk.complete(req, res);
   return Serialize(res);
 }
@@ -221,7 +224,8 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
   req.ParseFromString(input);
   logMessage(req, "RecoverLease ");
   RecoverLeaseResponseProto res;
-  // just tell the client they could not recover the lease, so they won't try and write
+  // just tell the client they could not recover the lease, so they won't try
+  // and write
   res.set_result(false);
   return Serialize(res);
 }
@@ -241,8 +245,8 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
  * no need to ever worry about methods we just flat out don't support in this
  * file.
  *
- * That being said, the following is a short list of some common commands we don't
- * support, and our reasons for not supporting them:
+ * That being said, the following is a short list of some common commands we
+ * don't support, and our reasons for not supporting them:
  *
  * 1. setReplication:
  * The actual block replication is not expected to be performed during
@@ -262,16 +266,16 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
  * As such, we cannot recover leases.
  *
  * 5. setPermission:
- * TODO - might support this later!
+ * TODO(2016): - might support this later!
  *
  */
 
-// ------------------------------ TODO ------------------------------------
+// ------------------------------ TODO(2016): ------------------------------
 
 
 
-// TODO what is this? It originally was inside the "commands not supported"
-// block, but it seems to be doing something?
+// TODO(2016): what is this? It originally was inside the "commands not
+// supported" block, but it seems to be doing something?
 std::string ClientNamenodeTranslator::rename2(std::string input) {
   Rename2RequestProto req;
   req.ParseFromString(input);
@@ -285,14 +289,17 @@ std::string ClientNamenodeTranslator::rename2(std::string input) {
 // ----------------------- HANDLER HELPERS --------------------------------
 
 /**
- * Serialize the message 'res' into out. If the serialization fails, then we must find out to handle it
- * If it succeeds, we simly return the serialized string.
+ * Serialize the message 'res' into out. If the serialization fails, then we
+ * must find out to handle it If it succeeds, we simly return the serialized
+ * string.
  */
-std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message &res) {
+std::string ClientNamenodeTranslator::Serialize(
+    google::protobuf::Message &res
+) {
   std::string out;
   logMessage(res, "Responding with ");
   if (!res.SerializeToString(&out)) {
-    // TODO handle error
+    // TODO(2016): handle error
   }
   return out;
 }
@@ -304,19 +311,26 @@ std::string ClientNamenodeTranslator::Serialize(google::protobuf::Message &res) 
  * support a command being called. Those cases should be handled back in
  * rpcserver.cc, which will be using a very similar - but different - function)
  */
-hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::GetErrorRPCHeader(std::string error_msg,
-                                                                                   std::string exception_classname) {
+hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::
+    GetErrorRPCHeader(std::string error_msg,
+                      std::string exception_classname
+) {
   hadoop::common::RpcResponseHeaderProto response_header;
-  response_header.set_status(hadoop::common::RpcResponseHeaderProto_RpcStatusProto_ERROR);
+  response_header.set_status(
+      hadoop::common::
+      RpcResponseHeaderProto_RpcStatusProto_ERROR);
   response_header.set_errormsg(error_msg);
   response_header.set_exceptionclassname(exception_classname);
-  //TODO - since this method is now only being used for failed handlers, this line seems
-  //to be incorrect. As far as I can tell, only create uses this method now.
-  response_header.set_errordetail(hadoop::common::RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_APPLICATION);
+  // TODO(2016): since this method is now only being used for failed handlers,
+  // this line seems to be incorrect. As far as I can tell, only create uses
+  // this method now.
+  response_header.set_errordetail(
+      hadoop::common::
+      RpcResponseHeaderProto_RpcErrorCodeProto_ERROR_APPLICATION);
   return response_header;
 }
 
-// ------------------------- CONFIG AND INITIALIZATION ------------------------
+// --------------------- CONFIG AND INITIALIZATION ----------------------
 
 /**
  * Get an integer from the hdfs-defaults config
@@ -333,7 +347,7 @@ void ClientNamenodeTranslator::InitServer() {
   RegisterClientRPCHandlers();
 }
 
-// ------------------------------------ RPC SERVER INTERACTIONS --------------------------
+// ------------------------- RPC SERVER INTERACTIONS ----------------------
 
 /**
  * Register our rpc handlers with the server (rpcserver cals corresponding
@@ -345,32 +359,72 @@ void ClientNamenodeTranslator::InitServer() {
  * here should be for supported commands.
  */
 void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
-  using namespace std::placeholders; // for `_1`
+  using namespace std::placeholders;  // for `_1`
 
-  // The reason for these binds is because it wants static functions, but we want to give it member functions
-  // http://stackoverflow.com/questions/14189440/c-class-member-callback-simple-examples
-  server.register_handler("getFileInfo", std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
-  server.register_handler("mkdirs", std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
-  server.register_handler("delete", std::bind(&ClientNamenodeTranslator::destroy, this, _1));
-  server.register_handler("create", std::bind(&ClientNamenodeTranslator::create, this, _1));
-  server.register_handler("abandonBlock", std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));
-  server.register_handler("renewLease", std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
-  server.register_handler("getServerDefaults", std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
-  server.register_handler("complete", std::bind(&ClientNamenodeTranslator::complete, this, _1));
-  server.register_handler("getBlockLocations", std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
-  server.register_handler("addBlock", std::bind(&ClientNamenodeTranslator::addBlock, this, _1));
+  // The reason for these binds is because it wants static functions, but we
+  // want to give it member functions
+  // http://stackoverflow.com/questions/14189440/c-class-member-callback
+  // -simple-examples
+  server.register_handler(
+      "getFileInfo",
+      std::bind(&ClientNamenodeTranslator::getFileInfo, this, _1));
+  server.register_handler(
+      "mkdirs",
+      std::bind(&ClientNamenodeTranslator::mkdir, this, _1));
+  server.register_handler(
+      "delete",
+      std::bind(&ClientNamenodeTranslator::destroy, this, _1));
+  server.register_handler(
+      "create",
+      std::bind(&ClientNamenodeTranslator::create, this, _1));
+  server.register_handler(
+      "abandonBlock",
+      std::bind(&ClientNamenodeTranslator::abandonBlock, this, _1));
+  server.register_handler(
+      "renewLease",
+      std::bind(&ClientNamenodeTranslator::renewLease, this, _1));
+  server.register_handler(
+      "getServerDefaults",
+      std::bind(&ClientNamenodeTranslator::getServerDefaults, this, _1));
+  server.register_handler(
+      "complete",
+      std::bind(&ClientNamenodeTranslator::complete, this, _1));
+  server.register_handler(
+      "getBlockLocations",
+      std::bind(&ClientNamenodeTranslator::getBlockLocations, this, _1));
+  server.register_handler(
+      "addBlock",
+      std::bind(&ClientNamenodeTranslator::addBlock, this, _1));
 
-  //TODO - what is this function for? Do we still need it??
-  server.register_handler("rename2", std::bind(&ClientNamenodeTranslator::rename2, this, _1));
-  server.register_handler("rename", std::bind(&ClientNamenodeTranslator::rename, this, _1));
-  server.register_handler("recoverLease", std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
-  server.register_handler("setPermission", std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
+  // TODO(2016): what is this function for? Do we still need it??
+  server.register_handler(
+      "rename2",
+      std::bind(&ClientNamenodeTranslator::rename2, this, _1));
+  server.register_handler(
+      "rename",
+      std::bind(&ClientNamenodeTranslator::rename, this, _1));
+  server.register_handler(
+      "recoverLease",
+      std::bind(&ClientNamenodeTranslator::recoverLease, this, _1));
+  server.register_handler(
+      "setPermission",
+      std::bind(&ClientNamenodeTranslator::setPermission, this, _1));
 
-  server.register_handler("setReplication", std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
-  server.register_handler("getListing", std::bind(&ClientNamenodeTranslator::getListing, this, _1));
-  server.register_handler("getEZForPath", std::bind(&ClientNamenodeTranslator::getEZForPath, this, _1));
-  server.register_handler("setOwner", std::bind(&ClientNamenodeTranslator::setOwner, this, _1));
-  server.register_handler("getContentSummary", std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
+  server.register_handler(
+      "setReplication",
+      std::bind(&ClientNamenodeTranslator::setReplication, this, _1));
+  server.register_handler(
+      "getListing",
+      std::bind(&ClientNamenodeTranslator::getListing, this, _1));
+  server.register_handler(
+      "getEZForPath",
+      std::bind(&ClientNamenodeTranslator::getEZForPath, this, _1));
+  server.register_handler(
+      "setOwner",
+      std::bind(&ClientNamenodeTranslator::setOwner, this, _1));
+  server.register_handler(
+      "getContentSummary",
+      std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
 }
 
 /**
@@ -391,11 +445,14 @@ int ClientNamenodeTranslator::getPort() {
 
 // ------------------------------- HELPERS -----------------------------
 
-void ClientNamenodeTranslator::logMessage(google::protobuf::Message &req, std::string req_name) {
+void ClientNamenodeTranslator::logMessage(
+    google::protobuf::Message &req,
+    std::string req_name
+) {
   LOG(INFO) << "Got message " << req_name;
 }
 
 ClientNamenodeTranslator::~ClientNamenodeTranslator() {
-  // TODO handle being shut down
+  // TODO(2016): handle being shut down
 }
-} //namespace
+}  // namespace client_namenode_translator
