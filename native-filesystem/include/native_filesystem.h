@@ -85,7 +85,7 @@ class NativeFS {
    * Attempt to fetch block info for block of given id, write to info
    * reference. Return whether it exists.
    */
-  bool fetchBlock(uint64_t, const block_info &info);
+  bool fetchBlock(uint64_t, block_info &info);
   /**
    * Attempt to place provided block info in the block list. Returns
    * 0 on success, 1 if no space, 2 if already exists
@@ -99,7 +99,7 @@ class NativeFS {
    * Allocate space to fit provided size, write position to offset.
    * Return true if space was found, otherwise false.
    */
-  bool allocateBlock(size_t size, const uint64_t &offset);
+  bool allocateBlock(size_t size, uint64_t &offset);
   /**
    * Build the free ranges from allocated blocks.
    */

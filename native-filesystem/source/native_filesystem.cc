@@ -38,7 +38,7 @@ static size_t powerdown(uint64_t val) {
 }
 
 // Reset the fields of blk to default empty state.
-static void resetBlock(const nativefs::block_info &blk) {
+static void resetBlock(nativefs::block_info &blk) {
   blk.blockid = 0;
   blk.offset = nativefs::DISK_SIZE;
   blk.len = 0;
@@ -155,7 +155,7 @@ std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
   return vector;
 }
 
-bool NativeFS::allocateBlock(size_t size, const uint64_t &offset) {
+bool NativeFS::allocateBlock(size_t size, uint64_t &offset) {
   // We cannot allocate a block smaller than MIN_BLOCK_SIZE.
   size = std::max(MIN_BLOCK_SIZE, size);
   size_t ceiling = powerup(size);
@@ -244,7 +244,7 @@ int NativeFS::addBlock(const block_info &info) {
 /**
  * Fetch block_info for an id. Assumes it has a lock on the block list.
  */
-bool NativeFS::fetchBlock(uint64_t id, const block_info &info) {
+bool NativeFS::fetchBlock(uint64_t id, block_info &info) {
   for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
     if (blocks[i].blockid == id && !blocks[i].free) {
       info = blocks[i];
