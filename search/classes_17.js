@@ -7,7 +7,6 @@ var searchData=
   ['zklocktest',['ZKLockTest',['../class_i_n_i_t_i_a_l_i_z_e___e_a_s_y_l_o_g_g_i_n_g_p_p_1_1_z_k_lock_test.html',1,'INITIALIZE_EASYLOGGINGPP']]],
   ['zknnclient',['ZkNnClient',['../classzkclient_1_1_zk_nn_client.html',1,'zkclient']]],
   ['zkwrapper',['ZKWrapper',['../class_z_k_wrapper.html',1,'']]],
-  ['zkwrappertest',['ZKWrapperTest',['../class_i_n_i_t_i_a_l_i_z_e___e_a_s_y_l_o_g_g_i_n_g_p_p_1_1_z_k_wrapper_test.html',1,'INITIALIZE_EASYLOGGINGPP']]],
   ['zoneencryptioninfoproto',['ZoneEncryptionInfoProto',['../classhadoop_1_1hdfs_1_1_zone_encryption_info_proto.html',1,'hadoop::hdfs']]],
   ['zooop',['ZooOp',['../class_zoo_op.html',1,'']]]
 ];
