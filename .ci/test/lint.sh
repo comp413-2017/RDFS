@@ -3,7 +3,7 @@
 set -ex
 
 IGNORED_RULES=( build/include_subdir build/c++11 runtime/references )
-SOURCE_DIRECTORIES=( native-filesystem zkwrapper )
+SOURCE_DIRECTORIES=( native-filesystem rice-datanode zkwrapper )
 
 # Build `filter` argument for a list of ignored rules
 rule_filter=""
