@@ -81,8 +81,6 @@ namespace {
         sleep(10);
 
         // The data should now be replicated on the new server
-        system("pkill -f ReplicationTestServer1");
-        system("pkill -f ReplicationTestServer2");
         sleep(10);
         system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile12345 > /dev/null"));
@@ -112,7 +110,6 @@ int main(int argc, char **argv) {
 		std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
 							  " /home/vagrant/rdfs/build/rice-datanode/datanode " +
 							  dnCliArgs + "\" & ";
-        LOG(INFO) << "CMD LINE: " << cmdLine.c_str();
 		system(cmdLine.c_str());
 		sleep(3);
 	}
