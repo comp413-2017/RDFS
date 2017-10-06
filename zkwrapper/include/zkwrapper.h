@@ -1,23 +1,22 @@
-#ifndef RDFS_ZKWRAPPER_H
-#define RDFS_ZKWRAPPER_H
+// Copyright 2017 Rice University, COMP 413 2017
 
+#ifndef ZKWRAPPER_INCLUDE_ZKWRAPPER_H_
+#define ZKWRAPPER_INCLUDE_ZKWRAPPER_H_
+
+#include <zookeeper.h>
+#include <easylogging++.h>
+#include <string.h>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <memory>
 #include <cstring>
 #include <map>
-#include <zookeeper.h>
-#include <iostream>
-#include <string.h>
-#include <vector>
-#include <zookeeper.h>
-#include <easylogging++.h>
 
 enum ZK_ERRORS {
   OK = 0,
   PATH_NOT_FOUND = -1
-  // TODO: Add more errors as needed
+  // TODO(2016): Add more errors as needed
 };
 
 /**
@@ -26,12 +25,11 @@ enum ZK_ERRORS {
  */
 class ZooOp {
  public:
-
   ZooOp(const std::string &path_in,
         const std::vector<std::uint8_t> &data_in) {
     this->path = new char[path_in.size() + 1];
-    strcpy(this->path, path_in.c_str());
-    if (data_in.size() != 0) { // Only save non-empty data
+    snprintf(this->path, strlen(this->path), path_in.c_str());
+    if (data_in.size() != 0) {  // Only save non-empty data
       this->num_bytes = data_in.size();
       this->data = new char[this->num_bytes];
       memcpy(this->data, data_in.data(), data_in.size());
@@ -176,7 +174,9 @@ class ZKWrapper {
    * @return True if the operation completed successfully,
    * 		   False otherwise (caller should check 'error_code' value)
    */
-  bool delete_node(const std::string &path, int &error_code, bool sync = true) const;
+  bool delete_node(const std::string &path,
+                   int &error_code,
+                   bool sync = true) const;
 
   /**
    * Recursively deletes the znode specified in the path and any children of that path
@@ -294,7 +294,7 @@ class ZKWrapper {
    * @param flags node flags: ZOO_EPHEMERAL, ZOO_SEQUENCE, ZOO_EPHEMERAL || ZOO_SEQUENCE
    * @return a ZooOp to be used in execute_multi
    */
-  // TODO: Create a path buffer for returning sequential path names
+  // TODO(2016): Crexate a path buffer for returning sequential path names
   std::shared_ptr<ZooOp> build_create_op(const std::string &path,
                                          const std::vector<std::uint8_t> &data,
                                          const int flags = 0) const;
@@ -358,12 +358,12 @@ class ZKWrapper {
                       void *watcherCtx);
 
   std::string root = "";
-  const static std::uint32_t MAX_PAYLOAD = 65536;
-  const static std::uint32_t MAX_PATH_LEN = 512;
-  const static int NUM_SEQUENTIAL_DIGITS = 10;
+  static const std::uint32_t MAX_PAYLOAD = 65536;
+  static const std::uint32_t MAX_PATH_LEN = 512;
+  static const int NUM_SEQUENTIAL_DIGITS = 10;
 
-  const static std::map<int, std::string> error_message;
+  static const std::map<int, std::string> error_message;
   static const std::string CLASS_NAME;
 };
 
-#endif //RDFS_ZKWRAPPER_H
+#endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_

@@ -1,4 +1,4 @@
-//
+// Copyright 2017 Rice University, COMP 413 2017
 // Created by Prudhvi Boyapalli on 10/3/16.
 //
 //
@@ -84,7 +84,7 @@ std::string ZKWrapper::translate_error(int errorcode) {
 }
 
 ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
-  // TODO: Move these default values to some readable CONSTANT value
+  // TODO(2016): Move these default values to some readable CONSTANT value
   zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
   if (!zh) {
     LOG(ERROR) << "zk init failed!";
@@ -92,15 +92,20 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
   }
   init = 1;
   if (root_path.size() != 0) {
-
     bool root_exists = false;
     while (!root_exists) {
       if (!exists(root_path, root_exists, error_code)) {
-        LOG(ERROR) << "Failed to check if root directory " << root << " exists " << error_code;
+        LOG(ERROR) << "Failed to check if root directory "
+                << root
+                << " exists "
+                << error_code;
       }
       if (!root_exists) {
         if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-          LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
+          LOG(ERROR) << "Failed to create root directory "
+                  << root
+                  << " with error "
+                  << error_code;
         } else {
           break;
         }
@@ -109,7 +114,10 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
 
     if (!root_exists) {
       if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-        LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
+        LOG(ERROR) << "Failed to create root directory "
+                << root
+                << " with error "
+                << error_code;
       }
     }
   }
@@ -170,14 +178,13 @@ bool ZKWrapper::create(const std::string &path,
   return false;
 }
 
-// TODO: Modify this
+// TODO(2016): Modify this
 bool ZKWrapper::create_sequential(const std::string &path,
                                   const std::vector<std::uint8_t> &data,
                                   std::string &new_path,
                                   bool ephemeral,
                                   int &error_code,
                                   bool sync) const {
-
   LOG(INFO) << "Starting sequential for " << path;
   if (!init) {
     LOG(ERROR) << "Attempt to create sequential before init!";
@@ -201,7 +208,7 @@ bool ZKWrapper::create_sequential(const std::string &path,
                       reinterpret_cast<char *>(&new_path[0]),
                       MAX_PATH_LEN);
   error_code = rc;
-  if (rc) { // Z_OK is 0, so if we receive anything else fail
+  if (rc) {  // Z_OK is 0, so if we receive anything else fail
     LOG(ERROR) << "Create for " << prepend_zk_root(path) << " failed " << rc;
     print_error(error_code);
     return false;
@@ -227,7 +234,11 @@ bool ZKWrapper::recursive_create(const std::string &path,
   for (int i = 1; i < path.length(); ++i) {
     if (path[i] == '/') {
       LOG(INFO) << "Generating " << path.substr(0, i);
-      if (!create(path.substr(0, i), ZKWrapper::EMPTY_VECTOR, error_code, false, false)) {
+      if (!create(path.substr(0, i),
+                  ZKWrapper::EMPTY_VECTOR,
+                  error_code,
+                  false,
+                  false)) {
         if (error_code != ZNODEEXISTS) {
           LOG(ERROR) << "Failed to recursively create " << path;
           print_error(error_code);
@@ -239,7 +250,6 @@ bool ZKWrapper::recursive_create(const std::string &path,
   }
   LOG(INFO) << "Generating " << path;
   return create(path, data, error_code, false, sync);
-
 }
 
 bool ZKWrapper::wget(const std::string &path,
@@ -248,7 +258,8 @@ bool ZKWrapper::wget(const std::string &path,
                      void *watcherCtx,
                      int &error_code,
                      int length) const {
-  // TODO: Make this a constant value. Define a smarter retry policy for oversized data
+  // TODO(2016): Make this a constant value.
+  // Define a smarter retry policy for oversized data
   int len = length;
   data.resize(len);
   struct Stat stat;
@@ -272,11 +283,11 @@ bool ZKWrapper::get(const std::string &path,
                     std::vector<std::uint8_t> &data,
                     int &error_code,
                     int length) const {
-
-  // TODO: Make this a constant value. Define a smarter retry policy for oversized data
+  // TODO(2016): Make this a constant value.
+  // Define a smarter retry policy for oversized data
   struct Stat stat;
   int len = length;
-  // TODO: Perhaps we can be smarter about this
+  // TODO(2016): Perhaps we can be smarter about this
   data.resize(len);
   error_code = zoo_get(zh,
                        prepend_zk_root(path).c_str(),
@@ -298,7 +309,6 @@ bool ZKWrapper::set(const std::string &path,
                     int &error_code,
                     bool sync,
                     int version) const {
-
   error_code = zoo_set(zh,
                        prepend_zk_root(path).c_str(),
                        reinterpret_cast<const char *>(data.data()),
@@ -320,7 +330,7 @@ bool ZKWrapper::set(const std::string &path,
 bool ZKWrapper::exists(const std::string &path,
                        bool &exist,
                        int &error_code) const {
-  // TODO: for now watch argument is set to 0, need more error checking
+  // TODO(2016): for now watch argument is set to 0, need more error checking
   int rc = zoo_exists(zh, prepend_zk_root(path).c_str(), 0, 0);
   error_code = rc;
   if (rc == ZOK) {
@@ -343,7 +353,10 @@ bool ZKWrapper::wexists(const std::string &path,
                         void *watcherCtx,
                         int &error_code) const {
   struct Stat stat;
-  int rc = zoo_wexists(zh, prepend_zk_root(path).c_str(), watch, watcherCtx, &stat);
+  int rc = zoo_wexists(zh,
+                       prepend_zk_root(path).c_str(),
+                       watch,
+                       watcherCtx, &stat);
   error_code = rc;
   if (rc == ZOK) {
     exist = true;
@@ -359,7 +372,9 @@ bool ZKWrapper::wexists(const std::string &path,
   }
 }
 
-bool ZKWrapper::delete_node(const std::string &path, int &error_code, bool sync) const {
+bool ZKWrapper::delete_node(const std::string &path,
+                            int &error_code,
+                            bool sync) const {
   // NOTE: use -1 for version, check will not take place.
   error_code = zoo_delete(zh, prepend_zk_root(path).c_str(), -1);
   if (error_code != ZOK) {
@@ -368,7 +383,7 @@ bool ZKWrapper::delete_node(const std::string &path, int &error_code, bool sync)
     return false;
   }
 
-  // TODO
+  // TODO(2016)
   if (sync && !error_code) {
     flush(prepend_zk_root(path));
   }
@@ -378,7 +393,6 @@ bool ZKWrapper::delete_node(const std::string &path, int &error_code, bool sync)
 bool ZKWrapper::get_info(const std::string &path,
                          struct Stat &stat,
                          int &error_code) const {
-
   std::vector<std::uint8_t> data;
   int len = MAX_PAYLOAD;
   data.resize(len);
@@ -398,8 +412,9 @@ bool ZKWrapper::get_info(const std::string &path,
   return true;
 }
 
-// TODO: Modify
-bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const {
+// TODO(2016): Modify
+bool ZKWrapper::recursive_delete(const std::string &path,
+                                 int &error_code) const {
   LOG(INFO) << "Recursively deleting " << path;
   bool root = ("/" == path);
   bool endsSlash = path[path.size() - 1] == '/';
@@ -408,7 +423,9 @@ bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const
   std::string znodePath = endsSlash ? path.substr(0, path.size() - 1) : path;
   std::vector<std::string> children;
   if (!get_children(root ? "/" : znodePath, children, rc)) {
-    LOG(ERROR) << "recursive_delete on " << path << " failed: couldn't get children";
+    LOG(ERROR) << "recursive_delete on "
+            << path
+            << " failed: couldn't get children";
     return false;
   }
 
@@ -435,7 +452,6 @@ bool ZKWrapper::recursive_delete(const std::string &path, int &error_code) const
 bool ZKWrapper::get_children(const std::string &path,
                              std::vector<std::string> &children,
                              int &error_code) const {
-
   struct String_vector stvector;
   struct String_vector *vector = &stvector;
   error_code = zoo_get_children(zh, prepend_zk_root(path).c_str(), 0, vector);
@@ -456,10 +472,13 @@ bool ZKWrapper::wget_children(const std::string &path,
                               watcher_fn watch,
                               void *watcherCtx,
                               int &error_code) const {
-
   struct String_vector stvector;
   struct String_vector *vector = &stvector;
-  error_code = zoo_wget_children(zh, prepend_zk_root(path).c_str(), watch, watcherCtx, vector);
+  error_code = zoo_wget_children(zh,
+                                 prepend_zk_root(path).c_str(),
+                                 watch,
+                                 watcherCtx,
+                                 vector);
   if (error_code != ZOK) {
     LOG(ERROR) << "wget_children on " << path << " failed";
     print_error(error_code);
@@ -475,9 +494,10 @@ bool ZKWrapper::wget_children(const std::string &path,
 
 /* Multi-Operations */
 
-std::shared_ptr<ZooOp> ZKWrapper::build_create_op(const std::string &path,
-                                                  const std::vector<std::uint8_t> &data,
-                                                  const int flags) const {
+std::shared_ptr<ZooOp> ZKWrapper::build_create_op(
+        const std::string &path,
+        const std::vector<std::uint8_t> &data,
+        const int flags) const {
   auto op = std::make_shared<ZooOp>(prepend_zk_root(path), data);
   zoo_create_op_init(op->op,
                      op->path,
@@ -492,14 +512,16 @@ std::shared_ptr<ZooOp> ZKWrapper::build_create_op(const std::string &path,
 
 std::shared_ptr<ZooOp> ZKWrapper::build_delete_op(const std::string &path,
                                                   int version) const {
-  auto op = std::make_shared<ZooOp>(prepend_zk_root(path), ZKWrapper::EMPTY_VECTOR);
+  auto op = std::make_shared<ZooOp>(prepend_zk_root(path),
+                                    ZKWrapper::EMPTY_VECTOR);
   zoo_delete_op_init(op->op, op->path, version);
   return op;
 }
 
-std::shared_ptr<ZooOp> ZKWrapper::build_set_op(const std::string &path,
-                                               const std::vector<std::uint8_t> &data,
-                                               int version) const {
+std::shared_ptr<ZooOp> ZKWrapper::build_set_op(
+        const std::string &path,
+        const std::vector<std::uint8_t> &data,
+        int version) const {
   auto op = std::make_shared<ZooOp>(prepend_zk_root(path), data);
   zoo_set_op_init(op->op,
                   op->path,
@@ -511,7 +533,9 @@ std::shared_ptr<ZooOp> ZKWrapper::build_set_op(const std::string &path,
 }
 
 bool ZKWrapper::execute_multi(const std::vector<std::shared_ptr<ZooOp>> ops,
-                              std::vector<zoo_op_result> &results, int &error_code, bool sync) const {
+                              std::vector<zoo_op_result> &results,
+                              int &error_code,
+                              bool sync) const {
   std::vector<zoo_op_t> trueOps = std::vector<zoo_op_t>();
   results.resize(ops.size());
   for (auto op : ops) {
@@ -542,12 +566,14 @@ void ZKWrapper::close() {
 bool ZKWrapper::flush(const std::string &full_path, bool synchronous) const {
   // flush is only blocking when the synchronous flag is set
   if (synchronous) {
-
-    // I tried using condition variables, but it ended up failing on occasion, so sadly I resort to polling :(
-    bool *flag = (bool *) malloc(sizeof(bool));
+    // I tried using condition variables,
+    // but it ended up failing on occasion, so sadly I resort to polling :(
+    bool *flag = reinterpret_cast<bool *>(malloc(sizeof(bool)));
 
     // Lambda to call on function completion
-    string_completion_t completion = [](int rc, const char *value, const void *data) {
+    string_completion_t completion = [](int rc,
+                                        const char *value,
+                                        const void *data) {
       bool *flag_ptr = const_cast<bool *>(reinterpret_cast<const bool *>(data));
       *flag_ptr = true;
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -575,7 +601,7 @@ bool ZKWrapper::flush(const std::string &full_path, bool synchronous) const {
     }
     return rc;
   } else {
-    auto no_op = [&](int rc, const char *value, const void *data) { /* no-op */ };
+    auto no_op = [&](int rc, const char *value, const void *data) {};
     return zoo_async(zh, full_path.c_str(), no_op, nullptr);
   }
 }
