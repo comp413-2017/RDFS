@@ -33,6 +33,7 @@ using hadoop::hdfs::RefreshNamenodesRequestProto;
 using hadoop::hdfs::RefreshNamenodesResponseProto;
 using hadoop::hdfs::ShutdownDatanodeRequestProto;
 using hadoop::hdfs::ShutdownDatanodeResponseProto;
+using std::placeholders::_1;
 
 /**
  * The implementation of the rpc calls. 
@@ -159,27 +160,27 @@ void ClientDatanodeTranslator::RegisterClientRPCHandlers() {
   server.register_handler("getReplicaVisibleLength",
                           std::bind(
                             &ClientDatanodeTranslator::getReplicaVisibleLength,
-                            this, std::placeholders::_1));
+                            this, _1));
   server.register_handler("refreshNamenodes",
                           std::bind(&ClientDatanodeTranslator::refreshNamenodes,
-                                    this, std::placeholders::_1));
+                                    this, _1));
   server.register_handler("deleteBlockPool",
                           std::bind(&ClientDatanodeTranslator::deleteBlockPool,
-                                    this, std::placeholders::_1));
+                                    this, _1));
   server.register_handler("getBlockLocalPathInfo",
                           std::bind(
                             &ClientDatanodeTranslator::getBlockLocalPathInfo,
-                            this, std::placeholders::_1));
+                            this, _1));
   server.register_handler("getHdfsBlockLocations",
                           std::bind(
                             &ClientDatanodeTranslator::getHdfsBlockLocations,
-                            this, std::placeholders::_1));
+                            this, _1));
   server.register_handler("shutdownDatanode",
                           std::bind(&ClientDatanodeTranslator::shutdownDatanode,
-                                    this, std::placeholders::_1));
+                                    this, _1));
   server.register_handler("getDatanodeInfo",
                           std::bind(&ClientDatanodeTranslator::getDatanodeInfo,
-                                    this, std::placeholders::_1));
+                                    this, _1));
 }
 
 /**
