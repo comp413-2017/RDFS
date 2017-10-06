@@ -37,6 +37,8 @@
 #define CUSTOM 127
 
 using asio::ip::tcp;
+using hadoop::hdfs::ExtendedBlockProto;
+using hadoop::hdfs::PacketHeaderProto;
 
 class TransferServer {
  public:
@@ -61,7 +63,7 @@ class TransferServer {
    * packets and write them to our disk
    */
   bool replicate(uint64_t len, std::string ip, std::string xferport,
-                 hadoop::hdfs::ExtendedBlockProto blockToTarget);
+                 ExtendedBlockProto blockToTarget);
 
   bool rmBlock(uint64_t block_id);
   bool poll_replicate();
@@ -84,11 +86,11 @@ class TransferServer {
   void processWriteRequest(tcp::socket &sock);
   void processReadRequest(tcp::socket &sock);
   void buildBlockOpResponse(std::string &response_string);
-  void ackPacket(tcp::socket &sock, hadoop::hdfs::PacketHeaderProto &p_head);
+  void ackPacket(tcp::socket &sock, PacketHeaderProto &p_head);
 
   bool writeFinalPacket(tcp::socket &sock, uint64_t, uint64_t);
   template<typename BufType>
-  bool writePacket(tcp::socket &sock, hadoop::hdfs::PacketHeaderProto p_head,
+  bool writePacket(tcp::socket &sock, PacketHeaderProto p_head,
                    const BufType &payload);
   void synchronize(std::function<void(TransferServer &, tcp::socket &)> f,
                    tcp::socket &sock);
@@ -97,7 +99,7 @@ class TransferServer {
 // Templated method to be generic across any asio buffer type.
 template<typename BufType>
 bool TransferServer::writePacket(tcp::socket &sock,
-                                 hadoop::hdfs::PacketHeaderProto p_head,
+                                 PacketHeaderProto p_head,
                                  const BufType &payload) {
   std::string p_head_str;
   p_head.SerializeToString(&p_head_str);
