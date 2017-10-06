@@ -8,6 +8,8 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
+
 namespace {
 
 class ZKWrapperTest : public ::testing::Test {
@@ -315,11 +317,17 @@ TEST_F(ZKWrapperTest, MultiOperation) {
 }
 
 int main(int argc, char **argv) {
-  system("sudo ~/zookeeper/bin/zkServer.sh start");
-  system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
+  el::Configurations conf(LOG_CONFIG_FILE);
+  el::Loggers::reconfigureAllLoggers(conf);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+  sleep(10);
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   ::testing::InitGoogleTest(&argc, argv);
   auto ret = RUN_ALL_TESTS();
-  system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
-  system("sudo ~/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return ret;
 }

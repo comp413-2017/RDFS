@@ -12,6 +12,8 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
+
 namespace {
 
 class NamenodeTest : public ::testing::Test {
@@ -221,10 +223,11 @@ TEST_F(NamenodeTest, DeleteClosedFileWithBlock) {
 TEST_F(NamenodeTest, previousBlockComplete) {
   int error;
   u_int64_t block_id;
-  util::generate_uuid(block_id);
+  block_id = 0;
   LOG(INFO) << "Previous block_id is " << block_id;
   // Calling previousblockcomplete on the first block should be true.
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
+  util::generate_uuid(block_id);
   /* mock the directory */
   zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
   zk->create("/block_locations/" + std::to_string(block_id), ZKWrapper::EMPTY_VECTOR, error);
@@ -346,9 +349,14 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 }
 
 int main(int argc, char **argv) {
+  el::Configurations conf(LOG_CONFIG_FILE);
+  el::Loggers::reconfigureAllLoggers(conf);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+
   // Start up zookeeper
-  system("sudo ~/zookeeper/bin/zkServer.sh stop");
-  system("sudo ~/zookeeper/bin/zkServer.sh start");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+  sleep(10);
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
@@ -356,7 +364,7 @@ int main(int argc, char **argv) {
   // NOTE: You'll need to scroll up a bit to see the test results
 
   // Remove test files and shutdown zookeeper
-  system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
-  system("sudo ~/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
 }
