@@ -1,11 +1,14 @@
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <string>
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <easylogging++.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <easylogging++.h>
+
+#include <fstream>
 #include <mutex>
+#include <iostream>
+#include <map>
+#include <string>
 #include <vector>
 
 #pragma once
@@ -28,7 +31,7 @@ constexpr size_t DISK_SIZE = MAX_BLOCK_SIZE * 6;
 constexpr size_t BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;
 constexpr size_t BLOCK_LIST_SIZE = BLOCK_LIST_LEN * sizeof(block_info);
 // If MAGIC changes, make sure to change the 8 in RESERVED_SIZE too.
-const std::string MAGIC = "DEADBEEF";
+const char MAGIC[] = "DEADBEEF";
 // Reserved space for magic bytes + block_info array.
 constexpr size_t RESERVED_SIZE = BLOCK_LIST_SIZE + 8;
 
@@ -37,7 +40,7 @@ class NativeFS {
   /**
    * Construct a NativeFS backed by the given filename.
    */
-  NativeFS(std::string);
+  explicit NativeFS(std::string);
   /**
    * Destroy NativeFS, free block array.
    */
@@ -108,7 +111,7 @@ class NativeFS {
   /**
    * Persist one particular block to storage.
    */
-  void flushBlock(long block_index);
+  void flushBlock(int block_index);
 
   /**
    * For debugging, print the free blocks.
@@ -120,7 +123,6 @@ class NativeFS {
   std::vector<std::vector<uint64_t>> freeLists;
   std::fstream disk;
   static const std::string CLASS_NAME;
-
 };
 
-}
+}  // namespace nativefs
