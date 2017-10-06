@@ -1,18 +1,37 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include "data_transfer_server.h"
+
+#include <easylogging++.h>
+
+#include <functional>
 #include <iostream>
+#include <thread>
+
 #include <asio.hpp>
 #include <boost/crc.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
-#include <thread>
-#include <functional>
-#include <easylogging++.h>
-
-#include "data_transfer_server.h"
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
 
 using asio::ip::tcp;
-// the .proto file implementation's namespace, used for messages
-using namespace hadoop::hdfs;
+using hadoop::hdfs::BaseHeaderProto;
+using hadoop::hdfs::BlockOpResponseProto;
+using hadoop::hdfs::CHECKSUM_NULL;
+using hadoop::hdfs::ChecksumProto;
+using hadoop::hdfs::OpBlockChecksumResponseProto;
+using hadoop::hdfs::OpReadBlockProto;
+using hadoop::hdfs::OpWriteBlockProto;
+using hadoop::hdfs::OpWriteBlockProto_BlockConstructionStage;
+using hadoop::hdfs::ClientOperationHeaderProto;
+using hadoop::hdfs::ClientReadStatusProto;
+using hadoop::hdfs::DatanodeIDProto;
+using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::ExtendedBlockProto;
+using hadoop::hdfs::PacketHeaderProto;
+using hadoop::hdfs::PipelineAckProto;
+using hadoop::hdfs::ReadOpChecksumInfoProto;
+using hadoop::hdfs::SUCCESS;
 
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
@@ -20,14 +39,19 @@ const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
 TransferServer::TransferServer(int port,
                                std::shared_ptr<nativefs::NativeFS> &fs,
                                std::shared_ptr<zkclient::ZkClientDn> &dn,
-                               int max_xmits) : port(port), fs(fs), dn(dn), max_xmits(max_xmits) {}
+                               int max_xmits) : port(port), fs(fs), dn(dn),
+                                                max_xmits(max_xmits) {}
 
-bool TransferServer::receive_header(tcp::socket &sock, uint16_t *version, unsigned char *type) {
-  return (rpcserver::read_int16(sock, version) && rpcserver::read_byte(sock, type));
+bool TransferServer::receive_header(tcp::socket &sock, uint16_t *version,
+                                    unsigned char *type) {
+  return (rpcserver::read_int16(sock, version) &&
+    rpcserver::read_byte(sock, type));
 }
 
-bool TransferServer::write_header(tcp::socket &sock, uint16_t version, unsigned char type) {
-  return (rpcserver::write_int16(sock, version) && rpcserver::write_byte(sock, type));
+bool TransferServer::write_header(tcp::socket &sock, uint16_t version,
+                                  unsigned char type) {
+  return (rpcserver::write_int16(sock, version) &&
+    rpcserver::write_byte(sock, type));
 }
 
 void TransferServer::handle_connection(tcp::socket sock) {
@@ -36,35 +60,53 @@ void TransferServer::handle_connection(tcp::socket sock) {
     uint16_t version;
     unsigned char type;
     if (receive_header(sock, &version, &type)) {
-      LOG(INFO) << "Got header version=" << version << ", type=" << (int) type;
+      LOG(INFO)
+        << "Got header version="
+        << version
+        << ", type="
+        << static_cast<int>(type);
     } else {
       ERROR_AND_RETURN("Failed to receive header, maybe connection closed.");
     }
-    // TODO: implement proto handlers based on type
+    // TODO(anyone): implement proto handlers based on type
     switch (type) {
       case (WRITE_BLOCK): {
-        std::function<void(TransferServer &, tcp::socket &)> writeFn = &TransferServer::processWriteRequest;
+        std::function<void(TransferServer &, tcp::socket &)> writeFn =
+          &TransferServer::processWriteRequest;
         synchronize(writeFn, sock);
       }
         break;
       case (READ_BLOCK): {
-        std::function<void(TransferServer &, tcp::socket &)> readFn = &TransferServer::processReadRequest;
+        std::function<void(TransferServer &, tcp::socket &)> readFn =
+          &TransferServer::processReadRequest;
         synchronize(readFn, sock);
       }
         break;
-      case (READ_METADATA): ERROR_AND_RETURN("Handler for read-metadata not written yet.");
-      case (REPLACE_BLOCK): ERROR_AND_RETURN("Handler for replace-block not written yet.");
-      case (COPY_BLOCK): ERROR_AND_RETURN("Handler for copy-block not written yet.");
-      case (BLOCK_CHECKSUM): ERROR_AND_RETURN("Handler for block-checksum not written yet.");
-      case (TRANSFER_BLOCK): ERROR_AND_RETURN("Handler for transfer-block not written yet.");
-      case (REQUEST_SHORT_CIRCUIT_FDS): ERROR_AND_RETURN("Handler for request-short-circuit-fds not written yet.");
-      case (RELEASE_SHORT_CIRCUIT_FDS): ERROR_AND_RETURN("Handler for release-short-circuit-fds not written yet.");
-      case (REQUEST_SHORT_CIRCUIT_SHM): ERROR_AND_RETURN("Handler for request-short-circuit-shm not written yet.");
-      case (BLOCK_GROUP_CHECKSUM): ERROR_AND_RETURN("Handler for block-group-checksum not written yet.");
-      case (CUSTOM): ERROR_AND_RETURN("Handler for custom-op not written yet.");
+      case (READ_METADATA):
+        ERROR_AND_RETURN("Handler for read-metadata not written yet.");
+      case (REPLACE_BLOCK):
+        ERROR_AND_RETURN("Handler for replace-block not written yet.");
+      case (COPY_BLOCK):
+        ERROR_AND_RETURN("Handler for copy-block not written yet.");
+      case (BLOCK_CHECKSUM):
+        ERROR_AND_RETURN("Handler for block-checksum not written yet.");
+      case (TRANSFER_BLOCK):
+        ERROR_AND_RETURN("Handler for transfer-block not written yet.");
+      case (REQUEST_SHORT_CIRCUIT_FDS):
+        ERROR_AND_RETURN("Handler for request-short-circuit-fds not written "
+                         "yet.");
+      case (RELEASE_SHORT_CIRCUIT_FDS):
+        ERROR_AND_RETURN("Handler for release-short-circuit-fds not written "
+                         "yet.");
+      case (REQUEST_SHORT_CIRCUIT_SHM):
+        ERROR_AND_RETURN("Handler for request-short-circuit-shm not written "
+                         "yet.");
+      case (BLOCK_GROUP_CHECKSUM):
+        ERROR_AND_RETURN("Handler for block-group-checksum not written yet.");
+      case (CUSTOM):
+        ERROR_AND_RETURN("Handler for custom-op not written yet.");
       default:
-        //Error
-      ERROR_AND_RETURN("Unknown operation type specified.");
+        ERROR_AND_RETURN("Unknown operation type specified.");
     }
   }
 }
@@ -86,11 +128,12 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   }
 
   const DatanodeInfoProto src = proto.source();
-  const OpWriteBlockProto_BlockConstructionStage stage = proto.stage();
+  const OpWriteBlockProto_BlockConstructionStage stage =
+    proto.stage();
   int pipelineSize = proto.pipelinesize();
-  //num bytes in block
+  // num bytes in block
   uint64_t bytesInBlock = proto.minbytesrcvd();
-  //num bytes sent
+  // num bytes sent
   uint64_t bytesSent = proto.maxbytesrcvd();
 
   if (rpcserver::write_delimited_proto(sock, response_string)) {
@@ -102,7 +145,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   // read packets of block from client
   bool last_packet = false;
   std::string block_data;
-  int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1; //1 added to include the empty termination packet
+  // 1 added to include the empty termination packet
+  int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1;
   PacketHeaderProto last_header;
   while (!last_packet) {
     asio::error_code error;
@@ -118,7 +162,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
     std::string checksum(checksum_len, 0);
     std::string data(data_len, 0);
-    error = rpcserver::read_full(sock, asio::buffer(&checksum[0], checksum_len));
+    error = rpcserver::read_full(sock, asio::buffer(&checksum[0],
+                                                    checksum_len));
     if (error) {
       LOG(ERROR) << "Failed to read checksum for packet " << p_head.seqno();
       break;
@@ -131,7 +176,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     if (!last_packet && data_len != 0) {
       block_data += data;
     }
-    // Wait free queue will return false on failure to insert element. Keep trying until insert works
+    // Wait free queue will return false on failure to insert element. Keep
+    // trying until insert works
     if (!last_packet) {
       ackPacket(sock, p_head);
     } else {
@@ -140,10 +186,13 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   }
 
   if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
-    LOG(ERROR) << "Failed to allocate block " << header.baseheader().block().blockid();
+    LOG(ERROR)
+      << "Failed to allocate block "
+      << header.baseheader().block().blockid();
     return;
   } else {
-    if (dn->blockReceived(header.baseheader().block().blockid(), block_data.length())) {
+    if (dn->blockReceived(header.baseheader().block().blockid(),
+                          block_data.length())) {
       ackPacket(sock, last_header);
     } else {
       LOG(ERROR) << "Failed to register received block with NameNode";
@@ -151,7 +200,10 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     }
   }
 
-  LOG(INFO) << "Replicating onto " << proto.targets_size() << " target data nodes";
+  LOG(INFO)
+    << "Replicating onto "
+    << proto.targets_size()
+    << " target data nodes";
   for (int i = 0; i < proto.targets_size(); i++) {
     const DatanodeIDProto &dn_p = proto.targets(i).id();
     std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
@@ -161,7 +213,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   }
 }
 
-void TransferServer::ackPacket(tcp::socket &sock, PacketHeaderProto &p_head) {
+void TransferServer::ackPacket(tcp::socket &sock,
+                               PacketHeaderProto &p_head) {
   // ack packet
   PipelineAckProto ack;
   ack.set_seqno(p_head.seqno());
@@ -177,7 +230,6 @@ void TransferServer::ackPacket(tcp::socket &sock, PacketHeaderProto &p_head) {
 }
 
 void TransferServer::processReadRequest(tcp::socket &sock) {
-
   OpReadBlockProto proto;
   if (rpcserver::read_delimited_proto(sock, proto)) {
     LOG(INFO) << "Op a read block proto" << std::endl;
@@ -248,7 +300,8 @@ void TransferServer::processReadRequest(tcp::socket &sock) {
 
 // Write the final 0-payload packet to the client, and return whether
 // successful.
-bool TransferServer::writeFinalPacket(tcp::socket &sock, uint64_t offset, uint64_t seq) {
+bool TransferServer::writeFinalPacket(tcp::socket &sock, uint64_t offset,
+                                      uint64_t seq) {
   PacketHeaderProto p_head;
   p_head.set_offsetinblock(offset);
   p_head.set_seqno(seq);
@@ -261,11 +314,13 @@ bool TransferServer::writeFinalPacket(tcp::socket &sock, uint64_t offset, uint64
 void TransferServer::buildBlockOpResponse(std::string &response_string) {
   BlockOpResponseProto response;
   response.set_status(SUCCESS);
-  OpBlockChecksumResponseProto *checksum_res = response.mutable_checksumresponse();
+  OpBlockChecksumResponseProto *checksum_res =
+    response.mutable_checksumresponse();
   checksum_res->set_bytespercrc(13);
   checksum_res->set_crcperblock(7);
   checksum_res->set_md5("this is my md5");
-  ReadOpChecksumInfoProto *checksum_info = response.mutable_readopchecksuminfo();
+  ReadOpChecksumInfoProto *checksum_info =
+    response.mutable_readopchecksuminfo();
   checksum_info->set_chunkoffset(0);
   ChecksumProto *checksum = checksum_info->mutable_checksum();
   checksum->set_type(CHECKSUM_NULL);
@@ -280,11 +335,14 @@ void TransferServer::serve(asio::io_service &io_service) {
   for (;;) {
     tcp::socket sock(io_service);
     a.accept(sock);
-    std::thread(&TransferServer::handle_connection, this, std::move(sock)).detach();
+    std::thread(&TransferServer::handle_connection, this, std::move(sock))
+      .detach();
   }
 }
 
-void TransferServer::synchronize(std::function<void(TransferServer &, tcp::socket &)> f, tcp::socket &sock) {
+void TransferServer::synchronize(std::function<void(TransferServer &,
+                                                    tcp::socket &)> f,
+                                 tcp::socket &sock) {
   std::unique_lock<std::mutex> lk(m);
   while (xmits.fetch_add(0) >= max_xmits) {
     cv.wait(lk);
@@ -297,8 +355,16 @@ void TransferServer::synchronize(std::function<void(TransferServer &, tcp::socke
   cv.notify_one();
 }
 
-bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget) {
-  LOG(INFO) << " replicating length " << len << " with ip " << ip << " and port " << xferport;
+bool TransferServer::replicate(uint64_t len, std::string ip,
+                               std::string xferport,
+                               ExtendedBlockProto blockToTarget) {
+  LOG(INFO)
+    << " replicating length "
+    << len
+    << " with ip "
+    << ip
+    << " and port "
+    << xferport;
 
   LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
 
@@ -327,8 +393,10 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
   read_block_proto.set_offset(0);
   read_block_proto.set_sendchecksums(true);
 
-  ClientOperationHeaderProto *header = read_block_proto.mutable_header();
-  header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1"); // TODO same as DFS client for now
+  ClientOperationHeaderProto *header =
+    read_block_proto.mutable_header();
+  // TODO(anyone): same as DFS client for now
+  header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1");
 
   BaseHeaderProto *base_proto = header->mutable_baseheader();
   base_proto->set_allocated_block(&blockToTarget);
@@ -340,7 +408,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
   token_header->set_service("bar");
 
   // send the read request
-  uint16_t version = 1000; // TODO what is the version
+  uint16_t version = 1000;  // TODO(anyone): what is the version
   unsigned char read_request = READ_BLOCK;
   read_block_proto.SerializeToString(&read_string);
   LOG(INFO) << " writing read request " << std::to_string(read_request);
@@ -352,10 +420,12 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
   }
 
   if (!rpcserver::write_delimited_proto(sock, read_string)) {
-    LOG(ERROR) << " could not write the delimited read request to target datanode";
+    LOG(ERROR)
+      << " could not write the delimited read request to target datanode";
     return false;
   } else {
-    LOG(INFO) << " successfully wrote the delimited read request to target datanode";
+    LOG(INFO)
+      << " successfully wrote the delimited read request to target datanode";
   }
 
   // read the read response
@@ -377,7 +447,8 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
   LOG(DEBUG) << "**********" << "num xmits is " << xmits.fetch_add(0);
   lk.unlock();
 
-  // read in the packets while we still have them, and we haven't processed the final packet
+  // read in the packets while we still have them, and we haven't processed the
+  // final packet
   int read_len = 0;
   bool last_packet = false;
   while (read_len < len && !last_packet) {
@@ -415,9 +486,11 @@ bool TransferServer::replicate(uint64_t len, std::string ip, std::string xferpor
   xmits--;
   cv.notify_one();
 
-  //TODO send ClientReadStatusProto (delimited)
+  // TODO(anyone): send ClientReadStatusProto (delimited)
   if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
-    LOG(ERROR) << "Failed to allocate block " << header->baseheader().block().blockid();
+    LOG(ERROR)
+      << "Failed to allocate block "
+      << header->baseheader().block().blockid();
     return false;
   } else {
     dn->blockReceived(header->baseheader().block().blockid(), read_len);
