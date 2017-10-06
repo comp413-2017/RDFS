@@ -13,6 +13,8 @@
 
 #pragma once
 
+using hadoop::hdfs::FsServerDefaultsProto;
+
 /**
  * The implementation of the rpc calls. 
  */
@@ -40,7 +42,7 @@ class ClientDatanodeTranslator {
   void Config();
   void logMessage(google::protobuf::Message &req, std::string req_name);
 
-  hadoop::hdfs::FsServerDefaultsProto server_defaults;
+  FsServerDefaultsProto server_defaults;
   int port;
   RPCServer server;
 
