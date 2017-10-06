@@ -5,6 +5,7 @@
 #include <easylogging++.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <algorithm>
 #include <fstream>
@@ -49,12 +50,14 @@ namespace nativefs {
 
 NativeFS::NativeFS(std::string fname) :
     disk(fname, std::ios::binary | std::ios::in | std::ios::out) {
+  const std::string magic = MAGIC;
+
   // If the magic bytes exist, then load block info from the drive.
-  std::string magic(MAGIC.size(), 'b');
+  std::string maybe_magic(magic.size(), 'b');
   blocks = new block_info[BLOCK_LIST_LEN];
   disk.seekg(0);
-  disk.read(&magic[0], magic.size());
-  if (magic == MAGIC) {
+  disk.read(&maybe_magic[0], maybe_magic.size());
+  if (maybe_magic == magic) {
     LOG(INFO) << "Reloading existing block list...";
     disk.read(reinterpret_cast<char *>(&blocks[0]), BLOCK_LIST_SIZE);
   } else {
@@ -96,14 +99,14 @@ NativeFS::~NativeFS() {
 void NativeFS::flushAllBlocks() {
   LOG(INFO) << "Flushing blocks to storage.";
   disk.seekp(0);
-  disk.write(&MAGIC[0], MAGIC.size());
+  disk.write(&MAGIC[0], strlen(MAGIC));
   disk.write((const char *) &blocks[0], BLOCK_LIST_SIZE);
   disk.flush();
 }
 
 void NativeFS::flushBlock(int block_index) {
   LOG(INFO) << "Flushing block " << block_index << " to storage.";
-  disk.seekp(MAGIC.size() + block_index * sizeof(block_info));
+  disk.seekp(strlen(MAGIC) + block_index * sizeof(block_info));
   disk.write((const char *) &blocks[block_index], sizeof(block_info));
   disk.flush();
 }
