@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.6"/>
-<title>RDFS: Rice-HDFS</title>
+<title>RDFS: RDFS 2.0</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -77,75 +77,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="headertitle">
-<div class="title">Rice-HDFS </div>  </div>
+<div class="title">RDFS 2.0 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>The current plan is to store all our code in this one repo, with separate directories for nameNode, dataNode, and code needed by both (such as various protocols). We'll add more as we need them.</p>
-<p>(forked from <a href="https://github.com/Rice-Comp413-2016/RDFS">https://github.com/Rice-Comp413-2016/RDFS</a> )</p>
-<p>Check the wiki for documentation!</p>
-<h1>Development</h1>
-<ol type="1">
-<li>Install <a href="https://www.virtualbox.org/">Virtualbox</a>. Works with 5.1.</li>
-<li>Install <a href="https://vagrantup.com/">Vagrant</a>. Works with 1.9.8.</li>
-<li>Clone the repo: <code>git clone <a href="https://github.com/comp413-2017/RDFS.git">https://github.com/comp413-2017/RDFS.git</a></code></li>
-<li><code>cd RDFS</code></li>
-<li><code>vagrant up</code> (takes 17 minutes from scratch for me)<ul>
-<li>I (Stu) had to "sudo" these commands, although normally it shouldn't be necessary.</li>
-<li>Make sure to do this from the repo directory (otherwise it asks for vagrant install)</li>
-<li>If it gets stuck at "default: SSH auth method: password" and eventually ends up with a timeout, try adding `v.customize ['modifyvm', :id, '&ndash;cableconnected1', 'on']<code>in the</code>config.vm.provider "virtualbox" do |v|<code>section of your Vagrantfile. 6.</code>vagrant ssh<code>. 7.</code>exit<code>to exit the VM</code></li>
-</ul>
-</li>
-<li><code>Remember to</code>vagrant halt` on your machine so you don't have the VM running in the background!</li>
-<li>You should be in the development environment. Things to know:<ul>
-<li>The username is <code>vagrant</code> and the password is <code>vagrant</code>.</li>
-<li>The machine has 1G of memory allocated. Change Vagrantfile if you need more.</li>
-<li>The folder /home/vagrant/rdfs is synced from here (here being the location of this readme), meaning that all edits you make to files under the project are immediately reflected in the dev machine.</li>
-<li>Hadoop binaries such as <code>hdfs</code> are on the PATH.</li>
-<li>Google protobuf 3.0 is installed, you can run <code>protoc</code> to generate C++ headers from .proto specifications.</li>
-<li>If you need external HTTP access, the machine is bound to the address 33.33.33.33.</li>
-</ul>
-</li>
-</ol>
-<h1>Building</h1>
-<p>``` sudo apt-get install libboost-all-dev sudo apt-get install libasio-dev</p>
-<p>cd rdfs mkdir build cd build</p>
-<p>cmake .. make ``<code> You will see a sample executable placed in</code>build/rice-namenode/namenode.<code>The compiled protocols are in</code>build/proto`.</p>
-<p>Note: if "cmake .." fails with a "can't find GTest" error, install it manually using the same commands from the vagrant provisioning file. i.e. : ``` apt-get install -y libgtest-dev cd /usr/src/gtest cmake CMakeLists.txt make cp *.a /usr/lib cd /home/vagrant ```</p>
-<h1>Testing</h1>
-<p>The Google Test framework is now included in the development environment. Tests should be placed in the ~/rdfs/test directory. After creating a new test file, you can modify the CMakeLists.txt file to create an executable to run those tests. There is a file, tests/run-all/run-all-tests.cc, that creates an executable running all tests. If you create a new test executable, modify this to add yours.</p>
-<p>You can run the tests by running the executables (e.g. ./runAllTests) in ~/rdfs/build/test after following the build instructions above</p>
-<p>A beginner's guide to using Google Test is located https://github.com/google/googletest/blob/master/googletest/docs/Primer.md "here"</p>
-<p>A githook has been added at rdfs/test/pre-commit. It's a shell script that will build and run the unit tests. To use it, copy the file to rdfs/.git/hooks. Then, before each commit is made the tests will run, and a failure will halt the commit. If this is too restrictive, renaming the file to pre-push will do the same thing only when you try to push.</p>
-<p>Namenode: Run the namenode executable from build/rice-namenode. Then run something like <code>hdfs dfs -fs hdfs://localhost:port/ -mkdir foo</code> where port is the port used by the namenode (it will print the port used)</p>
-<p>Datanode: Run the datanode executable from build/rice-datanode. Then run something like <code>hdfs dfsadmin -shutdownDatanode hdfs://localhost:port/</code> where port is the port used by the datanode (it will print the port used)</p>
-<p>If you want to do a quick end-to-end test, try the following to cat the file:</p>
-<ol type="1">
-<li>Pull the code and build (as explained above).</li>
-<li>Run zookeeper (from ~, it’s <code>sudo zookeeper/bin/zkServer.sh start</code>). This will run in the background.</li>
-<li>Run namenode (<code>rdfs/build/rice-namenode/namenode</code>). This will run in the foreground.</li>
-<li>Run datanode (<code>rdfs/build/rice-datanode/datanode</code>). This will run in the foreground.</li>
-<li>Create a file with <code>hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal localFile /filename</code></li>
-<li>Try to cat that file with <code>hdfs dfs -fs hdfs://localhost:5351 -cat /filename</code></li>
-</ol>
-<h1>Mocking</h1>
-<p>Whether you use Google Mock in conjunction with Google Test is up to you.</p>
-<p>Google Mock should be used in conjunction with Google Test.</p>
-<p>Google Mock is not a testing framework, but a framework for writing C++ mock classes. A mock class is simplified version of a real class that can be created to aid with testing. However, Google Mock does do an automatic verification of expectations.</p>
-<p>The typical flow is:</p>
-<ol type="1">
-<li>Import the Google Mock names you need to use. All Google Mock names are in the <code>testing</code> namespace unless they are macros or otherwise noted.</li>
-<li>Create the mock objects.</li>
-<li>Optionally, set the default actions of the mock objects.</li>
-<li>Set your expectations on the mock objects (How will they be called? What will they do?).</li>
-<li>Exercise code that uses the mock objects; if necessary, check the result using <a href="../../googletest/">Google Test</a> assertions.</li>
-<li>When a mock objects is destructed, Google Mock automatically verifies that all expectations on it have been satisfied.</li>
-</ol>
-<p>You should read through all of the Google Mock documentation located at (/googletest/googlemock/docs/) before using it:</p>
+<div class="textblock"><p>RDFS 2.0 is COMP 413 2017's extension of <a href="https://github.com/Rice-Comp413-2016/RDFS">RDFS 1.0</a>.</p>
+<p>All documentation exists in the <a href="https://github.com/comp413-2017/RDFS/wiki">repository wiki</a>.</p>
+<h2>Contributing</h2>
+<p>Please see https://github.com/comp413-2017/RDFS/blob/develop/CONTRIBUTING.md "`CONTIRBUTING.md`" for instructions on how to contribute code to this repository.</p>
+<h2>Workflow</h2>
+<p>For information on:</p>
 <ul>
-<li>https://github.com/google/googletest/blob/master/googlemock/docs/ForDummies.md "ForDummies" &ndash; start here if you are new to Google Mock.</li>
-<li>https://github.com/google/googletest/blob/master/googlemock/docs/CheatSheet.md "CheatSheet" &ndash; a quick reference.</li>
-<li>https://github.com/google/googletest/blob/master/googlemock/docs/CookBook.md "CookBook" &ndash; recipes for doing various tasks using Google Mock. </li>
+<li>Setting up the development environment</li>
+<li>Building and compiling</li>
+<li>Running the linter</li>
+<li>Running unit tests</li>
+<li>Generating documentation</li>
+<li>Continuous integration</li>
 </ul>
+<p>Please see the <code>Workflow</code> section of the wiki. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
