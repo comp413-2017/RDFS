@@ -3,9 +3,11 @@
 set -ex
 
 cd build/test
-./NameNodeTest || :
-./NativeFsTest || :
+./ReplicationTest || :
+./DeleteTest
+./NameNodeTest
+./NativeFsTest
 ./ReadWriteTest || :
-./ZKDNClientTest || :
-./ZKLockTest || :
-./ZKWrapperTest || :
+./ZKDNClientTest
+./ZKLockTest
+./ZKWrapperTest

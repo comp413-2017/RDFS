@@ -490,9 +490,9 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
   return true;
 }
 
-bool ZkNnClient::destroy_helper(const std::string &path, std::vector<std::shared_ptr<ZooOp>> &ops) {
+bool ZkNnClient::destroy_helper(const std::string& path, std::vector<std::shared_ptr<ZooOp>>& ops){
   LOG(INFO) << "Destroying " << path;
-  if (!file_exists(path)) {
+  if (!file_exists(path)){
     LOG(ERROR) << path << " does not exist";
     return false;
   }
@@ -504,10 +504,10 @@ bool ZkNnClient::destroy_helper(const std::string &path, std::vector<std::shared
     LOG(FATAL) << "Failed to get children for " << path;
     return false;
   }
-  if (znode_data.filetype == IS_DIR) {
-    for (auto &child : children) {
+  if (znode_data.filetype == IS_DIR){
+    for (auto& child : children){
       auto child_path = util::concat_path(path, child);
-      if (!destroy_helper(child_path, ops)) {
+      if (!destroy_helper(child_path, ops)){
         return false;
       }
     }
@@ -543,6 +543,57 @@ bool ZkNnClient::destroy_helper(const std::string &path, std::vector<std::shared
   }
   ops.push_back(zk->build_delete_op(ZookeeperPath(path)));
   return true;
+}
+
+void ZkNnClient::complete(CompleteRequestProto& req, CompleteResponseProto& res) {
+
+  // TODO: Completion makes a few guarantees that we should handle
+
+  int error_code;
+  // change the under construction bit
+  const std::string& src = req.src();
+  FileZNode znode_data;
+  read_file_znode(znode_data, src);
+  znode_data.under_construction = FILE_COMPLETE;
+  // set the file length
+  uint64_t file_length = 0;
+  auto file_blocks = std::vector<std::string>();
+  if (!zk->get_children(ZookeeperPath(src), file_blocks, error_code)) {
+    LOG(ERROR) << "Failed getting children of " << ZookeeperPath(src) << " with error: " << error_code;
+    res.set_result(false);
+    return;
+  }
+  if (file_blocks.size() == 0) {
+    LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
+    res.set_result(true);
+  }
+  // TODO: This loop could be two multi-ops instead
+  for (auto file_block : file_blocks) {
+    auto data = std::vector<std::uint8_t>();
+    if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code, sizeof(uint64_t))) {
+      LOG(ERROR) << "Failed to get " << ZookeeperPath(src) << "/" << file_block << " with error: " << error_code;
+      res.set_result(false);
+      return;
+    }
+    uint64_t block_uuid = *(uint64_t *)(&data[0]);
+    auto block_data = std::vector<std::uint8_t>();
+    if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code, sizeof(uint64_t))) {
+      LOG(ERROR) << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_uuid) << " with error: " << error_code;
+      res.set_result(false);
+      return;
+    }
+    uint64_t length = *(uint64_t *)(&block_data[0]);
+    file_length += length;
+  }
+  znode_data.length = file_length;
+  std::vector<std::uint8_t> data(sizeof(znode_data));
+  file_znode_struct_to_vec(&znode_data, data);
+  if (!zk->set(ZookeeperPath(src), data, error_code)) {
+      LOG(ERROR) << " complete could not change the construction bit and file length";
+      res.set_result(false);
+      return;
+  }
+  res.set_result(true);
 }
 
 /**
@@ -640,63 +691,10 @@ bool ZkNnClient::create_file(CreateRequestProto &request, CreateResponseProto &r
   return true;
 }
 
-void ZkNnClient::complete(CompleteRequestProto &req, CompleteResponseProto &res) {
-
-  // TODO: Completion makes a few guarantees that we should handle
-
-  int error_code;
-  // change the under construction bit
-  const std::string &src = req.src();
-  FileZNode znode_data;
-  read_file_znode(znode_data, src);
-  znode_data.under_construction = FILE_COMPLETE;
-  // set the file length
-  uint64_t file_length = 0;
-  auto file_blocks = std::vector<std::string>();
-  if (!zk->get_children(ZookeeperPath(src), file_blocks, error_code)) {
-    LOG(ERROR) << "Failed getting children of " << ZookeeperPath(src) << " with error: " << error_code;
-    res.set_result(false);
-    return;
-  }
-  if (file_blocks.size() == 0) {
-    LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
-    //res.set_result(false);
-    res.set_result(true);
-    return;
-  }
-  // TODO: This loop could be two multi-ops instead
-  for (auto file_block : file_blocks) {
-    auto data = std::vector<std::uint8_t>();
-    if (!zk->get(ZookeeperPath(src) + "/" + file_block, data, error_code, sizeof(uint64_t))) {
-      LOG(ERROR) << "Failed to get " << ZookeeperPath(src) << "/" << file_block << " with error: " << error_code;
-      res.set_result(false);
-      return;
-    }
-    uint64_t block_uuid = *(uint64_t *) (&data[0]);
-    auto block_data = std::vector<std::uint8_t>();
-    if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid), block_data, error_code, sizeof(uint64_t))) {
-      LOG(ERROR) << "Failed to get " << BLOCK_LOCATIONS << std::to_string(block_uuid) << " with error: " << error_code;
-      res.set_result(false);
-      return;
-    }
-    uint64_t length = *(uint64_t *) (&block_data[0]);
-    file_length += length;
-  }
-  znode_data.length = file_length;
-  std::vector<std::uint8_t> data(sizeof(znode_data));
-  file_znode_struct_to_vec(&znode_data, data);
-  if (!zk->set(ZookeeperPath(src), data, error_code)) {
-    LOG(ERROR) << " complete could not change the construction bit and file length";
-    res.set_result(false);
-    return;
-  }
-  res.set_result(true);
-}
-
 /**
- * Rename a file in the zookeeper filesystem
- */
-void ZkNnClient::rename(RenameRequestProto &req, RenameResponseProto &res) {
+     * Rename a file in the zookeeper filesystem
+     */
+void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
   std::string file_path = req.src();
 
   FileZNode znode_data;
@@ -708,13 +706,13 @@ void ZkNnClient::rename(RenameRequestProto &req, RenameResponseProto &res) {
 
   auto ops = std::vector<std::shared_ptr<ZooOp>>();
   if (znode_data.filetype == IS_DIR) {
-    if (!rename_ops_for_dir(req.src(), req.dst(), ops)) {
+    if(!rename_ops_for_dir(req.src(), req.dst(), ops)) {
       LOG(ERROR) << "Failed to generate reame operatons for: " << file_path;
       res.set_result(false);
     }
 
   } else if (znode_data.filetype == IS_FILE) {
-    if (!rename_ops_for_file(req.src(), req.dst(), ops)) {
+    if(!rename_ops_for_file(req.src(), req.dst(), ops)) {
       LOG(ERROR) << "Failed to generate reame operatons for: " << file_path;
       res.set_result(false);
     }
@@ -768,8 +766,8 @@ void ZkNnClient::mkdir(MkdirsRequestProto &request, MkdirsResponseProto &respons
 }
 
 /**
- * Helper for creating a directory znode. Iterates over the parents and crates them
- * if necessary.
+ * Helper for creating a directory znode. Iterates over the parents and creates
+ * them if necessary.
  */
 bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
   LOG(INFO) << "mkdir_helper called with input " << path;
