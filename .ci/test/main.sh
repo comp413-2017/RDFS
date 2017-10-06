@@ -3,7 +3,7 @@
 set -ex
 
 cd build/test
-./ReplicationTest || :
+./ReplicationTest
 ./DeleteTest
 ./NameNodeTest
 ./NativeFsTest
