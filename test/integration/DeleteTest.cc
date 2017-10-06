@@ -43,6 +43,7 @@ TEST_F(DeleteTest, testDeleteEmptyFile) {
   // Idle main thread to let the servers start up.
   // Put it into rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -touchz /foo");
+  sleep(10);
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /foo");
   int error;
   bool exists;
@@ -56,6 +57,7 @@ int main(int argc, char **argv) {
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
   // Give zk some time to start.
+  sleep(10);
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
