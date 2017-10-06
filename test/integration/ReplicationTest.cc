@@ -66,12 +66,6 @@ namespace {
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 
         // Start a new server
-//        std::string dnCliArgs = std::to_string(xferPort + 4) + " " + std::to_string(ipcPort + 4) + " tfs" + std::to_string(4) + " &";
-//        std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(4) + " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-//                              dnCliArgs + "\" & ";
-//        system("truncate tfs4 -s 1000000000");
-//        system(cmdLine.c_str());
-
 
         system(("truncate tfs" + std::to_string(4) + " -s 1000000000").c_str());
         std::string dnCliArgs = " -x " +
@@ -127,7 +121,6 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
   // NOTE: You'll need to scroll up a bit to see the test results
-  // system("pkill -f namenode");
   // Remove test files and shutdown zookeeper
   system("pkill -f ReplicationTestServer*");
   system("pkill -f namenode");
