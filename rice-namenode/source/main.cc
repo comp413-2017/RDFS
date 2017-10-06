@@ -1,3 +1,5 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
 #define ELPP_FRESH_LOG_FILE
 #define ELPP_THREAD_SAFE
 

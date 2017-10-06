@@ -1,10 +1,13 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <google/protobuf/message.h>
+#include <rpcserver.h>
+#include <zkwrapper.h>
+#include <string>
 #include <iostream>
 #include "HAServiceProtocol.pb.h"
 #include "hdfs.pb.h"
-#include <google/protobuf/message.h>
 #include <RpcHeader.pb.h>
-#include <rpcserver.h>
-#include <zkwrapper.h>
 #include <ConfigReader.h>
 #include "zk_nn_client.h"
 
@@ -26,7 +29,10 @@ using namespace hadoop::common;
 
 class HaServiceTranslator {
  public:
-  HaServiceTranslator(RPCServer *server_arg, zkclient::ZkNnClient &zk_arg, int port_arg);
+  HaServiceTranslator(
+      RPCServer *server_arg,
+      zkclient::ZkNnClient &zk_arg,
+      int port_arg);
 
   // RPC calls which we support. Each take a string which comes form
   // the rpc call, and it is then deserialized into their proto msg
@@ -43,10 +49,14 @@ class HaServiceTranslator {
    */
   void RegisterServiceRPCHandlers();
 
-  // FsServerDefaultsProto server_defaults; 	//server defaults as read from the config
-  int port;                                // port which our rpc server is using
-  RPCServer *server;                        // our rpc server
-  zkclient::ZkNnClient &zk;                // client to communicate with zookeeper
+  // server defaults as read from the config
+  // FsServerDefaultsProto server_defaults;
+  // port which our rpc server is using
+  int port;
+  // our rpc server
+  RPCServer *server;
+  // client to communicate with zookeeper
+  zkclient::ZkNnClient &zk;
   HAServiceStateProto state;
 
   /**
@@ -57,10 +67,10 @@ class HaServiceTranslator {
   /**
    * Get an rpc header proto given an error message and exception classname
    */
-  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
-                                                           std::string exception_classname);
+  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(
+      std::string error_msg,
+      std::string exception_classname);
 
   static const std::string CLASS_NAME;
-
-}; // class
-} // namespace
+};  // class
+}  // namespace ha_service_translator

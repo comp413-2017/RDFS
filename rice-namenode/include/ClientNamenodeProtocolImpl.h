@@ -1,10 +1,13 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <google/protobuf/message.h>
+#include <rpcserver.h>
+#include <zkwrapper.h>
+#include <string>
 #include <iostream>
 #include "ClientNamenodeProtocol.pb.h"
 #include "hdfs.pb.h"
-#include <google/protobuf/message.h>
 #include <RpcHeader.pb.h>
-#include <rpcserver.h>
-#include <zkwrapper.h>
 #include <ConfigReader.h>
 #include "zk_nn_client.h"
 #include "DaemonFactory.h"
@@ -78,11 +81,16 @@ class ClientNamenodeTranslator {
    */
   std::string ZookeeperPath(const std::string &hadoopPath);
 
-  FsServerDefaultsProto server_defaults;    //server defaults as read from the config
-  int port;                                // port which our rpc server is using
-  RPCServer server;                        // our rpc server
-  zkclient::ZkNnClient &zk;                // client to communicate with zookeeper
-  config_reader::ConfigReader config;    // used to read from our config files
+  // server defaults as read from the config
+  FsServerDefaultsProto server_defaults;
+  // port which our rpc server is using
+  int port;
+  // our rpc server
+  RPCServer server;
+  // client to communicate with zookeeper
+  zkclient::ZkNnClient &zk;
+  // used to read from our config files
+  config_reader::ConfigReader config;
 
   /**
    * Log incoming messages "req" for rpc call "req_name"
@@ -97,10 +105,10 @@ class ClientNamenodeTranslator {
   /**
    * Get an rpc header proto given an error message and exception classname
    */
-  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
-                                                           std::string exception_classname);
+  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(
+      std::string error_msg,
+      std::string exception_classname);
 
   static const std::string CLASS_NAME;
-
-}; // class
-} // namespace
+};  // class
+}  // namespace client_namenode_translator
