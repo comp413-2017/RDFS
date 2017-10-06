@@ -15,6 +15,23 @@
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
 
 using asio::ip::tcp;
+using hadoop::hdfs::BaseHeaderProto;
+using hadoop::hdfs::BlockOpResponseProto;
+using hadoop::hdfs::CHECKSUM_NULL;
+using hadoop::hdfs::ChecksumProto;
+using hadoop::hdfs::OpBlockChecksumResponseProto;
+using hadoop::hdfs::OpReadBlockProto;
+using hadoop::hdfs::OpWriteBlockProto;
+using hadoop::hdfs::OpWriteBlockProto_BlockConstructionStage;
+using hadoop::hdfs::ClientOperationHeaderProto;
+using hadoop::hdfs::ClientReadStatusProto;
+using hadoop::hdfs::DatanodeIDProto;
+using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::ExtendedBlockProto;
+using hadoop::hdfs::PacketHeaderProto;
+using hadoop::hdfs::PipelineAckProto;
+using hadoop::hdfs::ReadOpChecksumInfoProto;
+using hadoop::hdfs::SUCCESS;
 
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
@@ -95,7 +112,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
 }
 
 void TransferServer::processWriteRequest(tcp::socket &sock) {
-  hadoop::hdfs::OpWriteBlockProto proto;
+  OpWriteBlockProto proto;
   if (rpcserver::read_delimited_proto(sock, proto)) {
     LOG(DEBUG) << "Op a write block proto";
   } else {
@@ -104,14 +121,14 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   std::string response_string;
   buildBlockOpResponse(response_string);
 
-  const hadoop::hdfs::ClientOperationHeaderProto header = proto.header();
-  std::vector<hadoop::hdfs::DatanodeInfoProto> targets;
+  const ClientOperationHeaderProto header = proto.header();
+  std::vector<DatanodeInfoProto> targets;
   for (int i = 0; i < proto.targets_size(); i++) {
     targets.push_back(proto.targets(i));
   }
 
-  const hadoop::hdfs::DatanodeInfoProto src = proto.source();
-  const hadoop::hdfs::OpWriteBlockProto_BlockConstructionStage stage =
+  const DatanodeInfoProto src = proto.source();
+  const OpWriteBlockProto_BlockConstructionStage stage =
     proto.stage();
   int pipelineSize = proto.pipelinesize();
   // num bytes in block
@@ -130,14 +147,14 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   std::string block_data;
   // 1 added to include the empty termination packet
   int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1;
-  hadoop::hdfs::PacketHeaderProto last_header;
+  PacketHeaderProto last_header;
   while (!last_packet) {
     asio::error_code error;
     uint32_t payload_len;
     rpcserver::read_int32(sock, &payload_len);
     uint16_t header_len;
     rpcserver::read_int16(sock, &header_len);
-    hadoop::hdfs::PacketHeaderProto p_head;
+    PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
     // LOG(INFO) << "Receigin packet " << p_head.seqno();
     last_packet = p_head.lastpacketinblock();
@@ -188,7 +205,7 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     << proto.targets_size()
     << " target data nodes";
   for (int i = 0; i < proto.targets_size(); i++) {
-    const hadoop::hdfs::DatanodeIDProto &dn_p = proto.targets(i).id();
+    const DatanodeIDProto &dn_p = proto.targets(i).id();
     std::string dn_name = dn_p.ipaddr() + ":" + std::to_string(dn_p.ipcport());
     if (!dn->push_dn_on_repq(dn_name, header.baseheader().block().blockid())) {
       // do nothing, check for acks will pick this up (hopefully!)
@@ -197,12 +214,12 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
 }
 
 void TransferServer::ackPacket(tcp::socket &sock,
-                               hadoop::hdfs::PacketHeaderProto &p_head) {
+                               PacketHeaderProto &p_head) {
   // ack packet
-  hadoop::hdfs::PipelineAckProto ack;
+  PipelineAckProto ack;
   ack.set_seqno(p_head.seqno());
   // LOG(INFO) << "Acking " << p_head.seqno();
-  ack.add_reply(hadoop::hdfs::SUCCESS);
+  ack.add_reply(SUCCESS);
   std::string ack_string;
   ack.SerializeToString(&ack_string);
   if (rpcserver::write_delimited_proto(sock, ack_string)) {
@@ -213,7 +230,7 @@ void TransferServer::ackPacket(tcp::socket &sock,
 }
 
 void TransferServer::processReadRequest(tcp::socket &sock) {
-  hadoop::hdfs::OpReadBlockProto proto;
+  OpReadBlockProto proto;
   if (rpcserver::read_delimited_proto(sock, proto)) {
     LOG(INFO) << "Op a read block proto" << std::endl;
   } else {
@@ -243,7 +260,7 @@ void TransferServer::processReadRequest(tcp::socket &sock) {
 
   uint64_t seq = 0;
   while (len > 0) {
-    hadoop::hdfs::PacketHeaderProto p_head;
+    PacketHeaderProto p_head;
     p_head.set_offsetinblock(offset);
     p_head.set_seqno(seq);
     p_head.set_lastpacketinblock(false);
@@ -269,7 +286,7 @@ void TransferServer::processReadRequest(tcp::socket &sock) {
     // Finish by writing the last empty packet, if we finished.
     if (writeFinalPacket(sock, offset, seq)) {
       // Receive a status code from the client.
-      hadoop::hdfs::ClientReadStatusProto status_proto;
+      ClientReadStatusProto status_proto;
       if (rpcserver::read_delimited_proto(sock, status_proto)) {
         LOG(INFO) << "Received read status from client.";
       } else {
@@ -285,7 +302,7 @@ void TransferServer::processReadRequest(tcp::socket &sock) {
 // successful.
 bool TransferServer::writeFinalPacket(tcp::socket &sock, uint64_t offset,
                                       uint64_t seq) {
-  hadoop::hdfs::PacketHeaderProto p_head;
+  PacketHeaderProto p_head;
   p_head.set_offsetinblock(offset);
   p_head.set_seqno(seq);
   p_head.set_lastpacketinblock(true);
@@ -295,18 +312,18 @@ bool TransferServer::writeFinalPacket(tcp::socket &sock, uint64_t offset,
 }
 
 void TransferServer::buildBlockOpResponse(std::string &response_string) {
-  hadoop::hdfs::BlockOpResponseProto response;
-  response.set_status(hadoop::hdfs::SUCCESS);
-  hadoop::hdfs::OpBlockChecksumResponseProto *checksum_res =
+  BlockOpResponseProto response;
+  response.set_status(SUCCESS);
+  OpBlockChecksumResponseProto *checksum_res =
     response.mutable_checksumresponse();
   checksum_res->set_bytespercrc(13);
   checksum_res->set_crcperblock(7);
   checksum_res->set_md5("this is my md5");
-  hadoop::hdfs::ReadOpChecksumInfoProto *checksum_info =
+  ReadOpChecksumInfoProto *checksum_info =
     response.mutable_readopchecksuminfo();
   checksum_info->set_chunkoffset(0);
-  hadoop::hdfs::ChecksumProto *checksum = checksum_info->mutable_checksum();
-  checksum->set_type(hadoop::hdfs::CHECKSUM_NULL);
+  ChecksumProto *checksum = checksum_info->mutable_checksum();
+  checksum->set_type(CHECKSUM_NULL);
   checksum->set_bytesperchecksum(17);
   response.SerializeToString(&response_string);
 }
@@ -340,7 +357,7 @@ void TransferServer::synchronize(std::function<void(TransferServer &,
 
 bool TransferServer::replicate(uint64_t len, std::string ip,
                                std::string xferport,
-                               hadoop::hdfs::ExtendedBlockProto blockToTarget) {
+                               ExtendedBlockProto blockToTarget) {
   LOG(INFO)
     << " replicating length "
     << len
@@ -369,19 +386,19 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
 
   // construct the rpc op_read request
   std::string read_string;
-  hadoop::hdfs::OpReadBlockProto read_block_proto;
+  OpReadBlockProto read_block_proto;
   read_block_proto.set_len(len);
   LOG(INFO) << "Requesting replica of length " << len << std::endl;
 
   read_block_proto.set_offset(0);
   read_block_proto.set_sendchecksums(true);
 
-  hadoop::hdfs::ClientOperationHeaderProto *header =
+  ClientOperationHeaderProto *header =
     read_block_proto.mutable_header();
   // TODO(anyone): same as DFS client for now
   header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1");
 
-  hadoop::hdfs::BaseHeaderProto *base_proto = header->mutable_baseheader();
+  BaseHeaderProto *base_proto = header->mutable_baseheader();
   base_proto->set_allocated_block(&blockToTarget);
   ::hadoop::common::TokenProto *token_header = base_proto->mutable_token();
 
@@ -412,7 +429,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
   }
 
   // read the read response
-  hadoop::hdfs::BlockOpResponseProto read_response;
+  BlockOpResponseProto read_response;
   if (!rpcserver::read_delimited_proto(sock, read_response)) {
     LOG(ERROR) << " could not read the read response from target datanode";
     return false;
@@ -440,7 +457,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
     rpcserver::read_int32(sock, &payload_len);
     uint16_t header_len;
     rpcserver::read_int16(sock, &header_len);
-    hadoop::hdfs::PacketHeaderProto p_head;
+    PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
     // LOG(INFO) << "Receiving packet " << p_head.seqno();
     // read in the data
