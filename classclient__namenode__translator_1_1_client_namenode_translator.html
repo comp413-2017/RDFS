@@ -100,9 +100,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af632a8d742ad19e059e8fc07f5050b5b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af632a8d742ad19e059e8fc07f5050b5b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>ClientNamenodeTranslator</b> (int port, <a class="el" href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a> &amp;zk_arg)</td></tr>
-<tr class="separator:af632a8d742ad19e059e8fc07f5050b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac81f59d2bbd211af207697551e271bee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac81f59d2bbd211af207697551e271bee"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>ClientNamenodeTranslator</b> (int port, <a class="el" href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a> *zk_arg)</td></tr>
+<tr class="separator:ac81f59d2bbd211af207697551e271bee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92b209586ec1cf0c23a86eebd31adaab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a92b209586ec1cf0c23a86eebd31adaab"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getFileInfo</b> (std::string)</td></tr>
 <tr class="separator:a92b209586ec1cf0c23a86eebd31adaab"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -259,7 +259,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>concat</b> (st
 <li>append: Appends are not supported</li>
 <li>concat: Effectively an append, so we don't support it</li>
 <li>recoverLease: While we expect clients to renew their lease, we should never allow a client to "recover" a lease, since we only allow a write-once system As such, we cannot recover leases.</li>
-<li>setPermission: TODO - might support this later! </li>
+<li>setPermission: TODO(2016): - might support this later! </li>
 </ol>
 
 </div>
