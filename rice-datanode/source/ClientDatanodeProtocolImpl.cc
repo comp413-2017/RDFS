@@ -18,6 +18,22 @@
 #include <iostream>
 #include <string>
 
+using hadoop::hdfs::ExtendedBlockProto;
+using hadoop::hdfs::DeleteBlockPoolRequestProto;
+using hadoop::hdfs::DeleteBlockPoolResponseProto;
+using hadoop::hdfs::GetBlockLocalPathInfoRequestProto;
+using hadoop::hdfs::GetBlockLocalPathInfoResponseProto;
+using hadoop::hdfs::GetDatanodeInfoRequestProto;
+using hadoop::hdfs::GetDatanodeInfoResponseProto;
+using hadoop::hdfs::GetHdfsBlockLocationsRequestProto;
+using hadoop::hdfs::GetHdfsBlockLocationsResponseProto;
+using hadoop::hdfs::GetReplicaVisibleLengthRequestProto;
+using hadoop::hdfs::GetReplicaVisibleLengthResponseProto;
+using hadoop::hdfs::RefreshNamenodesRequestProto;
+using hadoop::hdfs::RefreshNamenodesResponseProto;
+using hadoop::hdfs::ShutdownDatanodeRequestProto;
+using hadoop::hdfs::ShutdownDatanodeResponseProto;
+
 /**
  * The implementation of the rpc calls. 
  */
@@ -35,48 +51,48 @@ ClientDatanodeTranslator::ClientDatanodeTranslator(int port_arg)
 
 std::string ClientDatanodeTranslator::getReplicaVisibleLength(
   std::string input) {
-  hadoop::hdfs::GetReplicaVisibleLengthRequestProto req;
+  GetReplicaVisibleLengthRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "GetReplicaVisibleLength ");
-  const hadoop::hdfs::ExtendedBlockProto &block = req.block();
-  hadoop::hdfs::GetReplicaVisibleLengthResponseProto res;
+  const ExtendedBlockProto &block = req.block();
+  GetReplicaVisibleLengthResponseProto res;
   // TODO(anyone): get the visible length of the block and set it the response
   return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::refreshNamenodes(std::string input) {
-  hadoop::hdfs::RefreshNamenodesRequestProto req;
+  RefreshNamenodesRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "RefreshNamenodes ");
-  hadoop::hdfs::RefreshNamenodesResponseProto res;
+  RefreshNamenodesResponseProto res;
   // TODO(anyone): refresh the namenodes. Response contains no fields
   return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::deleteBlockPool(std::string input) {
-  hadoop::hdfs::DeleteBlockPoolRequestProto req;
+  DeleteBlockPoolRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "DeleteBlockPool ");
   const std::string &block_pool = req.blockpool();
   const bool force = req.force();
-  hadoop::hdfs::DeleteBlockPoolResponseProto res;
+  DeleteBlockPoolResponseProto res;
   // TODO(anyone): delete the block pool. Response contains no fields
   return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getBlockLocalPathInfo(std::string input) {
-  hadoop::hdfs::GetBlockLocalPathInfoRequestProto req;
+  GetBlockLocalPathInfoRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "GetBlockLocalPathInfo ");
-  const hadoop::hdfs::ExtendedBlockProto &block = req.block();
+  const ExtendedBlockProto &block = req.block();
   const hadoop::common::TokenProto &token = req.token();
-  hadoop::hdfs::GetBlockLocalPathInfoResponseProto res;
+  GetBlockLocalPathInfoResponseProto res;
   // TODO(anyone): get local path info for block
   return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getHdfsBlockLocations(std::string input) {
-  hadoop::hdfs::GetHdfsBlockLocationsRequestProto req;
+  GetHdfsBlockLocationsRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "GetHdfsBlockLocations ");
   const std::string &block_pool_id = req.blockpoolid();
@@ -86,26 +102,26 @@ std::string ClientDatanodeTranslator::getHdfsBlockLocations(std::string input) {
   for (int i = 0; i < req.blockids_size(); i++) {
     const int64_t block_id = req.blockids(i);
   }
-  hadoop::hdfs::GetHdfsBlockLocationsResponseProto res;
+  GetHdfsBlockLocationsResponseProto res;
   // TODO(anyone): get HDFS-specific metadata about blocks
   return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::shutdownDatanode(std::string input) {
-  hadoop::hdfs::ShutdownDatanodeRequestProto req;
+  ShutdownDatanodeRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "ShutdownDatanode ");
   const bool for_upgrade = req.forupgrade();
-  hadoop::hdfs::ShutdownDatanodeResponseProto res;
+  ShutdownDatanodeResponseProto res;
   // TODO(anyone): shut down the datanode. Response contains no fields
   return Serialize(res);
 }
 
 std::string ClientDatanodeTranslator::getDatanodeInfo(std::string input) {
-  hadoop::hdfs::GetDatanodeInfoRequestProto req;
+  GetDatanodeInfoRequestProto req;
   req.ParseFromString(input);
   logMessage(req, "GetDatanodeInfo ");
-  hadoop::hdfs::GetDatanodeInfoResponseProto res;
+  GetDatanodeInfoResponseProto res;
   // TODO(anyone): get datanode info
   return Serialize(res);
 }
