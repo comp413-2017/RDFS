@@ -90,6 +90,10 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
     LOG(ERROR) << "zk init failed!";
     error_code = -999;
   }
+
+  LOG(INFO) << "Initializing ZooKeeper with host: "
+            << host << " and root_path: " << root_path;
+
   init = 1;
   if (root_path.size() != 0) {
 
@@ -102,6 +106,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
         if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
           LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
         } else {
+          root_exists = true;
           break;
         }
       }
