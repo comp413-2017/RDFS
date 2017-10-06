@@ -89,54 +89,60 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">ClientDatanodeProtocolImpl.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#include &quot;ClientDatanodeProtocol.pb.h&quot;</span></div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &quot;hdfs.pb.h&quot;</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;datatransfer.pb.h&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;google/protobuf/message.h&gt;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;rpcserver.h&gt;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;ConfigReader.h&gt;</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor"></span></div>
-<div class="line"><a name="l00014"></a><span class="lineno"><a class="line" href="namespaceclient__datanode__translator.html">   14</a></span>&#160;<span class="keyword">namespace </span>client_datanode_translator {</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment">// the .proto file implementation&#39;s namespace, used for messages</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">using namespace </span>hadoop::hdfs;</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;</div>
-<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="classclient__datanode__translator_1_1_client_datanode_translator.html">   19</a></span>&#160;<span class="keyword">class </span><a class="code" href="classclient__datanode__translator_1_1_client_datanode_translator.html">ClientDatanodeTranslator</a> {</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;  <a class="code" href="classclient__datanode__translator_1_1_client_datanode_translator.html">ClientDatanodeTranslator</a>(<span class="keywordtype">int</span> port);</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;  std::string getReplicaVisibleLength(std::string);</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  std::string refreshNamenodes(std::string);</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  std::string deleteBlockPool(std::string);</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  std::string getBlockLocalPathInfo(std::string);</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  std::string getHdfsBlockLocations(std::string);</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  std::string shutdownDatanode(std::string);</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  std::string getDatanodeInfo(std::string);</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  std::string _acceptReadBlock(std::string);</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  <span class="keywordtype">int</span> getPort();</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  <a class="code" href="class_r_p_c_server.html">RPCServer</a> getRPCServer();</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  std::string Serialize(google::protobuf::Message &amp;);</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keywordtype">void</span> InitServer();</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <span class="keywordtype">void</span> RegisterClientRPCHandlers();</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="keywordtype">void</span> Config();</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keywordtype">void</span> logMessage(google::protobuf::Message &amp;req, std::string req_name);</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">FsServerDefaultsProto</a> server_defaults;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <span class="keywordtype">int</span> port;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  <a class="code" href="class_r_p_c_server.html">RPCServer</a> server;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <a class="code" href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a> config;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;}; <span class="comment">// class</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;} <span class="comment">// namespace</span></div>
-<div class="ttc" id="classclient__datanode__translator_1_1_client_datanode_translator_html"><div class="ttname"><a href="classclient__datanode__translator_1_1_client_datanode_translator.html">client_datanode_translator::ClientDatanodeTranslator</a></div><div class="ttdef"><b>Definition:</b> ClientDatanodeProtocolImpl.h:19</div></div>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">// Copyright 2017 Rice University, COMP 413 2017</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;</div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &lt;ConfigReader.h&gt;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;google/protobuf/message.h&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;rpcserver.h&gt;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &quot;ClientDatanodeProtocol.pb.h&quot;</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &quot;hdfs.pb.h&quot;</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &quot;datatransfer.pb.h&quot;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#pragma once</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">using</span> <a class="code" href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">hadoop::hdfs::FsServerDefaultsProto</a>;</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
+<div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="namespaceclient__datanode__translator.html">   21</a></span>&#160;<span class="keyword">namespace </span>client_datanode_translator {</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
+<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="classclient__datanode__translator_1_1_client_datanode_translator.html">   23</a></span>&#160;<span class="keyword">class </span><a class="code" href="classclient__datanode__translator_1_1_client_datanode_translator.html">ClientDatanodeTranslator</a> {</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classclient__datanode__translator_1_1_client_datanode_translator.html">ClientDatanodeTranslator</a>(<span class="keywordtype">int</span> port);</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  std::string getReplicaVisibleLength(std::string);</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  std::string refreshNamenodes(std::string);</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  std::string deleteBlockPool(std::string);</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  std::string getBlockLocalPathInfo(std::string);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  std::string getHdfsBlockLocations(std::string);</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  std::string shutdownDatanode(std::string);</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  std::string getDatanodeInfo(std::string);</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  std::string _acceptReadBlock(std::string);</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keywordtype">int</span> <a class="code" href="classclient__datanode__translator_1_1_client_datanode_translator.html#a4c6c1cd42f469a80e65f04f03e96b6e3">getPort</a>();</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <a class="code" href="class_r_p_c_server.html">RPCServer</a> <a class="code" href="classclient__datanode__translator_1_1_client_datanode_translator.html#af889a3176de982f62974d5f11a154ecc">getRPCServer</a>();</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  std::string Serialize(google::protobuf::Message &amp;);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keywordtype">void</span> InitServer();</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <span class="keywordtype">void</span> RegisterClientRPCHandlers();</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  <span class="keywordtype">void</span> Config();</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="keywordtype">void</span> logMessage(google::protobuf::Message &amp;req, std::string req_name);</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">FsServerDefaultsProto</a> server_defaults;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="keywordtype">int</span> port;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <a class="code" href="class_r_p_c_server.html">RPCServer</a> server;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <a class="code" href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a> config;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;};</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;}  <span class="comment">// namespace client_datanode_translator</span></div>
+<div class="ttc" id="classclient__datanode__translator_1_1_client_datanode_translator_html"><div class="ttname"><a href="classclient__datanode__translator_1_1_client_datanode_translator.html">client_datanode_translator::ClientDatanodeTranslator</a></div><div class="ttdef"><b>Definition:</b> ClientDatanodeProtocolImpl.h:23</div></div>
 <div class="ttc" id="classconfig__reader_1_1_config_reader_html"><div class="ttname"><a href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a></div><div class="ttdef"><b>Definition:</b> ConfigReader.h:18</div></div>
+<div class="ttc" id="classclient__datanode__translator_1_1_client_datanode_translator_html_af889a3176de982f62974d5f11a154ecc"><div class="ttname"><a href="classclient__datanode__translator_1_1_client_datanode_translator.html#af889a3176de982f62974d5f11a154ecc">client_datanode_translator::ClientDatanodeTranslator::getRPCServer</a></div><div class="ttdeci">RPCServer getRPCServer()</div><div class="ttdef"><b>Definition:</b> ClientDatanodeProtocolImpl.cc:189</div></div>
 <div class="ttc" id="class_r_p_c_server_html"><div class="ttname"><a href="class_r_p_c_server.html">RPCServer</a></div><div class="ttdef"><b>Definition:</b> rpcserver.h:24</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_fs_server_defaults_proto.html">hadoop::hdfs::FsServerDefaultsProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3651</div></div>
+<div class="ttc" id="classclient__datanode__translator_1_1_client_datanode_translator_html_a4c6c1cd42f469a80e65f04f03e96b6e3"><div class="ttname"><a href="classclient__datanode__translator_1_1_client_datanode_translator.html#a4c6c1cd42f469a80e65f04f03e96b6e3">client_datanode_translator::ClientDatanodeTranslator::getPort</a></div><div class="ttdeci">int getPort()</div><div class="ttdef"><b>Definition:</b> ClientDatanodeProtocolImpl.cc:196</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
