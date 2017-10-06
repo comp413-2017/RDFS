@@ -1,10 +1,13 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <google/protobuf/message.h>
+#include <rpcserver.h>
+#include <zkwrapper.h>
+#include <string>
 #include <iostream>
 #include "ClientNamenodeProtocol.pb.h"
 #include "hdfs.pb.h"
-#include <google/protobuf/message.h>
 #include <RpcHeader.pb.h>
-#include <rpcserver.h>
-#include <zkwrapper.h>
 #include <ConfigReader.h>
 #include "zk_nn_client.h"
 #include "DaemonFactory.h"
@@ -17,7 +20,7 @@
 namespace client_namenode_translator {
 
 // the .proto file implementation's namespace, used for messages
-using namespace hadoop::hdfs;
+using hadoop::hdfs::FsServerDefaultsProto;
 
 /**
  * The translator receives the rpc parameters from rpcserver. It then processes
@@ -27,7 +30,7 @@ using namespace hadoop::hdfs;
  */
 class ClientNamenodeTranslator {
  public:
-  ClientNamenodeTranslator(int port, zkclient::ZkNnClient &zk_arg);
+  ClientNamenodeTranslator(int port, zkclient::ZkNnClient* zk_arg);
   ~ClientNamenodeTranslator();
 
   // RPC calls which we support. Each take a string which comes form
@@ -78,16 +81,21 @@ class ClientNamenodeTranslator {
    */
   std::string ZookeeperPath(const std::string &hadoopPath);
 
-  FsServerDefaultsProto server_defaults;    //server defaults as read from the config
-  int port;                                // port which our rpc server is using
-  RPCServer server;                        // our rpc server
-  zkclient::ZkNnClient &zk;                // client to communicate with zookeeper
-  config_reader::ConfigReader config;    // used to read from our config files
+  // server defaults as read from the config
+  FsServerDefaultsProto server_defaults;
+  // port which our rpc server is using
+  int port;
+  // our rpc server
+  RPCServer server;
+  // client to communicate with zookeeper
+  zkclient::ZkNnClient* zk;
+  // used to read from our config files
+  config_reader::ConfigReader config;
 
   /**
    * Log incoming messages "req" for rpc call "req_name"
    */
-  void logMessage(google::protobuf::Message &req, std::string req_name);
+  void logMessage(google::protobuf::Message* req, std::string req_name);
 
   /**
    * Get an int from the config file for our defaults
@@ -97,10 +105,10 @@ class ClientNamenodeTranslator {
   /**
    * Get an rpc header proto given an error message and exception classname
    */
-  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(std::string error_msg,
-                                                           std::string exception_classname);
+  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(
+      std::string error_msg,
+      std::string exception_classname);
 
   static const std::string CLASS_NAME;
-
-}; // class
-} // namespace
+};  // class
+}  // namespace client_namenode_translator
