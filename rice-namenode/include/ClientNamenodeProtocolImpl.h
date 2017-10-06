@@ -20,7 +20,7 @@
 namespace client_namenode_translator {
 
 // the .proto file implementation's namespace, used for messages
-using namespace hadoop::hdfs;
+using hadoop::hdfs::FsServerDefaultsProto;
 
 /**
  * The translator receives the rpc parameters from rpcserver. It then processes

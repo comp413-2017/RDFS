@@ -28,7 +28,16 @@
 namespace ha_service_translator {
 
 // the .proto file implementation's namespace, used for messages
-using namespace hadoop::common;
+using hadoop::common::TransitionToActiveRequestProto;
+using hadoop::common::TransitionToActiveResponseProto;
+using hadoop::common::TransitionToStandbyRequestProto;
+using hadoop::common::TransitionToStandbyResponseProto;
+using hadoop::common::GetServiceStatusRequestProto;
+using hadoop::common::GetServiceStatusResponseProto;
+using hadoop::common::MonitorHealthRequestProto;
+using hadoop::common::MonitorHealthResponseProto;
+using hadoop::common::ACTIVE;
+using hadoop::common::STANDBY;
 
 HaServiceTranslator::HaServiceTranslator(
     RPCServer *server_arg,
@@ -126,7 +135,7 @@ GetErrorRPCHeader(
 // -------------------- RPC SERVER INTERACTIONS ---------------
 
 void HaServiceTranslator::RegisterServiceRPCHandlers() {
-  using namespace std::placeholders;  // for `_1`
+  using std::placeholders::_1;
   LOG(INFO) << "Registering RPC Handlers";
   // The reason for these binds is because it wants static functions, but we
   // want to give it member functions

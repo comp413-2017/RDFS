@@ -38,7 +38,42 @@ namespace client_namenode_translator {
 
 
 // the .proto file implementation's namespace, used for messages
-using namespace hadoop::hdfs;
+using hadoop::hdfs::GetFileInfoRequestProto;
+using hadoop::hdfs::GetFileInfoResponseProto;
+using hadoop::hdfs::MkdirsRequestProto;
+using hadoop::hdfs::MkdirsResponseProto;
+using hadoop::hdfs::DeleteRequestProto;
+using hadoop::hdfs::DeleteResponseProto;
+using hadoop::hdfs::CreateRequestProto;
+using hadoop::hdfs::CreateResponseProto;
+using hadoop::hdfs::GetBlockLocationsRequestProto;
+using hadoop::hdfs::GetBlockLocationsResponseProto;
+using hadoop::hdfs::GetServerDefaultsRequestProto;
+using hadoop::hdfs::GetServerDefaultsResponseProto;
+using hadoop::hdfs::FsServerDefaultsProto;
+using hadoop::hdfs::RenewLeaseRequestProto;
+using hadoop::hdfs::RenewLeaseResponseProto;
+using hadoop::hdfs::CompleteRequestProto;
+using hadoop::hdfs::CompleteResponseProto;
+using hadoop::hdfs::AbandonBlockRequestProto;
+using hadoop::hdfs::AbandonBlockResponseProto;
+using hadoop::hdfs::AddBlockRequestProto;
+using hadoop::hdfs::AddBlockResponseProto;
+using hadoop::hdfs::RenameRequestProto;
+using hadoop::hdfs::RenameResponseProto;
+using hadoop::hdfs::SetPermissionResponseProto;
+using hadoop::hdfs::GetListingRequestProto;
+using hadoop::hdfs::GetListingResponseProto;
+using hadoop::hdfs::SetReplicationResponseProto;
+using hadoop::hdfs::GetEZForPathResponseProto;
+using hadoop::hdfs::SetOwnerResponseProto;
+using hadoop::hdfs::GetContentSummaryRequestProto;
+using hadoop::hdfs::GetContentSummaryResponseProto;
+using hadoop::hdfs::RecoverLeaseRequestProto;
+using hadoop::hdfs::RecoverLeaseResponseProto;
+using hadoop::hdfs::Rename2RequestProto;
+using hadoop::hdfs::Rename2ResponseProto;
+
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -359,7 +394,7 @@ void ClientNamenodeTranslator::InitServer() {
  * here should be for supported commands.
  */
 void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
-  using namespace std::placeholders;  // for `_1`
+  using  std::placeholders::_1;
 
   // The reason for these binds is because it wants static functions, but we
   // want to give it member functions

@@ -18,7 +18,8 @@
 namespace ha_service_translator {
 
 // the .proto file implementation's namespace, used for messages
-using namespace hadoop::common;
+using hadoop::common::RpcResponseHeaderProto;
+using hadoop::common::HAServiceStateProto;
 
 /**
  * The translator receives the rpc parameters from rpcserver. It then processes
@@ -67,7 +68,7 @@ class HaServiceTranslator {
   /**
    * Get an rpc header proto given an error message and exception classname
    */
-  hadoop::common::RpcResponseHeaderProto GetErrorRPCHeader(
+  RpcResponseHeaderProto GetErrorRPCHeader(
       std::string error_msg,
       std::string exception_classname);
 

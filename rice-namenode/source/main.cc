@@ -17,7 +17,7 @@ INITIALIZE_EASYLOGGINGPP
 // Absolute directory from vagrant VM to config file
 #define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/nn-log-conf.conf"
 
-using namespace client_namenode_translator;
+using client_namenode_translator::ClientNamenodeTranslator;
 
 /**
  * Function to parse commandline options and store results into the input
@@ -70,11 +70,15 @@ static inline int parse_cmdline_options(
             return -1;
           default:
             if (isprint(optopt)) {
-              snprintf(buf, 50, "Unknown option -%c.", optopt);
+              snprintf(buf, sizeof(buf), "Unknown option -%c.", optopt);
               LOG(WARNING) << buf;
               return 0;
             } else {
-              snprintf(buf, 50, "Unknown option character `\\\\x%x'.", optopt);
+              snprintf(
+                  buf,
+                  sizeof(buf),
+                  "Unknown option character `\\\\x%x'.",
+                  optopt);
               LOG(WARNING) << buf;
               return 0;
             }
