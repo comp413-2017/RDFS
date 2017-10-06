@@ -115,12 +115,12 @@ int main(int argc, char *argv[]) {
   nncli.register_watches();
 
   LOG(INFO) << "Namenode is starting";
-  ClientNamenodeTranslator translator(port, nncli);
+  ClientNamenodeTranslator translator(port, &nncli);
   // high availability translator
   RPCServer server = translator.getRPCServer();
   ha_service_translator::HaServiceTranslator ha_service_translator(
       &server,
-      nncli,
+      &nncli,
       port);
   server.serve(io_service);
 }

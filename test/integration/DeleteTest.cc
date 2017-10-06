@@ -26,7 +26,7 @@ class DeleteTest : public ::testing::Test {
     short port = 5351;
     nncli = new zkclient::ZkNnClient(zk);
     nncli->register_watches();
-    nn_translator = new ClientNamenodeTranslator(5351, *nncli);
+    nn_translator = new ClientNamenodeTranslator(5351, nncli);
   }
 
   // Objects declared here can be used by all tests in the test case for Foo.
