@@ -48,6 +48,7 @@ namespace {
             ASSERT_EQ(block1, block2);
         }
     }
+
     TEST(ReplicationTest, testReplication) {
 
         unsigned short xferPort = 50010;
@@ -83,23 +84,19 @@ namespace {
         system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
         ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile12345 > /dev/null"));
     }
-
-}
-
-}
+}  // namespace
 
 int main(int argc, char **argv) {
 
-    // Start up zookeeper
-    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-    sleep(10);
-	system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-    sleep(3);
-	system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-    system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-    sleep(3);
-  }
+  // Start up zookeeper
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+  sleep(10);
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  sleep(3);
+  system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
+  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
+  sleep(3);
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
