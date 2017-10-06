@@ -13,6 +13,11 @@
 INITIALIZE_EASYLOGGINGPP
 
 #define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
+<<<<<<< HEAD
+=======
+
+namespace {
+>>>>>>> eaafebe7dcd55fe6d1465a96892b9420b96eb906
 
 namespace {
 	class NamenodeTest : public ::testing::Test {
