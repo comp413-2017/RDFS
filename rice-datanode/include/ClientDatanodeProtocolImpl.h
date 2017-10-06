@@ -1,10 +1,15 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <ConfigReader.h>
+#include <google/protobuf/message.h>
+#include <rpcserver.h>
+
 #include <iostream>
+#include <string>
+
 #include "ClientDatanodeProtocol.pb.h"
 #include "hdfs.pb.h"
 #include "datatransfer.pb.h"
-#include <google/protobuf/message.h>
-#include <rpcserver.h>
-#include <ConfigReader.h>
 
 #pragma once
 
@@ -13,12 +18,9 @@
  */
 namespace client_datanode_translator {
 
-// the .proto file implementation's namespace, used for messages
-using namespace hadoop::hdfs;
-
 class ClientDatanodeTranslator {
  public:
-  ClientDatanodeTranslator(int port);
+  explicit ClientDatanodeTranslator(int port);
   std::string getReplicaVisibleLength(std::string);
   std::string refreshNamenodes(std::string);
   std::string deleteBlockPool(std::string);
@@ -30,6 +32,7 @@ class ClientDatanodeTranslator {
 
   int getPort();
   RPCServer getRPCServer();
+
  private:
   std::string Serialize(google::protobuf::Message &);
   void InitServer();
@@ -37,11 +40,10 @@ class ClientDatanodeTranslator {
   void Config();
   void logMessage(google::protobuf::Message &req, std::string req_name);
 
-  FsServerDefaultsProto server_defaults;
+  hadoop::hdfs::FsServerDefaultsProto server_defaults;
   int port;
   RPCServer server;
 
   config_reader::ConfigReader config;
-
-}; // class
-} // namespace
+};
+}  // namespace client_datanode_translator
