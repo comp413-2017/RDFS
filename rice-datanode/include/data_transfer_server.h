@@ -1,20 +1,21 @@
-#include <functional>
-
-#include <asio.hpp>
-#include <boost/lockfree/spsc_queue.hpp>
+// Copyright 2017 Rice University, COMP 413 2017
 
 #include <datatransfer.pb.h>
 #include <hdfs.pb.h>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-#include <atomic>
 
+#include <atomic>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
+#include <queue>
+#include <string>
+
+#include <asio.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 #include "native_filesystem.h"
+#include "rpcserver.h"
 #include "socket_reads.h"
 #include "socket_writes.h"
-#include "rpcserver.h"
-#include "native_filesystem.h"
 #include "zk_dn_client.h"
 
 #pragma once
@@ -36,7 +37,6 @@
 #define CUSTOM 127
 
 using asio::ip::tcp;
-using namespace hadoop::hdfs;
 
 class TransferServer {
  public:
@@ -53,13 +53,15 @@ class TransferServer {
   /**
    * @param len the length of the block
    * @param ip the ip of the datanode we are sending the read request to
-   * @param xferport the xfer port of the datandoe we are sending the read request to
+   * @param xferport the xfer port of the datandoe we are sending the read
+   *                 request to
    * @param blockToTarget the block info of the block to replicate
    *
-   * Send a read request to anotehr datanode for a certain block, stream in the packets and write them
-   * to our disk
+   * Send a read request to anotehr datanode for a certain block, stream in the
+   * packets and write them to our disk
    */
-  bool replicate(uint64_t len, std::string ip, std::string xferport, ExtendedBlockProto blockToTarget);
+  bool replicate(uint64_t len, std::string ip, std::string xferport,
+                 hadoop::hdfs::ExtendedBlockProto blockToTarget);
 
   bool rmBlock(uint64_t block_id);
   bool poll_replicate();
@@ -75,28 +77,34 @@ class TransferServer {
   mutable std::mutex m;
   std::condition_variable cv;
 
-  bool receive_header(tcp::socket &sock, uint16_t *version, unsigned char *type);
+  bool receive_header(tcp::socket &sock, uint16_t *version,
+                      unsigned char *type);
   bool write_header(tcp::socket &sock, uint16_t version, unsigned char type);
   void handle_connection(tcp::socket sock);
   void processWriteRequest(tcp::socket &sock);
   void processReadRequest(tcp::socket &sock);
   void buildBlockOpResponse(std::string &response_string);
-  void ackPacket(tcp::socket &sock, PacketHeaderProto &p_head);
+  void ackPacket(tcp::socket &sock, hadoop::hdfs::PacketHeaderProto &p_head);
 
   bool writeFinalPacket(tcp::socket &sock, uint64_t, uint64_t);
   template<typename BufType>
-  bool writePacket(tcp::socket &sock, PacketHeaderProto p_head, const BufType &payload);
-  void synchronize(std::function<void(TransferServer &, tcp::socket &)> f, tcp::socket &sock);
+  bool writePacket(tcp::socket &sock, hadoop::hdfs::PacketHeaderProto p_head,
+                   const BufType &payload);
+  void synchronize(std::function<void(TransferServer &, tcp::socket &)> f,
+                   tcp::socket &sock);
 };
 
 // Templated method to be generic across any asio buffer type.
 template<typename BufType>
-bool TransferServer::writePacket(tcp::socket &sock, PacketHeaderProto p_head, const BufType &payload) {
+bool TransferServer::writePacket(tcp::socket &sock,
+                                 hadoop::hdfs::PacketHeaderProto p_head,
+                                 const BufType &payload) {
   std::string p_head_str;
   p_head.SerializeToString(&p_head_str);
   const uint16_t header_len = p_head_str.length();
   // Add 4 to account for the size of uint32_t.
-  // Also add in |cksums| u4s; these are a part of the payload and thus the payload length
+  // Also add in |cksums| u4s; these are a part of the payload and thus the
+  // payload length
   const uint32_t payload_len = 4 + asio::buffer_size(payload);
   // Write payload length, header length, header, payload.
 
