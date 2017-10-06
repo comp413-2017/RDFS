@@ -1,8 +1,9 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <netinet/in.h>
+#include <string>
 #include <iostream>
 #include <asio.hpp>
-#include <netinet/in.h>
 
 #include <ProtobufRpcEngine.pb.h>
 
@@ -41,4 +42,4 @@ bool write_proto(tcp::socket &sock, std::string &proto_bytes);
  * length. Return true if successful, otherwise false.
  */
 bool write_delimited_proto(tcp::socket &sock, std::string &proto_bytes);
-}
+}  // namespace rpcserver

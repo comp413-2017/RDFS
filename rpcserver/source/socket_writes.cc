@@ -1,11 +1,11 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#include <iostream>
-#include <asio.hpp>
+#include <easylogging++.h>
 #include <netinet/in.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <iostream>
 #include "socket_writes.h"
-#include <easylogging++.h>
+#include <asio.hpp>
 
 using asio::ip::tcp;
 
@@ -79,12 +79,15 @@ bool write_proto(tcp::socket &sock, std::string &proto_bytes) {
   size_t write_len = sock.write_some(asio::buffer(&proto_bytes[0],
                                                   proto_bytes.size()), error);
   if (write_len != proto_bytes.size())
-    LOG(ERROR) << "write_len " << write_len << "protob size " << proto_bytes.size() << std::endl;
+    LOG(ERROR) << "write_len "
+               << write_len
+               << "protob size "
+               << proto_bytes.size()
+               << std::endl;
 
   if (error)
     LOG(ERROR) << "sock.write_some returned error" << std::endl;
 
   return write_len == proto_bytes.size() && !error;
 }
-
-}
+}  // namespace rpcserver

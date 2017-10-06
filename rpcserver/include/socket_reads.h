@@ -1,8 +1,8 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <netinet/in.h>
 #include <iostream>
 #include <asio.hpp>
-#include <netinet/in.h>
 
 #include <ProtobufRpcEngine.pb.h>
 
@@ -46,16 +46,22 @@ size_t read_varint(tcp::socket &sock, uint64_t *out);
  * Set *consumed to the number of bytes read. Return true on success,
  * otherwise false.
  */
-bool read_delimited_proto(tcp::socket &sock, ::google::protobuf::Message &proto,
-                          uint64_t *consumed);
+bool read_delimited_proto(
+    tcp::socket &sock,
+    ::google::protobuf::Message &proto,
+    uint64_t *consumed);
 /**
  * Read a varint prefix-delimited proto from socket and parse into proto.
  * Return true on success, otherwise false.
  */
-bool read_delimited_proto(tcp::socket &sock, ::google::protobuf::Message &proto);
+bool read_delimited_proto(
+    tcp::socket &sock,
+    ::google::protobuf::Message &proto);
 /**
  * Parse len bytes from socket into proto. Return true on success,
  * otherwise false.
  */
-bool read_proto(tcp::socket &sock, ::google::protobuf::Message &proto, uint64_t len);
-}
+bool read_proto(
+    tcp::socket &sock,
+    ::google::protobuf::Message &proto, uint64_t len);
+}  // namespace rpcserver
