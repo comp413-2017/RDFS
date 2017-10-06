@@ -30,7 +30,7 @@ using hadoop::hdfs::FsServerDefaultsProto;
  */
 class ClientNamenodeTranslator {
  public:
-  ClientNamenodeTranslator(int port, zkclient::ZkNnClient &zk_arg);
+  ClientNamenodeTranslator(int port, zkclient::ZkNnClient* zk_arg);
   ~ClientNamenodeTranslator();
 
   // RPC calls which we support. Each take a string which comes form
@@ -88,14 +88,14 @@ class ClientNamenodeTranslator {
   // our rpc server
   RPCServer server;
   // client to communicate with zookeeper
-  zkclient::ZkNnClient &zk;
+  zkclient::ZkNnClient* zk;
   // used to read from our config files
   config_reader::ConfigReader config;
 
   /**
    * Log incoming messages "req" for rpc call "req_name"
    */
-  void logMessage(google::protobuf::Message &req, std::string req_name);
+  void logMessage(google::protobuf::Message* req, std::string req_name);
 
   /**
    * Get an int from the config file for our defaults

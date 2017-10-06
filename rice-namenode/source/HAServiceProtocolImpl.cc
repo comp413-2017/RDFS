@@ -41,7 +41,7 @@ using hadoop::common::STANDBY;
 
 HaServiceTranslator::HaServiceTranslator(
     RPCServer *server_arg,
-    zkclient::ZkNnClient &zk_arg,
+    zkclient::ZkNnClient* zk_arg,
     int port_arg
 ) : server(server_arg), zk(zk_arg), port(port_arg) {
   RegisterServiceRPCHandlers();
@@ -57,7 +57,7 @@ HaServiceTranslator::HaServiceTranslator(
 std::string HaServiceTranslator::transitionToActive(std::string input) {
   TransitionToActiveRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, " Transition to Active ");
+  logMessage(&req, " Transition to Active ");
   state = ACTIVE;
   TransitionToActiveResponseProto res;
   return Serialize(res);
@@ -66,7 +66,7 @@ std::string HaServiceTranslator::transitionToActive(std::string input) {
 std::string HaServiceTranslator::transitionToStandby(std::string input) {
   TransitionToStandbyRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, " Transition to Standby ");
+  logMessage(&req, " Transition to Standby ");
   state = STANDBY;
   TransitionToStandbyResponseProto res;
   return Serialize(res);
@@ -75,7 +75,7 @@ std::string HaServiceTranslator::transitionToStandby(std::string input) {
 std::string HaServiceTranslator::getServiceStatus(std::string input) {
   GetServiceStatusRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, " Get Service Status ");
+  logMessage(&req, " Get Service Status ");
   GetServiceStatusResponseProto res;
   res.set_state(state);
   res.set_readytobecomeactive(true);
@@ -85,7 +85,7 @@ std::string HaServiceTranslator::getServiceStatus(std::string input) {
 std::string HaServiceTranslator::monitorHealth(std::string input) {
   MonitorHealthRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, " Monitor health ");
+  logMessage(&req, " Monitor health ");
   MonitorHealthResponseProto res;
   return Serialize(res);
 }
@@ -98,7 +98,7 @@ std::string HaServiceTranslator::monitorHealth(std::string input) {
  */
 std::string HaServiceTranslator::Serialize(google::protobuf::Message &res) {
   std::string out;
-  logMessage(res, "Responding with ");
+  logMessage(&res, "Responding with ");
   if (!res.SerializeToString(&out)) {
     // TODO(2016): handle error
   }
@@ -159,7 +159,7 @@ void HaServiceTranslator::RegisterServiceRPCHandlers() {
 // ------------------------------- HELPERS -----------------------------
 
 void HaServiceTranslator::logMessage(
-    google::protobuf::Message &req,
+    google::protobuf::Message* req,
     std::string req_name
 ) {
   LOG(INFO) << "Got message " << req_name;

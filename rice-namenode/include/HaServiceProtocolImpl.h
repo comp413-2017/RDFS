@@ -32,7 +32,7 @@ class HaServiceTranslator {
  public:
   HaServiceTranslator(
       RPCServer *server_arg,
-      zkclient::ZkNnClient &zk_arg,
+      zkclient::ZkNnClient* zk_arg,
       int port_arg);
 
   // RPC calls which we support. Each take a string which comes form
@@ -57,13 +57,13 @@ class HaServiceTranslator {
   // our rpc server
   RPCServer *server;
   // client to communicate with zookeeper
-  zkclient::ZkNnClient &zk;
+  zkclient::ZkNnClient* zk;
   HAServiceStateProto state;
 
   /**
    * Log incoming messages "req" for rpc call "req_name"
    */
-  void logMessage(google::protobuf::Message &req, std::string req_name);
+  void logMessage(google::protobuf::Message* req, std::string req_name);
 
   /**
    * Get an rpc header proto given an error message and exception classname

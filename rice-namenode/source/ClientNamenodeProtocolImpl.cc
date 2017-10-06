@@ -77,7 +77,7 @@ using hadoop::hdfs::Rename2ResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
-    zkclient::ZkNnClient &zk_arg
+    zkclient::ZkNnClient* zk_arg
 ) : port(port_arg), server(port), zk(zk_arg) {
   InitServer();
   LOG(INFO) << "Created client namenode translator.";
@@ -89,39 +89,39 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(
 std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
   GetFileInfoRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "GetFileInfo ");
+  logMessage(&req, "GetFileInfo ");
   GetFileInfoResponseProto res;
-  zk.get_info(req, res);
-  logMessage(res, "GetFileInfo response ");
+  zk->get_info(req, res);
+  logMessage(&res, "GetFileInfo response ");
   return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::mkdir(std::string input) {
   MkdirsRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "Mkdir ");
+  logMessage(&req, "Mkdir ");
   MkdirsResponseProto res;
-  zk.mkdir(req, res);
+  zk->mkdir(req, res);
   return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::destroy(std::string input) {
   DeleteRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "Delete ");
+  logMessage(&req, "Delete ");
   const std::string &src = req.src();
   const bool recursive = req.recursive();
   DeleteResponseProto res;
-  zk.destroy(req, res);
+  zk->destroy(req, res);
   return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::create(std::string input) {
   CreateRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "Create ");
+  logMessage(&req, "Create ");
   CreateResponseProto res;
-  if (zk.create_file(req, res)) {
+  if (zk->create_file(req, res)) {
   } else {
     throw GetErrorRPCHeader("Could not create file", "");
   }
@@ -131,16 +131,16 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
   GetBlockLocationsRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "GetBlockLocations ");
+  logMessage(&req, "GetBlockLocations ");
   GetBlockLocationsResponseProto res;
-  zk.get_block_locations(req, res);
+  zk->get_block_locations(req, res);
   return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
   GetServerDefaultsRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "GetServerDefaults");
+  logMessage(&req, "GetServerDefaults");
   GetServerDefaultsResponseProto res;
   FsServerDefaultsProto *def = res.mutable_serverdefaults();
   // read all this config info
@@ -157,7 +157,7 @@ std::string ClientNamenodeTranslator::getServerDefaults(std::string input) {
 std::string ClientNamenodeTranslator::renewLease(std::string input) {
   RenewLeaseRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "RenewLease ");
+  logMessage(&req, "RenewLease ");
   RenewLeaseResponseProto res;
   return Serialize(res);
 }
@@ -165,10 +165,10 @@ std::string ClientNamenodeTranslator::renewLease(std::string input) {
 std::string ClientNamenodeTranslator::complete(std::string input) {
   CompleteRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "Complete ");
+  logMessage(&req, "Complete ");
   CompleteResponseProto res;
   // TODO(2016) some optional fields need to be read
-  zk.complete(req, res);
+  zk->complete(req, res);
   return Serialize(res);
 }
 
@@ -181,8 +181,8 @@ std::string ClientNamenodeTranslator::abandonBlock(std::string input) {
   AbandonBlockRequestProto req;
   AbandonBlockResponseProto res;
   req.ParseFromString(input);
-  logMessage(req, "AbandonBlock ");
-  if (zk.abandon_block(req, res)) {
+  logMessage(&req, "AbandonBlock ");
+  if (zk->abandon_block(req, res)) {
     return Serialize(res);
   } else {
     throw GetErrorRPCHeader("Could not abandon block", "");
@@ -193,8 +193,8 @@ std::string ClientNamenodeTranslator::addBlock(std::string input) {
   AddBlockRequestProto req;
   AddBlockResponseProto res;
   req.ParseFromString(input);
-  logMessage(req, "AddBlock ");
-  if (zk.add_block(req, res)) {
+  logMessage(&req, "AddBlock ");
+  if (zk->add_block(req, res)) {
     return Serialize(res);
   } else {
     throw GetErrorRPCHeader("Could not add block", "");
@@ -205,8 +205,8 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
   RenameRequestProto req;
   RenameResponseProto res;
   req.ParseFromString(input);
-  logMessage(req, "Rename ");
-  zk.rename(req, res);
+  logMessage(&req, "Rename ");
+  zk->rename(req, res);
   return Serialize(res);
 }
 
@@ -219,8 +219,8 @@ std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingRequestProto req;
   GetListingResponseProto res;
   req.ParseFromString(input);
-  logMessage(req, "GetListing ");
-  if (zk.get_listing(req, res)) {
+  logMessage(&req, "GetListing ");
+  if (zk->get_listing(req, res)) {
     return Serialize(res);
   } else {
     throw GetErrorRPCHeader("Could not get listing", "");
@@ -247,7 +247,7 @@ std::string ClientNamenodeTranslator::getContentSummary(std::string input) {
   GetContentSummaryRequestProto req;
   req.ParseFromString(input);
   GetContentSummaryResponseProto res;
-  zk.get_content(req, res);
+  zk->get_content(req, res);
   return Serialize(res);
 }
 /**
@@ -257,7 +257,7 @@ std::string ClientNamenodeTranslator::getContentSummary(std::string input) {
 std::string ClientNamenodeTranslator::recoverLease(std::string input) {
   RecoverLeaseRequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "RecoverLease ");
+  logMessage(&req, "RecoverLease ");
   RecoverLeaseResponseProto res;
   // just tell the client they could not recover the lease, so they won't try
   // and write
@@ -314,7 +314,7 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
 std::string ClientNamenodeTranslator::rename2(std::string input) {
   Rename2RequestProto req;
   req.ParseFromString(input);
-  logMessage(req, "Rename2 ");
+  logMessage(&req, "Rename2 ");
   Rename2ResponseProto res;
   return Serialize(res);
 }
@@ -332,7 +332,7 @@ std::string ClientNamenodeTranslator::Serialize(
     google::protobuf::Message &res
 ) {
   std::string out;
-  logMessage(res, "Responding with ");
+  logMessage(&res, "Responding with ");
   if (!res.SerializeToString(&out)) {
     // TODO(2016): handle error
   }
@@ -481,7 +481,7 @@ int ClientNamenodeTranslator::getPort() {
 // ------------------------------- HELPERS -----------------------------
 
 void ClientNamenodeTranslator::logMessage(
-    google::protobuf::Message &req,
+    google::protobuf::Message* req,
     std::string req_name
 ) {
   LOG(INFO) << "Got message " << req_name;
