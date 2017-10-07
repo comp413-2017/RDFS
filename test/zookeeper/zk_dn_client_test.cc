@@ -1,32 +1,38 @@
+// Copyright 2017 Rice University, COMP 413 2017
 
+#include <easylogging++.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include "zk_dn_client.h"
 #include "zk_client_common.h"
 #include "zkwrapper.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <easylogging++.h>
 
 #define ELPP_THREAD_SAFE
 
-#include <easylogging++.h>
 INITIALIZE_EASYLOGGINGPP
 
 #define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
 
 using ::testing::AtLeast;
 
-using namespace zkclient;
+using zkclient::ZkClientDn;
+
 class ZKDNClientTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     block_id = 12345;
     block_size = 54321;
-    xferPort = 50010;
-    ipcPort = 50020;
+    xferPort = (int16_t) 50010;
+    ipcPort = (int16_t) 50020;
     int error_code = 0;
     zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-    ASSERT_EQ("ZOK", zk->translate_error(error_code)); // Z_OK
-    client = new ZkClientDn("127.0.0.1", zk, block_size * 10, ipcPort, xferPort);
+    ASSERT_EQ("ZOK", zk->translate_error(error_code));  // Z_OK
+    client = new ZkClientDn(
+        "127.0.0.1",
+        zk,
+        block_size * 10,
+        (const uint32_t) ipcPort,
+        (const uint32_t) xferPort);
     dn_id = "127.0.0.1:50020";
   }
   virtual void TearDown() {
@@ -34,8 +40,8 @@ class ZKDNClientTest : public ::testing::Test {
   }
   uint64_t block_id;
   uint64_t block_size;
-  unsigned short xferPort;
-  unsigned short ipcPort;
+  int16_t xferPort;
+  int16_t ipcPort;
   std::shared_ptr<ZKWrapper> zk;
   std::string dn_id;
   ZkClientDn *client;
@@ -82,17 +88,17 @@ TEST_F(ZKDNClientTest, CanDeleteBlock) {
 }
 
 int main(int argc, char **argv) {
-	el::Configurations conf(LOG_CONFIG_FILE);
-	el::Loggers::reconfigureAllLoggers(conf);
-	el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Configurations conf(LOG_CONFIG_FILE);
+  el::Loggers::reconfigureAllLoggers(conf);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
-	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-	sleep(10);
-	system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-	::testing::InitGoogleTest(&argc, argv);
-	auto ret = RUN_ALL_TESTS();
-	system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-	return ret;
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+  sleep(10);
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  ::testing::InitGoogleTest(&argc, argv);
+  auto ret = RUN_ALL_TESTS();
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  return ret;
 }
