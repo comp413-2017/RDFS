@@ -23,8 +23,8 @@ class ZKDNClientTest : public ::testing::Test {
   virtual void SetUp() {
     block_id = 12345;
     block_size = 54321;
-    xferPort = (int16_t) 50010;
-    ipcPort = (int16_t) 50020;
+    xferPort = (int32_t) 50010;
+    ipcPort = (int32_t) 50020;
     int error_code = 0;
     zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
     ASSERT_EQ("ZOK", zk->translate_error(error_code));  // Z_OK
@@ -41,8 +41,8 @@ class ZKDNClientTest : public ::testing::Test {
   }
   uint64_t block_id;
   uint64_t block_size;
-  int16_t xferPort;
-  int16_t ipcPort;
+  int32_t xferPort;
+  int32_t ipcPort;
   std::shared_ptr<ZKWrapper> zk;
   std::string dn_id;
   ZkClientDn *client;
