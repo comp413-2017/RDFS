@@ -4,16 +4,19 @@
 
 #include <easylogging++.h>
 #include <gtest/gtest.h>
+
 #include <thread>
-#include <vector>
 #include <cstring>
-#include "data_transfer_server.h"
+#include <vector>
+#include <asio.hpp>
+
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "zk_dn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
-#include <asio.hpp>
+#include "data_transfer_server.h"
 #include "native_filesystem.h"
+
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -24,19 +27,23 @@ int max_xmits = 100000;
 namespace {
 
 TEST(ReplicationTest, testReadWrite) {
-  ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
-                          "generate_file.py > expected_testfile1234"));
+  ASSERT_EQ(0,
+      system(
+      "python /home/vagrant/rdfs/test/integration/generate_file.py > expected_"
+          "testfile1234"));
   // Put it into rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-             "-copyFromLocal expected_testfile1234 /f");
+  system(
+      "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
+          "-copyFromLocal expected_testfile1234 /f");
   // Read it from rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
   // system("head -c 5 temp > actual_testfile1234");
   // Check that its contents match.
   // TODO(2016): This test will fail until we implement the file lengths
   // meta-data tracking.
-  ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > "
-                          "/dev/null"));
+  ASSERT_EQ(0,
+            system("diff expected_testfile1234 actual_testfile1234 > "
+                       "/dev/null"));
 
   sleep(10);
   using nativefs::NativeFS;
@@ -55,39 +62,37 @@ TEST(ReplicationTest, testReadWrite) {
 }
 
 TEST(ReplicationTest, testReplication) {
-  int16_t xferPort = 50010;
-  int16_t ipcPort = 50020;
+  int32_t xferPort = 50010;
+  int32_t ipcPort = 50020;
 
-  ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
-                          "generate_file.py > expected_testfile1234"));
+  ASSERT_EQ(0,
+            system(
+                "python /home/vagrant/rdfs/test/integration/generate_file.py "
+                    "> expected_testfile1234"));
   // Put it into rdfs.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-             "-copyFromLocal expected_testfile1234 /g");
-  // Read it from rdfs.
+  system(
+      "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
+          "-copyFromLocal expected_testfile1234 /g");
+//        // Read it from rdfs.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > "
-             "actual_testfile1234");
-  // Check that its contents match.
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile1234");
+//        // Check that its contents match.
   sleep(10);
-  ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > "
-                          "/dev/null"));
+  ASSERT_EQ(0,
+            system("diff expected_testfile1234 actual_testfile1234 > "
+                       "/dev/null"));
 
   // Start a new server
 
   system(("truncate tfs" + std::to_string(4) + " -s 1000000000").c_str());
   std::string dnCliArgs = " -x " +
-      std::to_string(xferPort + 4) +
-      " -p " +
-      std::to_string(ipcPort + 4) +
-      " -b tfs" +
-      std::to_string(4) +
-      " &";
-  std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" +
-      std::to_string(4) +
+      std::to_string(xferPort + 4) + " -p " + std::to_string(ipcPort + 4)
+      + " -b tfs" + std::to_string(4) + " &";
+  std::string
+      cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(4) +
       " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-      dnCliArgs +
-      "\" & ";
+      dnCliArgs + "\" & ";
   system(cmdLine.c_str());
 
   sleep(10);
@@ -97,10 +102,10 @@ TEST(ReplicationTest, testReplication) {
 
   // The data should now be replicated on the new server
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > "
-             "actual_testfile12345");
-  ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile12345 > "
-                          "/dev/null"));
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
+  ASSERT_EQ(0,
+            system("diff expected_testfile1234 actual_testfile12345 > "
+                       "/dev/null"));
 
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
 }
@@ -117,22 +122,17 @@ int main(int argc, char **argv) {
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   sleep(3);
   // initialize 3 datanodes
-  int16_t xferPort = 50010;
-  int16_t ipcPort = 50020;
+  int32_t xferPort = 50010;
+  int32_t ipcPort = 50020;
   for (int i = 0; i < 3; i++) {
     system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
     std::string dnCliArgs = "-x " +
-        std::to_string(xferPort + i) +
-        " -p " +
-        std::to_string(ipcPort + i) +
-        " -b tfs" +
-        std::to_string(i) +
-        " &";
-    std::string cmdLine = "bash -c \"exec -a ReplicationTestServer" +
-        std::to_string(i) +
-        " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-        dnCliArgs +
-        "\" & ";
+        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
+        + " -b tfs" + std::to_string(i) + " &";
+    std::string cmdLine =
+        "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
+            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+            dnCliArgs + "\" & ";
     system(cmdLine.c_str());
     sleep(3);
   }
