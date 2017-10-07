@@ -1,13 +1,15 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <netinet/in.h>
+#include <easylogging++.h>
 #include <iostream>
 #include <asio.hpp>
-#include <netinet/in.h>
 #include "socket_reads.h"
-#include <easylogging++.h>
 
 using asio::ip::tcp;
 
 namespace rpcserver {
-// TODO: sub namespace for these
+// TODO(2016): sub namespace for these
 
 /**
  * Attempt to completely overwrite given pre-allocated buffer from provided
@@ -100,7 +102,10 @@ size_t read_varint(tcp::socket &sock, uint64_t *out) {
  * Return whether the parse was successful. If successful, set *consumed to the
  * number of bytes consumed by the read.
  */
-bool read_delimited_proto(tcp::socket &sock, ::google::protobuf::Message &proto, uint64_t *consumed) {
+bool read_delimited_proto(
+    tcp::socket &sock,
+    ::google::protobuf::Message &proto, uint64_t *consumed
+) {
   uint64_t len;
   size_t skip = read_varint(sock, &len);
   std::string buf(len, 0);
@@ -119,7 +124,10 @@ bool read_delimited_proto(tcp::socket &sock, ::google::protobuf::Message &proto,
  * Attempt to parse given protocol with given length from provided socket.
  * Return whether the parse was successful.
  */
-bool read_proto(tcp::socket &sock, ::google::protobuf::Message &proto, uint64_t len) {
+bool read_proto(
+    tcp::socket &sock,
+    ::google::protobuf::Message &proto, uint64_t len
+) {
   std::string buf(len, 0);
   asio::error_code error = read_full(sock, asio::buffer(&buf[0], len));
   return !error && proto.ParseFromString(buf);
@@ -129,7 +137,10 @@ bool read_proto(tcp::socket &sock, ::google::protobuf::Message &proto, uint64_t 
  * Attempt to parse given protocol from provided socket.
  * Return whether the parse was successful.
  */
-bool read_delimited_proto(tcp::socket &sock, ::google::protobuf::Message &proto) {
+bool read_delimited_proto(
+    tcp::socket &sock,
+    ::google::protobuf::Message &proto
+) {
   return read_delimited_proto(sock, proto, NULL);
 }
-}
+}  // namespace rpcserver

@@ -1,19 +1,19 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <easylogging++.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <thread>
+#include <iostream>
+#include <string>
 #include <unordered_map>
 #include <functional>
 
 #include <asio.hpp>
 
-#include <iostream>
-#include <asio.hpp>
-#include <thread>
-
 #include <RpcHeader.pb.h>
 #include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
 
-#include <easylogging++.h>
-
-#include <google/protobuf/io/coded_stream.h>
 #include "socket_writes.h"
 #include "socket_reads.h"
 
@@ -26,7 +26,7 @@ class RPCServer {
   /**
    * Construct an RPC server that will listen on given port.
    */
-  RPCServer(int port);
+  explicit RPCServer(int port);
   /**
    * Begin the listen-loop of the RPC server. This method does not return.
    */
@@ -41,7 +41,9 @@ class RPCServer {
    *        method's output protobuf (so the handler should parse and
    *        serialize protobufs)
    */
-  void register_handler(std::string key, std::function<std::string(std::string)> handler);
+  void register_handler(
+      std::string key,
+      std::function<std::string(std::string)> handler);
 
  private:
   /**
@@ -51,23 +53,31 @@ class RPCServer {
   /**
    * Table where we store the registered handler functions.
    */
-  std::unordered_map<std::string, std::function<std::string(std::string)>> dispatch_table;
+  std::unordered_map<std::string, std::function<std::string(std::string)>>
+      dispatch_table;
   /**
    * Receive a hadoop RPC handshake and write data to provided pointers.
    * True on successful read, false otherwise.
    */
-  bool receive_handshake(tcp::socket &sock, short *version, short *service, short *auth_protocol);
+  bool receive_handshake(
+      tcp::socket &sock,
+      int16_t *version,
+      int16_t *service,
+      int16_t *auth_protocol);
   /**
-   * Receive the connection prelude: RpcRequestHeaderProto and IpcConnectionContextProto.
+   * Receive the connection prelude: RpcRequestHeaderProto and
+   * IpcConnectionContextProto.
    * True if successful, false otherwise.
    */
   bool receive_prelude(tcp::socket &sock);
   /**
-   * Handle a single RPC connection: it only returns when the client disconnects.
+   * Handle a single RPC connection: it only returns when the client
+   * disconnects.
    */
   void handle_rpc(tcp::socket sock);
   /**
-   * Helper function to send an error response header - it's used either if there
+   * Helper function to send an error response header - it's used either if
+   * there
   * is an error inside a command's handler, or if there isn't a handler for the
   * requested command (meaning it's unsupported)
    * True if successful, false on failure
