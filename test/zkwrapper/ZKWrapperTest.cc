@@ -1,10 +1,11 @@
-#include "zkwrapper.h"
-#include <cstring>
+// Copyright 2017 Rice University, COMP 413 2017
+
 #include <gtest/gtest.h>
+#include <easylogging++.h>
+#include <cstring>
 #include <chrono>
 #include <thread>
-
-#include <easylogging++.h>
+#include "zkwrapper.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -19,12 +20,18 @@ class ZKWrapperTest : public ::testing::Test {
     // before each test).
     int error_code = 0;
     zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-    ASSERT_EQ("ZOK", zk->translate_error(error_code)); // Z_OK
+    ASSERT_EQ("ZOK", zk->translate_error(error_code));  // Z_OK
   }
 
-  static void test_watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx) {
-    bool *val = (bool *) watcherCtx;
-    if (*val == false) {
+  static void test_watcher(
+      zhandle_t *zzh,
+      int type,
+      int state,
+      const char *path,
+      void *watcherCtx
+  ) {
+    bool *val = reinterpret_cast<bool *>(watcherCtx);
+    if (!*val) {
       *val = true;
 
     } else {
@@ -38,14 +45,24 @@ class ZKWrapperTest : public ::testing::Test {
 TEST_F(ZKWrapperTest, create_sequential) {
   std::string new_path;
   int error = 0;
-  bool result = zk->create_sequential("/sequential-", ZKWrapper::EMPTY_VECTOR, new_path, false, error);
+  bool result = zk->create_sequential(
+      "/sequential-",
+      ZKWrapper::EMPTY_VECTOR,
+      new_path,
+      false,
+      error);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
   std::string expected("/sequential-0000000000");
   ASSERT_EQ(expected, new_path);
 
   std::string new_path2;
-  result = zk->create_sequential("/sequential-", ZKWrapper::EMPTY_VECTOR, new_path2, false, error);
+  result = zk->create_sequential(
+      "/sequential-",
+      ZKWrapper::EMPTY_VECTOR,
+      new_path2,
+      false,
+      error);
 
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
@@ -55,12 +72,16 @@ TEST_F(ZKWrapperTest, create_sequential) {
 
 TEST_F(ZKWrapperTest, recursive_create) {
   int error = 0;
-  bool result = zk->recursive_create("/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->recursive_create(
+      "/testrecur/test1",
+      ZKWrapper::EMPTY_VECTOR, error);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
   /* create same path, should fail */
-  result = zk->recursive_create("/testrecur/test1", ZKWrapper::EMPTY_VECTOR, error);
+  result = zk->recursive_create(
+      "/testrecur/test1",
+      ZKWrapper::EMPTY_VECTOR, error);
   ASSERT_EQ(false, result);
 
   std::vector<std::uint8_t> retrieved_data(65536);
@@ -74,7 +95,9 @@ TEST_F(ZKWrapperTest, recursive_create) {
   ASSERT_EQ(true, result);
   ASSERT_EQ(0, retrieved_data.size());
 
-  result = zk->recursive_create("/testrecur/test2/test3/test4", ZKWrapper::EMPTY_VECTOR, error);
+  result = zk->recursive_create(
+      "/testrecur/test2/test3/test4",
+      ZKWrapper::EMPTY_VECTOR, error);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 }
@@ -132,17 +155,28 @@ TEST_F(ZKWrapperTest, get_children) {
 
 TEST_F(ZKWrapperTest, wget_children) {
   int error = 0;
-  bool result = zk->create("/testwgetchildren1", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->create(
+      "/testwgetchildren1",
+      ZKWrapper::EMPTY_VECTOR,
+      error);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
   std::vector<std::string> children;
   bool check = false;
-  result = zk->wget_children("/testwgetchildren1", children, test_watcher, &check, error);
+  result = zk->wget_children(
+      "/testwgetchildren1",
+      children,
+      test_watcher,
+      &check,
+      error);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
-  result = zk->create("/testwgetchildren1/test", ZKWrapper::EMPTY_VECTOR, error);
+  result = zk->create(
+      "/testwgetchildren1/test",
+      ZKWrapper::EMPTY_VECTOR,
+      error);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -244,7 +278,6 @@ TEST_F(ZKWrapperTest, delete_node) {
 }
 
 TEST_F(ZKWrapperTest, RecursiveDelete) {
-
   int error_code;
 
   zk->create("/child1", ZKWrapper::EMPTY_VECTOR, error_code);
@@ -263,7 +296,6 @@ TEST_F(ZKWrapperTest, RecursiveDelete) {
 }
 
 TEST_F(ZKWrapperTest, MultiOperation) {
-
   int error_code;
 
   auto hello_vec = ZKWrapper::get_byte_vector("hello");
@@ -314,20 +346,20 @@ TEST_F(ZKWrapperTest, MultiOperation) {
   assert(zk->exists("/toDelete1", exists, error_code));
   ASSERT_TRUE(!exists);
 }
-}
+}  // namespace
 
 int main(int argc, char **argv) {
-	el::Configurations conf(LOG_CONFIG_FILE);
-	el::Loggers::reconfigureAllLoggers(conf);
-	el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Configurations conf(LOG_CONFIG_FILE);
+  el::Loggers::reconfigureAllLoggers(conf);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
-	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-	sleep(10);
-	system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-	::testing::InitGoogleTest(&argc, argv);
-	auto ret = RUN_ALL_TESTS();
-	system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-	system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-    return ret;
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+  sleep(10);
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  ::testing::InitGoogleTest(&argc, argv);
+  auto ret = RUN_ALL_TESTS();
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  return ret;
 }
