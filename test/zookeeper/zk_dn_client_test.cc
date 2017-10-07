@@ -16,6 +16,7 @@ INITIALIZE_EASYLOGGINGPP
 using ::testing::AtLeast;
 
 using zkclient::ZkClientDn;
+using zkclient::BlockZNode;
 
 class ZKDNClientTest : public ::testing::Test {
  protected:
