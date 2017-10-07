@@ -1,12 +1,13 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include <easylogging++.h>
+#include <gtest/gtest.h>
+#include <thread>
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
-#include <thread>
-#include <gtest/gtest.h>
 
 #define ELPP_THREAD_SAFE
-
-#include <easylogging++.h>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -16,14 +17,13 @@ using client_namenode_translator::ClientNamenodeTranslator;
 namespace {
 
 class DeleteTest : public ::testing::Test {
-
  protected:
   virtual void SetUp() {
     int error_code;
     zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-    assert(error_code == 0); // Z_OK
+    assert(error_code == 0);  // Z_OK
 
-    short port = 5351;
+    unsigned short port = 5351;
     nncli = new zkclient::ZkNnClient(zk);
     nncli->register_watches();
     nn_translator = new ClientNamenodeTranslator(5351, nncli);
@@ -50,7 +50,7 @@ TEST_F(DeleteTest, testDeleteEmptyFile) {
   ASSERT_TRUE(zk->exists("/fileSystem/foo", exists, error));
   ASSERT_FALSE(exists);
 }
-}
+}  // namespace
 
 int main(int argc, char **argv) {
   // Start up zookeeper
@@ -69,6 +69,5 @@ int main(int argc, char **argv) {
   system("~/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
-
 }
 
