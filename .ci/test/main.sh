@@ -3,11 +3,11 @@
 set -ex
 
 cd build/test
+./ReadWriteTest
 ./ReplicationTest
 ./DeleteTest
 ./NameNodeTest
 ./NativeFsTest
-./ReadWriteTest || :
 ./ZKDNClientTest
 ./ZKLockTest
 ./ZKWrapperTest

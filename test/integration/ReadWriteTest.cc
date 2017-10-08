@@ -32,7 +32,6 @@ TEST(ReadWriteTest, testReadWrite) {
   // Read it from rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /e > actual_testfile1234");
   // Check that its contents match.
-  system("diff expected_testfile1234 actual_testfile1234");
   ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 }
 
