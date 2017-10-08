@@ -1,3 +1,5 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
 #include "native_filesystem.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -5,7 +7,11 @@
 INITIALIZE_EASYLOGGINGPP
 using ::testing::AtLeast;
 
-using namespace nativefs;
+using nativefs::NativeFS;
+using nativefs::MAX_BLOCK_SIZE;
+using nativefs::DISK_SIZE;
+using nativefs::RESERVED_SIZE;
+
 class NativeFSTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
@@ -16,7 +22,7 @@ class NativeFSTest : public ::testing::Test {
   std::string backing;
 };
 
-// TODO: Test writing and getting multiple blocks
+// TODO(2016): Test writing and getting multiple blocks
 
 TEST_F(NativeFSTest, CanWriteBlock) {
   NativeFS filesystem(backing);
@@ -52,14 +58,16 @@ TEST_F(NativeFSTest, CanCoalesce) {
   // Fill the disk with blocks of size 1/2 MAX BLOCK.
   {
     std::string halfblk(MAX_BLOCK_SIZE / 2, 'z');
-    for (int i = 0; i < (DISK_SIZE - RESERVED_SIZE) / (MAX_BLOCK_SIZE / 2); i++) {
+    for (int i = 0; i < (DISK_SIZE - RESERVED_SIZE) / (MAX_BLOCK_SIZE / 2);
+         i++) {
       ASSERT_TRUE(filesystem.writeBlock(i, halfblk));
     }
   }
   // Then free the blocks and attempt to add block of size MAX BLOCK.
   {
     std::string fullblk(MAX_BLOCK_SIZE, 'z');
-    for (int i = 0; i < (DISK_SIZE - RESERVED_SIZE) / (MAX_BLOCK_SIZE / 2); i++) {
+    for (int i = 0; i < (DISK_SIZE - RESERVED_SIZE) / (MAX_BLOCK_SIZE / 2);
+         i++) {
       ASSERT_TRUE(filesystem.rmBlock(i));
     }
     // Now write a few big blocks.
