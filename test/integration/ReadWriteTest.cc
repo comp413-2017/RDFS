@@ -27,10 +27,9 @@ TEST(ReadWriteTest, testReadWrite) {
   ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
                           "generate_file.py > expected_testfile1234"));
   // Put it into rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal "
-             "expected_testfile1234 /e");
+  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 -copyFromLocal expected_testfile1234 /f");
   // Read it from rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /e > actual_testfile1234");
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
   // Check that its contents match.
   ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 }
