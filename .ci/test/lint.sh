@@ -15,9 +15,8 @@ done
 # Execute cpplint on all source directories
 for directory in "${SOURCE_DIRECTORIES[@]}"
 do
-    # TODO(LINKIWI): Don't force exit 0 after all lint errors have actually been fixed
     cpplint \
         --filter=${rule_filter} \
         --recursive \
-        ${directory} || :
+        ${directory}
 done
