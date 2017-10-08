@@ -30,7 +30,11 @@ TEST(ReadWriteTest, testReadWrite) {
   // Read it from rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /e > actual_testfile1234");
   // Check that its contents match.
-  // TODO: This test will fail until we implement the file lengths meta-data tracking.
+
+  system("echo '---------- actual --------------'");
+  system("more -500 actual_testfile1234");
+  system("echo '~~~~~~~~~~ actual ~~~~~~~~~~~~~~'");
+
   ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 }
 
@@ -47,7 +51,6 @@ TEST(ReadWriteTest, testConcurrentRead) {
       LOG(INFO) << "starting thread " << i;
       system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp" + std::to_string(i)).c_str());
       // Check that its contents match.
-      // TODO: This test will fail until we implement the file lengths meta-data tracking.
       ASSERT_EQ(0, system(("diff expected_testfile1234 temp" + std::to_string(i) + " > /dev/null").c_str()));
     }));
   }
