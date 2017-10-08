@@ -7,7 +7,13 @@
 
 using asio::ip::tcp;
 
-using namespace rpcserver;
+using rpcserver::read_full;
+using rpcserver::read_int32;
+using rpcserver::read_varint;
+using rpcserver::read_delimited_proto;
+using rpcserver::write_delimited_proto;
+using rpcserver::write_int32;
+using rpcserver::write_varint;
 
 RPCServer::RPCServer(int p) : port{p} {}
 
