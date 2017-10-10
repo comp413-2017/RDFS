@@ -1,11 +1,15 @@
-#ifndef RDFS_ZKNNCLIENT_H
-#define RDFS_ZKNNCLIENT_H
+  // Copyright 2017 Rice University, COMP 413 2017
+
+#ifndef ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
+#define ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 
 #include "zk_client_common.h"
+#include <google/protobuf/message.h>
 #include <queue>
+#include <string>
+#include <vector>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
-#include <google/protobuf/message.h>
 #include <ConfigReader.h>
 #include "util.h"
 
@@ -17,22 +21,27 @@ namespace zkclient {
 typedef struct {
   uint32_t replication;
   uint64_t blocksize;
-  int under_construction; // 1 for under construction, 0 for complete
-  int filetype; // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
+  int under_construction;  // 1 for under construction, 0 for complete
+  int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
   std::uint64_t length;
-  // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/FileSystem.html#setOwner(org.apache.hadoop.fs.Path, java.lang.String, java.lang.String)
+  // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
+  // FileSystem.html#setOwner(org.apache.hadoop.fs.Path,
+  // java.lang.String,
+  // java.lang.String)
   std::uint64_t access_time;
   std::uint64_t modification_time;
-  char owner[256]; // the client who created the file
+  char owner[256];  // the client who created the file
   char group[256];
 } FileZNode;
 
 struct TargetDN {
   std::string dn_id;
-  uint64_t free_bytes;    //free space on disk
-  uint32_t num_xmits;        //current number of xmits
+  uint64_t free_bytes;    // free space on disk
+  uint32_t num_xmits;        // current number of xmits
 
-  TargetDN(std::string id, int bytes, int xmits) : dn_id(id), free_bytes(bytes), num_xmits(xmits) {
+  TargetDN(std::string id, int bytes, int xmits) : dn_id(id),
+                                                   free_bytes(bytes),
+                                                   num_xmits(xmits) {
   }
 
   bool operator<(const struct TargetDN &other) const {
@@ -41,23 +50,50 @@ struct TargetDN {
   }
 };
 
-using namespace hadoop::hdfs;
+using hadoop::hdfs::AddBlockRequestProto;
+using hadoop::hdfs::AddBlockResponseProto;
+using hadoop::hdfs::AbandonBlockRequestProto;
+using hadoop::hdfs::AbandonBlockResponseProto;
+using hadoop::hdfs::ExtendedBlockProto;
+using hadoop::hdfs::GetFileInfoRequestProto;
+using hadoop::hdfs::GetFileInfoResponseProto;
+using hadoop::hdfs::HdfsFileStatusProto;
+using hadoop::hdfs::DeleteRequestProto;
+using hadoop::hdfs::DeleteResponseProto;
+using hadoop::hdfs::CreateRequestProto;
+using hadoop::hdfs::CreateResponseProto;
+using hadoop::hdfs::CompleteRequestProto;
+using hadoop::hdfs::CompleteResponseProto;
+using hadoop::hdfs::RenameRequestProto;
+using hadoop::hdfs::RenameResponseProto;
+using hadoop::hdfs::MkdirsRequestProto;
+using hadoop::hdfs::MkdirsResponseProto;
+using hadoop::hdfs::GetListingRequestProto;
+using hadoop::hdfs::GetListingResponseProto;
+using hadoop::hdfs::LocatedBlocksProto;
+using hadoop::hdfs::GetBlockLocationsRequestProto;
+using hadoop::hdfs::GetBlockLocationsResponseProto;
+using hadoop::hdfs::LocatedBlockProto;
+using hadoop::hdfs::GetContentSummaryRequestProto;
+using hadoop::hdfs::GetContentSummaryResponseProto;
+using hadoop::hdfs::ContentSummaryProto;
+using hadoop::hdfs::DatanodeInfoProto;
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
  */
 class ZkNnClient : public ZkClientCommon {
-
  public:
-  ZkNnClient(std::string zkIpAndAddress);
+  explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
-   * Use this constructor to build ZkNnClient with a custom ZKWrapper. Which will allow you to set a root
+   * Use this constructor to build ZkNnClient with a custom ZKWrapper.
+   * Which will allow you to set a root
    * directory for all operations on this client
    * @param zk_in shared pointer to a ZKWrapper
    * @return ZkNnClient
    */
-  ZkNnClient(std::shared_ptr<ZKWrapper> zk_in);
+  explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in);
   void register_watches();
 
   /**
@@ -66,15 +102,18 @@ class ZkNnClient : public ZkClientCommon {
 
   void get_info(GetFileInfoRequestProto &req, GetFileInfoResponseProto &res);
   bool create_file(CreateRequestProto &request, CreateResponseProto &response);
-  void get_block_locations(GetBlockLocationsRequestProto &req, GetBlockLocationsResponseProto &res);
+  void get_block_locations(GetBlockLocationsRequestProto &req,
+                           GetBlockLocationsResponseProto &res);
   void mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   void destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   void rename(RenameRequestProto &req, RenameResponseProto &res);
   bool get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
-  void get_content(GetContentSummaryRequestProto &req, GetContentSummaryResponseProto &res);
+  void get_content(GetContentSummaryRequestProto &req,
+                   GetContentSummaryResponseProto &res);
 
-  void set_file_info_content(ContentSummaryProto *status, const std::string &path, FileZNode &znode_data);
+  void set_file_info_content(ContentSummaryProto *status,
+                             const std::string &path, FileZNode &znode_data);
 
   /**
        * Add block.
@@ -84,7 +123,8 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Abandons the block - basically reverses all of add block's multiops
    */
-  bool abandon_block(AbandonBlockRequestProto &req, AbandonBlockResponseProto &res);
+  bool abandon_block(AbandonBlockRequestProto &req,
+                     AbandonBlockResponseProto &res);
 
   bool previousBlockComplete(uint64_t prev_id);
   /**
@@ -100,7 +140,8 @@ class ZkNnClient : public ZkClientCommon {
   // this is public because we have not member functions in this file
   static const std::string CLASS_NAME;
 
-  // TODO lil doc string and move to private (why does this cause compiler problems?)
+  // TODO(2016) lil doc string and move to private
+  // (why does this cause compiler problems?)
   bool add_block(const std::string &fileName,
                  u_int64_t &block_id,
                  std::vector<std::string> &dataNodes,
@@ -112,11 +153,14 @@ class ZkNnClient : public ZkClientCommon {
                                bool newBlock,
                                uint64_t blocksize);
 
-  bool find_all_datanodes_with_block(const std::string &block_uuid_str, std::vector<std::string> &rdatanodes,
+  bool find_all_datanodes_with_block(const std::string &block_uuid_str,
+                                     std::vector<std::string> &rdatanodes,
                                      int &error_code);
 
-  bool rename_ops_for_file(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
-  bool rename_ops_for_dir(const std::string &src, const std::string &dst, std::vector<std::shared_ptr<ZooOp>> &ops);
+  bool rename_ops_for_file(const std::string &src, const std::string &dst,
+                           std::vector<std::shared_ptr<ZooOp>> &ops);
+  bool rename_ops_for_dir(const std::string &src, const std::string &dst,
+                          std::vector<std::shared_ptr<ZooOp>> &ops);
 
   /**
    * Look through the wait_for_acks work queue to check the replication
@@ -132,16 +176,18 @@ class ZkNnClient : public ZkClientCommon {
                            LocatedBlocksProto *blocks);
 
  private:
-
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
    */
-  bool sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids, std::vector<std::string> &sorted_dn_ids);
+  bool sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
+                     std::vector<std::string> &sorted_dn_ids);
 
   /**
    * Set the file status proto with information from the znode struct and the path
    */
-  void set_file_info(HdfsFileStatusProto *fs, const std::string &path, FileZNode &node);
+  void set_file_info(HdfsFileStatusProto *fs,
+                     const std::string &path,
+                     FileZNode &node);
   /**
    * Given the filesystem path, get the full zookeeper path
    */
@@ -176,21 +222,24 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Serialize a znode struct representation to a byte array to feed into zookeeper
    */
-  void file_znode_struct_to_vec(FileZNode *znode_data, std::vector<std::uint8_t> &data);
+  void file_znode_struct_to_vec(FileZNode *znode_data,
+                                std::vector<std::uint8_t> &data);
 
   /**
    * Try to delete a node and log error if we couldnt and set response to false
    */
   void delete_node_wrapper(std::string &path, DeleteResponseProto &response);
 
-  bool destroy_helper(const std::string &path, std::vector<std::shared_ptr<ZooOp>> &ops);
+  bool destroy_helper(const std::string &path,
+                      std::vector<std::shared_ptr<ZooOp>> &ops);
 
   /**
    * Give a vector of block IDs, executes a multiop which creates items in
    * the replicate queue and children nodes indicating which datanote to
    * read from for those items.
    */
-  bool replicate_blocks(const std::vector<std::string> &to_replicate, int error_code);
+  bool replicate_blocks(const std::vector<std::string> &to_replicate,
+                        int error_code);
 
   /**
    * Calculates the approximate number of milliseconds that have elapsed
@@ -201,14 +250,16 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Modifies the LocatedBlockProto with the proper block information
    */
-  // bool updateLocatedBlockProto(LocatedBlockProto* location, uint64_t block_id);
+  // bool updateLocatedBlockProto(LocatedBlockProto* location,
+  //                              uint64_t block_id);
 
   /**
    * Modifies the DatanodeInfoProto with information about the specified datanode.
    * Datanode is represented as a string as most calls to this function follow a
    * getChild() request. Returns true on success
    */
-  bool buildDatanodeInfoProto(DatanodeInfoProto *dn_info, const std::string &data_node);
+  bool buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
+                              const std::string &data_node);
 
   /**
    * Builds an empty token. Returns true on success.
@@ -218,18 +269,21 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Build an extended block proto. Returns true on success
    */
-  bool buildExtendedBlockProto(ExtendedBlockProto *eb, const std::uint64_t &block_id,
+  bool buildExtendedBlockProto(ExtendedBlockProto *eb,
+                               const std::uint64_t &block_id,
                                const uint64_t &block_size);
 
   /**
    * Watches /health for new datanodes, attaches watchers to new datanodes' heartbeats.
    */
-  static void watcher_health(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+  static void watcher_health(zhandle_t *zzh, int type, int state,
+                             const char *path, void *watcherCtx);
 
   /**
    * Watches datanode heartbeats.
    */
-  static void watcher_health_child(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+  static void watcher_health_child(zhandle_t *zzh, int type, int state,
+                                   const char *path, void *watcherCtx);
 
   /**
    * Returns the current timestamp in milliseconds
@@ -250,10 +304,12 @@ class ZkNnClient : public ZkClientCommon {
 
   const int IS_FILE = 2;
   const int IS_DIR = 1;
-  // TODO: Should eventually be read from a conf file
-  const int ACK_TIMEOUT = 600000; // in millisecons, 10 minute timeout when waiting for replication acknowledgements
+  // TODO(2016): Should eventually be read from a conf file
+  // in millisecons, 10 minute timeout when waiting for
+  // replication acknowledgements
+  const int ACK_TIMEOUT = 600000;
 };
 
-} // namespace
+}  // namespace zkclient
 
-#endif //RDFS_ZKNNCLIENT_H
+#endif  // ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_

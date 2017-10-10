@@ -1,18 +1,16 @@
-//
-// Created by Nicholas Kwon on 10/15/16.
-//
+// Copyright 2017 Rice University, COMP 413 2017
 
-#ifndef RICE_HDFS_ZK_LOCK_H_H
-#define RICE_HDFS_ZK_LOCK_H_H
+#ifndef ZKWRAPPER_INCLUDE_ZK_LOCK_H_
+#define ZKWRAPPER_INCLUDE_ZK_LOCK_H_
 
+#include <easylogging++.h>
 #include <algorithm>
-#include <thread>             // std::thread, std::this_thread::yield
-#include <mutex>              // std::mutex, std::unique_lock
-#include <condition_variable> // std::condition_variable
+#include <thread>              // std::thread, std::this_thread::yield
+#include <mutex>               // std::mutex, std::unique_lock
+#include <condition_variable>  // std::condition_variable
 #include <string>
 #include <sstream>
 #include <vector>
-#include <easylogging++.h>
 #include <boost/algorithm/string.hpp>
 #include "zkwrapper.h"
 
@@ -28,7 +26,8 @@ class ZKLock {
    * @param path the path to lock onto. This path does not need to exist inside ZooKeeper.
    * @return
    */
-  ZKLock(ZKWrapper &zkWrapper, std::string path) : zkWrapper(zkWrapper), path_to_lock(path) {}
+  ZKLock(ZKWrapper &zkWrapper, std::string path) :
+          zkWrapper(zkWrapper), path_to_lock(path) {}
 
   /**
    * Blocks until the thread is able to lock onto the path.
@@ -46,10 +45,10 @@ class ZKLock {
 
   std::string path_to_lock;
 
-  static const std::string lock_path;
+  static const char lock_path[];
 
   std::string locknode_with_seq;
 
   static const std::string CLASS_NAME;
 };
-#endif //RICE_HDFS_ZK_LOCK_H_H
+#endif  // ZKWRAPPER_INCLUDE_ZK_LOCK_H_

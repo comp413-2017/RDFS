@@ -1,7 +1,11 @@
-#ifndef RDFS_ZKCLIENTCOMMON_H
-#define RDFS_ZKCLIENTCOMMON_H
+// Copyright 2017 Rice University, COMP 413 2017
+
+#ifndef ZOOKEEPER_INCLUDE_ZK_CLIENT_COMMON_H_
+#define ZOOKEEPER_INCLUDE_ZK_CLIENT_COMMON_H_
 
 #include <zkwrapper.h>
+
+#include <string>
 
 #include <boost/shared_ptr.hpp>
 
@@ -9,31 +13,32 @@ namespace zkclient {
 
 class ZkClientCommon {
  public:
-  ZkClientCommon(std::string hostAndIp);
-  ZkClientCommon(std::shared_ptr<ZKWrapper> zk);
+  explicit ZkClientCommon(std::string hostAndIp);
+  explicit ZkClientCommon(std::shared_ptr<ZKWrapper> zk);
 
   void init();
   std::shared_ptr<ZKWrapper> zk;
 
   // constants used by the clients
-  static const std::string NAMESPACE_PATH;
-  static const std::string HEALTH;
-  static const std::string HEALTH_BACKSLASH;
-  static const std::string STATS;
-  static const std::string HEARTBEAT;
-  static const std::string WORK_QUEUES;
-  static const std::string REPLICATE_QUEUES;
-  static const std::string REPLICATE_QUEUES_NO_BACKSLASH;
-  static const std::string DELETE_QUEUES;
-  static const std::string DELETE_QUEUES_NO_BACKSLASH;
-  static const std::string WAIT_FOR_ACK;
-  static const std::string WAIT_FOR_ACK_BACKSLASH;
-  static const std::string REPLICATE_BACKSLASH;
-  static const std::string BLOCK_LOCATIONS;
-  static const std::string BLOCKS;
+  static const char NAMESPACE_PATH[];
+  static const char HEALTH[];
+  static const char HEALTH_BACKSLASH[];
+  static const char STATS[];
+  static const char HEARTBEAT[];
+  static const char WORK_QUEUES[];
+  static const char REPLICATE_QUEUES[];
+  static const char REPLICATE_QUEUES_NO_BACKSLASH[];
+  static const char DELETE_QUEUES[];
+  static const char DELETE_QUEUES_NO_BACKSLASH[];
+  static const char WAIT_FOR_ACK[];
+  static const char WAIT_FOR_ACK_BACKSLASH[];
+  static const char REPLICATE_BACKSLASH[];
+  static const char BLOCK_LOCATIONS[];
+  static const char BLOCKS[];
+
  private:
   static const std::string CLASS_NAME;
 };
-}
+}  // namespace zkclient
 
-#endif //RDFS_ZKCLIENTCOMMON_H
+#endif  // ZOOKEEPER_INCLUDE_ZK_CLIENT_COMMON_H_

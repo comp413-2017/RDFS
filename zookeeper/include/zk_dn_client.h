@@ -1,9 +1,12 @@
-#ifndef RDFS_ZK_CLIENT_DN_H
-#define RDFS_ZK_CLIENT_DN_H
+// Copyright 2017 Rice University, COMP 413 2017
+
+#ifndef ZOOKEEPER_INCLUDE_ZK_DN_CLIENT_H_
+#define ZOOKEEPER_INCLUDE_ZK_DN_CLIENT_H_
 
 #include "zk_client_common.h"
-#include <atomic>
 #include <google/protobuf/message.h>
+#include <atomic>
+#include <string>
 #include "hdfs.pb.h"
 
 class TransferServer;
@@ -15,13 +18,13 @@ typedef struct {
   uint32_t ipcPort;
 } DataNodeId;
 
-// TODO: Store hostname in payload as a vararg?
+// TODO(2016): Store hostname in payload as a vararg?
 typedef struct {
   uint32_t ipcPort;
   uint32_t xferPort;
-  uint64_t disk_bytes;    //total space on disk
-  uint64_t free_bytes;    //free space on disk
-  uint32_t xmits;            //current number of xmits
+  uint64_t disk_bytes;    // total space on disk
+  uint64_t free_bytes;    // free space on disk
+  uint32_t xmits;            // current number of xmits
 } DataNodePayload;
 
 typedef struct {
@@ -33,7 +36,7 @@ typedef struct {
 * maybe other block-related things in the future) to a ZNode
 */
 typedef struct {
-  uint64_t block_size; // size of the block in bytes
+  uint64_t block_size;  // size of the block in bytes
 } BlockZNode;
 
 /**
@@ -41,7 +44,6 @@ typedef struct {
 * Allows a DataNode to update the state of ZK.
 */
 class ZkClientDn : public ZkClientCommon {
-
  public:
   /**
   * Initializes the Zookeeper-Datanode client.
@@ -51,11 +53,17 @@ class ZkClientDn : public ZkClientCommon {
   * @param ipcPort TODO
   * @param xferPort TODO
   */
-  ZkClientDn(const std::string &ip, const std::string &zkIpAndAddress,
-             uint64_t total_disk_space, const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+  ZkClientDn(const std::string &ip,
+             const std::string &zkIpAndAddress,
+             uint64_t total_disk_space,
+             const uint32_t ipcPort = 50020,
+             const uint32_t xferPort = 50010);
 
-  ZkClientDn(const std::string &ip, std::shared_ptr<ZKWrapper>,
-             uint64_t total_disk_space, const uint32_t ipcPort = 50020, const uint32_t xferPort = 50010);
+  ZkClientDn(const std::string &ip,
+             std::shared_ptr<ZKWrapper>,
+             uint64_t total_disk_space,
+             const uint32_t ipcPort = 50020,
+             const uint32_t xferPort = 50010);
   ~ZkClientDn();
 
   /**
@@ -97,12 +105,12 @@ class ZkClientDn : public ZkClientCommon {
   std::string get_datanode_id();
 
  private:
-
   std::shared_ptr<TransferServer> server;
 
   /**
   * Builds a string of the DataNode ID.
-  * @param data_node_id The DataNode's DataNodeId object, containing the IP and port.
+  * @param data_node_id The DataNode's DataNodeId object,
+  * containing the IP and port.
   * @return The ID string
   */
 
@@ -121,27 +129,37 @@ class ZkClientDn : public ZkClientCommon {
   * @param queueName the name of the queue, i.e. replication or deletion
   * @param watchFuncPtr the watcher function to be used on the queue
   */
-  void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *, int, int, const char *, void *));
+  void initWorkQueue(std::string queueName, void (*watchFuncPtr)(zhandle_t *,
+                                                                 int,
+                                                                 int,
+                                                                 const char *,
+                                                                 void *));
 
   /**
    * Handle all of the work items on path
    */
   void handleReplicateCmds(const std::string &path);
 
-  static void thisDNDeleteQueueWatcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx);
+  static void thisDNDeleteQueueWatcher(zhandle_t *zzh,
+                                       int type,
+                                       int state,
+                                       const char *path,
+                                       void *watcherCtx);
 
   /**
    * Find one datanode that has the block_uuid
    */
-  bool find_datanode_with_block(const std::string &block_uuid_str, std::string &datanode, int &error_code);
+  bool find_datanode_with_block(const std::string &block_uuid_str,
+                                std::string &datanode,
+                                int &error_code);
 
   /**
    * Copied from nn client, create block proto
    */
-  bool buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto *eb, const std::uint64_t &block_id,
+  bool buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto *eb,
+                               const std::uint64_t &block_id,
                                const uint64_t &block_size);
-
 };
-}
+}  // namespace zkclient
 
-#endif //RDFS_ZK_CLIENT_DN_H
+#endif   // ZOOKEEPER_INCLUDE_ZK_DN_CLIENT_H_
