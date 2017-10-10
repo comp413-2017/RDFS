@@ -102,6 +102,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
                   << " with error "
                   << error_code;
         } else {
+          root_exists = true;
           break;
         }
       }
