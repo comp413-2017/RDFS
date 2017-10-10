@@ -1,6 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
-// Created by Nicholas Kwon on 10/15/16.
-//
+
 #include "zk_lock.h"
 
 const char ZKLock::lock_path[] = "/_locknode_";

@@ -1,9 +1,4 @@
 // Copyright 2017 Rice University, COMP 413 2017
-// Created by Prudhvi Boyapalli on 10/3/16.
-//
-//
-// Modified by Zhouhan Chen on 10/4/16.
-//
 
 #include "zkwrapper.h"
 

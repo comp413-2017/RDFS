@@ -1,6 +1,4 @@
 // Copyright 2017 Rice University, COMP 413 2017
-// Created by Nicholas Kwon on 10/15/16.
-//
 
 #ifndef ZKWRAPPER_INCLUDE_ZK_LOCK_H_
 #define ZKWRAPPER_INCLUDE_ZK_LOCK_H_
