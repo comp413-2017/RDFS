@@ -89,99 +89,99 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">zkwrapper.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef RDFS_ZKWRAPPER_H</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define RDFS_ZKWRAPPER_H</span></div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor"></span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;cstring&gt;</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;zookeeper.h&gt;</span></div>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">// Copyright 2017 Rice University, COMP 413 2017</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;</div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#ifndef ZKWRAPPER_INCLUDE_ZKWRAPPER_H_</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define ZKWRAPPER_INCLUDE_ZKWRAPPER_H_</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;zookeeper.h&gt;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;easylogging++.h&gt;</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;string.h&gt;</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;string.h&gt;</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;zookeeper.h&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;easylogging++.h&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">enum</span> ZK_ERRORS {</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  OK = 0,</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  PATH_NOT_FOUND = -1</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="comment">// TODO: Add more errors as needed</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;};</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
-<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="class_zoo_op.html">   27</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_zoo_op.html">ZooOp</a> {</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <a class="code" href="class_zoo_op.html">ZooOp</a>(<span class="keyword">const</span> std::string &amp;path_in,</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data_in) {</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    this-&gt;path = <span class="keyword">new</span> <span class="keywordtype">char</span>[path_in.size() + 1];</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    strcpy(this-&gt;path, path_in.c_str());</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keywordflow">if</span> (data_in.size() != 0) { <span class="comment">// Only save non-empty data</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;      this-&gt;num_bytes = data_in.size();</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;      this-&gt;data = <span class="keyword">new</span> <span class="keywordtype">char</span>[this-&gt;num_bytes];</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;      memcpy(this-&gt;data, data_in.data(), data_in.size());</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    }</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    op = <span class="keyword">new</span> zoo_op_t();</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  }</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  ~<a class="code" href="class_zoo_op.html">ZooOp</a>() {</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keyword">delete</span> path;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keywordflow">if</span> (data) {</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;      <span class="keyword">delete</span> data;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    }</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keyword">delete</span> op;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  }</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  zoo_op_t *op = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  <span class="keywordtype">char</span> *path = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keywordtype">char</span> *data = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="keywordtype">int</span> num_bytes = 0;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;};</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
-<div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="class_z_k_wrapper.html">   56</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_z_k_wrapper.html">ZKWrapper</a> {</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  <a class="code" href="class_z_k_wrapper.html#a7266ad66ba0762fa0abecc20cf0c92aa">ZKWrapper</a>(std::string host, <span class="keywordtype">int</span> &amp;error_code, std::string root = <span class="stringliteral">&quot;&quot;</span>);</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  std::string <a class="code" href="class_z_k_wrapper.html#a38c8ce01159a1a8e71d5204c4ff6040a">prepend_zk_root</a>(<span class="keyword">const</span> std::string &amp;path) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;cstring&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">enum</span> ZK_ERRORS {</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  OK = 0,</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  PATH_NOT_FOUND = -1</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="comment">// TODO(2016): Add more errors as needed</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;};</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
+<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="class_zoo_op.html">   26</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_zoo_op.html">ZooOp</a> {</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  <a class="code" href="class_zoo_op.html">ZooOp</a>(<span class="keyword">const</span> std::string &amp;path_in,</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;        <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data_in) {</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    this-&gt;path = <span class="keyword">new</span> <span class="keywordtype">char</span>[path_in.size() + 1];</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    snprintf(this-&gt;path, path_in.size() + 1, <span class="stringliteral">&quot;%s&quot;</span>, path_in.c_str());</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keywordflow">if</span> (data_in.size() != 0) {  <span class="comment">// Only save non-empty data</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;      this-&gt;num_bytes = data_in.size();</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;      this-&gt;data = <span class="keyword">new</span> <span class="keywordtype">char</span>[this-&gt;num_bytes];</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;      memcpy(this-&gt;data, data_in.data(), data_in.size());</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    }</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    op = <span class="keyword">new</span> zoo_op_t();</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  }</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  ~<a class="code" href="class_zoo_op.html">ZooOp</a>() {</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keyword">delete</span> path;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordflow">if</span> (data) {</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;      <span class="keyword">delete</span> data;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    }</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keyword">delete</span> op;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  }</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  zoo_op_t *op = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="keywordtype">char</span> *path = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keywordtype">char</span> *data = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  <span class="keywordtype">int</span> num_bytes = 0;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;};</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
+<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="class_z_k_wrapper.html">   54</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_z_k_wrapper.html">ZKWrapper</a> {</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <a class="code" href="class_z_k_wrapper.html#a7266ad66ba0762fa0abecc20cf0c92aa">ZKWrapper</a>(std::string host, <span class="keywordtype">int</span> &amp;error_code, std::string root = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  std::string <a class="code" href="class_z_k_wrapper.html#a38c8ce01159a1a8e71d5204c4ff6040a">prepend_zk_root</a>(<span class="keyword">const</span> std::string &amp;path) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  std::string removeZKRoot(<span class="keyword">const</span> std::string &amp;path) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;  std::string removeZKRoot(<span class="keyword">const</span> std::string &amp;path) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="keyword">static</span> std::string <a class="code" href="class_z_k_wrapper.html#a1a6926cf9d21ec269e06305f4decf007">translate_error</a>(<span class="keywordtype">int</span> error_code);</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a92be14f44bd63f09f07ddb370ec9b633">create</a>(<span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;              <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;              <span class="keywordtype">int</span> &amp;error_code,</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;              <span class="keywordtype">bool</span> ephemeral = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;              <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  <span class="keywordtype">bool</span> create_ephemeral(<span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;                        <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;                        <span class="keywordtype">int</span> &amp;error_code,</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;                        <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a08ff8b3a339b6e8f505e5e5408a43544">create_sequential</a>(<span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;                         <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                         std::string &amp;new_path,</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;                         <span class="keywordtype">bool</span> ephemeral,</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;                         <span class="keywordtype">int</span> &amp;error_code,</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;                         <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a85c8c60cad7e38e945e6bcf603189d58">recursive_create</a>(<span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;                        <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;                        <span class="keywordtype">int</span> &amp;error_code,</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;                        <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a7d2629dd6880c17bb7ee4e112d9a3932">exists</a>(<span class="keyword">const</span> std::string &amp;path, <span class="keywordtype">bool</span> &amp;exist, <span class="keywordtype">int</span> &amp;error_code) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#aec70acf2e65eddf491eec669fb3b67c2">wexists</a>(<span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;               <span class="keywordtype">bool</span> &amp;exist,</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;               watcher_fn watch,</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;               <span class="keywordtype">void</span> *watcherCtx,</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;               <span class="keywordtype">int</span> &amp;error_code) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a55a8a4582b0f8c625b10619b99d1981a">delete_node</a>(<span class="keyword">const</span> std::string &amp;path, <span class="keywordtype">int</span> &amp;error_code, <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <span class="keyword">static</span> std::string <a class="code" href="class_z_k_wrapper.html#a1a6926cf9d21ec269e06305f4decf007">translate_error</a>(<span class="keywordtype">int</span> error_code);</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a92be14f44bd63f09f07ddb370ec9b633">create</a>(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;              <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;              <span class="keywordtype">int</span> &amp;error_code,</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;              <span class="keywordtype">bool</span> ephemeral = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;              <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  <span class="keywordtype">bool</span> create_ephemeral(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;                        <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;                        <span class="keywordtype">int</span> &amp;error_code,</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;                        <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a08ff8b3a339b6e8f505e5e5408a43544">create_sequential</a>(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;                         <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;                         std::string &amp;new_path,</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;                         <span class="keywordtype">bool</span> ephemeral,</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                         <span class="keywordtype">int</span> &amp;error_code,</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;                         <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a85c8c60cad7e38e945e6bcf603189d58">recursive_create</a>(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;                        <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;                        <span class="keywordtype">int</span> &amp;error_code,</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;                        <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a7d2629dd6880c17bb7ee4e112d9a3932">exists</a>(<span class="keyword">const</span> std::string &amp;path, <span class="keywordtype">bool</span> &amp;exist, <span class="keywordtype">int</span> &amp;error_code) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#aec70acf2e65eddf491eec669fb3b67c2">wexists</a>(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;               <span class="keywordtype">bool</span> &amp;exist,</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;               watcher_fn watch,</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;               <span class="keywordtype">void</span> *watcherCtx,</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;               <span class="keywordtype">int</span> &amp;error_code) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#a55a8a4582b0f8c625b10619b99d1981a">delete_node</a>(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;                   <span class="keywordtype">int</span> &amp;error_code,</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;                   <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;</div>
 <div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="class_z_k_wrapper.html#ad5bbbd3a3b26bf474127d124c0da33dc">recursive_delete</a>(<span class="keyword">const</span> std::string &amp;path, <span class="keywordtype">int</span> &amp;error_code) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;</div>
@@ -217,7 +217,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;           <span class="keywordtype">bool</span> sync = <span class="keyword">true</span>,</div>
 <div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;           <span class="keywordtype">int</span> version = -1) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;  <span class="comment">// TODO: Create a path buffer for returning sequential path names</span></div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;  <span class="comment">// TODO(2016): Crexate a path buffer for returning sequential path names</span></div>
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;  std::shared_ptr&lt;ZooOp&gt; <a class="code" href="class_z_k_wrapper.html#aa1d12dfe93fa12ac56f6b9272b5b5c21">build_create_op</a>(<span class="keyword">const</span> std::string &amp;path,</div>
 <div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;                                         <span class="keyword">const</span> std::vector&lt;std::uint8_t&gt; &amp;data,</div>
 <div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;                                         <span class="keyword">const</span> <span class="keywordtype">int</span> flags = 0) <span class="keyword">const</span>;</div>
@@ -253,38 +253,38 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;                      <span class="keywordtype">void</span> *watcherCtx);</div>
 <div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;</div>
 <div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;  std::string root = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;  <span class="keyword">const</span> <span class="keyword">static</span> std::uint32_t MAX_PAYLOAD = 65536;</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;  <span class="keyword">const</span> <span class="keyword">static</span> std::uint32_t MAX_PATH_LEN = 512;</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;  <span class="keyword">const</span> <span class="keyword">static</span> <span class="keywordtype">int</span> NUM_SEQUENTIAL_DIGITS = 10;</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::uint32_t MAX_PAYLOAD = 65536;</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::uint32_t MAX_PATH_LEN = 512;</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> NUM_SEQUENTIAL_DIGITS = 10;</div>
 <div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;  <span class="keyword">const</span> <span class="keyword">static</span> std::map&lt;int, std::string&gt; error_message;</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::map&lt;int, std::string&gt; error_message;</div>
 <div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
 <div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;};</div>
 <div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;<span class="preprocessor">#endif //RDFS_ZKWRAPPER_H</span></div>
-<div class="ttc" id="class_z_k_wrapper_html_a97bbe304fbac8cf3229d1b064b91448d"><div class="ttname"><a href="class_z_k_wrapper.html#a97bbe304fbac8cf3229d1b064b91448d">ZKWrapper::wget</a></div><div class="ttdeci">bool wget(const std::string &amp;path, std::vector&lt; std::uint8_t &gt; &amp;data, watcher_fn watch, void *watcherCtx, int &amp;error_code, int length=MAX_PAYLOAD) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:249</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_afe897d55d9e0d88175894fc154a5bbdf"><div class="ttname"><a href="class_z_k_wrapper.html#afe897d55d9e0d88175894fc154a5bbdf">ZKWrapper::build_delete_op</a></div><div class="ttdeci">std::shared_ptr&lt; ZooOp &gt; build_delete_op(const std::string &amp;path, int version=-1) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:497</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_ad55907a4c539f391dc576b978f8c82b7"><div class="ttname"><a href="class_z_k_wrapper.html#ad55907a4c539f391dc576b978f8c82b7">ZKWrapper::set</a></div><div class="ttdeci">bool set(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool sync=true, int version=-1) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:300</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a85c8c60cad7e38e945e6bcf603189d58"><div class="ttname"><a href="class_z_k_wrapper.html#a85c8c60cad7e38e945e6bcf603189d58">ZKWrapper::recursive_create</a></div><div class="ttdeci">bool recursive_create(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:227</div></div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;<span class="preprocessor">#endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_</span></div>
+<div class="ttc" id="class_z_k_wrapper_html_a97bbe304fbac8cf3229d1b064b91448d"><div class="ttname"><a href="class_z_k_wrapper.html#a97bbe304fbac8cf3229d1b064b91448d">ZKWrapper::wget</a></div><div class="ttdeci">bool wget(const std::string &amp;path, std::vector&lt; std::uint8_t &gt; &amp;data, watcher_fn watch, void *watcherCtx, int &amp;error_code, int length=MAX_PAYLOAD) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:251</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_afe897d55d9e0d88175894fc154a5bbdf"><div class="ttname"><a href="class_z_k_wrapper.html#afe897d55d9e0d88175894fc154a5bbdf">ZKWrapper::build_delete_op</a></div><div class="ttdeci">std::shared_ptr&lt; ZooOp &gt; build_delete_op(const std::string &amp;path, int version=-1) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:509</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_ad55907a4c539f391dc576b978f8c82b7"><div class="ttname"><a href="class_z_k_wrapper.html#ad55907a4c539f391dc576b978f8c82b7">ZKWrapper::set</a></div><div class="ttdeci">bool set(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool sync=true, int version=-1) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:303</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a85c8c60cad7e38e945e6bcf603189d58"><div class="ttname"><a href="class_z_k_wrapper.html#a85c8c60cad7e38e945e6bcf603189d58">ZKWrapper::recursive_create</a></div><div class="ttdeci">bool recursive_create(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:226</div></div>
 <div class="ttc" id="class_z_k_wrapper_html_a08ff8b3a339b6e8f505e5e5408a43544"><div class="ttname"><a href="class_z_k_wrapper.html#a08ff8b3a339b6e8f505e5e5408a43544">ZKWrapper::create_sequential</a></div><div class="ttdeci">bool create_sequential(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, std::string &amp;new_path, bool ephemeral, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:178</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a1a6926cf9d21ec269e06305f4decf007"><div class="ttname"><a href="class_z_k_wrapper.html#a1a6926cf9d21ec269e06305f4decf007">ZKWrapper::translate_error</a></div><div class="ttdeci">static std::string translate_error(int error_code)</div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:80</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_af9c1b65d94bce9fb69d14a2556bf3794"><div class="ttname"><a href="class_z_k_wrapper.html#af9c1b65d94bce9fb69d14a2556bf3794">ZKWrapper::watcher</a></div><div class="ttdeci">friend void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx)</div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:60</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a7a3f45c1f2a3bd194421bdfbe187d0d0"><div class="ttname"><a href="class_z_k_wrapper.html#a7a3f45c1f2a3bd194421bdfbe187d0d0">ZKWrapper::build_set_op</a></div><div class="ttdeci">std::shared_ptr&lt; ZooOp &gt; build_set_op(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int version=-1) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:504</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a6757e5ee9a55071faa02883caad8c48b"><div class="ttname"><a href="class_z_k_wrapper.html#a6757e5ee9a55071faa02883caad8c48b">ZKWrapper::wget_children</a></div><div class="ttdeci">bool wget_children(const std::string &amp;path, std::vector&lt; std::string &gt; &amp;children, watcher_fn watch, void *watcherCtx, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:458</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_ac3eda1f418e5390b598bd38dce060939"><div class="ttname"><a href="class_z_k_wrapper.html#ac3eda1f418e5390b598bd38dce060939">ZKWrapper::flush</a></div><div class="ttdeci">bool flush(const std::string &amp;full_path, bool synchronous=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:546</div></div>
-<div class="ttc" id="class_z_k_wrapper_html"><div class="ttname"><a href="class_z_k_wrapper.html">ZKWrapper</a></div><div class="ttdef"><b>Definition:</b> zkwrapper.h:56</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a1a6926cf9d21ec269e06305f4decf007"><div class="ttname"><a href="class_z_k_wrapper.html#a1a6926cf9d21ec269e06305f4decf007">ZKWrapper::translate_error</a></div><div class="ttdeci">static std::string translate_error(int error_code)</div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:75</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_af9c1b65d94bce9fb69d14a2556bf3794"><div class="ttname"><a href="class_z_k_wrapper.html#af9c1b65d94bce9fb69d14a2556bf3794">ZKWrapper::watcher</a></div><div class="ttdeci">friend void watcher(zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx)</div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:55</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a7a3f45c1f2a3bd194421bdfbe187d0d0"><div class="ttname"><a href="class_z_k_wrapper.html#a7a3f45c1f2a3bd194421bdfbe187d0d0">ZKWrapper::build_set_op</a></div><div class="ttdeci">std::shared_ptr&lt; ZooOp &gt; build_set_op(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int version=-1) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:517</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a6757e5ee9a55071faa02883caad8c48b"><div class="ttname"><a href="class_z_k_wrapper.html#a6757e5ee9a55071faa02883caad8c48b">ZKWrapper::wget_children</a></div><div class="ttdeci">bool wget_children(const std::string &amp;path, std::vector&lt; std::string &gt; &amp;children, watcher_fn watch, void *watcherCtx, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:466</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_ac3eda1f418e5390b598bd38dce060939"><div class="ttname"><a href="class_z_k_wrapper.html#ac3eda1f418e5390b598bd38dce060939">ZKWrapper::flush</a></div><div class="ttdeci">bool flush(const std::string &amp;full_path, bool synchronous=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:562</div></div>
+<div class="ttc" id="class_z_k_wrapper_html"><div class="ttname"><a href="class_z_k_wrapper.html">ZKWrapper</a></div><div class="ttdef"><b>Definition:</b> zkwrapper.h:54</div></div>
 <div class="ttc" id="class_z_k_wrapper_html_a38c8ce01159a1a8e71d5204c4ff6040a"><div class="ttname"><a href="class_z_k_wrapper.html#a38c8ce01159a1a8e71d5204c4ff6040a">ZKWrapper::prepend_zk_root</a></div><div class="ttdeci">std::string prepend_zk_root(const std::string &amp;path) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:124</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a03c175112e76cf7930277df1519bc8b1"><div class="ttname"><a href="class_z_k_wrapper.html#a03c175112e76cf7930277df1519bc8b1">ZKWrapper::execute_multi</a></div><div class="ttdeci">bool execute_multi(const std::vector&lt; std::shared_ptr&lt; ZooOp &gt;&gt; operations, std::vector&lt; zoo_op_result &gt; &amp;results, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:517</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a7266ad66ba0762fa0abecc20cf0c92aa"><div class="ttname"><a href="class_z_k_wrapper.html#a7266ad66ba0762fa0abecc20cf0c92aa">ZKWrapper::ZKWrapper</a></div><div class="ttdeci">ZKWrapper(std::string host, int &amp;error_code, std::string root=&quot;&quot;)</div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:86</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_aa1d12dfe93fa12ac56f6b9272b5b5c21"><div class="ttname"><a href="class_z_k_wrapper.html#aa1d12dfe93fa12ac56f6b9272b5b5c21">ZKWrapper::build_create_op</a></div><div class="ttdeci">std::shared_ptr&lt; ZooOp &gt; build_create_op(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, const int flags=0) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:482</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_aae428b88e1f1d0a213b299e20fb5e3bd"><div class="ttname"><a href="class_z_k_wrapper.html#aae428b88e1f1d0a213b299e20fb5e3bd">ZKWrapper::get_children</a></div><div class="ttdeci">bool get_children(const std::string &amp;path, std::vector&lt; std::string &gt; &amp;children, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:439</div></div>
-<div class="ttc" id="class_zoo_op_html"><div class="ttname"><a href="class_zoo_op.html">ZooOp</a></div><div class="ttdef"><b>Definition:</b> zkwrapper.h:27</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a7d2629dd6880c17bb7ee4e112d9a3932"><div class="ttname"><a href="class_z_k_wrapper.html#a7d2629dd6880c17bb7ee4e112d9a3932">ZKWrapper::exists</a></div><div class="ttdeci">bool exists(const std::string &amp;path, bool &amp;exist, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:324</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a97463e55b810738ee39199711d52c934"><div class="ttname"><a href="class_z_k_wrapper.html#a97463e55b810738ee39199711d52c934">ZKWrapper::get_info</a></div><div class="ttdeci">bool get_info(const std::string &amp;path, struct Stat &amp;stat, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:382</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_a55a8a4582b0f8c625b10619b99d1981a"><div class="ttname"><a href="class_z_k_wrapper.html#a55a8a4582b0f8c625b10619b99d1981a">ZKWrapper::delete_node</a></div><div class="ttdeci">bool delete_node(const std::string &amp;path, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:366</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_aec70acf2e65eddf491eec669fb3b67c2"><div class="ttname"><a href="class_z_k_wrapper.html#aec70acf2e65eddf491eec669fb3b67c2">ZKWrapper::wexists</a></div><div class="ttdeci">bool wexists(const std::string &amp;path, bool &amp;exist, watcher_fn watch, void *watcherCtx, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:344</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a03c175112e76cf7930277df1519bc8b1"><div class="ttname"><a href="class_z_k_wrapper.html#a03c175112e76cf7930277df1519bc8b1">ZKWrapper::execute_multi</a></div><div class="ttdeci">bool execute_multi(const std::vector&lt; std::shared_ptr&lt; ZooOp &gt;&gt; operations, std::vector&lt; zoo_op_result &gt; &amp;results, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:531</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a7266ad66ba0762fa0abecc20cf0c92aa"><div class="ttname"><a href="class_z_k_wrapper.html#a7266ad66ba0762fa0abecc20cf0c92aa">ZKWrapper::ZKWrapper</a></div><div class="ttdeci">ZKWrapper(std::string host, int &amp;error_code, std::string root=&quot;&quot;)</div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:81</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_aa1d12dfe93fa12ac56f6b9272b5b5c21"><div class="ttname"><a href="class_z_k_wrapper.html#aa1d12dfe93fa12ac56f6b9272b5b5c21">ZKWrapper::build_create_op</a></div><div class="ttdeci">std::shared_ptr&lt; ZooOp &gt; build_create_op(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, const int flags=0) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:493</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_aae428b88e1f1d0a213b299e20fb5e3bd"><div class="ttname"><a href="class_z_k_wrapper.html#aae428b88e1f1d0a213b299e20fb5e3bd">ZKWrapper::get_children</a></div><div class="ttdeci">bool get_children(const std::string &amp;path, std::vector&lt; std::string &gt; &amp;children, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:448</div></div>
+<div class="ttc" id="class_zoo_op_html"><div class="ttname"><a href="class_zoo_op.html">ZooOp</a></div><div class="ttdef"><b>Definition:</b> zkwrapper.h:26</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a7d2629dd6880c17bb7ee4e112d9a3932"><div class="ttname"><a href="class_z_k_wrapper.html#a7d2629dd6880c17bb7ee4e112d9a3932">ZKWrapper::exists</a></div><div class="ttdeci">bool exists(const std::string &amp;path, bool &amp;exist, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:326</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a97463e55b810738ee39199711d52c934"><div class="ttname"><a href="class_z_k_wrapper.html#a97463e55b810738ee39199711d52c934">ZKWrapper::get_info</a></div><div class="ttdeci">bool get_info(const std::string &amp;path, struct Stat &amp;stat, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:389</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_a55a8a4582b0f8c625b10619b99d1981a"><div class="ttname"><a href="class_z_k_wrapper.html#a55a8a4582b0f8c625b10619b99d1981a">ZKWrapper::delete_node</a></div><div class="ttdeci">bool delete_node(const std::string &amp;path, int &amp;error_code, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:371</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_aec70acf2e65eddf491eec669fb3b67c2"><div class="ttname"><a href="class_z_k_wrapper.html#aec70acf2e65eddf491eec669fb3b67c2">ZKWrapper::wexists</a></div><div class="ttdeci">bool wexists(const std::string &amp;path, bool &amp;exist, watcher_fn watch, void *watcherCtx, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:346</div></div>
 <div class="ttc" id="class_z_k_wrapper_html_a92be14f44bd63f09f07ddb370ec9b633"><div class="ttname"><a href="class_z_k_wrapper.html#a92be14f44bd63f09f07ddb370ec9b633">ZKWrapper::create</a></div><div class="ttdeci">bool create(const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool ephemeral=false, bool sync=true) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:143</div></div>
-<div class="ttc" id="class_z_k_wrapper_html_ad5bbbd3a3b26bf474127d124c0da33dc"><div class="ttname"><a href="class_z_k_wrapper.html#ad5bbbd3a3b26bf474127d124c0da33dc">ZKWrapper::recursive_delete</a></div><div class="ttdeci">bool recursive_delete(const std::string &amp;path, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:406</div></div>
+<div class="ttc" id="class_z_k_wrapper_html_ad5bbbd3a3b26bf474127d124c0da33dc"><div class="ttname"><a href="class_z_k_wrapper.html#ad5bbbd3a3b26bf474127d124c0da33dc">ZKWrapper::recursive_delete</a></div><div class="ttdeci">bool recursive_delete(const std::string &amp;path, int &amp;error_code) const </div><div class="ttdef"><b>Definition:</b> zkwrapper.cc:412</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
