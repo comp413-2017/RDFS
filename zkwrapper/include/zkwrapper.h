@@ -28,7 +28,7 @@ class ZooOp {
   ZooOp(const std::string &path_in,
         const std::vector<std::uint8_t> &data_in) {
     this->path = new char[path_in.size() + 1];
-    snprintf(this->path, strlen(this->path), path_in.c_str());
+    snprintf(this->path, path_in.size() + 1, "%s", path_in.c_str());
     if (data_in.size() != 0) {  // Only save non-empty data
       this->num_bytes = data_in.size();
       this->data = new char[this->num_bytes];
