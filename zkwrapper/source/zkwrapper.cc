@@ -84,41 +84,45 @@ std::string ZKWrapper::translate_error(int errorcode) {
 }
 
 ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
-	// TODO: Move these default values to some readable CONSTANT value
-	zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
-	if (!zh) {
-		LOG(ERROR) << "zk init failed!";
-		error_code = -999;
-	}
+  // TODO(2016): Move these default values to some readable CONSTANT value
+  zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
+  if (!zh) {
+    LOG(ERROR) << "zk init failed!";
+    error_code = -999;
+  }
+  init = 1;
+  if (root_path.size() != 0) {
+    bool root_exists = false;
+    while (!root_exists) {
+      if (!exists(root_path, root_exists, error_code)) {
+        LOG(ERROR) << "Failed to check if root directory "
+                << root
+                << " exists "
+                << error_code;
+      }
+      if (!root_exists) {
+        if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
+          LOG(ERROR) << "Failed to create root directory "
+                  << root
+                  << " with error "
+                  << error_code;
+        } else {
+          break;
+        }
+      }
+    }
 
-	LOG(INFO) << "Initializing ZooKeeper with host: " << host << " and root_path: " << root_path;
-
-	init = 1;
-	if (root_path.size() != 0) {
-
-		bool root_exists = false;
-		while (!root_exists) {
-			if (!exists(root_path, root_exists, error_code)){
-				LOG(ERROR) << "Failed to check if root directory " << root << " exists " << error_code;
-			}
-			if (!root_exists) {
-				if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-					LOG(ERROR) << "Failed to create root directory " << root << " with error " << error_code;
-				} else {
-					root_exists = true;
-					break;
-				}
-			}
-		}
-
-		if (!root_exists) {
-			if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-				LOG(ERROR) <<  "Failed to create root directory " << root << " with error " << error_code;
-			}
-		}
-	}
-	LOG(INFO) << "SUCCESSFULLY STARTED ZKWRAPPER";
-	root = root_path;
+    if (!root_exists) {
+      if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
+        LOG(ERROR) << "Failed to create root directory "
+                << root
+                << " with error "
+                << error_code;
+      }
+    }
+  }
+  LOG(INFO) << "SUCCESSFULLY STARTED ZKWRAPPER";
+  root = root_path;
 }
 
 std::string ZKWrapper::prepend_zk_root(const std::string &path) const {
