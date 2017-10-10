@@ -4,12 +4,9 @@ These contribution guidelines exist to streamline the process of merging everyon
 
 ### General Guidelines
 
-* **Do not push directly to `develop`.** Merge your changes by submitting a pull request.
-* PRs should be approved by at least one person before merging. **Do not** merge an unapproved PR unless the change is an emergency fix.
-* Use the squash-and-merge merge strategy for pull requests.
-    * This packages changes into `develop` as single, clean commits.
-    * The incremental commits from the original change can still be audited from the PR itself.
-* **Do not** force push unless you are deliberately rewriting history. If you need to revert a change, use `git revert` to keep the commit tree history linear.
+* Propose changes by submitting a pull request.
+* PRs need to be approved by at least one person before merging.
+* If you need to revert a change, use `git revert` to keep the commit history linear. This should be followed by an approved PR.
 
 ### Contribution Procedure
 
@@ -25,7 +22,7 @@ These contribution guidelines exist to streamline the process of merging everyon
     * This will merge the tip (HEAD) of your feature branch into the base branch.
 4. Tag reviewers.
     * Not sure who to tag? `git blame` is usually a good indicator of relevant stakeholders.
-5. After your changes have been approved by at least one person, close the PR by merging using the **Squash and merge** strategy (this is an option you select in the UI on the PR page). Finally, delete the remote feature branch (you can do this from the Github UI).
+5. After your changes have been approved by at least one person, close the PR by merging. Finally, delete the remote feature branch (you can do this from the Github UI).
 
 ### Pull Request Summary
 
