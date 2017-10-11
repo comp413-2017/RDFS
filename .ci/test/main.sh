@@ -4,10 +4,10 @@ set -ex
 
 cd build/test
 ./ReplicationTest
-./ReadWriteTest
 ./DeleteTest
 ./NameNodeTest
 ./NativeFsTest
 ./ZKDNClientTest
 ./ZKLockTest
 ./ZKWrapperTest
+./ReadWriteTest
