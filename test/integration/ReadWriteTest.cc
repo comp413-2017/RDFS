@@ -72,19 +72,31 @@ int main(int argc, char **argv) {
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(3);
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-  // system("truncate _RW_TEST_FS -s 1000000000");
 
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   sleep(5);
-  system(
-      "/home/vagrant/rdfs/build/rice-datanode/datanode 50010 50020 _RW_TEST_FS &");
-  sleep(10);
+
+  //initialize 3 datanodes
+  unsigned short xferPort = 50010;
+  unsigned short ipcPort = 50020;
+  for (int i = 0; i < 3; i++) {
+    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
+    std::string dnCliArgs = "-x " +
+        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i) + " -b tfs" + std::to_string(i) + " &";
+    std::string cmdLine = "bash -c \"exec -a ReadWriteTestServer" + std::to_string(i) +
+        " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+        dnCliArgs + "\" & ";
+    system(cmdLine.c_str());
+    sleep(3);
+  }
+
+  sleep(5);
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
 
   system("pkill -f namenode");
-  system("pkill -f datanode");
+  system("pkill -f ReadWriteTestServer*");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
 }
