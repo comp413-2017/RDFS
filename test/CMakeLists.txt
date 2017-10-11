@@ -84,3 +84,6 @@ target_link_libraries(ZKDNClientTest data_transfer_server)
 target_link_libraries(ZKDNClientTest namenode_protos)
 target_link_libraries(ZKDNClientTest native-fs)
 
+add_executable(StorageTest storage/StorageTest.cc)
+target_link_libraries(StorageTest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(StorageTest ${GTEST})
