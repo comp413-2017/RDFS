@@ -40,7 +40,7 @@ TEST(ReplicationTest, testReadWrite) {
                           "/dev/null"));
 
   sleep(10);
-  using namespace nativefs;
+  using nativefs::NativeFS;
   NativeFS fs0("tfs0");
   NativeFS fs1("tfs1");
   NativeFS fs2("tfs2");
@@ -56,9 +56,8 @@ TEST(ReplicationTest, testReadWrite) {
 }
 
 TEST(ReplicationTest, testReplication) {
-
-  unsigned short xferPort = 50010;
-  unsigned short ipcPort = 50020;
+  int32_t xferPort = 50010;
+  int32_t ipcPort = 50020;
 
   ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
                           "generate_file.py > expected_testfile1234"));
