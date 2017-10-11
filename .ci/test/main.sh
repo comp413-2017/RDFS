@@ -7,7 +7,7 @@ cd build/test
 ./DeleteTest
 ./NameNodeTest
 ./NativeFsTest
-./ReadWriteTest || :
 ./ZKDNClientTest
 ./ZKLockTest
 ./ZKWrapperTest
+./ReadWriteTest
