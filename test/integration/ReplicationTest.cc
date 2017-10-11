@@ -48,33 +48,6 @@ namespace {
         }
     }
 
-    TEST(ReadWriteTest, testConcurrentRead) {
-      // Make a file.
-      ASSERT_EQ(0,
-                system(
-                    "python /home/vagrant/rdfs/test/integration/generate_file.py > expected_testfile1234_concurrent"));
-      // Put it into rdfs.
-      system(
-          "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234_concurrent /f");
-      // Read it from rdfs.
-      std::vector<std::thread> threads;
-      for (int i = 0; i < num_threads; i++) {
-
-        threads.push_back(std::thread([i]() {
-          LOG(INFO) << "starting thread " << i;
-          system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp_concurrent"
-              + std::to_string(i)).c_str());
-          // Check that its contents match.
-          ASSERT_EQ(0,
-                    system(("diff expected_testfile1234_concurrent temp_concurrent" + std::to_string(i)
-                        + " > /dev/null").c_str()));
-        }));
-      }
-      for (int i = 0; i < num_threads; i++) {
-        threads[i].join();
-      }
-    }
-
     TEST(ReplicationTest, testReplication) {
 
         unsigned short xferPort = 50010;
