@@ -76,19 +76,17 @@ int main(int argc, char **argv) {
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   sleep(5);
 
-  //initialize 3 datanodes
+  //initialize datanodes (see replication test for multiple datanodes example)
   unsigned short xferPort = 50010;
   unsigned short ipcPort = 50020;
-  for (int i = 0; i < 3; i++) {
-    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = "-x " +
-        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i) + " -b tfs" + std::to_string(i) + " &";
-    std::string cmdLine = "bash -c \"exec -a ReadWriteTestServer" + std::to_string(i) +
-        " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-        dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(3);
-  }
+  system(("truncate tfs" + std::to_string(0) + " -s 1000000000").c_str());
+  std::string dnCliArgs = "-x " +
+      std::to_string(xferPort) + " -p " + std::to_string(ipcPort) + " -b tfs" + std::to_string(0) + " &";
+  std::string cmdLine = "bash -c \"exec -a ReadWriteTestServer" + std::to_string(0) +
+      " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+      dnCliArgs + "\" & ";
+  system(cmdLine.c_str());
+  sleep(3);
 
   sleep(5);
   // Initialize and run the tests
