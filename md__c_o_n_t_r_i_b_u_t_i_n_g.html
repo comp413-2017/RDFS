@@ -83,9 +83,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="textblock"><p>These contribution guidelines exist to streamline the process of merging everyone's patches into the repository while keeping Git history as clean as possible.</p>
 <h3>General Guidelines</h3>
 <ul>
-<li>Propose changes by submitting a pull request.</li>
-<li>PRs need to be approved by at least one person before merging.</li>
-<li>If you need to revert a change, use <code>git revert</code> to keep the commit history linear. This should be followed by an approved PR.</li>
+<li><b>Do not push directly to <code>develop</code>.</b> Merge your changes by submitting a pull request.</li>
+<li>PRs should be approved by at least one person before merging. <b>Do not</b> merge an unapproved PR unless the change is an emergency fix.</li>
+<li>Use the squash-and-merge merge strategy for pull requests.<ul>
+<li>This packages changes into <code>develop</code> as single, clean commits.</li>
+<li>The incremental commits from the original change can still be audited from the PR itself.</li>
+</ul>
+</li>
+<li><b>Do not</b> force push unless you are deliberately rewriting history. If you need to revert a change, use <code>git revert</code> to keep the commit tree history linear.</li>
 </ul>
 <h3>Contribution Procedure</h3>
 <ol type="1">
@@ -109,7 +114,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>Not sure who to tag? <code>git blame</code> is usually a good indicator of relevant stakeholders.</li>
 </ul>
 </li>
-<li>After your changes have been approved by at least one person, close the PR by merging. Finally, delete the remote feature branch (you can do this from the Github UI).</li>
+<li>After your changes have been approved by at least one person, close the PR by merging using the <b>Squash and merge</b> strategy (this is an option you select in the UI on the PR page). Finally, delete the remote feature branch (you can do this from the Github UI).</li>
 </ol>
 <h3>Pull Request Summary</h3>
 <ul>
