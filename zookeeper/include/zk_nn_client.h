@@ -43,9 +43,8 @@ typedef struct {
   std::uint64_t modification_time;
   char owner[256];  // the client who created the file
   char group[256];
-  // TODO Security (Dan): justify max of 20 readers on a file. Higher? Lower?
-  std::string permissions[20]; // array of capacity 20 usernames allowed to view file
-  int perm_length; // number of slots filled in permissions
+  std::string permissions[20];  // max 20 users can view the file.
+  int perm_length;  // number of slots filled in permissions
 } FileZNode;
 
 struct TargetDN {
