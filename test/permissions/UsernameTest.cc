@@ -11,7 +11,6 @@
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 
-
 INITIALIZE_EASYLOGGINGPP
 
 using client_namenode_translator::ClientNamenodeTranslator;
