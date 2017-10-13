@@ -18,6 +18,8 @@
 #include "socket_writes.h"
 #include "socket_reads.h"
 
+#include <unistd.h>
+
 #pragma once
 
 using asio::ip::tcp;
