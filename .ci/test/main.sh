@@ -24,3 +24,4 @@ run_test "./StorageTest --gtest_filter=-*Time"
 run_test ./ZKDNClientTest
 run_test ./ZKLockTest
 run_test ./ZKWrapperTest
+run_test ./UsernameTest

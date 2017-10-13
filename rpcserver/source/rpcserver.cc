@@ -264,5 +264,20 @@ void RPCServer::serve(asio::io_service &io_service) {
   }
 }
 
+/**
+ * Returns the current user's name.
+ */
+std::string RPCServer::getUserName() {
+  char *user = getlogin();
+
+  if (user == NULL) {
+    LOG(ERROR) << "failed to acquire user's name";
+    return std::string();
+  } else {
+    LOG(DEBUG) << "the received user name is " << user;
+    return std::string (user);
+  }
+}
+
 #undef ERROR_AND_RETURN
 #undef ERROR_AND_FALSE

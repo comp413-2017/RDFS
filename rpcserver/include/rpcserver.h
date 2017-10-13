@@ -17,6 +17,8 @@
 #include "socket_writes.h"
 #include "socket_reads.h"
 
+#include <unistd.h>
+
 #pragma once
 
 using asio::ip::tcp;
@@ -44,6 +46,12 @@ class RPCServer {
   void register_handler(
       std::string key,
       std::function<std::string(std::string)> handler);
+
+ /**
+  * Returns the name of the current running linux user.
+  * @return A string of the current user's name
+  */
+ std::string getUserName();
 
  private:
   /**
