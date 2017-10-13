@@ -11,3 +11,4 @@ latex/
 
 # Private keys
 .ci/keys/deploy_id_rsa
+/.DS_Store
