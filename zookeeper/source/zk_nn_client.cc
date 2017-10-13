@@ -795,59 +795,62 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
 ZkNnClient::CreateResponse ZkNnClient::create_file(
         CreateRequestProto &request,
         CreateResponseProto &response) {
-    const std::string &path = request.src();
-    LOG(ERROR) << "Trying to create file " << path;
-    const std::string &owner = request.clientname();
-    bool create_parent = request.createparent();
-    std::uint64_t blocksize = request.blocksize();
-    std::uint32_t replication = request.replication();
-    std::uint32_t createflag = request.createflag();
+  const std::string &path = request.src();
+  LOG(ERROR) << "Trying to create file " << path;
+  const std::string &owner = request.clientname();
+  bool create_parent = request.createparent();
+  std::uint64_t blocksize = request.blocksize();
+  std::uint32_t replication = request.replication();
+  std::uint32_t createflag = request.createflag();
 
-    if (file_exists(path)) {
-        // TODO(2016) solve this issue of overwriting files
-        LOG(ERROR) << "File already exists";
-        return CreateResponse::FileAlreadyExists;
-    }
+  if (file_exists(path)) {
+      // TODO(2016) solve this issue of overwriting files
+      LOG(ERROR) << "File already exists";
+      return CreateResponse::FileAlreadyExists;
+  }
 
-    // If we need to create directories, do so
-    if (create_parent) {
-        LOG(ERROR) << "Creating directories to store ";
-        std::string directory_paths = "";
-        std::vector<std::string> split_path;
-        boost::split(split_path, path, boost::is_any_of("/"));
-        LOG(INFO) << split_path.size();
-        for (int i = 1; i < split_path.size() - 1; i++) {
-            directory_paths += ("/" + split_path[i]);
-        }
-        // try and make all the parents
-        if (mkdir_helper(directory_paths, true) !=
-            ZkNnClient::MkdirResponse::Ok) {
-            LOG(ERROR) << "Failed to Mkdir for " << directory_paths;
-            return CreateResponse::FailedMkdir;
-        }
-    }
+  // If we need to create directories, do so
+  if (create_parent) {
+      LOG(ERROR) << "Creating directories to store ";
+      std::string directory_paths = "";
+      std::vector<std::string> split_path;
+      boost::split(split_path, path, boost::is_any_of("/"));
+      LOG(INFO) << split_path.size();
+      for (int i = 1; i < split_path.size() - 1; i++) {
+          directory_paths += ("/" + split_path[i]);
+      }
+      // try and make all the parents
+      if (mkdir_helper(directory_paths, true) !=
+          ZkNnClient::MkdirResponse::Ok) {
+          LOG(ERROR) << "Failed to Mkdir for " << directory_paths;
+          return CreateResponse::FailedMkdir;
+      }
+  }
 
-    // Now create the actual file which will hold blocks
-    FileZNode znode_data;
-    znode_data.length = 0;
-    znode_data.under_construction = FileStatus::UnderConstruction;
-    uint64_t mslong = current_time_ms();
-    znode_data.access_time = mslong;
-    znode_data.modification_time = mslong;
-    snprintf(znode_data.owner, strlen(znode_data.owner), owner.c_str());
-    snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
-    znode_data.replication = replication;
-    znode_data.blocksize = blocksize;
-    znode_data.filetype = IS_FILE;
+  // Now create the actual file which will hold blocks
+  FileZNode znode_data;
+  znode_data.length = 0;
+  znode_data.under_construction = FileStatus::UnderConstruction;
+  uint64_t mslong = current_time_ms();
+  znode_data.access_time = mslong;
+  znode_data.modification_time = mslong;
+  snprintf(znode_data.owner, strlen(znode_data.owner), owner.c_str());
+  snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
+  znode_data.replication = replication;
+  znode_data.blocksize = blocksize;
+  znode_data.filetype = IS_FILE;
+  // Initialize permissions for file with owner and admin.
+  znode_data.permissions[0] = znode_data.owner;
+  znode_data.perm_length = 1;
 
-    // if we failed, then do not set any status
-    if (!create_file_znode(path, &znode_data))
-        return CreateResponse::FailedCreateZnode;
+  // if we failed, then do not set any status
+  if (!create_file_znode(path, &znode_data))
+    return CreateResponse::FailedCreateZnode;
 
-    HdfsFileStatusProto *status = response.mutable_fs();
-    set_file_info(status, path, znode_data);
+  HdfsFileStatusProto *status = response.mutable_fs();
+  set_file_info(status, path, znode_data);
 
-    return CreateResponse::Ok;
+  return CreateResponse::Ok;
 }
 
 /**
@@ -927,6 +930,8 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
+  // Note no permissions list because this is a directory not a file.
+  znode_data->perm_length = -1;
 }
 
 /**
