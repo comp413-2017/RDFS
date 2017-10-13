@@ -86,7 +86,14 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(
 
 // ----------------------- RPC HANDLERS ----------------------------
 
-std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
+
+    std::string ClientNamenodeTranslator::get(std::string input) {
+      return null;
+    }
+
+
+
+    std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
   GetFileInfoRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "GetFileInfo ");
@@ -460,6 +467,13 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
   server.register_handler(
       "getContentSummary",
       std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
+
+
+      // Additions - marc and pradhith
+      server.register_handler(
+              "get",
+              std::bind(&ClientNamenodeTranslator::get, this, _1));
+
 }
 
 /**
