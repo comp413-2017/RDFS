@@ -1,7 +1,20 @@
+<<<<<<< HEAD
 /CMakeOutput.log
+=======
+/CMakeDirectoryInformation.cmake
+/CMakeOutput.log
+/CMakeRuleHashes.txt
+/Makefile.cmake
+/Makefile2
+/TargetDirectories.txt
+>>>>>>> a
 /clion-environment.txt
 /clion-log.txt
 /cmake.check_cache
 /feature_tests.bin
 /feature_tests.c
 /feature_tests.cxx
+<<<<<<< HEAD
+=======
+/progress.marks
+>>>>>>> a
