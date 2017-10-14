@@ -53,6 +53,8 @@ using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::FsPermissionProto;
 using hadoop::hdfs::DatanodeInfoProto;
 using hadoop::hdfs::DatanodeIDProto;
+using hadoop::hdfs::SetOwnerRequestProto;
+using hadoop::hdfs::SetOwnerResponseProto;
 
 namespace zkclient {
 
@@ -314,6 +316,37 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
     }
   }
   return false;
+}
+
+bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
+                           SetOwnerResponseProto &res) {
+  int zk_error;
+  FileZNode znode_data;
+  const std::string &path = req.src();
+  const std::string &username = req.username();
+
+  if (!file_exists(path)) {
+    LOG(ERROR) << "Requested path " << path << " does not exist.";
+    return false;
+  }
+
+  read_file_znode(znode_data, path);
+  // The first string in the permissions ACL is the file owner
+  znode_data.permissions[0] = username;
+
+  // Serialize struct to byte vector
+  std::vector<std::uint8_t> zk_data(sizeof(FileZNode));
+  file_znode_struct_to_vec(&znode_data, zk_data);
+
+  // Write the modified node back to Zookeeper
+  zk->set(ZookeeperPath(path), zk_data, zk_error);
+
+  if (zk_error != ZK_ERRORS::OK) {
+    LOG(ERROR) << "ZK reported error writing modified node back to disk";
+    return false;
+  }
+
+  return true;
 }
 
 bool ZkNnClient::add_block(AddBlockRequestProto &req,

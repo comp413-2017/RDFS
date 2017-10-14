@@ -70,6 +70,7 @@ using hadoop::hdfs::GetListingRequestProto;
 using hadoop::hdfs::GetListingResponseProto;
 using hadoop::hdfs::SetReplicationResponseProto;
 using hadoop::hdfs::GetEZForPathResponseProto;
+using hadoop::hdfs::SetOwnerRequestProto;
 using hadoop::hdfs::SetOwnerResponseProto;
 using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
@@ -276,8 +277,16 @@ std::string ClientNamenodeTranslator::getEZForPath(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::setOwner(std::string input) {
+  SetOwnerRequestProto req;
   SetOwnerResponseProto res;
-  return Serialize(res);
+
+  req.ParseFromString(input);
+
+  if (zk->set_owner(req, res)) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not set file owner.", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::getContentSummary(std::string input) {
