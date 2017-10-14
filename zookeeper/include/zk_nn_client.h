@@ -217,6 +217,10 @@ class ZkNnClient : public ZkClientCommon {
   bool add_block(AddBlockRequestProto &req,
                  AddBlockResponseProto &res,
                  std::string client_name = "default");
+  /*
+   * Sets the owner of the file.
+   */
+  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res);
 
   /**
    * Abandons the block - basically reverses all of add block's multiops
