@@ -44,7 +44,7 @@ typedef struct {
   char owner[256];  // the client who created the file
   char group[256];
   // TODO Security (Dan): justify max of 20 readers on a file. Higher? Lower?
-  char * permissions[20]; // array of capacity 20 usernames allowed to view file
+  std::string permissions[20]; // array of capacity 20 usernames allowed to view file
   int perm_length; // number of slots filled in permissions
 } FileZNode;
 
@@ -106,6 +106,8 @@ using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
 using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::SetOwnerRequestProto;
+using hadoop::hdfs::SetOwnerResponseProto;
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -194,6 +196,11 @@ class ZkNnClient : public ZkClientCommon {
   void set_node_policy(char policy);
 
   char get_node_policy();
+  /**
+   * Sets the owner of the file.
+   */
+  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res);
+
   /**
    * Add block.
    */
