@@ -1,7 +1,14 @@
 /CMakeCache.txt
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /Makefile
 /cmake_install.cmake
 /rdfs.cbp
 >>>>>>> a
+=======
+/Makefile
+/cmake_install.cmake
+/rdfs.cbp
+/*
+>>>>>>> marc commit -skelsteons

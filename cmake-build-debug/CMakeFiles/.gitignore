@@ -15,6 +15,14 @@
 /feature_tests.c
 /feature_tests.cxx
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /progress.marks
 >>>>>>> a
+=======
+/CMakeDirectoryInformation.cmake
+/CMakeRuleHashes.txt
+/Makefile.cmake
+/Makefile2
+/progress.marks
+>>>>>>> marc commit -skelsteons
