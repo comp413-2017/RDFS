@@ -925,8 +925,8 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
   int error_code;
 
   const std::string &src = req.src();
-  const std::string &start_after = req.startafter();
-  const bool need_location = req.needlocation();
+    const std::string &start_after = req.startafter();
+    const bool need_location = req.needlocation(); // TODO: This should be used to not get locations if not requested
 
   DirectoryListingProto *listing = res.mutable_dirlist();
 
