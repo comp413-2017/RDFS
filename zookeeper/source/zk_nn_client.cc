@@ -920,12 +920,12 @@ bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
   return true;
 }
 
-ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
+ZkNnClient::ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
                                     GetListingResponseProto &res) {
   int error_code;
 
   const std::string &src = req.src();
-    const std::string &start_after = req.startafter();
+    const int start_after = req.startafter();
     const bool need_location = req.needlocation(); // TODO: This should be used to not get locations if not requested
 
   DirectoryListingProto *listing = res.mutable_dirlist();
@@ -940,6 +940,10 @@ ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
     if (znode_data.filetype == IS_FILE) {
       HdfsFileStatusProto *status = listing->add_partiallisting();
       set_file_info(status, src, znode_data);
+      if (need_location) {
+          LocatedBlocksProto *blocks = status->mutable_locations();
+          get_block_locations(src, 0, znode_data.length, blocks);
+      }
     } else {
       std::vector<std::string> children;
       if (!zk->get_children(ZookeeperPath(src), children, error_code)) {
@@ -955,11 +959,10 @@ ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
           // set up the value for LocatedBlocksProto
           // LocatedBlocksProto *blocklocation = status->set_location();
           // GetBlockLocationsRequestProto location_req;
-          LocatedBlocksProto *blocks = status->mutable_locations();
-          // TODO(2016): 134217728 should be a variable
-          LOG(INFO) << "[child data length is] " << child_data.length;
-          get_block_locations(child_path, 0, child_data.length, blocks);
-          // get_block_locations()
+          if (need_location) {
+              LocatedBlocksProto *blocks = status->mutable_locations();
+              get_block_locations(child_path, 0, child_data.length, blocks);
+          }
         }
       }
     }
@@ -1110,6 +1113,8 @@ bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
     sorted_dn_ids.push_back(target.dn_id);
     targets.pop();
   }
+
+  return true;
 }
 
 std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath) {
