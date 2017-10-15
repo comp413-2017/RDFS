@@ -1,48 +1,8 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_FRESH_LOG_FILE
-#define ELPP_THREAD_SAFE
-
-#include <easylogging++.h>
-#include <gtest/gtest.h>
-#include <cstring>
-#include "zkwrapper.h"
-#include "zk_nn_client.h"
-#include "zk_dn_client.h"
+#include "NameNodeTest.h"
 
 INITIALIZE_EASYLOGGINGPP
-
-#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
-
-namespace {
-class NamenodeTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-    int error_code;
-    auto zk_shared =
-        std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-    assert(error_code == 0);  // Z_OK
-    client = new zkclient::ZkNnClient(zk_shared);
-    zk = new ZKWrapper("localhost:2181", error_code, "/testing");
-  }
-
-  hadoop::hdfs::CreateRequestProto getCreateRequestProto(
-      const std::string &path
-  ) {
-    hadoop::hdfs::CreateRequestProto create_req;
-    create_req.set_src(path);
-    create_req.set_clientname("asdf");
-    create_req.set_createparent(false);
-    create_req.set_blocksize(1);
-    create_req.set_replication(1);
-    create_req.set_createflag(0);
-    return create_req;
-  }
-
-  // Objects declared here can be used by all tests in the test case for Foo.
-  ZKWrapper *zk;
-  zkclient::ZkNnClient *client;
-};
 
 TEST_F(NamenodeTest, checkNamespace) {
   // nuffin
@@ -379,25 +339,24 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
   zk->exists("/fileSystem/old_dir", exist, error_code);
   ASSERT_EQ(false, exist);
 }
-}  // namespace
 
 int main(int argc, char **argv) {
-  el::Configurations conf(LOG_CONFIG_FILE);
-  el::Loggers::reconfigureAllLoggers(conf);
-  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+    el::Configurations conf(LOG_CONFIG_FILE);
+    el::Loggers::reconfigureAllLoggers(conf);
+    el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
-  // Start up zookeeper
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-  sleep(10);
+    // Start up zookeeper
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+    sleep(10);
 
-  // Initialize and run the tests
-  ::testing::InitGoogleTest(&argc, argv);
-  int res = RUN_ALL_TESTS();
-  // NOTE: You'll need to scroll up a bit to see the test results
+    // Initialize and run the tests
+    ::testing::InitGoogleTest(&argc, argv);
+    int res = RUN_ALL_TESTS();
+    // NOTE: You'll need to scroll up a bit to see the test results
 
-  // Remove test files and shutdown zookeeper
-  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-  return res;
+    // Remove test files and shutdown zookeeper
+    system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+    return res;
 }
