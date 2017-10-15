@@ -103,6 +103,11 @@ class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
 
+  enum class ListingResponse {
+      Ok,                   // 0
+      FileDoesNotExist,     // 1
+      FailedChildRetrieval  // 2
+  };
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -127,7 +132,7 @@ class ZkNnClient : public ZkClientCommon {
   void destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   void rename(RenameRequestProto &req, RenameResponseProto &res);
-  bool get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
+  ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res);
 
