@@ -920,8 +920,8 @@ bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
   return true;
 }
 
-bool ZkNnClient::get_listing(GetListingRequestProto &req,
-                             GetListingResponseProto &res) {
+ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
+                                    GetListingResponseProto &res) {
   int error_code;
 
   const std::string &src = req.src();
@@ -944,7 +944,7 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
       std::vector<std::string> children;
       if (!zk->get_children(ZookeeperPath(src), children, error_code)) {
         LOG(FATAL) << "Failed to get children for " << ZookeeperPath(src);
-        return false;
+        return ListingResponse::FailedChildRetrieval;
       } else {
         for (auto &child : children) {
           auto child_path = util::concat_path(src, child);
@@ -966,9 +966,9 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
     listing->set_remainingentries(0);
   } else {
     LOG(ERROR) << "File does not exist with name " << src;
-    return false;
+    return ListingResponse::FileDoesNotExist;
   }
-  return true;
+  return ListingResponse::Ok;
 }
 
 void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,

@@ -220,7 +220,7 @@ std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingResponseProto res;
   req.ParseFromString(input);
   logMessage(&req, "GetListing ");
-  if (zk->get_listing(req, res)) {
+  if (zk->get_listing(req, res) == zkclient::ZkNnClient::ListingResponse::Ok) {
     return Serialize(res);
   } else {
     throw GetErrorRPCHeader("Could not get listing", "");
