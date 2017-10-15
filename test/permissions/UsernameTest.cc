@@ -31,8 +31,11 @@ TEST(UsernameTest, testGetUser) {
 
   auto namenodeServer = nn_translator->getRPCServer();
 
-  std::string expected ("vagrant");
-  ASSERT_TRUE(expected.compare(namenodeServer.getUserName()) == 0);
+  std::string expectedVagrant ("vagrant");
+  std::string expectedTravis ("travis");
+  ASSERT_TRUE((expectedVagrant.compare(namenodeServer.getUsername()) == 0) ||
+              (expectedTravis.compare(namenodeServer.getUsername()) == 0)
+             );
 }
 
 }
