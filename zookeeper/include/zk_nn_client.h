@@ -175,33 +175,31 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
-
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
                                GetFileInfoResponseProto &res,
-                               std::string client_name);
+                               std::string client_name = "default");
   ZkNnClient::CreateResponse create_file(CreateRequestProto &request,
                                          CreateResponseProto &response);
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res,
-                           std::string client_name);
+                           std::string client_name = "default");
   MkdirResponse mkdir(MkdirsRequestProto &req,
                       MkdirsResponseProto &res);
   DeleteResponse destroy(DeleteRequestProto &req,
                          DeleteResponseProto &res,
-                         std::string client_name);
+                         std::string client_name = "default");
   void complete(CompleteRequestProto &req,
                 CompleteResponseProto &res,
-                std::string client_name);
+                std::string client_name = "default");
   RenameResponse rename(RenameRequestProto &req,
                         RenameResponseProto &res,
-                        std::string client_name);
+                        std::string client_name = "default");
   ListingResponse get_listing(GetListingRequestProto &req,
                               GetListingResponseProto &res,
-                              std::string client_name);
-
+                              std::string client_name = "default");
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res,
-                   std::string client_name);
+                   std::string client_name="default");
 
   void set_file_info_content(ContentSummaryProto *status,
                              const std::string &path, FileZNode &znode_data);
@@ -212,21 +210,21 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Sets the owner of the file.
    */
-  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res, std::string client_name);
+  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res, std::string client_name="default");
 
   /**
    * Add block.
    */
   bool add_block(AddBlockRequestProto &req,
                  AddBlockResponseProto &res,
-                 std::string client_name);
+                 std::string client_name = "default");
 
   /**
    * Abandons the block - basically reverses all of add block's multiops
    */
   bool abandon_block(AbandonBlockRequestProto &req,
                      AbandonBlockResponseProto &res,
-                     std::string client_name);
+                     std::string client_name="default");
 
   bool previousBlockComplete(uint64_t prev_id);
   /**
@@ -276,7 +274,7 @@ class ZkNnClient : public ZkClientCommon {
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
-                           std::string client_name);
+                           std::string client_name="default");
 
   /**
    * Read a znode corresponding to a file into znode_data

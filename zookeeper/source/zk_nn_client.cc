@@ -63,9 +63,8 @@ ZkNnClient::ZkNnClient(std::string zkIpAndAddress) :
   mkdir_helper("/", false);
 }
 
-ZkNnClient::ZkNnClient(
-    std::shared_ptr<ZKWrapper> zk_in,
-    bool secureMode /* = false*/ ) : ZkClientCommon(zk_in) {
+ZkNnClient::ZkNnClient(std::shared_ptr<ZKWrapper> zk_in, bool secureMode) :
+    ZkClientCommon(zk_in) {
   mkdir_helper("/", false);
   isSecureMode = secureMode;
 }
@@ -1133,6 +1132,11 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
           auto child_path = util::concat_path(src, child);
           FileZNode child_data;
           read_file_znode(child_data, child_path);
+          // Check access
+          if (!checkAccess(client_name, child_data)) {
+            LOG(ERROR) << "Access denied to path " << child_path;
+            return false;
+          }
           HdfsFileStatusProto *status = listing->add_partiallisting();
           set_file_info(status, child_path, child_data);
           // set up the value for LocatedBlocksProto
@@ -1177,7 +1181,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
   // Check access
   if (!checkAccess(client_name, znode_data)) {
     LOG(ERROR) << "Access denied to path " << src;
-    return false;
+    return;
   }
 
   blocks->set_underconstruction(false);
@@ -1326,7 +1330,8 @@ std::string ZkNnClient::ZookeeperBlocksPath(const std::string &hadoopPath) {
 }
 
 void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
-                             GetContentSummaryResponseProto &res) {
+                             GetContentSummaryResponseProto &res,
+                             std::string client_name) {
   const std::string &path = req.path();
 
   if (file_exists(path)) {
@@ -1334,6 +1339,12 @@ void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
     // read the node into the file node struct
     FileZNode znode_data;
     read_file_znode(znode_data, path);
+
+    // Check access
+    if (!checkAccess(client_name, znode_data)) {
+      LOG(ERROR) << "Access denied to path " << path;
+      return;
+    }
 
     // set the file status in the get file info response res
     ContentSummaryProto *status = res.mutable_summary();
