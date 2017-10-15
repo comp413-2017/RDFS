@@ -1083,6 +1083,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
     DeleteResponseProto &response,
     std::string client_name) {
   int error_code;
+  int error_code;
   const std::string &path = request.src();
   bool recursive = request.recursive();
   response.set_result(true);
