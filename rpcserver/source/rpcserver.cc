@@ -267,7 +267,7 @@ void RPCServer::serve(asio::io_service &io_service) {
 /**
  * Returns the current user's name.
  */
-std::string RPCServer::getUserName() {
+std::string RPCServer::getUsername() {
   char *user = getlogin();
 
   if (user == NULL) {

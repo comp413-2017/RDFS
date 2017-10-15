@@ -51,7 +51,7 @@ class RPCServer {
   * Returns the name of the current running linux user.
   * @return A string of the current user's name
   */
- std::string getUserName();
+ std::string getUsername();
 
  private:
   /**
