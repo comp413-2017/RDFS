@@ -916,7 +916,7 @@ MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool create_pare
     boost::split(split_path, path, boost::is_any_of("/"));
     bool not_exist = false;
     std::string unroll;
-    std::string p_path = "";
+    std::string p_path;
     // Start at index 1 because it includes "/" as the first element
     // in the array when we do NOT want that
     for (int i = 1; i < split_path.size(); i++) {
