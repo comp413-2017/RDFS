@@ -50,7 +50,6 @@ class StorageTest : public ::testing::Test {
     initializeDatanodes(NUM_DATANODES);
 
     int error_code;
-<<<<<<< HEAD
     zk = std::make_shared<ZKWrapper>(
         "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
     assert(error_code == 0);  // Z_OK
@@ -74,11 +73,7 @@ class StorageTest : public ::testing::Test {
 };
 
 /**
-<<<<<<< HEAD
  * The following is an example of using StorageMetrics.
-=======
- * The following is an example of using the StorageMetrics tool.
->>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
  * This test puts a file into RDFS, then prints 2 metrics (SD and % space used)
  */
 TEST_F(StorageTest, testExample) {
@@ -122,15 +117,7 @@ static inline int runTests(int argc, char **argv) {
   sleep(10);
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(5);
-<<<<<<< HEAD
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-=======
-
-  // Start up a NameNode
-  system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  sleep(5);
->>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
