@@ -887,21 +887,20 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
 /**
  * Make a directory in zookeeper
  */
-void ZkNnClient::mkdir(MkdirsRequestProto &request,
+MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
                        MkdirsResponseProto &response) {
   const std::string &path = request.src();
   bool create_parent = request.createparent();
-  if (!mkdir_helper(path, create_parent)) {
-    response.set_result(false);
-  }
-  response.set_result(true);
+  auto rv = mkdir_helper(path, create_parent);
+  response.set_result(rv == MkdirResponse::Ok);
+  return rv;
 }
 
 /**
  * Helper for creating a directory znode. Iterates over the parents and creates
  * them if necessary.
  */
-bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
+MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
   LOG(INFO) << "mkdir_helper called with input " << path;
   if (create_parent) {
     std::vector<std::string> split_path;
@@ -916,7 +915,7 @@ bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
       LOG(INFO) << "[in mkdir_helper] " << p_path;
       if (!file_exists(p_path)) {
         // keep track of the path where we start creating directories
-        if (not_exist == false) {
+        if (!not_exist) {
           unroll = p_path;
         }
         not_exist = true;
@@ -925,7 +924,7 @@ bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
         int error;
         if ((error = create_file_znode(p_path, &znode_data))) {
           // TODO(2016) unroll the created directories
-          // return false;
+          return MkdirResponse::FailedZnodeCreation;
         }
       } else {
         LOG(INFO) << "mkdir_helper is trying to create";
@@ -934,9 +933,14 @@ bool ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
   } else {
     FileZNode znode_data;
     set_mkdir_znode(&znode_data);
-    return create_file_znode(path, &znode_data);
+    switch (create_file_znode(path, &znode_data)) {
+        case 0:
+            return MkdirResponse::Ok;
+        default:
+            return MkdirResponse::FailedZnodeCreation;
+    }
   }
-  return true;
+  return MkdirResponse::Ok;
 }
 
 ZkNnClient::ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,

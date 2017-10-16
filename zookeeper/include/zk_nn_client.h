@@ -102,6 +102,11 @@ class ZkNnClient : public ZkClientCommon {
       FailedZookeeperOp
   };
 
+  enum class MkdirResponse {
+      Ok,
+      FailedZnodeCreation
+  };
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -122,8 +127,9 @@ class ZkNnClient : public ZkClientCommon {
   bool create_file(CreateRequestProto &request, CreateResponseProto &response);
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res);
-  void mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
+  MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
+  void destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   void rename(RenameRequestProto &req, RenameResponseProto &res);
   ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
@@ -230,7 +236,7 @@ class ZkNnClient : public ZkClientCommon {
    * all the parent directories which are not in zookeeper already. Return false
    * if the creation did not work, true otherwise
    */
-  bool mkdir_helper(const std::string &path, bool create_parent);
+  MkdirResponse mkdir_helper(const std::string &path, bool create_parent);
 
   /**
    * Read a znode corresponding to a file into znode_data

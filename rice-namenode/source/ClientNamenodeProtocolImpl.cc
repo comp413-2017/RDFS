@@ -102,7 +102,11 @@ std::string ClientNamenodeTranslator::mkdir(std::string input) {
   logMessage(&req, "Mkdir ");
   MkdirsResponseProto res;
   zk->mkdir(req, res);
-  return Serialize(res);
+  if (zk->mkdir(req, res) == zkclient::ZkNnClient::MkdirResponse::Ok) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not mkdir", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::destroy(std::string input) {
