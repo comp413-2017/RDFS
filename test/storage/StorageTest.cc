@@ -97,7 +97,11 @@ class StorageTest : public ::testing::Test {
 };
 
 /**
+<<<<<<< HEAD
  * The following is an example of using StorageMetrics.
+=======
+ * The following is an example of using the StorageMetrics tool.
+>>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
  * This test puts a file into RDFS, then prints 2 metrics (SD and % space used)
  */
 TEST_F(StorageTest, testExample) {
