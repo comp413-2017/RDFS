@@ -23,11 +23,18 @@ class StorageTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     int error_code;
+<<<<<<< HEAD
     zk = std::make_shared<ZKWrapper>(
         "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
     assert(error_code == 0);  // Z_OK
 
     // Start the namenode in a way that gives us a local pointer to zkWrapper.
+=======
+    zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+    assert(error_code == 0);  // Z_OK
+
+    // Connect local zkWrapper to test zookeeper.
+>>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
     unsigned short port = 5351;
     nncli = new zkclient::ZkNnClient(zk);
     nncli->register_watches();
@@ -41,15 +48,24 @@ class StorageTest : public ::testing::Test {
 };
 
 /**
+<<<<<<< HEAD
  * The following is an example of using StorageMetrics.
+=======
+ * The following is an example of using the StorageMetrics tool.
+>>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
  * This test puts a file into RDFS, then prints 2 metrics (SD and % space used)
  */
 TEST_F(StorageTest, testExample) {
   asio::io_service io_service;
+<<<<<<< HEAD
 
   RPCServer namenodeServer = nn_translator->getRPCServer();
   std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
       .detach();
+=======
+  RPCServer namenodeServer = nn_translator->getRPCServer();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
+>>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
 
   ASSERT_EQ(0, system("python "
                           "/home/vagrant/rdfs/test/integration/generate_file.py"
@@ -81,7 +97,15 @@ static inline int runTests(int argc, char **argv) {
   sleep(10);
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(5);
+<<<<<<< HEAD
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
+=======
+
+  // Start up a NameNode
+  system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
+  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
+  sleep(5);
+>>>>>>> working on storage metrics - copied deleteTest setup for access to zkWrapper in tests
 
   // initialize NUM_DATANODES datanodes
   int32_t xferPort = 50010;
