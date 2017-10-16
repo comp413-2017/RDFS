@@ -6,29 +6,27 @@
 
 #pragma once
 
+typedef struct {
+  uint32_t ipcPort;
+  uint32_t xferPort;
+  uint64_t disk_bytes;    // total space on disk
+  uint64_t free_bytes;    // free space on disk
+  uint32_t xmits;            // current number of xmits
+} DataNodePayload;
+
 class StorageMetrics {
  public:
   /**
    * Constructor
    * @param numDatanodes_ the number of datanodes, known by the caller test.
+   *        This can be changed to be variable size later if needed.
+   * @param zkWrapper_ the zkWrapper
    */
   explicit StorageMetrics(
       int numDatanodes_,
       std::shared_ptr<ZKWrapper> zkWrapper_) :
         kNumDatanodes(numDatanodes_),
         zkWrapper(zkWrapper_) {}
-
-  /**
-   * Measures sum of used space on all DataNodes
-   * @return total used space (TODO: units???)
-   */
-  int totalUsedSpace();
-
-  /**
-   * Measures sum of sizes of DataNodes.
-   * @return total space in all DataNodes (TODO: units???)
-   */
-  int totalSpace();
 
   /**
    * Returns the proportion of space used.

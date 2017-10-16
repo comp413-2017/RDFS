@@ -23,10 +23,11 @@ class StorageTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     int error_code;
-    zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+    zk = std::make_shared<ZKWrapper>(
+        "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
     assert(error_code == 0);  // Z_OK
 
-    // Connect local zkWrapper to test zookeeper.
+    // Start the namenode in a way that gives us a local pointer to zkWrapper.
     unsigned short port = 5351;
     nncli = new zkclient::ZkNnClient(zk);
     nncli->register_watches();
@@ -40,13 +41,15 @@ class StorageTest : public ::testing::Test {
 };
 
 /**
- * The following is an example of using the StorageMetrics tool.
+ * The following is an example of using StorageMetrics.
  * This test puts a file into RDFS, then prints 2 metrics (SD and % space used)
  */
 TEST_F(StorageTest, testExample) {
   asio::io_service io_service;
+
   RPCServer namenodeServer = nn_translator->getRPCServer();
-  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
+      .detach();
 
   ASSERT_EQ(0, system("python "
                           "/home/vagrant/rdfs/test/integration/generate_file.py"
@@ -78,11 +81,7 @@ static inline int runTests(int argc, char **argv) {
   sleep(10);
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(5);
-
-  // Start up a NameNode
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  sleep(5);
 
   // initialize NUM_DATANODES datanodes
   int32_t xferPort = 50010;
@@ -107,6 +106,7 @@ static inline int runTests(int argc, char **argv) {
   // Kill the DataNodes and NameNodes, and stop zookeeper
   system("pkill -f StorageTestServer*");
   system("pkill -f namenode");
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
 }
