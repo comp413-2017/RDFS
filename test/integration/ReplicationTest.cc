@@ -74,10 +74,10 @@ TEST(ReplicationTest, testReplication) {
   system(
       "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
           "-copyFromLocal expected_testfile1234 /g");
-//        // Read it from rdfs.
+  // Read it from rdfs.
   sleep(10);
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile1234");
-//        // Check that its contents match.
+  // Check that its contents match.
   sleep(10);
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
