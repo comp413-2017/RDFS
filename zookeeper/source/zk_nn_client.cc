@@ -784,7 +784,7 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
       directory_paths += ("/" + split_path[i]);
     }
     // try and make all the parents
-    if (!mkdir_helper(directory_paths, true))
+    if (mkdir_helper(directory_paths, true) != ZkNnClient::MkdirResponse::Ok)
       return false;
   }
 
@@ -887,7 +887,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
 /**
  * Make a directory in zookeeper
  */
-MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
+ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
                        MkdirsResponseProto &response) {
   const std::string &path = request.src();
   bool create_parent = request.createparent();
@@ -900,7 +900,7 @@ MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
  * Helper for creating a directory znode. Iterates over the parents and creates
  * them if necessary.
  */
-MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
+ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
   LOG(INFO) << "mkdir_helper called with input " << path;
   if (create_parent) {
     std::vector<std::string> split_path;
