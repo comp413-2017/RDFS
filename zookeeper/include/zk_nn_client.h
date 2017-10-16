@@ -147,7 +147,6 @@ class ZkNnClient : public ZkClientCommon {
                            GetBlockLocationsResponseProto &res);
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
-  void destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   void rename(RenameRequestProto &req, RenameResponseProto &res);
   ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);

@@ -7,6 +7,7 @@
 #include <easylogging++.h>
 #include <gtest/gtest.h>
 #include <cstring>
+#include <ctime>
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "zk_dn_client.h"
