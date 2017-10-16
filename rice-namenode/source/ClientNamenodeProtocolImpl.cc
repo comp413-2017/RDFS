@@ -121,14 +121,19 @@ std::string ClientNamenodeTranslator::mkdir(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::destroy(std::string input) {
+  TIMED_FUNC_IF(destroyTimer, VLOG_IS_ON(9));
+
   DeleteRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "Delete ");
   const std::string &src = req.src();
   const bool recursive = req.recursive();
   DeleteResponseProto res;
-  zk->destroy(req, res);
-  return Serialize(res);
+  if (zk->destroy(req, res) == zkclient::ZkNnClient::DeleteResponse::Ok) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not delete", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::create(std::string input) {

@@ -572,32 +572,39 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
 }
 
 
-bool ZkNnClient::destroy_helper(const std::string &path,
+ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
                                 std::vector<std::shared_ptr<ZooOp>> &ops) {
+  
   LOG(INFO) << "Destroying " << path;
+
   if (!file_exists(path)) {
-    LOG(ERROR) << path << " does not exist";
-    return false;
+    LOG(ERROR) << path 
+    					 << " does not exist";
+    return DeleteResponse::FileDoesNotExist;
   }
+
   int error_code;
   FileZNode znode_data;
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
   if (!zk->get_children(ZookeeperPath(path), children, error_code)) {
-    LOG(FATAL) << "Failed to get children for " << path;
-    return false;
+    LOG(FATAL) << "Failed to get children for " 
+    					 << path;
+    return DeleteResponse::FailedChildRetrieval;
   }
   if (znode_data.filetype == IS_DIR) {
     for (auto& child : children) {
       auto child_path = util::concat_path(path, child);
-      if (!destroy_helper(child_path, ops)) {
-        return false;
+      auto status = destroy_helper(child_path, ops);
+      if (status != DeleteResponse::Ok) {
+      	return status;
       }
     }
   } else if (znode_data.filetype == IS_FILE) {
     if (znode_data.under_construction == UNDER_CONSTRUCTION) {
-      LOG(ERROR) << path << " is under construction, so it cannot be deleted.";
-      return false;
+      LOG(ERROR) << path 
+      					 << " is under construction, so it cannot be deleted.";
+      return DeleteResponse::FileUnderConstruction;
     }
     for (auto &child : children) {
       auto child_path = util::concat_path(path, child);
@@ -606,7 +613,7 @@ bool ZkNnClient::destroy_helper(const std::string &path,
       std::vector<std::uint8_t> block_vec;
       std::uint64_t block;
       if (!zk->get(child_path, block_vec, error_code, sizeof(block))) {
-        return false;
+        return DeleteResponse::FailedBlockRetrieval;
       }
       block = *reinterpret_cast<std::uint64_t *>(block_vec.data());
       std::vector<std::string> datanodes;
@@ -618,7 +625,7 @@ bool ZkNnClient::destroy_helper(const std::string &path,
                    << block
                    << " with error: "
                    << error_code;
-        return false;
+        return DeleteResponse::FailedDataNodeRetrieval;
       }
       // push delete commands onto ops
       for (auto &dn : datanodes) {
@@ -631,7 +638,7 @@ bool ZkNnClient::destroy_helper(const std::string &path,
     }
   }
   ops.push_back(zk->build_delete_op(ZookeeperPath(path)));
-  return true;
+  return DeleteResponse::Ok;
 }
 
 void ZkNnClient::complete(CompleteRequestProto& req,
@@ -704,17 +711,21 @@ void ZkNnClient::complete(CompleteRequestProto& req,
  * Go down directories recursively. If a child is a file, then put its deletion on a queue.
  * Files delete themselves, but directories are deleted by their parent (so root can't be deleted)
  */
-void ZkNnClient::destroy(DeleteRequestProto &request,
+ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
                          DeleteResponseProto &response) {
   int error_code;
   const std::string &path = request.src();
   bool recursive = request.recursive();
   response.set_result(true);
+
   if (!file_exists(path)) {
-    LOG(ERROR) << "Cannot delete " << path << " because it doesn't exist.";
+    LOG(ERROR) << "Cannot delete " 
+    					 << path 
+    					 << " because it doesn't exist.";
     response.set_result(false);
-    return;
+    return DeleteResponse::FileDoesNotExist;
   }
+
   FileZNode znode_data;
   read_file_znode(znode_data, path);
 
@@ -724,25 +735,33 @@ void ZkNnClient::destroy(DeleteRequestProto &request,
                << path
                << " because it is under construction.";
     response.set_result(false);
-    return;
+    return DeleteResponse::FileUnderConstruction;
   }
+
   if (znode_data.filetype == IS_DIR && !recursive) {
     LOG(ERROR) << "Cannot delete "
                << path
                << " because it is a directory. Use recursive = true.";
     response.set_result(false);
-    return;
+    return DeleteResponse::FileIsDirectoryMismatch;
   }
+
   std::vector<std::shared_ptr<ZooOp>> ops;
-  if (!destroy_helper(path, ops)) {
-    response.set_result(false);
-    return;
+  auto status = destroy_helper(path, ops);
+  if (status != DeleteResponse::Ok) {
+  	response.set_result(false);
+  	return status;
   }
+
   std::vector<zoo_op_result> results;
   if (!zk->execute_multi(ops, results, error_code)) {
-    LOG(ERROR) << "Failed to execute multi op to delete " << path;
+    LOG(ERROR) << "Failed to execute multi op to delete " 
+    					 << path;
     response.set_result(false);
+    return DeleteResponse::FailedZookeeperOp;
   }
+
+  return DeleteResponse::Ok;
 }
 
 /**

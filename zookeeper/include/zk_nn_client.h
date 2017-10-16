@@ -108,6 +108,18 @@ class ZkNnClient : public ZkClientCommon {
       FileDoesNotExist,     // 1
       FailedChildRetrieval  // 2
   };
+
+  enum class DeleteResponse {
+      Ok,
+      FileDoesNotExist,
+      FileUnderConstruction,
+      FileIsDirectoryMismatch,
+      FailedChildRetrieval,
+      FailedBlockRetrieval,
+      FailedDataNodeRetrieval,
+      FailedZookeeperOp
+  };
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -129,7 +141,7 @@ class ZkNnClient : public ZkClientCommon {
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res);
   void mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
-  void destroy(DeleteRequestProto &req, DeleteResponseProto &res);
+  DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   void rename(RenameRequestProto &req, RenameResponseProto &res);
   ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
@@ -143,8 +155,8 @@ class ZkNnClient : public ZkClientCommon {
 
   char get_node_policy();
   /**
-       * Add block.
-       */
+   * Add block.
+   */
   bool add_block(AddBlockRequestProto &req, AddBlockResponseProto &res);
 
   /**
@@ -257,7 +269,7 @@ class ZkNnClient : public ZkClientCommon {
    */
   void delete_node_wrapper(std::string &path, DeleteResponseProto &response);
 
-  bool destroy_helper(const std::string &path,
+  DeleteResponse destroy_helper(const std::string &path,
                       std::vector<std::shared_ptr<ZooOp>> &ops);
 
   /**

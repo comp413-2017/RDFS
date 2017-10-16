@@ -9,6 +9,8 @@
 
 #define ELPP_THREAD_SAFE
 
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
+
 INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
@@ -58,6 +60,12 @@ int main(int argc, char **argv) {
 
   // Give zk some time to start.
   sleep(10);
+
+  el::Configurations conf(LOG_CONFIG_FILE);
+  el::Loggers::reconfigureAllLoggers(conf);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
+  el::Loggers::setVerboseLevel(9);
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
