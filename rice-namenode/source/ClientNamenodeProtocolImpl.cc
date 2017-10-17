@@ -97,11 +97,11 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::mkdir(std::string input) {
+  TIMED_FUNC_IF(destroyHandlerTimer, VLOG_IS_ON(9));
   MkdirsRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "Mkdir ");
   MkdirsResponseProto res;
-  zk->mkdir(req, res);
   if (zk->mkdir(req, res) == zkclient::ZkNnClient::MkdirResponse::Ok) {
     return Serialize(res);
   } else {
