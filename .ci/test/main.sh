@@ -24,3 +24,4 @@ run_flaky_test ./ZKDNClientTest
 ./ZKLockTest
 run_flaky_test ./ZKWrapperTest
 ./ReadWriteTest
+./StorageTest
