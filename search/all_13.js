@@ -18,6 +18,7 @@ var searchData=
   ['updatepipelineresponseproto',['UpdatePipelineResponseProto',['../classhadoop_1_1hdfs_1_1_update_pipeline_response_proto.html',1,'hadoop::hdfs']]],
   ['updatereplicaunderrecoveryrequestproto',['UpdateReplicaUnderRecoveryRequestProto',['../classhadoop_1_1hdfs_1_1_update_replica_under_recovery_request_proto.html',1,'hadoop::hdfs']]],
   ['updatereplicaunderrecoveryresponseproto',['UpdateReplicaUnderRecoveryResponseProto',['../classhadoop_1_1hdfs_1_1_update_replica_under_recovery_response_proto.html',1,'hadoop::hdfs']]],
+  ['usedspacefraction',['usedSpaceFraction',['../class_storage_metrics.html#a6c13468daf452bb12884d249554e0085',1,'StorageMetrics']]],
   ['userinformationproto',['UserInformationProto',['../classhadoop_1_1common_1_1_user_information_proto.html',1,'hadoop::common']]],
   ['utf16_5fcounter',['utf16_counter',['../structutf16__counter.html',1,'']]],
   ['utf16_5fdecoder',['utf16_decoder',['../structutf16__decoder.html',1,'']]],

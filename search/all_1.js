@@ -17,6 +17,7 @@ var searchData=
   ['blockreportcontextproto',['BlockReportContextProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_block_report_context_proto.html',1,'hadoop::hdfs::datanode']]],
   ['blockreportrequestproto',['BlockReportRequestProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_block_report_request_proto.html',1,'hadoop::hdfs::datanode']]],
   ['blockreportresponseproto',['BlockReportResponseProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_block_report_response_proto.html',1,'hadoop::hdfs::datanode']]],
+  ['blocksperdatanodesd',['blocksPerDataNodeSD',['../class_storage_metrics.html#a00672f2815f4a11470b56c64185f591b',1,'StorageMetrics']]],
   ['blockstoragepolicyproto',['BlockStoragePolicyProto',['../classhadoop_1_1hdfs_1_1_block_storage_policy_proto.html',1,'hadoop::hdfs']]],
   ['blockswithlocationsproto',['BlocksWithLocationsProto',['../classhadoop_1_1hdfs_1_1_blocks_with_locations_proto.html',1,'hadoop::hdfs']]],
   ['blockwithlocationsproto',['BlockWithLocationsProto',['../classhadoop_1_1hdfs_1_1_block_with_locations_proto.html',1,'hadoop::hdfs']]],

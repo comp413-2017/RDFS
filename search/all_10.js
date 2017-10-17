@@ -14,6 +14,7 @@ var searchData=
   ['recoverlease',['recoverLease',['../classclient__namenode__translator_1_1_client_namenode_translator.html#ab52cc5e09537eda6b2794eb9b4c2f604',1,'client_namenode_translator::ClientNamenodeTranslator']]],
   ['recoverleaserequestproto',['RecoverLeaseRequestProto',['../classhadoop_1_1hdfs_1_1_recover_lease_request_proto.html',1,'hadoop::hdfs']]],
   ['recoverleaseresponseproto',['RecoverLeaseResponseProto',['../classhadoop_1_1hdfs_1_1_recover_lease_response_proto.html',1,'hadoop::hdfs']]],
+  ['recoveryspeed',['recoverySpeed',['../class_storage_metrics.html#a78f19e7a7079ccef8acc95a008636981',1,'StorageMetrics']]],
   ['recursive_5fcreate',['recursive_create',['../class_z_k_wrapper.html#a85c8c60cad7e38e945e6bcf603189d58',1,'ZKWrapper']]],
   ['recursive_5fdelete',['recursive_delete',['../class_z_k_wrapper.html#ad5bbbd3a3b26bf474127d124c0da33dc',1,'ZKWrapper']]],
   ['refreshcallqueuerequestproto',['RefreshCallQueueRequestProto',['../classhadoop_1_1common_1_1_refresh_call_queue_request_proto.html',1,'hadoop::common']]],

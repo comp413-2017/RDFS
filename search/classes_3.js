@@ -8,6 +8,7 @@ var searchData=
   ['datanodeinfoproto',['DatanodeInfoProto',['../classhadoop_1_1hdfs_1_1_datanode_info_proto.html',1,'hadoop::hdfs']]],
   ['datanodeinfosproto',['DatanodeInfosProto',['../classhadoop_1_1hdfs_1_1_datanode_infos_proto.html',1,'hadoop::hdfs']]],
   ['datanodelocalinfoproto',['DatanodeLocalInfoProto',['../classhadoop_1_1hdfs_1_1_datanode_local_info_proto.html',1,'hadoop::hdfs']]],
+  ['datanodepayload',['DataNodePayload',['../struct_data_node_payload.html',1,'']]],
   ['datanodepayload',['DataNodePayload',['../structzkclient_1_1_data_node_payload.html',1,'zkclient']]],
   ['datanoderegistrationproto',['DatanodeRegistrationProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_datanode_registration_proto.html',1,'hadoop::hdfs::datanode']]],
   ['datanodestorageproto',['DatanodeStorageProto',['../classhadoop_1_1hdfs_1_1_datanode_storage_proto.html',1,'hadoop::hdfs']]],
