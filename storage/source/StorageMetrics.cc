@@ -23,8 +23,6 @@ float StorageMetrics::usedSpaceFraction() {
     numerator += stats.disk_bytes - stats.free_bytes;
     denominator += stats.disk_bytes;
   }
-  LOG(INFO) << "----- USED BYTES: " << numerator;
-  LOG(INFO) << "----- total BYTES: " << denominator;
   return (static_cast<float>(numerator)) / (static_cast<float>(denominator));
 }
 
