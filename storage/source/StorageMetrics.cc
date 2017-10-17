@@ -9,7 +9,9 @@ float StorageMetrics::usedSpaceFraction() {
   int64_t denominator = 0;
   int error = 0;
   std::vector<std::string> datanodeIds;
-  zkWrapper->get_children("/health", datanodeIds, error);
+  if (!zkWrapper->get_children("/health", datanodeIds, error)) {
+    LOG(ERROR) << "Failed to get /health children";
+  }
   for (std::string &datanodeId : datanodeIds) {
     std::string statsPath = "/health/" + datanodeId + "/stats";
     std::vector<std::uint8_t> statsPayload = std::vector<std::uint8_t>();
@@ -32,13 +34,17 @@ float StorageMetrics::blocksPerDataNodeSD() {
 
   int error = 0;
   std::vector<std::string> datanode_ids;
-  zkWrapper->get_children("/health", datanode_ids, error);
+  if (!zkWrapper->get_children("/health", datanode_ids, error)) {
+    LOG(ERROR) << "Failed to get /health children";
+  }
 
   int i = 0;
   for (std::string &datanode_id : datanode_ids) {
     std::string block_path = "/health/" + datanode_id + "/blocks";
     std::vector<std::string> block_ids;
-    zkWrapper->get_children(block_path, block_ids, error);
+    if (!zkWrapper->get_children(block_path, block_ids, error)) {
+      LOG(ERROR) << "Failed to get " << block_path;
+    }
     dataNodeBlockCounts[i++] = static_cast<int>(block_ids.size());
   }
 
