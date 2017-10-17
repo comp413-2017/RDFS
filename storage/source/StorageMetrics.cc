@@ -1,5 +1,6 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <boost/timer/timer.hpp>
 #include <unordered_map>
 #include <StorageMetrics.h>
 
@@ -55,9 +56,33 @@ float StorageMetrics::recoverySpeed() {
   return 0.0;
 }
 
-float StorageMetrics::degenerateRead() {
-  // TODO(ejd6): implement
-  return 0.0;
+float StorageMetrics::degenerateRead(
+    std::string file,
+    std::vector<std::pair<std::string, std::string>> targetDatanodes) {
+  // Kill the datanodes.
+  for (std::pair<std::string, std::string> datanode : targetDatanodes) {
+    system("pkill -f " + datanode.first);
+    sleep(5);
+  }
+  // This measures wall clock and CPU time.
+  boost::timer::cpu_timer timer;
+
+  // Do the read.
+  // todo
+
+  boost::timer::cpu_times elapsed = timer.elapsed();
+
+  // Restart the datanodes so this function has less "side effects".
+  for (std::pair<std::string, std::string> datanode : targetDatanodes) {
+    std::string cmdLine =
+        "bash -c \"exec -a " + datanode.first +
+            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+            datanode.second + "\" & ";
+    system(cmdLine.c_str());
+    sleep(3);
+  }
+
+  return static_cast<float>(elapsed.wall / 1e9);
 }
 
 float StorageMetrics::stDev(int usedBlockCounts[]) {

@@ -1,6 +1,9 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
 #include <zookeeper.h>
+#include <utility>
+#include <string>
+#include <vector>
 
 #include "zkwrapper.h"
 
@@ -48,10 +51,22 @@ class StorageMetrics {
   float recoverySpeed();
 
   /**
-   * Measures how long a read takes while a desired block is being recovered.
-   * @return wall clock time for the read
+   * Measures how long a read takes while a data block is being recovered.
+   *
+   * Note that files under replication have no degenerate read (the degenerate)
+   *    case is the file being unreadable.
+   * Files under EC must have a downed data block (not parity block) for the
+   *    degenerate read case. Keep that in mind when passing in target DataNodes
+   *
+   * @param file The file path to read.
+   * @param targetDatanodes
+   *        first: unix process name of a datanode to kill
+   *        second: cliArgs for restarting that datanode.
+   * @return wall clock time for the read (seconds)
    */
-  float degenerateRead();
+  float degenerateRead(
+      std::string file,
+      std::vector<std::pair<std::string, std::string>> targetDatanodes);
 
  private:
   int kNumDatanodes;
