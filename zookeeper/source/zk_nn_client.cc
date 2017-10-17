@@ -499,7 +499,7 @@ void ZkNnClient::get_info(GetFileInfoRequestProto &req,
 /**
  * Create a node in zookeeper corresponding to a file
  */
-int ZkNnClient::create_file_znode(const std::string &path,
+bool ZkNnClient::create_file_znode(const std::string &path,
                                   FileZNode *znode_data) {
   int error_code;
   if (!file_exists(path)) {
@@ -514,13 +514,13 @@ int ZkNnClient::create_file_znode(const std::string &path,
     file_znode_struct_to_vec(znode_data, data);
     // crate the node in zookeeper
     if (!zk->create(ZookeeperPath(path), data, error_code)) {
-      LOG(ERROR) << "Create failed" << error_code;
-      return 0;
+      LOG(ERROR) << "Create failed with error code " << error_code;
+      return false;
       // TODO(2016): handle error
     }
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
@@ -930,8 +930,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool
         not_exist = true;
         FileZNode znode_data;
         set_mkdir_znode(&znode_data);
-        int error;
-        if ((error = create_file_znode(p_path, &znode_data))) {
+        if (!create_file_znode(p_path, &znode_data)) {
           // TODO(2016) unroll the created directories
           return MkdirResponse::FailedZnodeCreation;
         }
@@ -942,12 +941,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool
   } else {
     FileZNode znode_data;
     set_mkdir_znode(&znode_data);
-    switch (create_file_znode(path, &znode_data)) {
-        case 0:
-            return MkdirResponse::Ok;
-        default:
-            return MkdirResponse::FailedZnodeCreation;
-    }
+    return create_file_znode(path, &znode_data) ? MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
   }
   return MkdirResponse::Ok;
 }
