@@ -642,7 +642,7 @@ bool ZkNnClient::destroy_helper(const std::string &path,
 }
 
 void ZkNnClient::complete(CompleteRequestProto& req,
-                          CompleteRCompleteResponseProtoesponseProto& res) {
+                          CompleteResponseProto& res) {
   // TODO(2016): Completion makes a few guarantees that we should handle
 
   int error_code;
