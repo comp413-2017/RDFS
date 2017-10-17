@@ -4,8 +4,8 @@
 #include <StorageMetrics.h>
 
 float StorageMetrics::usedSpaceFraction() {
-  int64_t numerator = 0;
-  int64_t denominator = 0;
+  uint64_t numerator = 0;
+  uint64_t denominator = 0;
   int error = 0;
   std::vector<std::string> datanodeIds;
   if (!zkWrapper->get_children("/health", datanodeIds, error)) {
@@ -17,7 +17,7 @@ float StorageMetrics::usedSpaceFraction() {
     statsPayload.resize(sizeof(DataNodePayload));
     if (!zkWrapper->get(statsPath, statsPayload, error)) {
       LOG(ERROR) << "Failed to get " << statsPath;
-      return -1;
+      return 0;
     }
     DataNodePayload stats = DataNodePayload();
     memcpy(&stats, &statsPayload[0], sizeof(DataNodePayload));
