@@ -370,6 +370,9 @@ int main(int argc, char **argv) {
     // Start up zookeeper
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
     system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+
+    // In case testing files were not previously deleted.
+    system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
     sleep(10);
 
     // Initialize and run the tests
