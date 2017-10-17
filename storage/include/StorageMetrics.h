@@ -53,12 +53,13 @@ class StorageMetrics {
   /**
    * Measures how long a read takes while a data block is being recovered.
    *
-   * Note that files under replication have no degenerate read (the degenerate)
+   * Note that files under replication have no degenerate read. The degenerate
    *    case is the file being unreadable.
    * Files under EC must have a downed data block (not parity block) for the
    *    degenerate read case. Keep that in mind when passing in target DataNodes
    *
    * @param file The file path to read.
+   * @param destination The file name for writing cat output
    * @param targetDatanodes
    *        first: unix process name of a datanode to kill
    *        second: cliArgs for restarting that datanode.
@@ -66,6 +67,7 @@ class StorageMetrics {
    */
   float degenerateRead(
       std::string file,
+      std::string destination,
       std::vector<std::pair<std::string, std::string>> targetDatanodes);
 
  private:
