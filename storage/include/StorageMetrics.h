@@ -1,5 +1,6 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <unistd.h>
 #include <zookeeper.h>
 #include <utility>
 #include <string>
@@ -53,6 +54,8 @@ class StorageMetrics {
   /**
    * Measures how long a read takes while a data block is being recovered.
    *
+   * Prints the resulting time.
+   *
    * Note that files under replication have no degenerate read. The degenerate
    *    case is the file being unreadable.
    * Files under EC must have a downed data block (not parity block) for the
@@ -63,7 +66,7 @@ class StorageMetrics {
    * @param targetDatanodes
    *        first: unix process name of a datanode to kill
    *        second: cliArgs for restarting that datanode.
-   * @return wall clock time for the read (seconds)
+   * @return 0 on success, 1 on error
    */
   float degenerateRead(
       std::string file,
