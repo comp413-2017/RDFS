@@ -1122,7 +1122,7 @@ std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath) {
   }
   zkpath += hadoopPath;
   if (zkpath.at(zkpath.length() - 1) == '/') {
-    zkpath.at(zkpath.length() - 1) = '\0';
+    zkpath.pop_back();
   }
   return zkpath;
 }
