@@ -152,6 +152,7 @@ TEST_F(NamenodeTest, listingPerformance) {
     double secs = static_cast<double>(full_call_time.count()) *
             std::chrono::steady_clock::period::num /
             std::chrono::steady_clock::period::den;
+    VLOG(9) << "get_listing took " << secs << " seconds.";
     ASSERT_EQ(client_response, zkclient::ZkNnClient::ListingResponse::Ok) << "File not found";
 
     // Check that we've gotten exactly the files we expected.
