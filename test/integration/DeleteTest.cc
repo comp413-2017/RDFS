@@ -26,13 +26,12 @@ class DeleteTest : public ::testing::Test {
     unsigned short port = 5351;
     nncli = new zkclient::ZkNnClient(zk);
     nncli->register_watches();
-    nn_translator = new ClientNamenodeTranslator(5351, nncli);
+    nn_translator = new ClientNamenodeTranslator(port, nncli);
   }
 
   // Objects declared here can be used by all tests in the test case.
   zkclient::ZkNnClient *nncli;
   ClientNamenodeTranslator *nn_translator;
-  RPCServer *namenodeServer;
   std::shared_ptr<ZKWrapper> zk;
 };
 
