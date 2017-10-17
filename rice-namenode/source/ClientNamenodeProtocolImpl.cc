@@ -21,6 +21,8 @@
 #include <RpcHeader.pb.h>
 
 #include <ConfigReader.h>
+#include <ClientNamenodeProtocol.pb.h>
+#include <hdfs.pb.h>
 
 #include "ClientNamenodeProtocolImpl.h"
 #include "zk_nn_client.h"
