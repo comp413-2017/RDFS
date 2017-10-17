@@ -71,10 +71,7 @@ TEST_F(StorageTest, testExample) {
   targetDatanodes.push_back(std::make_pair(
       "StorageTestServer0",
       "-x 50010 -p 50020 -b tfs0 &"));
-  LOG(INFO) << " ---- Degenerate read time (1/3 killed): " <<
-                            metrics.degenerateRead("/f",
-                                                   "actual_testfile1234",
-                                                   targetDatanodes);
+  metrics.degenerateRead("/f", "actual_testfile1234", targetDatanodes);
 }
 }  // namespace
 
