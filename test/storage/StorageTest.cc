@@ -1,7 +1,6 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
 #include <easylogging++.h>
-#include <utility>
 #include <gtest/gtest.h>
 #include <zk_nn_client.h>
 #include "ClientNamenodeProtocolImpl.h"
