@@ -2,29 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#include(ExternalProject)
-#
-#ExternalProject_Add(googletest
-#        GIT_REPOSITORY https://github.com/google/googletest.git
-#        GIT_TAG master
-#        SOURCE_DIR "${CMAKE_BINARY_DIR}/googletest-src"
-#        BINARY_DIR "${CMAKE_BINARY_DIR}/googletest-build"
-#        CONFIGURE_COMMAND ""
-#        BUILD_COMMAND ""
-#        INSTALL_COMMAND ""
-#        TEST_COMMAND ""
-#)
-#
-#
-#
-#execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-#        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download" )
-#execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-#        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download" )
-#
-#add_subdirectory("${CMAKE_BINARY_DIR}/googletest-src"
-#        "${CMAKE_BINARY_DIR}/googletest-build")
-#
 # Locate GTest
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
