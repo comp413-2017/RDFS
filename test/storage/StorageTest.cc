@@ -1,6 +1,7 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
 #include <easylogging++.h>
+#include <utility>
 #include <gtest/gtest.h>
 #include <zk_nn_client.h>
 #include "zkwrapper.h"
@@ -63,8 +64,17 @@ TEST_F(StorageTest, testExample) {
   StorageMetrics metrics(NUM_DATANODES, zk);
   LOG(INFO) << " ---- Standard Deviation of blocks per DataNode: " <<
                                                  metrics.blocksPerDataNodeSD();
+
   LOG(INFO) << " ---- Fraction of total space used: " <<
                                                   metrics.usedSpaceFraction();
+
+  // Example usage of degenerate read time (useless while we use replication).
+  std::vector<std::pair<std::string, std::string>> targetDatanodes;
+  targetDatanodes.push_back(std::make_pair<std::string, std::string>(
+      "StorageTestServer0",
+      "-x 50010 -p 50020 -b tfs0 &"));
+  LOG(INFO) << " ---- Degenerate read time (1/3 killed): " <<
+                            metrics.degenerateRead("/f", targetDatanodes);
 }
 }  // namespace
 
