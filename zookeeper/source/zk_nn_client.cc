@@ -14,6 +14,7 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
+#include <zk_nn_client.h>
 
 #include "zk_lock.h"
 #include "zk_dn_client.h"
@@ -315,6 +316,7 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
   return false;
 }
 
+
 bool ZkNnClient::add_block(AddBlockRequestProto &req,
                            AddBlockResponseProto &res) {
   // make sure previous addBlock operation has completed
@@ -351,7 +353,11 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  add_block(file_path, block_id, data_nodes, replication_factor);
+  if (znode_data.redundancy_form == REPLICATION) add_block(file_path, block_id, data_nodes, replication_factor);
+  else if (znode_data.redundancy_form == EC) {
+      // TODO: generate a block group and each part of a block group.
+      // TODO: generate the ids of the block group and each part according to the hierarchical naming scheme.
+  }
 
   block->set_offset(0);  // TODO(2016): Set this
   block->set_corrupt(false);
@@ -505,9 +511,10 @@ int ZkNnClient::create_file_znode(const std::string &path,
   if (!file_exists(path)) {
     LOG(INFO) << "Creating file znode at " << path;
     {
-      LOG(INFO) << znode_data->replication;
-      LOG(INFO) << znode_data->owner;
-      LOG(INFO) << "size of znode is " << sizeof(*znode_data);
+      LOG(INFO) << znode_data->replication << "\n";
+      LOG(INFO) << znode_data->owner << "\n";
+      LOG(INFO) << "Redundancy is " << znode_data->redundancy_form << "\n";
+      LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
     std::vector<std::uint8_t> data(sizeof(*znode_data));
@@ -635,7 +642,7 @@ bool ZkNnClient::destroy_helper(const std::string &path,
 }
 
 void ZkNnClient::complete(CompleteRequestProto& req,
-                          CompleteResponseProto& res) {
+                          CompleteRCompleteResponseProtoesponseProto& res) {
   // TODO(2016): Completion makes a few guarantees that we should handle
 
   int error_code;
@@ -746,7 +753,10 @@ void ZkNnClient::destroy(DeleteRequestProto &request,
 }
 
 /**
- * Create a file in zookeeper
+ * Create a new file entry in the namespace.
+ *
+ * This will create an empty file specified by the source path, a full path originated at the root.
+ *
  */
 bool ZkNnClient::create_file(CreateRequestProto &request,
                              CreateResponseProto &response) {
@@ -757,6 +767,8 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   std::uint64_t blocksize = request.blocksize();
   std::uint32_t replication = request.replication();
   std::uint32_t createflag = request.createflag();
+  const std::string &ecPolicyName = request.ecPolicyname();
+  int redundancy_form = determineRedundancyForm(ecPolicyName, path);
 
   if (file_exists(path)) {
     // TODO(2016) solve this issue of overwriting files
@@ -790,6 +802,7 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
+  znode_data.redundancy_form = redundancy_form;
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -800,6 +813,16 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
 
   return true;
 }
+
+int ZkNnClient::determineRedundancyForm(const std::string &ecPolicyString, const std::string &path) {
+    if (ecPolicyString.empty()) {
+        return DEFAULT_REDUNDANCY_FORM;
+    } else {
+        // TODO: figure out what literal strings the client uses and set it accordingly.
+        return REPLICATION;
+    }
+}
+
 
 /**
      * Rename a file in the zookeeper filesystem
@@ -872,6 +895,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
+  znode_data->redundancy_form = DEFAULT_REDUNDANCY_FORM;
 }
 
 /**
@@ -1295,6 +1319,12 @@ bool ZkNnClient::add_block(const std::string &file_path,
     return false;
   }
   return true;
+}
+
+
+u_int64_t ZkNnClient::generate_hierarchical_block_id(uint64_t block_group_id, uint32_t index_in_group) {
+    // TODO: actually implement this naming scheme.
+    return 0;
 }
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
