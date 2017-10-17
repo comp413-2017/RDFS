@@ -898,6 +898,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
  */
 ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
                        MkdirsResponseProto &response) {
+  TIMED_FUNC_IF(destroyNamenodeTimer, VLOG_IS_ON(9));
   const std::string &path = request.src();
   bool create_parent = request.createparent();
   auto rv = mkdir_helper(path, create_parent);
