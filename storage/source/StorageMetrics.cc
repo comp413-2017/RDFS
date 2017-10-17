@@ -1,8 +1,10 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <easylogging++.h>
 #include <StorageMetrics.h>
 #include <unordered_map>
-#include <boost/timer/timer.hpp>
+
+#define ELPP_FEATURE_PERFORMANCE_TRACKING
 
 float StorageMetrics::usedSpaceFraction() {
   uint64_t numerator = 0;
@@ -62,27 +64,28 @@ float StorageMetrics::degenerateRead(
     std::vector<std::pair<std::string, std::string>> targetDatanodes) {
   // Kill the datanodes.
   for (std::pair<std::string, std::string> datanode : targetDatanodes) {
-    system("pkill -f " + datanode.first);
+    system(("pkill -f " + datanode.first).c_str());
     sleep(5);
   }
 
-  boost::timer::cpu_times elapsed;
-  // Timer measures wall clock and CPU time.
-  boost::timer::cpu_timer timer;
-
   // Do the read.
-  int status = system("hdfs dfs -fs hdfs://localhost:5351 -cat "
-                          + file
-                          + " > "
-                          + destination);
+  int status;
+  {
+    TIMED_SCOPE(timerBlkObj, "degenerate-read");
+    status = system(("hdfs dfs -fs hdfs://localhost:5351 -cat "
+        + file
+        + " > "
+        + destination).c_str());
+  }
   if (status < 0) {
     LOG(ERROR) << "degenerateRead Error: " << strerror(errno);
+    return 1;
   } else {
     if (WIFEXITED(status)) {
       // Successful return.
-      elapsed = timer.elapsed();
     } else {
       LOG(ERROR) << "degenerateRead error: Program exited abnormally";
+      return 1;
     }
   }
 
@@ -96,7 +99,7 @@ float StorageMetrics::degenerateRead(
     sleep(3);
   }
 
-  return static_cast<float>(elapsed.wall / 1e9);
+  return 0;
 }
 
 float StorageMetrics::stDev(int usedBlockCounts[]) {
