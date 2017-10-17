@@ -1,6 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#include <gtest/gtest.h>
 #include <unordered_map>
 #include <StorageMetrics.h>
 
