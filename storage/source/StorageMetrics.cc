@@ -62,6 +62,9 @@ float StorageMetrics::degenerateRead(
     std::string file,
     std::string destination,
     std::vector<std::pair<std::string, std::string>> targetDatanodes) {
+  // Timing should be done on verbosity level 9.
+  el::Loggers::setVerboseLevel(9);
+
   // Kill the datanodes.
   for (std::pair<std::string, std::string> datanode : targetDatanodes) {
     system(("pkill -f " + datanode.first).c_str());
