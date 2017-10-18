@@ -87,31 +87,14 @@ namespace client_namenode_translator {
 // ----------------------- RPC HANDLERS ----------------------------
 
 
-    std::string ClientNamenodeTranslator::get(std::string input) {
-        return "";
-    }
 
-    std::string ClientNamenodeTranslator::exists(std::string input) {
-        return "";
-    }
 
-    std::string ClientNamenodeTranslator::listStatus(std::string input) {
-        return "";
-    }
-
-    std::string ClientNamenodeTranslator::open(std::string input) {
-        return "";
-    }
-
-    std::string ClientNamenodeTranslator::close(std::string input) {
-        return "";
-    }
-
-    std::string ClientNamenodeTranslator::getDefaultReplication(std::string input) {
-        return "";
-    }
 
     std::string ClientNamenodeTranslator::append(std::string input) {
+        return "";
+    }
+
+    std::string ClientNamenodeTranslator::deleate(std::string input) {
         return "";
     }
 
@@ -497,8 +480,13 @@ namespace client_namenode_translator {
 
         // Additions - marc and pradhith
         server.register_handler(
-                "get",
-                std::bind(&ClientNamenodeTranslator::get, this, _1));
+                "delete",
+                std::bind(&ClientNamenodeTranslator::deleate, this, _1));
+
+        server.register_handler(
+                "append",
+                std::bind(&ClientNamenodeTranslator::append, this, _1));
+
 
     }
 
