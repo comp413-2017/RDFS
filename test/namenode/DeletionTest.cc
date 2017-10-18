@@ -8,7 +8,7 @@ TEST_F(NamenodeTest, deleteBasicFile) {
     std::string src = "delete_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Must give zookeeper time to construct file
     sleep(20);
@@ -53,7 +53,7 @@ TEST_F(NamenodeTest, deleteDirectory) {
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     create_req.set_createparent(true);
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Must give zookeeper time to construct file
     sleep(10);

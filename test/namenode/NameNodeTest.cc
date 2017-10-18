@@ -177,7 +177,7 @@ TEST_F(NamenodeTest, DeleteUnclosedFile) {
   int error;
   hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file1");
   hadoop::hdfs::CreateResponseProto create_resp;
-  ASSERT_EQ(1, client->create_file(create_req, create_resp));
+  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
   hadoop::hdfs::DeleteRequestProto del_req;
   hadoop::hdfs::DeleteResponseProto del_resp;
@@ -194,7 +194,7 @@ TEST_F(NamenodeTest, DeleteClosedFileWithBlock) {
   int error;
   hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("file2");
   hadoop::hdfs::CreateResponseProto create_resp;
-  ASSERT_EQ(1, client->create_file(create_req, create_resp));
+  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
   std::uint64_t block_id = 1234;
   std::vector<std::uint8_t> block_vec(sizeof(std::uint64_t));
   memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
@@ -258,7 +258,7 @@ TEST_F(NamenodeTest, testRenameFile) {
   create_req.set_blocksize(0);
   create_req.set_replication(1);
   create_req.set_createflag(0);
-  ASSERT_TRUE(client->create_file(create_req, create_resp));
+  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
   // Create a child of the old file with a fake block
   std::string new_path;
@@ -313,11 +313,11 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
   create_req.set_blocksize(0);
   create_req.set_replication(1);
   create_req.set_createflag(0);
-  ASSERT_TRUE(client->create_file(create_req, create_resp));
+  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
   create_req.set_src("/old_dir/file2");
-  ASSERT_TRUE(client->create_file(create_req, create_resp));
+  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
   create_req.set_src("/old_dir/nested_dir/nested_file");
-  ASSERT_TRUE(client->create_file(create_req, create_resp));
+  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
   // Rename
   hadoop::hdfs::RenameRequestProto rename_req;

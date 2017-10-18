@@ -125,6 +125,13 @@ class ZkNnClient : public ZkClientCommon {
       FailedZnodeCreation
   };
 
+  enum class CreateResponse {
+      Ok,
+      FileAlreadyExists,
+      FailedMkdir,
+      FailedCreateZnode
+  };
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -142,7 +149,7 @@ class ZkNnClient : public ZkClientCommon {
    */
 
   void get_info(GetFileInfoRequestProto &req, GetFileInfoResponseProto &res);
-  bool create_file(CreateRequestProto &request, CreateResponseProto &response);
+  ZkNnClient::CreateResponse  create_file(CreateRequestProto &request, CreateResponseProto &response);
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res);
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);

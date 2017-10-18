@@ -23,7 +23,7 @@ std::vector<std::string> createTestString(
 TEST_F(NamenodeTest, createBasicFile) {
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("basic_file");
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
     ASSERT_EQ(file_status.filetype(), hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
@@ -34,11 +34,11 @@ TEST_F(NamenodeTest, createExistingFile) {
     // First, create a file.
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("test_file");
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
     ASSERT_TRUE(client->file_exists("test_file"));
 
     // Then, try to create it again
-    ASSERT_FALSE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::FileAlreadyExists);
 }
 
 TEST_F(NamenodeTest, createChildFile) {
@@ -46,7 +46,7 @@ TEST_F(NamenodeTest, createChildFile) {
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("/test_dir/child_file");
     create_req.set_createparent(true);
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Check to see that the folder was created
     hadoop::hdfs::GetListingRequestProto listing_req;
@@ -91,7 +91,7 @@ TEST_F(NamenodeTest, createChildFile2) {
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto("/existing_dir/child_file");
     create_req.set_createparent(true);
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Check that we've gotten exactly the file we expected.
     client_response = client->get_listing(listing_req, listing_resp);
@@ -119,7 +119,7 @@ TEST_F(NamenodeTest, creationPerformance) {
             for (std::string f : files) {
                 create_req = getCreateRequestProto(f);
                 create_req.set_createparent(true);
-                ASSERT_TRUE(client->create_file(create_req, create_resp));
+                ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
             }
         }
     }
