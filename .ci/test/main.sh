@@ -15,6 +15,19 @@ run_test() {
     exit 1
 }
 
+run_flaky_test() {
+    for i in {1..3}
+    do
+        $1
+        if [ $? == 0 ] 
+	    then
+		    return 0
+	    fi
+    done
+
+    return 1
+}
+
 cd build/test
 run_test ./ReadWriteTest
 run_test ./DeleteTest
