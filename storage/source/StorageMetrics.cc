@@ -30,6 +30,28 @@ float StorageMetrics::usedSpaceFraction() {
   return (static_cast<float>(numerator)) / (static_cast<float>(denominator));
 }
 
+float StorageMetrics::usedSpace() {
+  uint64_t sum = 0;
+  int error = 0;
+  std::vector<std::string> datanodeIds;
+  if (!zkWrapper->get_children("/health", datanodeIds, error)) {
+    LOG(ERROR) << "Failed to get /health children";
+  }
+  for (std::string &datanodeId : datanodeIds) {
+    std::string statsPath = "/health/" + datanodeId + "/stats";
+    std::vector<std::uint8_t> statsPayload = std::vector<std::uint8_t>();
+    statsPayload.resize(sizeof(DataNodePayload));
+    if (!zkWrapper->get(statsPath, statsPayload, error)) {
+      LOG(ERROR) << "Failed to get " << statsPath;
+      return 0;
+    }
+    DataNodePayload stats = DataNodePayload();
+    memcpy(&stats, &statsPayload[0], sizeof(DataNodePayload));
+    sum += stats.disk_bytes - stats.free_bytes;
+  }
+  return (static_cast<float>(sum));
+}
+
 float StorageMetrics::blocksPerDataNodeSD() {
   int dataNodeBlockCounts[kNumDatanodes];
   std::fill_n(dataNodeBlockCounts, kNumDatanodes, 0);
