@@ -3,6 +3,9 @@
 #ifndef ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 #define ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 
+#define MIN_XMITS 'x'
+#define MAX_FREE_SPACE 'f'
+
 #include "zk_client_common.h"
 #include <google/protobuf/message.h>
 #include <queue>
@@ -35,18 +38,24 @@ typedef struct {
 } FileZNode;
 
 struct TargetDN {
+  char policy;
   std::string dn_id;
   uint64_t free_bytes;    // free space on disk
   uint32_t num_xmits;        // current number of xmits
 
-  TargetDN(std::string id, int bytes, int xmits) : dn_id(id),
+  TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
                                                    free_bytes(bytes),
+                                                   policy(policy),
                                                    num_xmits(xmits) {
   }
 
   bool operator<(const struct TargetDN &other) const {
-    // Minimizes num_xmits
-    return num_xmits > other.num_xmits;
+    //If storage policy is 'x' for xmits, choose the min xmits node
+    if (policy == MIN_XMITS)
+        return num_xmits > other.num_xmits;
+    //default policy is choose the node with the most free space
+    else
+        return free_bytes < free_bytes;
   }
 };
 
@@ -84,6 +93,9 @@ using hadoop::hdfs::DatanodeInfoProto;
  */
 class ZkNnClient : public ZkClientCommon {
  public:
+
+  char policy;
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -115,6 +127,9 @@ class ZkNnClient : public ZkClientCommon {
   void set_file_info_content(ContentSummaryProto *status,
                              const std::string &path, FileZNode &znode_data);
 
+  void set_node_policy(char policy);
+
+  char get_node_policy();
   /**
        * Add block.
        */
