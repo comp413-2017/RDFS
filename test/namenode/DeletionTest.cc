@@ -5,7 +5,7 @@
 
 TEST_F(NamenodeTest, deleteBasicFile) {
     // Create a file.
-    std::string src = "delete_file";
+    std::string src = "/testing/delete_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
@@ -24,7 +24,7 @@ TEST_F(NamenodeTest, deleteBasicFile) {
 
 TEST_F(NamenodeTest, deleteEmptyDirectory) {
     // Create an empty directory
-    std::string src = "/basic_dir";
+    std::string src = "/testing/basic_dir";
     hadoop::hdfs::MkdirsRequestProto mkdir_req;
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     hadoop::hdfs::FsPermissionProto permission;
@@ -48,8 +48,8 @@ TEST_F(NamenodeTest, deleteEmptyDirectory) {
 
 TEST_F(NamenodeTest, deleteDirectory) {
     // Create an empty directory
-    std::string src_dir = "/test_dir";
-    std::string src = "/test_dir/child_file";
+    std::string src_dir = "/testing/test_dir";
+    std::string src = "/testing/test_dir/child_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     create_req.set_createparent(true);
     hadoop::hdfs::CreateResponseProto create_resp;
@@ -71,7 +71,7 @@ TEST_F(NamenodeTest, deleteDirectory) {
 
 TEST_F(NamenodeTest, deleteNonexistantFile) {
     // Make up filename
-    std::string src = "delete_file";
+    std::string src = "/testing/delete_file";
     ASSERT_FALSE(client->file_exists(src));
 
     // Try and delete it
@@ -84,7 +84,7 @@ TEST_F(NamenodeTest, deleteNonexistantFile) {
 
 TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
     // Create an empty directory
-    std::string src_dir = "/basic_dir";
+    std::string src_dir = "/testing/basic_dir";
     hadoop::hdfs::MkdirsRequestProto mkdir_req;
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     hadoop::hdfs::FsPermissionProto permission;
@@ -98,7 +98,7 @@ TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
     sleep(10);
 
     // Make up filename
-    std::string src = "/basic_dir/basic_file";
+    std::string src = "/testing/basic_dir/basic_file";
     ASSERT_FALSE(client->file_exists(src));
     hadoop::hdfs::DeleteRequestProto delete_req;
     delete_req.set_recursive(true);
@@ -108,7 +108,7 @@ TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
 
 }
 
-TEST_F(NamenodeTest, benchmarkDeletionDepth) {
+TEST_F(NamenodeTest, deletionPerformance) {
     el::Loggers::setVerboseLevel(9);
 
     int i = 0;
@@ -129,7 +129,6 @@ TEST_F(NamenodeTest, benchmarkDeletionDepth) {
                 hadoop::hdfs::CreateRequestProto create_req;
                 hadoop::hdfs::CreateResponseProto create_resp;
                 create_req.set_src(dir_string + std::to_string(i));
-                create_req.set_clientname("test_client_name");
                 create_req.set_createparent(true);
                 EXPECT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
             }
