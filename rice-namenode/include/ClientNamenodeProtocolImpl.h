@@ -34,13 +34,8 @@ class ClientNamenodeTranslator {
   ~ClientNamenodeTranslator();
 
 
-// Marc and pradhith
-    std::string get(std::string);
-    std::string getDefaultReplication(std::string);
-    std::string listStatus(std::string);
-    std::string open(std::string);
-    std::string close(std::string);
-    std::string exists(std::string);
+// Marc and pradhith and jackson
+    std::string deleate(std::string);
 
   // RPC calls which we support. Each take a string which comes form
   // the rpc call, and it is then deserialized into their proto msg
