@@ -39,6 +39,12 @@ class StorageMetrics {
   float usedSpaceFraction();
 
   /**
+   * Returns the total space used.
+   * @return totalUsedSpace
+   */
+  float usedSpace();
+
+  /**
    * Counts number of used blocks on each datanode, and takes the
    * standard deviation of that distribution.
    * @return The standard deviation of the blocks per datanode
