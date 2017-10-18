@@ -11,7 +11,7 @@ std::vector<std::string> createTestString(
     for (int i = 0; i < num_files; i++) {
         std::string temp = "";
         for (int d = 0; d < num_dirs; d++) {
-            temp = temp + "/" + prefix + "f0_d" + std::to_string(d);
+            temp = temp + "/" + prefix + "f" + std::to_string(i) + "_d" + std::to_string(d);
         }
         // Now add the actual file
         temp = temp + "/" + prefix + "file";
@@ -109,8 +109,8 @@ TEST_F(NamenodeTest, creationPerformance) {
     std::vector<std::string> files;
     hadoop::hdfs::CreateRequestProto create_req;
     hadoop::hdfs::CreateResponseProto create_resp;
-    std::vector<int> num_files = {5};
-    std::vector<int> num_dirs = {10};
+    std::vector<int> num_files = {5, 10, 100};
+    std::vector<int> num_dirs = {10, 100};
 
     for (int f : num_files) {
         for (int d : num_dirs) {
@@ -120,6 +120,7 @@ TEST_F(NamenodeTest, creationPerformance) {
                 create_req = getCreateRequestProto(f);
                 create_req.set_createparent(true);
                 ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+
             }
         }
     }

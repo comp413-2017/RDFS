@@ -760,8 +760,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
  */
 ZkNnClient::CreateResponse ZkNnClient::create_file(CreateRequestProto &request,
                                                    CreateResponseProto &response) {
-    LOG(INFO) << "Gonna try and create a file on zookeeper";
     const std::string &path = request.src();
+    LOG(INFO) << "Trying to create file " << path;
     const std::string &owner = request.clientname();
     bool create_parent = request.createparent();
     std::uint64_t blocksize = request.blocksize();
