@@ -948,8 +948,6 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
 
   DirectoryListingProto *listing = res.mutable_dirlist();
 
-  TIMED_FUNC_IF(timerObj, VLOG_IS_ON(9));
-
   // if src is a file then just return that file with remaining = 0
   // otherwise return first 1000 files in src dir starting at start_after
   // and set remaining to the number left after that first 1000
