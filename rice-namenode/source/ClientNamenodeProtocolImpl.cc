@@ -94,7 +94,11 @@ namespace client_namenode_translator {
         return "";
     }
 
-    std::string ClientNamenodeTranslator::deleate(std::string input) {
+    std::string ClientNamenodeTranslator::fsync(std::string input) {
+        return "";
+    }
+
+    std::string ClientNamenodeTranslator::finalizeUpgrade(std::string input) {
         return "";
     }
 
@@ -478,14 +482,18 @@ namespace client_namenode_translator {
                 std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
 
 
-        // Additions - marc and pradhith
-        server.register_handler(
-                "delete",
-                std::bind(&ClientNamenodeTranslator::deleate, this, _1));
-
+        // Additional client protocol methods to support for FM - marc, pradhith, anthony
         server.register_handler(
                 "append",
                 std::bind(&ClientNamenodeTranslator::append, this, _1));
+
+        server.register_handler(
+                "fsync",
+                std::bind(&ClientNamenodeTranslator::fsync, this, _1));
+
+        server.register_handler(
+                "finalizeUpgrade",
+                std::bind(&ClientNamenodeTranslator::finalizeUpgrade, this, _1));
 
 
     }
