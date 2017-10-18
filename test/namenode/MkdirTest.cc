@@ -57,7 +57,7 @@ TEST_F(NamenodeTest, mkdirExistentFile) {
     std::string src = "/testing/test_mkdir_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
     ASSERT_EQ(file_status.filetype(), hadoop::hdfs::HdfsFileStatusProto::IS_FILE);

@@ -13,7 +13,7 @@ TEST_F(NamenodeTest, getOneFileListing) {
     create_req.set_blocksize(0);
     create_req.set_replication(1);
     create_req.set_createflag(0);
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Now attempt to get the listing
     hadoop::hdfs::GetListingRequestProto listing_req;
@@ -46,7 +46,7 @@ TEST_F(NamenodeTest, getMultipleFilesFromDir) {
     create_req.set_blocksize(0);
     create_req.set_replication(1);
     create_req.set_createflag(0);
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     create_req.set_src("/testing/list_testing2/file2");
     create_req.set_clientname("test_client_name");
@@ -54,7 +54,7 @@ TEST_F(NamenodeTest, getMultipleFilesFromDir) {
     create_req.set_blocksize(0);
     create_req.set_replication(1);
     create_req.set_createflag(0);
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     create_req.set_src("/testing/list_testing2/file3");
     create_req.set_clientname("test_client_name");
@@ -62,7 +62,7 @@ TEST_F(NamenodeTest, getMultipleFilesFromDir) {
     create_req.set_blocksize(0);
     create_req.set_replication(1);
     create_req.set_createflag(0);
-    ASSERT_TRUE(client->create_file(create_req, create_resp));
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Now attempt to list the directory
     hadoop::hdfs::GetListingRequestProto listing_req;
@@ -137,7 +137,7 @@ TEST_F(NamenodeTest, listingPerformance) {
                     create_req.set_blocksize(0);
                     create_req.set_replication(1);
                     create_req.set_createflag(0);
-                    EXPECT_TRUE(client->create_file(create_req, create_resp));
+                    EXPECT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
                 }
             }
         }

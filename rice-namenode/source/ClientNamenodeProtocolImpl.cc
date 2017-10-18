@@ -132,7 +132,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "Create ");
   CreateResponseProto res;
-  if (zk->create_file(req, res)) {
+  if (zk->create_file(req, res) == zkclient::ZkNnClient::CreateResponse::Ok) {
   } else {
     throw GetErrorRPCHeader("Could not create file", "");
   }
