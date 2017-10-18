@@ -5,7 +5,7 @@ set -ex
 cd build/test
 ./ReplicationTest
 ./DeleteTest
-./NameNodeTest
+./NameNodeTest --gtest_filter=-*Performance*
 ./NativeFsTest
 ./ReadWriteTest || :
 ./ZKDNClientTest
