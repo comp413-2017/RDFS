@@ -30,6 +30,7 @@ using client_namenode_translator::ClientNamenodeTranslator;
  * command line.
  * @param verbosity A pointer in which to place the verbosity value entered at
  * the command line.
+ * @param node_policy A pointer in which to place the node_policy value entered at the command line.
  * @param backingStore A reference to set to the input backingStore.
  * @return 0 on success, -1 on any error.
  */
