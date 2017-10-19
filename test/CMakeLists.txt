@@ -49,6 +49,7 @@ target_link_libraries(ReplicationTest zk_client_nn zk_client_dn rpcserver)
 target_link_libraries(ReplicationTest data_transfer_server)
 target_link_libraries(ReplicationTest namenode_protos)
 target_link_libraries(ReplicationTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(ReplicationTest storage)
 target_link_libraries(ReplicationTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ReplicationTest ${GTEST})
 
