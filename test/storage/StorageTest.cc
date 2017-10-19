@@ -11,16 +11,40 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-static const int NUM_DATANODES = 3;
-
 using asio::ip::tcp;
 using client_namenode_translator::ClientNamenodeTranslator;
+
+static const int NUM_DATANODES = 3;
+
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+int minDatanodeId = 0;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  int i = maxDatanodeId;
+  maxDatanodeId += numDatanodes;
+  for (; i < maxDatanodeId; i++) {
+    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
+    std::string dnCliArgs = "-x " +
+        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
+        + " -b tfs" + std::to_string(i) + " &";
+    std::string cmdLine =
+        "bash -c \"exec -a StorageTestServer" + std::to_string(i) +
+            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+            dnCliArgs + "\" & ";
+    system(cmdLine.c_str());
+    sleep(3);
+  }
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
 
 namespace {
 
 class StorageTest : public ::testing::Test {
  protected:
-  virtual void SetUp() {
+  static void SetUpTestCase() {
     int error_code;
     zk = std::make_shared<ZKWrapper>(
         "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
@@ -33,11 +57,24 @@ class StorageTest : public ::testing::Test {
     nn_translator = new ClientNamenodeTranslator(port, nncli);
   }
 
+  virtual void SetUp() {
+    initializeDatanodes(NUM_DATANODES);
+  }
+
+  virtual void TearDown() {
+    system("pkill -f StorageTestServer*");
+    system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  }
+
   // Objects declared here can be used by all tests below.
-  zkclient::ZkNnClient *nncli;
-  ClientNamenodeTranslator *nn_translator;
-  std::shared_ptr<ZKWrapper> zk;
+  static zkclient::ZkNnClient *nncli;
+  static ClientNamenodeTranslator *nn_translator;
+  static std::shared_ptr<ZKWrapper> zk;
 };
+
+zkclient::ZkNnClient *StorageTest::nncli = NULL;
+ClientNamenodeTranslator *StorageTest::nn_translator = NULL;
+std::shared_ptr<ZKWrapper> StorageTest::zk = NULL;
 
 /**
  * The following is an example of using StorageMetrics.
@@ -45,7 +82,6 @@ class StorageTest : public ::testing::Test {
  */
 TEST_F(StorageTest, testExample) {
   asio::io_service io_service;
-
   RPCServer namenodeServer = nn_translator->getRPCServer();
   std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
       .detach();
@@ -65,13 +101,6 @@ TEST_F(StorageTest, testExample) {
 
   LOG(INFO) << " ---- Fraction of total space used: " <<
                                                   metrics.usedSpaceFraction();
-
-  // Example of degenerate read time (useless while we use replication).
-  std::vector<std::pair<std::string, std::string>> targetDatanodes;
-  targetDatanodes.push_back(std::make_pair(
-      "StorageTestServer0",
-      "-x 50010 -p 50020 -b tfs0 &"));
-  metrics.degenerateRead("/f", "actual_testfile1234", targetDatanodes);
 }
 }  // namespace
 
@@ -90,29 +119,11 @@ static inline int runTests(int argc, char **argv) {
   sleep(5);
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
 
-  // initialize NUM_DATANODES datanodes
-  int32_t xferPort = 50010;
-  int32_t ipcPort = 50020;
-  for (int i = 0; i < NUM_DATANODES; i++) {
-    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = "-x " +
-        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
-        + " -b tfs" + std::to_string(i) + " &";
-    std::string cmdLine =
-        "bash -c \"exec -a StorageTestServer" + std::to_string(i) +
-            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-            dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(3);
-  }
-
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
 
-  // Kill the DataNodes and NameNodes, and stop zookeeper
-  system("pkill -f StorageTestServer*");
-  system("pkill -f namenode");
+  // Stop zookeeper
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
