@@ -30,12 +30,8 @@ using hadoop::hdfs::FsServerDefaultsProto;
  */
 class ClientNamenodeTranslator {
  public:
-  ClientNamenodeTranslator(int port, zkclient::ZkNnClient* zk_arg);
+  ClientNamenodeTranslator(int port, zkclient::ZkNnClient *zk_arg);
   ~ClientNamenodeTranslator();
-
-
-// Marc and pradhith and jackson
-    std::string deleate(std::string);
 
   // RPC calls which we support. Each take a string which comes form
   // the rpc call, and it is then deserialized into their proto msg
@@ -65,7 +61,9 @@ class ClientNamenodeTranslator {
   // lease manager interactions
   std::string abandonBlock(std::string input);
 
-
+  // Additional methods for file append process - Anthony, Marc
+  std::string fsync(std::string input);
+  std::string finalizeUpgrade(std::string input);
 
   int getPort();
   RPCServer getRPCServer();
@@ -94,14 +92,14 @@ class ClientNamenodeTranslator {
   // our rpc server
   RPCServer server;
   // client to communicate with zookeeper
-  zkclient::ZkNnClient* zk;
+  zkclient::ZkNnClient *zk;
   // used to read from our config files
   config_reader::ConfigReader config;
 
   /**
    * Log incoming messages "req" for rpc call "req_name"
    */
-  void logMessage(google::protobuf::Message* req, std::string req_name);
+  void logMessage(google::protobuf::Message *req, std::string req_name);
 
   /**
    * Get an int from the config file for our defaults
