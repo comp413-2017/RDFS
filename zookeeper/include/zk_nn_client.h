@@ -51,11 +51,19 @@ struct TargetDN {
 
   bool operator<(const struct TargetDN &other) const {
     //If storage policy is 'x' for xmits, choose the min xmits node
-    if (policy == MIN_XMITS)
+    if (policy == MIN_XMITS) {
+        if (num_xmits == other.num_xmits) {
+            return free_bytes < other.free_bytes;
+        }
         return num_xmits > other.num_xmits;
+    }
     //default policy is choose the node with the most free space
-    else
-        return free_bytes < free_bytes;
+    else {
+        if (free_bytes == other.free_bytes) {
+            return num_xmits > other.num_xmits;
+        }
+        return free_bytes < other.free_bytes;
+    }
   }
 };
 
