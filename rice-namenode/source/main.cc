@@ -64,8 +64,8 @@ static inline int parse_cmdline_options(
         break;
       case 'n':*node_policy = optarg[0];
         if (*node_policy != MIN_XMITS || *node_policy != MAX_FREE_SPACE) {
-          LOG(ERROR) << "Node policy must be -x (minimum transmits) or "
-                        "-f (maximum free space)";
+          LOG(ERROR) << "Node policy, if any, must be -n x (minimum transmits)"
+                        " or -n f (maximum free space)";
           return -1;
         }
         break;
