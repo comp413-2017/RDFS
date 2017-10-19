@@ -90,6 +90,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classzkclient_1_1_zk_nn_client-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -143,6 +144,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>get_content</b> (<a c
 <tr class="memitem:a451138e886e54f576db5a6da7f3d7cd3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a451138e886e54f576db5a6da7f3d7cd3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_file_info_content</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">ContentSummaryProto</a> *status, const std::string &amp;path, <a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data)</td></tr>
 <tr class="separator:a451138e886e54f576db5a6da7f3d7cd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4017bf840300a304e9ebf24a661a732e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4017bf840300a304e9ebf24a661a732e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_node_policy</b> (char policy)</td></tr>
+<tr class="separator:a4017bf840300a304e9ebf24a661a732e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8b69576b0cc0cd521fc9f535b89b2ec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8b69576b0cc0cd521fc9f535b89b2ec"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>get_node_policy</b> ()</td></tr>
+<tr class="separator:ac8b69576b0cc0cd521fc9f535b89b2ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d99f1eec309bcb1bf205e6e9d7e5401"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a4d99f1eec309bcb1bf205e6e9d7e5401">add_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">AddBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">AddBlockResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a4d99f1eec309bcb1bf205e6e9d7e5401"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ee69fa9e2b503347d539f60a9e0848d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a1ee69fa9e2b503347d539f60a9e0848d">abandon_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;res)</td></tr>
@@ -183,6 +190,16 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</
 <tr class="memitem:a3e9df789cefde3395d4be256692914c3 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3e9df789cefde3395d4be256692914c3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>init</b> ()</td></tr>
 <tr class="separator:a3e9df789cefde3395d4be256692914c3 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a966584481a3d08066930d5c22d549195"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a966584481a3d08066930d5c22d549195"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>policy</b></td></tr>
+<tr class="separator:a966584481a3d08066930d5c22d549195"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_classzkclient_1_1_zk_client_common"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_classzkclient_1_1_zk_client_common')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></td></tr>
+<tr class="memitem:aa7a5917b79dd6209e9fcdac2203fbb49 inherit pub_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa7a5917b79dd6209e9fcdac2203fbb49"></a>
+std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>zk</b></td></tr>
+<tr class="separator:aa7a5917b79dd6209e9fcdac2203fbb49 inherit pub_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -235,13 +252,6 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCK_LO
 <tr class="memitem:ab2a68ae8979092f0aa45cb626afb9cb7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2a68ae8979092f0aa45cb626afb9cb7"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</b> [] = &quot;/blocks&quot;</td></tr>
 <tr class="separator:ab2a68ae8979092f0aa45cb626afb9cb7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_attribs_classzkclient_1_1_zk_client_common"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_classzkclient_1_1_zk_client_common')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></td></tr>
-<tr class="memitem:aa7a5917b79dd6209e9fcdac2203fbb49 inherit pub_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa7a5917b79dd6209e9fcdac2203fbb49"></a>
-std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>zk</b></td></tr>
-<tr class="separator:aa7a5917b79dd6209e9fcdac2203fbb49 inherit pub_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This is used by ClientNamenodeProtocolImpl to communicate the zookeeper. </p>
