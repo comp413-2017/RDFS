@@ -47,7 +47,7 @@ static inline int parse_cmdline_options(
   // By setting opterr to 0, getopt does not print its own error messages.
   opterr = 0;
 
-  // We expect to find port setting, node policy setting, and/or verbosity setting
+  // We expect to find port, node policy, and/or verbosity settings
   while ((c = getopt(argc, argv, "v:p:n:")) != -1) {
     switch (c) {
       case 'v':*verbosity = atoi(optarg);
@@ -64,7 +64,8 @@ static inline int parse_cmdline_options(
         break;
       case 'n':*node_policy = optarg[0];
         if (*node_policy != MIN_XMITS || *node_policy != MAX_FREE_SPACE) {
-          LOG(ERROR) << "Node policy must be -x (minimum transmits) or -f (maximum free space)";
+          LOG(ERROR) << "Node policy must be -x (minimum transmits) or "
+                        "-f (maximum free space)";
           return -1;
         }
         break;

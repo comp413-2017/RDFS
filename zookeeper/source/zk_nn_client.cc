@@ -266,7 +266,7 @@ void ZkNnClient::set_node_policy(char policy) {
   ZkNnClient::policy = policy;
 }
 
-char ZkNnClient::get_node_policy( ) {
+char ZkNnClient::get_node_policy() {
   return ZkNnClient::policy;
 }
 
@@ -1380,7 +1380,8 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
                       << " with "
                       << stats.xmits
                       << " xmits";
-            targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits, ZkNnClient::policy));
+            targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits,
+                                  ZkNnClient::policy));
           }
         }
       }
