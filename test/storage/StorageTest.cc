@@ -38,6 +38,32 @@ static inline void initializeDatanodes(int numDatanodes) {
   ipcPort += numDatanodes;
 }
 
+static const int NUM_DATANODES = 3;
+
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+int minDatanodeId = 0;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  int i = maxDatanodeId;
+  maxDatanodeId += numDatanodes;
+  for (; i < maxDatanodeId; i++) {
+    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
+    std::string dnCliArgs = "-x " +
+        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
+        + " -b tfs" + std::to_string(i) + " &";
+    std::string cmdLine =
+        "bash -c \"exec -a StorageTestServer" + std::to_string(i) +
+            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+            dnCliArgs + "\" & ";
+    system(cmdLine.c_str());
+    sleep(3);
+  }
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
+
 namespace {
 
 class StorageTest : public ::testing::Test {
@@ -67,6 +93,10 @@ class StorageTest : public ::testing::Test {
   std::shared_ptr<ZKWrapper> zk;
   unsigned short port;
 };
+
+zkclient::ZkNnClient *StorageTest::nncli = NULL;
+ClientNamenodeTranslator *StorageTest::nn_translator = NULL;
+std::shared_ptr<ZKWrapper> StorageTest::zk = NULL;
 
 /**
  * The following is an example of using StorageMetrics.
