@@ -9,7 +9,7 @@ TEST_F(NamenodeTest, getOneFileListing) {
     hadoop::hdfs::CreateResponseProto create_resp;
     create_req.set_src("/testing/list_testing");
     create_req.set_clientname("test_client_name");
-    create_req.set_createparent(false);
+    create_req.set_createparent(true);
     create_req.set_blocksize(0);
     create_req.set_replication(1);
     create_req.set_createflag(0);
@@ -119,26 +119,23 @@ TEST_F(NamenodeTest, listingPerformance) {
 
     for (auto depth : depths) {
         for (auto dir_num : dir_nums) {
-            for (auto num_request : num_requests) {
+            auto dir_string = "/testing/list_testing_depth" + std::to_string(depth) +
+                              "_size" + std::to_string(dir_num) + "/";
 
-                auto dir_string = "/testing/list_testing_depth" + std::to_string(depth) +
-                                  "_size" + std::to_string(dir_num) + "/";
+            for (i = 0; i < depth - 2; i++) {
+                dir_string += std::to_string(i) + "/";
+            }
 
-                for (i = 0; i < depth - 2; i++) {
-                    dir_string += std::to_string(i) + "/";
-                }
-
-                for (i = 0; i < dir_num; i++) {
-                    hadoop::hdfs::CreateRequestProto create_req;
-                    hadoop::hdfs::CreateResponseProto create_resp;
-                    create_req.set_src(dir_string + std::to_string(i));
-                    create_req.set_clientname("test_client_name");
-                    create_req.set_createparent(true);
-                    create_req.set_blocksize(0);
-                    create_req.set_replication(1);
-                    create_req.set_createflag(0);
-//                    EXPECT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
-                }
+            for (i = 0; i < dir_num; i++) {
+                hadoop::hdfs::CreateRequestProto create_req;
+                hadoop::hdfs::CreateResponseProto create_resp;
+                create_req.set_src(dir_string + std::to_string(i));
+                create_req.set_clientname("test_client_name");
+                create_req.set_createparent(true);
+                create_req.set_blocksize(0);
+                create_req.set_replication(1);
+                create_req.set_createflag(0);
+                EXPECT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
             }
         }
     }
@@ -170,14 +167,14 @@ TEST_F(NamenodeTest, listingPerformance) {
                     listing_req.set_startafter(0);
                     listing_req.set_needlocation(false);
                     client_response = client->get_listing(listing_req, listing_resp);
-//                    EXPECT_EQ(client_response, zkclient::ZkNnClient::ListingResponse::Ok) << "File not found";
+                    EXPECT_EQ(client_response, zkclient::ZkNnClient::ListingResponse::Ok) << "File not found";
 
                     // Check that we've gotten the number of files we expected.
                     hadoop::hdfs::DirectoryListingProto dir_listing;
                     hadoop::hdfs::HdfsFileStatusProto file_status;
                     EXPECT_TRUE(listing_resp.has_dirlist());
                     dir_listing = listing_resp.dirlist();
-//                    EXPECT_EQ(dir_listing.partiallisting_size(), dir_num);
+                    EXPECT_EQ(dir_listing.partiallisting_size(), dir_num);
                 }
             }
         }
