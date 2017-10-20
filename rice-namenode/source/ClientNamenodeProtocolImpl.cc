@@ -267,14 +267,6 @@ std::string ClientNamenodeTranslator::setPermission(std::string input) {
   return Serialize(res);
 }
 
-//std::string ClientNamenodeTranslator::modifyAclEntries(std::string input) {
-//    ModifyAclEntriesRequestProto req;
-//    ModifyAclEntriesResponseProto res;
-//    req.ParseFromString(input);
-//    zk->modifyAclEntries(req, res);
-//    logMessage(&res, "ModifyAclEntries");
-//}
-
 std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingRequestProto req;
   GetListingResponseProto res;
