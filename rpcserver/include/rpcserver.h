@@ -2,6 +2,7 @@
 
 #include <easylogging++.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <unistd.h>
 #include <thread>
 #include <iostream>
 #include <string>
@@ -10,7 +11,6 @@
 
 #include <asio.hpp>
 
-#include <unistd.h>
 #include <RpcHeader.pb.h>
 #include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
