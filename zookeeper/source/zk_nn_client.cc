@@ -55,6 +55,11 @@ using hadoop::hdfs::DatanodeInfoProto;
 using hadoop::hdfs::DatanodeIDProto;
 using hadoop::hdfs::SetOwnerRequestProto;
 using hadoop::hdfs::SetOwnerResponseProto;
+using hadoop::hdfs::SetPermissionRequestProto;
+using hadoop::hdfs::SetPermissionResponseProto;
+using hadoop::hdfs::AclEntryProto;
+using hadoop::hdfs::ModifyAclEntriesRequestProto;
+using hadoop::hdfs::ModifyAclEntriesResponseProto;
 
 namespace zkclient {
 
@@ -1415,6 +1420,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   FsPermissionProto *permission = status->mutable_permission();
   // Shorcut to set permission to 777.
+  // TODO(Security): Should this be changed to read permission only for non-owner users?
   permission->set_perm(~0);
   status->set_filetype(filetype);
   status->set_path(path);
@@ -1429,7 +1435,42 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   status->set_access_time(znode_data.access_time);
   LOG(INFO) << "Successfully set the file info ";
 }
+  bool ZkNnClient::set_permission(SetPermissionRequestProto &req, SetPermissionResponseProto &res) {
+    int zk_error;
+    const std::string path = req.src();
+    FileZNode znode_data;
+    if (!file_exists(path)) {
+      LOG(ERROR) << "Requested path " << path << " does not exist";
+      return false;
+    }
+    read_file_znode(znode_data, path);
+    znode_data.permission_number = req.kPermissionFieldNumber;
 
+    // Serialize struct to byte vector
+    std::vector<std::uint8_t> zk_data(sizeof(FileZNode));
+    file_znode_struct_to_vec(&znode_data, zk_data);
+
+    // Write the modified node back to Zookeeper
+    zk->set(ZookeeperPath(path), zk_data, zk_error);
+
+    if (zk_error != ZK_ERRORS::OK) {
+      LOG(ERROR) << "ZK reported error writing modified node back to disk";
+      return false;
+    }
+
+    return true;
+  }
+//bool ZkNnClient::modifyAclEntries(ModifyAclEntriesRequestProto req, ModifyAclEntriesResponseProto res) {
+//    int zk_error;
+//    FileZNode znode_data;
+//    const std::string &path = req.src();
+//    auto entries = req.aclspec();
+//
+//    for (auto entry:entries) {
+//        entry.type();
+//    }
+//
+//}
 bool ZkNnClient::add_block(const std::string &file_path,
                            std::uint64_t &block_id,
                            std::vector<std::string> &data_nodes,
