@@ -10,8 +10,13 @@ TEST_F(NamenodeTest, deleteBasicFile) {
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
-    // Must give zookeeper time to construct file
-    sleep(20);
+    zkclient::FileZNode znode_data;
+    client->read_file_znode(znode_data, src);
+
+    while(znode_data.under_construction == zkclient::FileStatus::UnderConstruction) {
+        sleep(10);
+        client->read_file_znode(znode_data, src);
+    }
 
     // Delete the file
     hadoop::hdfs::DeleteRequestProto delete_req;
@@ -34,8 +39,13 @@ TEST_F(NamenodeTest, deleteEmptyDirectory) {
     mkdir_req.set_allocated_masked(&permission);
     ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
 
-    // Must give zookeeper time to construct file
-    sleep(10);
+    zkclient::FileZNode znode_data;
+    client->read_file_znode(znode_data, src);
+
+    while(znode_data.under_construction == zkclient::FileStatus::UnderConstruction) {
+        sleep(10);
+        client->read_file_znode(znode_data, src);
+    }
 
     // Delete the directory
     hadoop::hdfs::DeleteRequestProto delete_req;
@@ -157,7 +167,7 @@ TEST_F(NamenodeTest, deletionPerformance) {
             delete_req.set_src(dir_string);
             hadoop::hdfs::DeleteResponseProto delete_resp;
             ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::Ok);
-            ASSERT_FALSE(client->file_exists(src));
+            ASSERT_FALSE(client->file_exists(dir_string));
         }
     }
 }

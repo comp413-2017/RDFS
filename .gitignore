@@ -4,7 +4,7 @@ build/
 .idea/
 logs/
 raw_storage.vdi
-
+clion-build/
 # Doxygen artifacts
 html/
 latex/
