@@ -4,6 +4,7 @@
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) <<  msg; return
 #define ERROR_AND_FALSE(msg) LOG(ERROR) <<  msg; return false
+#define MAX_USERNAME_LEN 256
 
 using asio::ip::tcp;
 
@@ -268,7 +269,8 @@ void RPCServer::serve(asio::io_service &io_service) {
  * Returns the current user's name.
  */
 std::string RPCServer::getUsername() {
-  char *user = getlogin();
+  char *user = new char[MAX_USERNAME_LEN];
+  getlogin_r(user, MAX_USERNAME_LEN);
 
   if (user == NULL) {
     LOG(ERROR) << "failed to acquire user's name";
