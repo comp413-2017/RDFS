@@ -262,6 +262,15 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
   return true;
 }
 
+void ZkNnClient::set_node_policy(char policy) {
+  ZkNnClient::policy = policy;
+}
+
+char ZkNnClient::get_node_policy() {
+  return ZkNnClient::policy;
+}
+
+
 // --------------------------- PROTOCOL CALLS -------------------------------
 
 void ZkNnClient::read_file_znode(FileZNode &znode_data,
@@ -1102,7 +1111,7 @@ bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
     }
     DataNodePayload stats = DataNodePayload();
     memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
-    targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
+    targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits, MIN_XMITS));
   }
 
   while (targets.size() > 0) {
@@ -1122,7 +1131,7 @@ std::string ZkNnClient::ZookeeperPath(const std::string &hadoopPath) {
   }
   zkpath += hadoopPath;
   if (zkpath.at(zkpath.length() - 1) == '/') {
-    zkpath.at(zkpath.length() - 1) = '\0';
+    zkpath.pop_back();
   }
   return zkpath;
 }
@@ -1371,7 +1380,8 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
                       << " with "
                       << stats.xmits
                       << " xmits";
-            targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits));
+            targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits,
+                                  ZkNnClient::policy));
           }
         }
       }

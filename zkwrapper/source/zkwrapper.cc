@@ -44,7 +44,8 @@ const std::map<int, std::string> ZKWrapper::error_message = {
 };
 
 /**
- * TODO
+ * Currently watches the zookeeper handle and closes zookeeper on
+ * failed auths or expired sessions.
  *
  * @param zzh zookeeper handle
  * @param type type of event
@@ -58,7 +59,6 @@ void watcher(zhandle_t *zzh,
              const char *path,
              void *watcherCtx) {
   LOG(INFO) << "[Global watcher] Watcher triggered on path '" << path << "'";
-  char health[] = "/health/datanode_";
   if (type == ZOO_SESSION_EVENT) {
     if (state == ZOO_CONNECTED_STATE) {
       return;
