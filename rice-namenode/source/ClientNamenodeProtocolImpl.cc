@@ -74,10 +74,9 @@ using hadoop::hdfs::RecoverLeaseResponseProto;
 using hadoop::hdfs::Rename2RequestProto;
 using hadoop::hdfs::Rename2ResponseProto;
 
-
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
-    zkclient::ZkNnClient* zk_arg
+    zkclient::ZkNnClient *zk_arg
 ) : port(port_arg), server(port), zk(zk_arg) {
   InitServer();
   LOG(INFO) << "Created client namenode translator.";
@@ -85,6 +84,22 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(
 
 
 // ----------------------- RPC HANDLERS ----------------------------
+
+
+
+
+
+std::string ClientNamenodeTranslator::append(std::string input) {
+  return "";
+}
+
+std::string ClientNamenodeTranslator::fsync(std::string input) {
+  return "";
+}
+
+std::string ClientNamenodeTranslator::finalizeUpgrade(std::string input) {
+  return "";
+}
 
 std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
   GetFileInfoRequestProto req;
@@ -347,8 +362,8 @@ std::string ClientNamenodeTranslator::Serialize(
  * rpcserver.cc, which will be using a very similar - but different - function)
  */
 hadoop::common::RpcResponseHeaderProto ClientNamenodeTranslator::
-    GetErrorRPCHeader(std::string error_msg,
-                      std::string exception_classname
+GetErrorRPCHeader(std::string error_msg,
+                  std::string exception_classname
 ) {
   hadoop::common::RpcResponseHeaderProto response_header;
   response_header.set_status(
@@ -394,7 +409,7 @@ void ClientNamenodeTranslator::InitServer() {
  * here should be for supported commands.
  */
 void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
-  using  std::placeholders::_1;
+  using std::placeholders::_1;
 
   // The reason for these binds is because it wants static functions, but we
   // want to give it member functions
@@ -460,6 +475,19 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
   server.register_handler(
       "getContentSummary",
       std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
+
+  // Additional methods to support for FM - marc, pradhith, anthony
+  server.register_handler(
+      "append",
+      std::bind(&ClientNamenodeTranslator::append, this, _1));
+
+  server.register_handler(
+      "fsync",
+      std::bind(&ClientNamenodeTranslator::fsync, this, _1));
+
+  server.register_handler(
+      "finalizeUpgrade",
+      std::bind(&ClientNamenodeTranslator::finalizeUpgrade, this, _1));
 }
 
 /**
@@ -481,7 +509,7 @@ int ClientNamenodeTranslator::getPort() {
 // ------------------------------- HELPERS -----------------------------
 
 void ClientNamenodeTranslator::logMessage(
-    google::protobuf::Message* req,
+    google::protobuf::Message *req,
     std::string req_name
 ) {
   LOG(INFO) << "Got message " << req_name;
