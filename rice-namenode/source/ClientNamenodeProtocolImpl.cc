@@ -80,9 +80,6 @@ using hadoop::hdfs::RecoverLeaseResponseProto;
 using hadoop::hdfs::Rename2RequestProto;
 using hadoop::hdfs::Rename2ResponseProto;
 using hadoop::hdfs::FsPermissionProto;
-//using hadoop::hdfs::AclEntryProto;
-//using hadoop::hdfs::ModifyAclEntriesRequestProto;
-//using hadoop::hdfs::ModifyAclEntriesResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -268,14 +265,6 @@ std::string ClientNamenodeTranslator::setPermission(std::string input) {
   zk->set_permission(req, res);
   return Serialize(res);
 }
-
-//std::string ClientNamenodeTranslator::modifyAclEntries(std::string input) {
-//    ModifyAclEntriesRequestProto req;
-//    ModifyAclEntriesResponseProto res;
-//    req.ParseFromString(input);
-//    zk->modifyAclEntries(req, res);
-//    logMessage(&res, "ModifyAclEntries");
-//}
 
 std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingRequestProto req;

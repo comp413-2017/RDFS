@@ -142,7 +142,11 @@ int main(int argc, char *argv[]) {
 
   if (admin) {
     const std::string zk_admin_path = "/security/metadata/admin";
-    zk_shared.get()->create(zk_admin_path,ZKWrapper::get_byte_vector(server.getUsername()),error_code, false, true);
+    zk_shared.get()->create(zk_admin_path,
+                            ZKWrapper::get_byte_vector(server.getUsername()),
+                            error_code,
+                            false,
+                            true);
     admin = false;
   }
 }
