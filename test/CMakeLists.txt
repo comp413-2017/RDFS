@@ -26,8 +26,6 @@ include_directories(../storage/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
-add_executable(RunAllTests run-all/run-all-tests.cc)
-
 add_executable(NameNodeTest namenode/NameNodeTest.cc)
 target_link_libraries(NameNodeTest namenode_protos)
 target_link_libraries(NameNodeTest zk_client_nn zk_client_dn)
