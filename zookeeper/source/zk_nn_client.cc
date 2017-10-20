@@ -353,10 +353,11 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  if (znode_data.redundancy_form == REPLICATION) add_block(file_path, block_id, data_nodes, replication_factor);
-  else if (znode_data.redundancy_form == EC) {
-      // TODO: generate a block group and each part of a block group.
-      // TODO: generate the ids of the block group and each part according to the hierarchical naming scheme.
+  if (znode_data.redundancy_form == REPLICATION) {
+      add_block(file_path, block_id, data_nodes, replication_factor);
+  } else if (znode_data.redundancy_form == EC) {
+      // TODO(Nate): generate a block group and each part of a block group.
+      // TODO(Nate): use the hierarchical naming scheme.
   }
 
   block->set_offset(0);  // TODO(2016): Set this
@@ -814,11 +815,12 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   return true;
 }
 
-int ZkNnClient::determineRedundancyForm(const std::string &ecPolicyString, const std::string &path) {
+int ZkNnClient::determineRedundancyForm(
+        const std::string &ecPolicyString,
+        const std::string &path) {
     if (ecPolicyString.empty()) {
         return DEFAULT_REDUNDANCY_FORM;
     } else {
-        // TODO: figure out what literal strings the client uses and set it accordingly.
         return REPLICATION;
     }
 }
@@ -1322,8 +1324,10 @@ bool ZkNnClient::add_block(const std::string &file_path,
 }
 
 
-u_int64_t ZkNnClient::generate_hierarchical_block_id(uint64_t block_group_id, uint32_t index_in_group) {
-    // TODO: actually implement this naming scheme.
+u_int64_t ZkNnClient::generate_hierarchical_block_id(
+        uint64_t block_group_id,
+        uint32_t index_in_group) {
+    // TODO(Nate): actually implement this naming scheme.
     return 0;
 }
 
