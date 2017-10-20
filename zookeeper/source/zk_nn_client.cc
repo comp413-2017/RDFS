@@ -635,7 +635,6 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
 void ZkNnClient::complete(CompleteRequestProto& req,
                           CompleteResponseProto& res) {
   // TODO(2016): Completion makes a few guarantees that we should handle
-    LOG(ERROR) << "COMPLETE CALLED"
   int error_code;
   // change the under construction bit
   const std::string& src = req.src();
