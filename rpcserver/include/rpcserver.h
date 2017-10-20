@@ -10,14 +10,13 @@
 
 #include <asio.hpp>
 
+#include <unistd.h>
 #include <RpcHeader.pb.h>
 #include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
 
 #include "socket_writes.h"
 #include "socket_reads.h"
-
-#include <unistd.h>
 
 #pragma once
 
@@ -47,11 +46,11 @@ class RPCServer {
       std::string key,
       std::function<std::string(std::string)> handler);
 
- /**
-  * Returns the name of the current running linux user.
-  * @return A string of the current user's name
-  */
- std::string getUsername();
+  /**
+   * Returns the name of the current running linux user.
+   * @return A string of the current user's name
+   */
+  std::string getUsername();
 
  private:
   /**
