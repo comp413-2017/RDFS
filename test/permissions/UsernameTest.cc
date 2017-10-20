@@ -4,12 +4,13 @@
 
 #include <easylogging++.h>
 #include <gtest/gtest.h>
+#include <iostream>
 
 #include "rpcserver.h"
 #include "ClientNamenodeProtocolImpl.h"
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
-#include <iostream>
+
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -31,14 +32,13 @@ TEST(UsernameTest, testGetUser) {
 
   auto namenodeServer = nn_translator->getRPCServer();
 
-  std::string expectedVagrant ("vagrant");
-  std::string expectedTravis ("travis");
+  std::string expectedVagrant("vagrant");
+  std::string expectedTravis("travis");
   ASSERT_TRUE((expectedVagrant.compare(namenodeServer.getUsername()) == 0) ||
-              (expectedTravis.compare(namenodeServer.getUsername()) == 0)
-             );
+              (expectedTravis.compare(namenodeServer.getUsername()) == 0));
 }
 
-}
+}  // namespace
 
 int main(int argc, char **argv) {
     // Start up zookeeper
