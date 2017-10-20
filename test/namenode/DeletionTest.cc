@@ -34,7 +34,7 @@ TEST_F(NamenodeTest, deleteBasicFile) {
 
 TEST_F(NamenodeTest, deleteEmptyDirectory) {
     // Create a directory.
-    std::string src = "test_dir";
+    std::string src = "/test_empty_dir";
     hadoop::hdfs::MkdirsRequestProto mkdir_req;
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     mkdir_req.set_src(src);
@@ -61,8 +61,8 @@ TEST_F(NamenodeTest, deleteEmptyDirectory) {
 
 TEST_F(NamenodeTest, deleteDirectory) {
     // Create an empty directory
-    std::string src_dir = "/test_dir";
-    std::string src = "/test_dir/child_file";
+    std::string src_dir = "/test_delete_dir";
+    std::string src = "/test_delete_dir/child_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     create_req.set_createparent(true);
     hadoop::hdfs::CreateResponseProto create_resp;
