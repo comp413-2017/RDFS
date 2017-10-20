@@ -11,14 +11,13 @@
 
 #include <asio.hpp>
 
+#include <unistd.h>
 #include <RpcHeader.pb.h>
 #include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
 
 #include "socket_writes.h"
 #include "socket_reads.h"
-
-#include <unistd.h>
 
 #pragma once
 
