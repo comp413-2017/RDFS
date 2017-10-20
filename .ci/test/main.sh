@@ -2,7 +2,7 @@
 
 set -x
 
-run_flaky_test() {
+run_test() {
     for i in {1..3}
     do
         $1
@@ -12,16 +12,16 @@ run_flaky_test() {
 	    fi
     done
 
-    return 1
+    exit 1
 }
 
 cd build/test
-./ReplicationTest
-./DeleteTest
-run_flaky_test ./NameNodeTest
-./NativeFsTest
-run_flaky_test ./ZKDNClientTest
-./ZKLockTest
-run_flaky_test ./ZKWrapperTest
-./ReadWriteTest
-./StorageTest
+run_test ./ReadWriteTest
+run_test ./ReplicationTest
+run_test ./DeleteTest
+run_test ./NameNodeTest
+run_test ./NativeFsTest
+run_test ./StorageTest
+run_test ./ZKDNClientTest
+run_test ./ZKLockTest
+run_test ./ZKWrapperTest
