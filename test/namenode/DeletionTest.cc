@@ -5,68 +5,73 @@
 
 TEST_F(NamenodeTest, deleteBasicFile) {
     // Create a file.
-    std::string src = "/testing/delete_file";
+    std::string src = "delete_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
-    zkclient::FileZNode znode_data;
-    client->read_file_znode(znode_data, src);
+    // Try and delete before completing
+    hadoop::hdfs::DeleteRequestProto delete_req;
+    hadoop::hdfs::DeleteResponseProto delete_resp;
+    delete_req.set_src(src);
+    delete_req.set_recursive(false);
+    ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::FileUnderConstruction);
+    ASSERT_TRUE(client->file_exists(src));
 
-    while(znode_data.under_construction == zkclient::FileStatus::UnderConstruction) {
-        sleep(10);
-        client->read_file_znode(znode_data, src);
-    }
+    hadoop::hdfs::CompleteRequestProto complete_req;
+    hadoop::hdfs::CompleteResponseProto complete_resp;
+    complete_req.set_src(src);
+    client->complete(complete_req, complete_resp);
 
     // Delete the file
-    hadoop::hdfs::DeleteRequestProto delete_req;
-    delete_req.set_recursive(false);
-    delete_req.set_src(src);
-    hadoop::hdfs::DeleteResponseProto delete_resp;
-    ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::Ok);
+    hadoop::hdfs::DeleteRequestProto delete_req2;
+    delete_req2.set_recursive(false);
+    delete_req2.set_src(src);
+    hadoop::hdfs::DeleteResponseProto delete_resp2;
+    ASSERT_EQ(client->destroy(delete_req2, delete_resp2), zkclient::ZkNnClient::DeleteResponse::Ok);
     ASSERT_FALSE(client->file_exists(src));
 }
 
 TEST_F(NamenodeTest, deleteEmptyDirectory) {
-    // Create an empty directory
-    std::string src = "/testing/basic_dir";
+    // Create a directory.
+    std::string src = "test_dir";
     hadoop::hdfs::MkdirsRequestProto mkdir_req;
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
-    hadoop::hdfs::FsPermissionProto permission;
-    permission.set_perm(std::numeric_limits<uint32_t>::max()); // Max permission.
     mkdir_req.set_src(src);
-    mkdir_req.set_createparent(true);
-    mkdir_req.set_allocated_masked(&permission);
-    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
+    mkdir_req.set_createparent(false);
+    client->mkdir(mkdir_req, mkdir_resp);
+    ASSERT_TRUE(mkdir_resp.result());
 
-    zkclient::FileZNode znode_data;
-    client->read_file_znode(znode_data, src);
-
-    while(znode_data.under_construction == zkclient::FileStatus::UnderConstruction) {
-        sleep(10);
-        client->read_file_znode(znode_data, src);
-    }
-
-    // Delete the directory
+    // Try and delete the directory, without recursive
     hadoop::hdfs::DeleteRequestProto delete_req;
-    delete_req.set_recursive(true);
-    delete_req.set_src(src);
     hadoop::hdfs::DeleteResponseProto delete_resp;
-    ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::Ok);
+    delete_req.set_src(src);
+    delete_req.set_recursive(false);
+    ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::FileIsDirectoryMismatch);
+    ASSERT_TRUE(client->file_exists(src));
+
+    // Try and delete the directory, with recursive
+    hadoop::hdfs::DeleteRequestProto delete_req2;
+    hadoop::hdfs::DeleteResponseProto delete_resp2;
+    delete_req2.set_src(src);
+    delete_req2.set_recursive(true);
+    ASSERT_EQ(client->destroy(delete_req2, delete_resp2), zkclient::ZkNnClient::DeleteResponse::Ok);
     ASSERT_FALSE(client->file_exists(src));
 }
 
 TEST_F(NamenodeTest, deleteDirectory) {
     // Create an empty directory
-    std::string src_dir = "/testing/test_dir";
-    std::string src = "/testing/test_dir/child_file";
+    std::string src_dir = "/test_dir";
+    std::string src = "/test_dir/child_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     create_req.set_createparent(true);
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
 
-    // Must give zookeeper time to construct file
-    sleep(10);
+    hadoop::hdfs::CompleteRequestProto complete_req;
+    hadoop::hdfs::CompleteResponseProto complete_resp;
+    complete_req.set_src(src);
+    client->complete(complete_req, complete_resp);
 
     // Delete the directory
     hadoop::hdfs::DeleteRequestProto delete_req;
@@ -81,7 +86,7 @@ TEST_F(NamenodeTest, deleteDirectory) {
 
 TEST_F(NamenodeTest, deleteNonexistantFile) {
     // Make up filename
-    std::string src = "/testing/delete_file";
+    std::string src = "delete_file";
     ASSERT_FALSE(client->file_exists(src));
 
     // Try and delete it
@@ -94,21 +99,18 @@ TEST_F(NamenodeTest, deleteNonexistantFile) {
 
 TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
     // Create an empty directory
-    std::string src_dir = "/testing/basic_dir";
+    std::string src_dir = "basic_dir";
     hadoop::hdfs::MkdirsRequestProto mkdir_req;
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
-    hadoop::hdfs::FsPermissionProto permission;
-    permission.set_perm(std::numeric_limits<uint32_t>::max()); // Max permission.
     mkdir_req.set_src(src_dir);
     mkdir_req.set_createparent(true);
-    mkdir_req.set_allocated_masked(&permission);
     ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
 
     // Must give zookeeper time to construct file
     sleep(10);
 
     // Make up filename
-    std::string src = "/testing/basic_dir/basic_file";
+    std::string src = "basic_dir/basic_file";
     ASSERT_FALSE(client->file_exists(src));
     hadoop::hdfs::DeleteRequestProto delete_req;
     delete_req.set_recursive(true);
@@ -118,11 +120,44 @@ TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
 
 }
 
+TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
+    int error;
+    std::string src = "delete_file";
+    hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
+    hadoop::hdfs::CreateResponseProto create_resp;
+    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+    std::uint64_t block_id = 1234;
+    std::vector<std::uint8_t> block_vec(sizeof(std::uint64_t));
+    memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
+    ASSERT_TRUE(zk->create("/fileSystem/delete_file/block-0000000000",
+                           block_vec,
+                           error));
+    ASSERT_TRUE(zk->create("/block_locations/1234",
+                           ZKWrapper::EMPTY_VECTOR,
+                           error));
+
+    // TODO(2016): create real block_locations for this block once we start
+    // doing complete legitimately
+
+    hadoop::hdfs::CompleteRequestProto complete_req;
+    hadoop::hdfs::CompleteResponseProto complete_resp;
+    complete_req.set_src(src);
+    client->complete(complete_req, complete_resp);
+    ASSERT_TRUE(complete_resp.result());
+
+    hadoop::hdfs::DeleteRequestProto delete_req;
+    hadoop::hdfs::DeleteResponseProto delete_resp;
+    delete_req.set_src(src);
+    delete_req.set_recursive(false);
+    ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::Ok);
+    ASSERT_FALSE(client->file_exists(src));
+}
+
 TEST_F(NamenodeTest, deletionPerformance) {
     el::Loggers::setVerboseLevel(9);
 
     int i = 0;
-    std::vector<int> depths = {5, 100};
+    std::vector<int> depths = {5, 10, 100};
     std::vector<int> dir_nums = {10, 100, 1000};
 
     for (auto depth : depths) {
@@ -141,6 +176,11 @@ TEST_F(NamenodeTest, deletionPerformance) {
                 create_req.set_src(dir_string + std::to_string(i));
                 create_req.set_createparent(true);
                 EXPECT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+
+                hadoop::hdfs::CompleteRequestProto complete_req;
+                hadoop::hdfs::CompleteResponseProto complete_resp;
+                complete_req.set_src(dir_string + std::to_string(i));
+                client->complete(complete_req, complete_resp);
             }
         }
     }
@@ -158,7 +198,7 @@ TEST_F(NamenodeTest, deletionPerformance) {
                 dir_string += std::to_string(i) + "/";
             }
 
-            TIMED_SCOPE_IF(listingPerformanceObj,
+            TIMED_SCOPE_IF(deletionPerformanceObj,
                     timer_string,
                     VLOG_IS_ON(9));
 
