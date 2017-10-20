@@ -153,7 +153,7 @@ TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
     ASSERT_FALSE(client->file_exists(src));
 }
 
-TEST_F(NamenodeTest, deletionPerformance) {
+TEST_F(NamenodeTest, deleteBreadthPerformance) {
     el::Loggers::setVerboseLevel(9);
 
     int i = 0;
@@ -185,6 +185,8 @@ TEST_F(NamenodeTest, deletionPerformance) {
         }
     }
 
+    // Tests delete directory with 10, 100, 1000 entries
+
     for (auto depth : depths) {
         for (auto dir_num : dir_nums) {
             auto timer_string = "delete_depth" +
@@ -209,5 +211,53 @@ TEST_F(NamenodeTest, deletionPerformance) {
             ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::Ok);
             ASSERT_FALSE(client->file_exists(dir_string));
         }
+    }
+}
+
+TEST_F(NamenodeTest, deleteDepthPerformance) {
+    el::Loggers::setVerboseLevel(9);
+
+    int i = 0;
+    std::string child = "child_file";
+    std::vector<int> depths = {5, 10, 100};
+
+    for (auto depth : depths) {
+
+        auto dir_string = "/testing/delete_testing_depth" + std::to_string(depth) + "/";
+
+        for (i = 0; i < depth - 2; i++) {
+            dir_string += std::to_string(i) + "/";
+        }
+
+        hadoop::hdfs::CreateRequestProto create_req;
+        hadoop::hdfs::CreateResponseProto create_resp;
+        create_req.set_src(dir_string + child);
+        create_req.set_createparent(true);
+        EXPECT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+
+        hadoop::hdfs::CompleteRequestProto complete_req;
+        hadoop::hdfs::CompleteResponseProto complete_resp;
+        complete_req.set_src(dir_string + child);
+        client->complete(complete_req, complete_resp);
+    }
+
+    // Tests delete directory with 10, 100, 1000 entries
+
+    for (auto depth : depths) {
+        auto timer_string = "delete_depth" +
+                            std::to_string(depth);
+
+        auto dir_string = "/testing/delete_testing_depth" + std::to_string(depth) + "/";
+
+        TIMED_SCOPE_IF(deletionPerformanceObj,
+                       timer_string,
+                       VLOG_IS_ON(9));
+
+        hadoop::hdfs::DeleteRequestProto delete_req;
+        delete_req.set_recursive(true);
+        delete_req.set_src(dir_string);
+        hadoop::hdfs::DeleteResponseProto delete_resp;
+        ASSERT_EQ(client->destroy(delete_req, delete_resp), zkclient::ZkNnClient::DeleteResponse::Ok);
+        ASSERT_FALSE(client->file_exists(dir_string));
     }
 }
