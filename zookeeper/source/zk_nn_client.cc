@@ -329,7 +329,7 @@ bool ZkNnClient::checkAccess(std::string username, FileZNode &znode_data) {
     return true;
   }
   for (unsigned i = 0; i < 20; i++) {
-    if (username.compare(znode_data.permissions[i]) == 0) {
+    if (username.compare(std::string(znode_data.permissions[i])) == 0) {
       return true;
     }
   }
@@ -358,8 +358,7 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   }
 
   // The first string in the permissions ACL is the file owner
-  // TODO(LINKIWI): possibly invalid copy if ACL is not initialized
-  snprintf(znode_data.permissions[0], username.length(), username.c_str());
+  snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, username.c_str());
 
   // Serialize struct to byte vector
   std::vector<std::uint8_t> zk_data(sizeof(FileZNode));
@@ -939,7 +938,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
   // Initialize permissions for file with owner and admin.
-  znode_data.permissions[0] = znode_data.owner;
+  snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
   znode_data.perm_length = 1;
 
   // if we failed, then do not set any status
