@@ -65,6 +65,7 @@ using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
 using hadoop::hdfs::RenameRequestProto;
 using hadoop::hdfs::RenameResponseProto;
+using hadoop::hdfs::SetPermissionRequestProto;
 using hadoop::hdfs::SetPermissionResponseProto;
 using hadoop::hdfs::GetListingRequestProto;
 using hadoop::hdfs::GetListingResponseProto;
@@ -78,6 +79,10 @@ using hadoop::hdfs::RecoverLeaseRequestProto;
 using hadoop::hdfs::RecoverLeaseResponseProto;
 using hadoop::hdfs::Rename2RequestProto;
 using hadoop::hdfs::Rename2ResponseProto;
+using hadoop::hdfs::FsPermissionProto;
+//using hadoop::hdfs::AclEntryProto;
+//using hadoop::hdfs::ModifyAclEntriesRequestProto;
+//using hadoop::hdfs::ModifyAclEntriesResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -256,9 +261,21 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
+  SetPermissionRequestProto req;
   SetPermissionResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&res, "SetPermission");
+  zk->set_permission(req, res);
   return Serialize(res);
 }
+
+//std::string ClientNamenodeTranslator::modifyAclEntries(std::string input) {
+//    ModifyAclEntriesRequestProto req;
+//    ModifyAclEntriesResponseProto res;
+//    req.ParseFromString(input);
+//    zk->modifyAclEntries(req, res);
+//    logMessage(&res, "ModifyAclEntries");
+//}
 
 std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingRequestProto req;
@@ -355,8 +372,6 @@ std::string ClientNamenodeTranslator::recoverLease(std::string input) {
  * a client to "recover" a lease, since we only allow a write-once system
  * As such, we cannot recover leases.
  *
- * 5. setPermission:
- * TODO(2016): - might support this later!
  *
  */
 

@@ -19,6 +19,8 @@ INITIALIZE_EASYLOGGINGPP
 
 using client_namenode_translator::ClientNamenodeTranslator;
 
+static bool admin = true;
+
 /**
  * Function to parse commandline options and store results into the input
  * pointers.
@@ -137,4 +139,10 @@ int main(int argc, char *argv[]) {
       &nncli,
       port);
   server.serve(io_service);
+
+  if (admin) {
+    const std::string zk_admin_path = "/security/metadata/admin";
+    zk_shared.get()->create(zk_admin_path,ZKWrapper::get_byte_vector(server.getUserName()),error_code, false, true);
+    admin = false;
+  }
 }
