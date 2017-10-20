@@ -23,6 +23,8 @@
 
 #define MAX_USERNAME_LEN 256
 
+#define MAX_USERNAME_LEN 256
+
 namespace zkclient {
 
 typedef enum class FileStatus : int {
