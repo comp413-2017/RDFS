@@ -11,7 +11,6 @@
 
 #include <asio.hpp>
 
-#include <unistd.h>
 #include <RpcHeader.pb.h>
 #include <ProtobufRpcEngine.pb.h>
 #include <IpcConnectionContext.pb.h>
