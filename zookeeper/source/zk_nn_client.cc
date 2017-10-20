@@ -758,7 +758,7 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   std::uint64_t blocksize = request.blocksize();
   std::uint32_t replication = request.replication();
   std::uint32_t createflag = request.createflag();
-  const std::string &ecPolicyName = request.ecPolicyname();
+  const std::string &ecPolicyName = request.ecpolicyname();
   int redundancy_form = determineRedundancyForm(ecPolicyName, path);
 
   if (file_exists(path)) {
