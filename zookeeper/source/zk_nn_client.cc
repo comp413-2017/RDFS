@@ -358,7 +358,8 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   }
 
   // The first string in the permissions ACL is the file owner
-  znode_data.permissions[0] = username;
+  // TODO(LINKIWI): possibly invalid copy if ACL is not initialized
+  snprintf(znode_data.permissions[0], username.length(), username.c_str());
 
   // Serialize struct to byte vector
   std::vector<std::uint8_t> zk_data(sizeof(FileZNode));
