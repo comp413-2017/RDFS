@@ -1910,6 +1910,24 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
     return true;
   }
 
+    if (zk_error != ZK_ERRORS::OK) {
+      LOG(ERROR) << "ZK reported error writing modified node back to disk";
+      return false;
+    }
+
+    return true;
+  }
+//bool ZkNnClient::modifyAclEntries(ModifyAclEntriesRequestProto req, ModifyAclEntriesResponseProto res) {
+//    int zk_error;
+//    FileZNode znode_data;
+//    const std::string &path = req.src();
+//    auto entries = req.aclspec();
+//
+//    for (auto entry:entries) {
+//        entry.type();
+//    }
+//
+//}
 bool ZkNnClient::add_block(const std::string &file_path,
                std::uint64_t &block_id,
                std::vector<std::string> &data_nodes,

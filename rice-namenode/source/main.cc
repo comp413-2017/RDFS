@@ -19,6 +19,8 @@ INITIALIZE_EASYLOGGINGPP
 
 using client_namenode_translator::ClientNamenodeTranslator;
 
+static bool admin = true;
+
 /**
  * Function to parse commandline options and store results into the input
  * pointers.
