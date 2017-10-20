@@ -592,7 +592,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       }
     }
   } else if (znode_data.filetype == IS_FILE) {
-    if (znode_data.under_construction == UNDER_CONSTRUCTION) {
+    if (znode_data.under_construction == FileStatus::UnderConstruction) {
       LOG(ERROR) << path 
       					 << " is under construction, so it cannot be deleted.";
       return DeleteResponse::FileUnderConstruction;
@@ -635,13 +635,13 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
 void ZkNnClient::complete(CompleteRequestProto& req,
                           CompleteResponseProto& res) {
   // TODO(2016): Completion makes a few guarantees that we should handle
-
+    LOG(ERROR) << "COMPLETE CALLED"
   int error_code;
   // change the under construction bit
   const std::string& src = req.src();
   FileZNode znode_data;
   read_file_znode(znode_data, src);
-  znode_data.under_construction = FILE_COMPLETE;
+  znode_data.under_construction = FileStatus::FileComplete;
   // set the file length
   uint64_t file_length = 0;
   auto file_blocks = std::vector<std::string>();
@@ -721,7 +721,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
   read_file_znode(znode_data, path);
 
   if (znode_data.filetype == IS_FILE
-      && znode_data.under_construction == UNDER_CONSTRUCTION) {
+      && znode_data.under_construction == FileStatus::UnderConstruction) {
     LOG(ERROR) << "Cannot delete "
                << path
                << " because it is under construction.";
@@ -791,7 +791,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(CreateRequestProto &request,
     // Now create the actual file which will hold blocks
     FileZNode znode_data;
     znode_data.length = 0;
-    znode_data.under_construction = UNDER_CONSTRUCTION;
+    znode_data.under_construction = FileStatus::UnderConstruction;
     uint64_t mslong = current_time_ms();
     znode_data.access_time = mslong;
     znode_data.modification_time = mslong;
@@ -1254,7 +1254,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
-  if (znode_data.under_construction) {  // TODO(2016): This is a faulty check
+  if (znode_data.under_construction == FileStatus::UnderConstruction) {  // TODO(2016): This is a faulty check
     LOG(WARNING) << "Last block for "
                  << file_path
                  << " still under construction";

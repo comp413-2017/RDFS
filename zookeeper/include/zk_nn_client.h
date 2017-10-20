@@ -15,13 +15,20 @@
 
 namespace zkclient {
 
+
+typedef enum class FileStatus : int {
+    UnderConstruction,
+    FileComplete,
+    UnderDestruction
+} FileStatus;
+
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
   uint32_t replication;
   uint64_t blocksize;
-  int under_construction;  // 1 for under construction, 0 for complete
+  zkclient::FileStatus under_construction;  // 1 for under construction, 0 for complete
   int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
   std::uint64_t length;
   // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
@@ -205,6 +212,11 @@ class ZkNnClient : public ZkClientCommon {
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks);
 
+  /**
+   * Read a znode corresponding to a file into znode_data
+   */
+  void read_file_znode(FileZNode &znode_data, const std::string &path);
+
  private:
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
@@ -243,11 +255,6 @@ class ZkNnClient : public ZkClientCommon {
    * if the creation did not work, true otherwise
    */
   MkdirResponse mkdir_helper(const std::string &path, bool create_parent);
-
-  /**
-   * Read a znode corresponding to a file into znode_data
-   */
-  void read_file_znode(FileZNode &znode_data, const std::string &path);
 
   /**
    * Serialize a znode struct representation to a byte array to feed into zookeeper
@@ -327,10 +334,6 @@ class ZkNnClient : public ZkClientCommon {
   * @return True on success, false on error.
   */
   bool blockDeleted(uint64_t uuid, std::string id);
-
-  const int UNDER_CONSTRUCTION = 1;
-  const int FILE_COMPLETE = 0;
-  const int UNDER_DESTRUCTION = 2;
 
   const int IS_FILE = 2;
   const int IS_DIR = 1;
