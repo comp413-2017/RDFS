@@ -476,8 +476,7 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
       "getContentSummary",
       std::bind(&ClientNamenodeTranslator::getContentSummary, this, _1));
 
-
-  // Additional client protocol methods to support for FM - marc, pradhith, anthony
+  // Additional methods to support for FM - marc, pradhith, anthony
   server.register_handler(
       "append",
       std::bind(&ClientNamenodeTranslator::append, this, _1));
@@ -489,7 +488,6 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
   server.register_handler(
       "finalizeUpgrade",
       std::bind(&ClientNamenodeTranslator::finalizeUpgrade, this, _1));
-
 }
 
 /**
