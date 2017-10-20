@@ -30,6 +30,7 @@ using client_namenode_translator::ClientNamenodeTranslator;
  * command line.
  * @param verbosity A pointer in which to place the verbosity value entered at
  * the command line.
+ * @param node_policy A pointer in which to place the node_policy value entered at the command line.
  * @param backingStore A reference to set to the input backingStore.
  * @return 0 on success, -1 on any error.
  */
@@ -37,7 +38,8 @@ static inline int parse_cmdline_options(
     int argc,
     char *argv[],
     int *port,
-    int *verbosity
+    int *verbosity,
+    char *node_policy
 ) {
   int c;
   char buf[64];
@@ -45,8 +47,8 @@ static inline int parse_cmdline_options(
   // By setting opterr to 0, getopt does not print its own error messages.
   opterr = 0;
 
-  // We expect to find port setting and/or verbosity setting
-  while ((c = getopt(argc, argv, "v:p:")) != -1) {
+  // We expect to find port, node policy, and/or verbosity settings
+  while ((c = getopt(argc, argv, "v:p:n:")) != -1) {
     switch (c) {
       case 'v':*verbosity = atoi(optarg);
         if (*verbosity < 0 || *verbosity > 9) {
@@ -60,6 +62,13 @@ static inline int parse_cmdline_options(
           return -1;
         }
         break;
+      case 'n':*node_policy = optarg[0];
+        if (*node_policy != MIN_XMITS || *node_policy != MAX_FREE_SPACE) {
+          LOG(ERROR) << "Node policy, if any, must be -n x (minimum transmits)"
+                        " or -n f (maximum free space)";
+          return -1;
+        }
+        break;
       case '?':
         switch (optopt) {
           case 'v':LOG(ERROR) << "Option -v requires an argument specifying a "
@@ -67,6 +76,9 @@ static inline int parse_cmdline_options(
             return -1;
           case 'p':LOG(ERROR) << "Option -p requires an argument specifying an "
                 "ipc port.";
+            return -1;
+          case 'n':LOG(ERROR) << "Option -n requires an argument specifying a "
+                 "node policy.";
             return -1;
           default:
             if (isprint(optopt)) {
@@ -102,8 +114,9 @@ int main(int argc, char *argv[]) {
   asio::io_service io_service;
   int port = 5351;
   int verbosity = 0;
+  char node_policy = MAX_FREE_SPACE;
 
-  parse_cmdline_options(argc, argv, &port, &verbosity);
+  parse_cmdline_options(argc, argv, &port, &verbosity, &node_policy);
 
   el::Loggers::setVerboseLevel(verbosity);
 
@@ -113,6 +126,7 @@ int main(int argc, char *argv[]) {
       "/testing");
   zkclient::ZkNnClient nncli(zk_shared);
   nncli.register_watches();
+  nncli.set_node_policy(node_policy);
 
   LOG(INFO) << "Namenode is starting";
   ClientNamenodeTranslator translator(port, &nncli);
