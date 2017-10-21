@@ -108,36 +108,6 @@ using hadoop::hdfs::DatanodeInfoProto;
  */
 class ZkNnClient : public ZkClientCommon {
  public:
-
-  enum class ListingResponse {
-      Ok,                   // 0
-      FileDoesNotExist,     // 1
-      FailedChildRetrieval  // 2
-  };
-
-  enum class DeleteResponse {
-      Ok,
-      FileDoesNotExist,
-      FileUnderConstruction,
-      FileIsDirectoryMismatch,
-      FailedChildRetrieval,
-      FailedBlockRetrieval,
-      FailedDataNodeRetrieval,
-      FailedZookeeperOp
-  };
-
-  enum class MkdirResponse {
-      Ok,
-      FailedZnodeCreation
-  };
-
-  enum class CreateResponse {
-      Ok,
-      FileAlreadyExists,
-      FailedMkdir,
-      FailedCreateZnode
-  };
-  
   char policy;
 
   enum class ListingResponse {
