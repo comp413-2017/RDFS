@@ -10,7 +10,8 @@ TEST_F(NamenodeTest, mkdirDepth1) {
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     mkdir_req.set_createparent(true);
     mkdir_req.set_src(src);
-    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
+    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp),
+              zkclient::ZkNnClient::MkdirResponse::Ok);
     ASSERT_TRUE(mkdir_resp.result());
     ASSERT_TRUE(client->file_exists(src));
     LOG(DEBUG) << "Finished all asserts";
@@ -25,7 +26,8 @@ TEST_F(NamenodeTest, mkdirDepth1024) {
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     mkdir_req.set_createparent(true);
     mkdir_req.set_src(src);
-    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
+    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp),
+              zkclient::ZkNnClient::MkdirResponse::Ok);
     ASSERT_TRUE(mkdir_resp.result());
     ASSERT_TRUE(client->file_exists(src));
 }
@@ -36,13 +38,15 @@ TEST_F(NamenodeTest, mkdirExistentDirectory) {
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     mkdir_req.set_createparent(true);
     mkdir_req.set_src(src);
-    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
+    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp),
+              zkclient::ZkNnClient::MkdirResponse::Ok);
     ASSERT_TRUE(mkdir_resp.result());
     ASSERT_TRUE(client->file_exists(src));
 
     // Now create again.
-    // TODO should really introduce a new response enum
-    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
+    // TODO(Yufeng): should really introduce a new response enum
+    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp),
+              zkclient::ZkNnClient::MkdirResponse::Ok);
     ASSERT_TRUE(mkdir_resp.result());
 }
 
@@ -51,10 +55,12 @@ TEST_F(NamenodeTest, mkdirExistentFile) {
     std::string src = "/testing/test_mkdir_file";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
-    ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+    ASSERT_EQ(client->create_file(create_req, create_resp),
+              zkclient::ZkNnClient::CreateResponse::Ok);
 
     hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
-    ASSERT_EQ(file_status.filetype(), hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+    ASSERT_EQ(file_status.filetype(),
+              hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
     ASSERT_TRUE(client->file_exists(src));
 
     // Now create a directory with the same name.
@@ -63,7 +69,8 @@ TEST_F(NamenodeTest, mkdirExistentFile) {
     hadoop::hdfs::MkdirsResponseProto mkdir_resp;
     mkdir_req.set_createparent(true);
     mkdir_req.set_src(src);
-    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::FailedZnodeCreation);
+    ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp),
+              zkclient::ZkNnClient::MkdirResponse::FailedZnodeCreation);
     ASSERT_FALSE(mkdir_resp.result());
 }
 
@@ -83,12 +90,14 @@ TEST_F(NamenodeTest, mkdirPerformance) {
           curr_src += "/test_mkdir_depth" + std::to_string(d) +
               "_num" + std::to_string(i) + "_iter" + std::to_string(j);
         }
-        TIMED_SCOPE_IF(mkdirPerformanceTimer, "mkdir_depth" + std::to_string(d), VLOG_IS_ON(9));
+        TIMED_SCOPE_IF(mkdirPerformanceTimer,
+                       "mkdir_depth" + std::to_string(d), VLOG_IS_ON(9));
         hadoop::hdfs::MkdirsRequestProto mkdir_req;
         hadoop::hdfs::MkdirsResponseProto mkdir_resp;
         mkdir_req.set_createparent(true);
         mkdir_req.set_src(curr_src);
-        ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp), zkclient::ZkNnClient::MkdirResponse::Ok);
+        ASSERT_EQ(client->mkdir(mkdir_req, mkdir_resp),
+                  zkclient::ZkNnClient::MkdirResponse::Ok);
         ASSERT_TRUE(mkdir_resp.result());
       }
     }

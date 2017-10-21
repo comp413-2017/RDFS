@@ -7,7 +7,8 @@ INITIALIZE_EASYLOGGINGPP
 void NamenodeTest::SetUp() {
     int error_code;
     auto zk_shared =
-            std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+            std::make_shared<ZKWrapper>("localhost:2181",
+            error_code, "/testing");
     assert(error_code == 0);  // Z_OK
     client = new zkclient::ZkNnClient(zk_shared);
     zk = new ZKWrapper("localhost:2181", error_code, "/testing");
@@ -166,7 +167,8 @@ TEST_F(NamenodeTest, testRenameFile) {
   create_req.set_blocksize(0);
   create_req.set_replication(1);
   create_req.set_createflag(0);
-  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+    zkclient::ZkNnClient::CreateResponse::Ok);
 
   // Create a child of the old file with a fake block
   std::string new_path;
@@ -221,11 +223,14 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
   create_req.set_blocksize(0);
   create_req.set_replication(1);
   create_req.set_createflag(0);
-  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+            zkclient::ZkNnClient::CreateResponse::Ok);
   create_req.set_src("/old_dir/file2");
-  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+            zkclient::ZkNnClient::CreateResponse::Ok);
   create_req.set_src("/old_dir/nested_dir/nested_file");
-  ASSERT_EQ(client->create_file(create_req, create_resp), zkclient::ZkNnClient::CreateResponse::Ok);
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+            zkclient::ZkNnClient::CreateResponse::Ok);
 
   // Rename
   hadoop::hdfs::RenameRequestProto rename_req;
