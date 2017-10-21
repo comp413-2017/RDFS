@@ -884,7 +884,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   std::uint32_t replication = request.replication();
   std::uint32_t createflag = request.createflag();
   const std::string &inputECPolicyName = request.ecpolicyname();
-
   if (file_exists(path)) {
     // TODO(2016) solve this issue of overwriting files
     LOG(ERROR) << "File already exists";
@@ -925,15 +924,15 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   } else {
     znode_data.isEC = true;
   }
-
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
       return CreateResponse::FailedCreateZnode;
-
   HdfsFileStatusProto *status = response.mutable_fs();
   set_file_info(status, path, znode_data);
+
   return CreateResponse::Ok;
 }
+
 
 /**
      * Rename a file in the zookeeper filesystem

@@ -26,7 +26,6 @@ typedef enum class FileStatus : int {
     UnderDestruction
 } FileStatus;
 
-
 /**
  * This is the basic znode to describe a file
  */
@@ -122,7 +121,6 @@ using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
 class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
-
   const char* EC_REPLICATION = "REPLICATION";
   const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
   uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
@@ -133,7 +131,6 @@ class ZkNnClient : public ZkClientCommon {
   std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
-
 
   enum class ListingResponse {
       Ok,                   // 0
@@ -330,7 +327,7 @@ class ZkNnClient : public ZkClientCommon {
    */
   u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
 
-    /**
+  /**
    * Abandons the block - basically reverses all of add block's multiops
    */
   bool abandon_block(AbandonBlockRequestProto &req,
