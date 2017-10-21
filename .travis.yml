@@ -21,8 +21,6 @@ addons:
       - ssh
       - pdsh
       - openjdk-8-jdk-headless
-      - libmysqlclient-dev
-      - libmysql-java
       - sysv-rc-conf
       - ant
       - libcppunit-dev
