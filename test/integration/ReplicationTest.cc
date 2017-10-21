@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 #include <asio.hpp>
+#include <StorageMetrics.h>
 
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
@@ -21,20 +22,88 @@ INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
 using client_namenode_translator::ClientNamenodeTranslator;
+
+static const int NUM_DATANODES = 3;
+
 int num_threads = 4;
 int max_xmits = 100000;
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+// Use minDatanodId++ when you want to kill a datanode.
+int minDatanodeId = 0;
+uint16_t nextPort = 5351;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  int i = maxDatanodeId;
+  maxDatanodeId += numDatanodes;
+  for (; i < maxDatanodeId; i++) {
+    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
+    std::string dnCliArgs = "-x " +
+        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
+        + " -b tfs" + std::to_string(i) + " &";
+    std::string cmdLine =
+        "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
+            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
+            dnCliArgs + "\" & ";
+    system(cmdLine.c_str());
+    sleep(3);
+  }
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
+
 namespace {
 
-TEST(ReplicationTest, testReadWrite) {
+class ReplicationTest : public ::testing::Test {
+ protected:
+  virtual void SetUp() {
+    initializeDatanodes(NUM_DATANODES);
+
+    int error_code;
+    zk = std::make_shared<ZKWrapper>(
+        "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
+    assert(error_code == 0);  // Z_OK
+
+    // Start the namenode in a way that gives us a local pointer to zkWrapper.
+    port = nextPort++;
+    nncli = new zkclient::ZkNnClient(zk);
+    nncli->register_watches();
+    nn_translator = new ClientNamenodeTranslator(port, nncli);
+  }
+
+  virtual void TearDown() {
+    system("pkill -f ReplicationTestServer*");
+  }
+
+  // Objects declared here can be used by all tests below.
+  static zkclient::ZkNnClient *nncli;
+  static ClientNamenodeTranslator *nn_translator;
+  static std::shared_ptr<ZKWrapper> zk;
+  unsigned short port;
+};
+
+zkclient::ZkNnClient *ReplicationTest::nncli = NULL;
+ClientNamenodeTranslator *ReplicationTest::nn_translator = NULL;
+std::shared_ptr<ZKWrapper> ReplicationTest::zk = NULL;
+
+TEST_F(ReplicationTest, testReadWrite) {
+  asio::io_service io_service;
+  RPCServer namenodeServer = nn_translator->getRPCServer();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
+      .detach();
+  sleep(3);
+
   ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
                           "generate_file.py > expected_testfile1234"));
   // Put it into rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-             "-copyFromLocal expected_testfile1234 /f");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -D dfs.blocksize=1048576 "
+             "-copyFromLocal expected_testfile1234 /f").c_str());
   // Read it from rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > "
-             "actual_testfile1234");
-  // system("head -c 5 temp > actual_testfile1234");
+  system(("hdfs dfs -fs hdfs://localhost:"+ std::to_string(port) +
+      " -cat /f > "
+             "actual_testfile1234").c_str());
   // Check that its contents match.
   ASSERT_EQ(0, system("diff expected_testfile1234 actual_testfile1234 > "
                           "/dev/null"));
@@ -53,67 +122,74 @@ TEST(ReplicationTest, testReadWrite) {
     ASSERT_EQ(block0, block1);
     ASSERT_EQ(block1, block2);
   }
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -rm /f").c_str());
 }
 
-TEST(ReplicationTest, testReplication) {
-  int32_t xferPort = 50010;
-  int32_t ipcPort = 50020;
+TEST_F(ReplicationTest, testReplication) {
+  asio::io_service io_service;
+  RPCServer namenodeServer = nn_translator->getRPCServer();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
+      .detach();
+  sleep(3);
 
   ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
                           "generate_file.py > expected_testfile1234"));
   // Put it into rdfs.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-             "-copyFromLocal expected_testfile1234 /g");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -D dfs.blocksize=1048576 "
+          "-copyFromLocal expected_testfile1234 /g").c_str());
   // Read it from rdfs.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile1234");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -cat /g > actual_testfile1234").c_str());
   // Check that its contents match.
   sleep(10);
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
                        "/dev/null"));
 
-  // Start a new server
-
-  system(("truncate tfs" + std::to_string(3) + " -s 1000000000").c_str());
-  std::string dnCliArgs = " -x " +
-      std::to_string(xferPort + 3) + " -p " + std::to_string(ipcPort + 3)
-      + " -b tfs" + std::to_string(3) + " &";
-  std::string
-      cmdLine = "bash -c \"exec -a ReplicationTestServer" + std::to_string(3) +
-      " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-      dnCliArgs + "\" & ";
-  system(cmdLine.c_str());
+  // Start a new DataNode
+  initializeDatanodes(1);
 
   sleep(10);
   // Kill one of the original datanodes
-  system("pkill -f ReplicationTestServer0");
+  system(("pkill -f ReplicationTestServer" + std::to_string(minDatanodeId++))
+             .c_str());
   sleep(10);
 
-  // The data should now be replicated on the new server
+  // The file should still be readable.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -cat /g > actual_testfile12345").c_str());
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile12345 > "
                        "/dev/null"));
 
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -rm /g").c_str());
 }
 
-TEST(ReplicationTest, testReplicationOnFailure) {
-  int32_t xferPort = 50010;
-  int32_t ipcPort = 50020;
+TEST_F(ReplicationTest, testReplicationOnFailure) {
+  asio::io_service io_service;
+  RPCServer namenodeServer = nn_translator->getRPCServer();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
+      .detach();
+  sleep(3);
+
 
   ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
                           "generate_file.py > expected_testfile1234"));
   // Put it into rdfs with the 3 original DataNodes.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-             "-copyFromLocal expected_testfile1234 /g");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -D dfs.blocksize=1048576 "
+             "-copyFromLocal expected_testfile1234 /g").c_str());
   // Read it from rdfs.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile1234");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -cat /g > actual_testfile1234").c_str());
   // Check that its contents match.
   sleep(10);
   ASSERT_EQ(0,
@@ -122,39 +198,24 @@ TEST(ReplicationTest, testReplicationOnFailure) {
 
   system("rm -f expected_testfile1234 actual_testfile*");
 
-  int i;
-  // Start 3 new datanodes
-  for (i = 0; i < 3; i++) {
-    system(("truncate tfs" + std::to_string(4 + i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = " -x " + std::to_string(xferPort + 4 + i) +
-        " -p " + std::to_string(ipcPort + 4 + i)
-        + " -b tfs" + std::to_string(4 + i) + " &";
-    std::string
-        cmdLine = "bash -c \"exec "
-        "-a ReplicationTestServer" + std::to_string(4 + i) +
-        " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-        dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(10);
+  initializeDatanodes(3);
+
+  StorageMetrics metrics(NUM_DATANODES + 3, zk);
+  float usedBefore = metrics.usedSpace();
+
+  // Kill 3 original datanodes
+  int i = 0;
+  for (; i < 3; i++) {
+    system(("pkill -f ReplicationTestServer" + std::to_string(minDatanodeId++))
+               .c_str());
+    sleep(5);
   }
 
-  // Kill original datanodes
-  system("pkill -f ReplicationTestServer0");
-  sleep(5);
-  system("pkill -f ReplicationTestServer1");
-  sleep(5);
-  system("pkill -f ReplicationTestServer2");
-  sleep(5);
-  system("pkill -f ReplicationTestServer3");
-
   // The data should now be replicated on the new servers.
-  sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
-  ASSERT_EQ(0,
-            system("diff expected_testfile1234 actual_testfile12345 > "
-                       "/dev/null"));
+  ASSERT_EQ(usedBefore, metrics.usedSpace());
 
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -rm /g").c_str());
 }
 }  // namespace
 
@@ -166,30 +227,15 @@ int main(int argc, char **argv) {
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(3);
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
-  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   sleep(3);
-  // initialize 3 datanodes (0-2)
-  int32_t xferPort = 50010;
-  int32_t ipcPort = 50020;
-  for (int i = 0; i < 3; i++) {
-    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = "-x " +
-        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
-        + " -b tfs" + std::to_string(i) + " &";
-    std::string cmdLine =
-        "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
-            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-            dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(3);
-  }
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
+
   // NOTE: You'll need to scroll up a bit to see the test results
   // Remove test files and shutdown zookeeper
-  system("pkill -f ReplicationTestServer*");
-  system("pkill -f namenode");
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
 }
