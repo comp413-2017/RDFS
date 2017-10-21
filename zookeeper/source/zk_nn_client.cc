@@ -574,12 +574,10 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
 
 ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
                                 std::vector<std::shared_ptr<ZooOp>> &ops) {
-  
   LOG(INFO) << "Destroying " << path;
 
   if (!file_exists(path)) {
-    LOG(ERROR) << path 
-    					 << " does not exist";
+    LOG(ERROR) << path << " does not exist";
     return DeleteResponse::FileDoesNotExist;
   }
 
@@ -588,8 +586,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
   if (!zk->get_children(ZookeeperPath(path), children, error_code)) {
-    LOG(FATAL) << "Failed to get children for " 
-    					 << path;
+    LOG(FATAL) << "Failed to get children for " << path;
     return DeleteResponse::FailedChildRetrieval;
   }
   if (znode_data.filetype == IS_DIR) {
@@ -597,13 +594,12 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       auto child_path = util::concat_path(path, child);
       auto status = destroy_helper(child_path, ops);
       if (status != DeleteResponse::Ok) {
-      	return status;
+        return status;
       }
     }
   } else if (znode_data.filetype == IS_FILE) {
     if (znode_data.under_construction == FileStatus::UnderConstruction) {
-      LOG(ERROR) << path 
-      					 << " is under construction, so it cannot be deleted.";
+      LOG(ERROR) << path << " is under construction, so it cannot be deleted.";
       return DeleteResponse::FileUnderConstruction;
     }
     for (auto &child : children) {
@@ -718,9 +714,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
   response.set_result(true);
 
   if (!file_exists(path)) {
-    LOG(ERROR) << "Cannot delete " 
-    					 << path 
-    					 << " because it doesn't exist.";
+    LOG(ERROR) << "Cannot delete "
+               << path
+               << " because it doesn't exist.";
     response.set_result(false);
     return DeleteResponse::FileDoesNotExist;
   }
@@ -748,14 +744,13 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
   std::vector<std::shared_ptr<ZooOp>> ops;
   auto status = destroy_helper(path, ops);
   if (status != DeleteResponse::Ok) {
-  	response.set_result(false);
-  	return status;
+    response.set_result(false);
+    return status;
   }
 
   std::vector<zoo_op_result> results;
   if (!zk->execute_multi(ops, results, error_code)) {
-    LOG(ERROR) << "Failed to execute multi op to delete " 
-    					 << path;
+    LOG(ERROR) << "Failed to execute multi op to delete " << path;
     response.set_result(false);
     return DeleteResponse::FailedZookeeperOp;
   }
@@ -766,8 +761,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
 /**
  * Create a file in zookeeper
  */
-ZkNnClient::CreateResponse ZkNnClient::create_file(CreateRequestProto &request,
-                                                   CreateResponseProto &response) {
+ZkNnClient::CreateResponse ZkNnClient::create_file(
+        CreateRequestProto &request,
+        CreateResponseProto &response) {
     const std::string &path = request.src();
     LOG(INFO) << "Trying to create file " << path;
     const std::string &owner = request.clientname();
@@ -792,7 +788,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(CreateRequestProto &request,
             directory_paths += ("/" + split_path[i]);
         }
         // try and make all the parents
-        if (mkdir_helper(directory_paths, true) != ZkNnClient::MkdirResponse::Ok)
+        if (mkdir_helper(directory_paths, true) !=
+            ZkNnClient::MkdirResponse::Ok)
             return CreateResponse::FailedMkdir;
     }
 
@@ -908,7 +905,8 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
  * Helper for creating a directory znode. Iterates over the parents and creates
  * them if necessary.
  */
-ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool create_parent) {
+ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
+                                                   bool create_parent) {
   LOG(INFO) << "mkdir_helper called with input " << path;
   if (create_parent) {
     std::vector<std::string> split_path;
@@ -940,7 +938,8 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path, bool
   } else {
     FileZNode znode_data;
     set_mkdir_znode(&znode_data);
-    return create_file_znode(path, &znode_data) ? MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
+    return create_file_znode(path, &znode_data) ?
+           MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
   }
   return MkdirResponse::Ok;
 }
@@ -951,7 +950,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
 
   const std::string &src = req.src();
     const int start_after = req.startafter();
-    const bool need_location = req.needlocation(); // TODO: This should be used to not get locations if not requested
+    const bool need_location = req.needlocation();
 
   DirectoryListingProto *listing = res.mutable_dirlist();
 
@@ -1262,7 +1261,8 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
-  if (znode_data.under_construction == FileStatus::UnderConstruction) {  // TODO(2016): This is a faulty check
+  // TODO(2016): This is a faulty check
+  if (znode_data.under_construction == FileStatus::UnderConstruction) {
     LOG(WARNING) << "Last block for "
                  << file_path
                  << " still under construction";
