@@ -3,6 +3,9 @@
 #ifndef ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 #define ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 
+#define MIN_XMITS 'x'
+#define MAX_FREE_SPACE 'f'
+
 #include "zk_client_common.h"
 #include <google/protobuf/message.h>
 #include <queue>
@@ -15,11 +18,15 @@
 
 namespace zkclient {
 
+const int REPLICATION = 0;  // file/directory redundancy form is replication.
+const int EC = 1;  // file/directory redundancy form is erasure coding.
+const int DEFAULT_REDUNDANCY_FORM = REPLICATION;  // the default form.
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
-  uint32_t replication;
+  uint32_t replication;  // the block replication factor.
+  int redundancy_form;  // values: REPLICATION and EC. default REPLICATION.
   uint64_t blocksize;
   int under_construction;  // 1 for under construction, 0 for complete
   int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
@@ -35,18 +42,32 @@ typedef struct {
 } FileZNode;
 
 struct TargetDN {
+  char policy;
   std::string dn_id;
   uint64_t free_bytes;    // free space on disk
   uint32_t num_xmits;        // current number of xmits
 
-  TargetDN(std::string id, int bytes, int xmits) : dn_id(id),
+  TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
                                                    free_bytes(bytes),
+                                                   policy(policy),
                                                    num_xmits(xmits) {
   }
 
   bool operator<(const struct TargetDN &other) const {
-    // Minimizes num_xmits
-    return num_xmits > other.num_xmits;
+    // If storage policy is 'x' for xmits, choose the min xmits node
+    if (policy == MIN_XMITS) {
+        if (num_xmits == other.num_xmits) {
+            return free_bytes < other.free_bytes;
+        }
+        return num_xmits > other.num_xmits;
+
+    // Default policy is choose the node with the most free space
+    } else {
+        if (free_bytes == other.free_bytes) {
+            return num_xmits > other.num_xmits;
+        }
+        return free_bytes < other.free_bytes;
+    }
   }
 };
 
@@ -84,6 +105,8 @@ using hadoop::hdfs::DatanodeInfoProto;
  */
 class ZkNnClient : public ZkClientCommon {
  public:
+  char policy;
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -115,10 +138,40 @@ class ZkNnClient : public ZkClientCommon {
   void set_file_info_content(ContentSummaryProto *status,
                              const std::string &path, FileZNode &znode_data);
 
+  void set_node_policy(char policy);
+
+  char get_node_policy();
   /**
-       * Add block.
-       */
+   * Adds a block by making appropriate namespace changes and returns information about
+   * the set of DataNodes that the block data should be hosted by.
+   */
   bool add_block(AddBlockRequestProto &req, AddBlockResponseProto &res);
+
+  /**
+   * A helper method that achieves the above add_block method.
+   * Does
+   * 1) Creates namespace changes to the given file.
+   * 2) Generates a block id. The id is generated randomly for replication
+   * blocks and based on the hierarchical naming scheme for EC blocks.
+   * 3) Finds a set of data nodes on which to allocate the new block.
+   * In the case of replication, the set of DataNodes has primary / secondary
+   * replicas of the block.
+   * In the case of EC, each DataNode hosts a block group.
+   */
+  bool add_block(const std::string &fileName,
+                 u_int64_t &block_id,
+                 std::vector<std::string> &dataNodes,
+                 uint32_t replication_factor);
+
+  /**
+   * Given the block group id and index in the block group, returns the hierarchical block id.
+   * @param block_group_id
+   * @param index_in_group
+   * @return the hierarchical block id.
+   */
+  u_int64_t generate_hierarchical_block_id(
+          uint64_t block_group_id,
+          uint32_t index_in_group);
 
   /**
    * Abandons the block - basically reverses all of add block's multiops
@@ -139,13 +192,6 @@ class ZkNnClient : public ZkClientCommon {
 
   // this is public because we have not member functions in this file
   static const std::string CLASS_NAME;
-
-  // TODO(2016) lil doc string and move to private
-  // (why does this cause compiler problems?)
-  bool add_block(const std::string &fileName,
-                 u_int64_t &block_id,
-                 std::vector<std::string> &dataNodes,
-                 uint32_t replication_factor);
 
   bool find_datanode_for_block(std::vector<std::string> &datanodes,
                                const std::uint64_t blockId,
@@ -297,6 +343,22 @@ class ZkNnClient : public ZkClientCommon {
   * @return True on success, false on error.
   */
   bool blockDeleted(uint64_t uuid, std::string id);
+
+  /**
+   * Determines what the redundancy form of a file specified by @path should be and returns the corresponding value.
+   * i.e. zkclient::REPLICATION or zkclinet::EC.
+   *
+   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::REPLICATION.
+   * TODO: we may choose to implement what HDFS does, which is to inherit the redundancy form of its parent directory.
+   * TODO: the path parameter is need in that case.
+   * If not empty, returns the corresponding redundancy form.
+   * @param ecPolicyString the ecPolicyname part of CreateRequestProto.
+   * @param path the file path.
+   * @return zkclient::REPLICATION or zkclinet::EC.
+   */
+  int determineRedundancyForm(
+          const std::string &ecPolicyString,
+          const std::string &path);
 
   const int UNDER_CONSTRUCTION = 1;
   const int FILE_COMPLETE = 0;
