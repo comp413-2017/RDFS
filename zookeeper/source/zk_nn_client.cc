@@ -14,7 +14,6 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
-#include <zk_nn_client.h>
 
 #include "zk_lock.h"
 #include "zk_dn_client.h"
