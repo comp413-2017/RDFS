@@ -196,7 +196,7 @@ TEST_F(ReplicationTest, testReplicationOnFailure) {
 
   initializeDatanodes(3);
 
-  StorageMetrics metrics(NUM_DATANODES + 3, zk);
+  StorageMetrics metrics(zk);
   float usedBefore = metrics.usedSpace();
 
   // Kill 3 original datanodes
