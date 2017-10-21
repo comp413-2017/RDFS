@@ -93,7 +93,7 @@ TEST_F(StorageTest, testExample) {
           "-copyFromLocal expected_testfile1234 /f").c_str());
   sleep(5);
 
-  StorageMetrics metrics(NUM_DATANODES, zk);
+  StorageMetrics metrics(zk);
   LOG(INFO) << " ---- Standard Deviation of blocks per DataNode: " <<
                                                  metrics.blocksPerDataNodeSD();
 
@@ -120,7 +120,7 @@ TEST_F(StorageTest, testExample2) {
           "-copyFromLocal expected_testfile1234 /f").c_str());
   sleep(5);
 
-  StorageMetrics metrics(NUM_DATANODES, zk);
+  StorageMetrics metrics(zk);
   LOG(INFO) << " ---- Standard Deviation of blocks per DataNode: " <<
             metrics.blocksPerDataNodeSD();
 

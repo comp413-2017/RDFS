@@ -6,6 +6,18 @@
 
 #define ELPP_FEATURE_PERFORMANCE_TRACKING
 
+StorageMetrics::StorageMetrics(std::shared_ptr<ZKWrapper> zkWrapper_):
+    zkWrapper(zkWrapper_) {
+  int error;
+  std::vector<std::string> datanodeIds;
+  if (!zkWrapper->get_children("/health", datanodeIds, error)) {
+    LOG(ERROR) << "Failed to get /health children in StorageMetrics "
+        "constructor.";
+  }
+  kNumDatanodes = datanodeIds.size();
+  LOG(INFO) << " --- CONSTRUCTOR FOUND " << kNumDatanodes << " DATANODES!!";
+}
+
 float StorageMetrics::usedSpaceFraction() {
   uint64_t numerator = 0;
   uint64_t denominator = 0;
@@ -37,6 +49,7 @@ float StorageMetrics::usedSpace() {
   if (!zkWrapper->get_children("/health", datanodeIds, error)) {
     LOG(ERROR) << "Failed to get /health children";
   }
+  LOG(INFO) << " --- METHOD FOUND " << datanodeIds.size() << " DATANODES!!";
   for (std::string &datanodeId : datanodeIds) {
     std::string statsPath = "/health/" + datanodeId + "/stats";
     std::vector<std::uint8_t> statsPayload = std::vector<std::uint8_t>();
@@ -131,7 +144,7 @@ float StorageMetrics::stDev(int usedBlockCounts[]) {
   float standardDeviation = 0.0;
   float sum = 0.0;
   float mean;
-  int i;
+  uint64_t i;
 
   for (i = 0; i < kNumDatanodes; i++) {
     sum += usedBlockCounts[i];
