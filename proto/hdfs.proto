@@ -135,6 +135,11 @@ message ContentSummaryProto {
   required uint64 spaceConsumed = 5;
   required uint64 spaceQuota = 6;
   optional StorageTypeQuotaInfosProto typeQuotaInfos = 7;
+  optional uint64 snapshotLength = 8;
+  optional uint64 snapshotFileCount = 9;
+  optional uint64 snapshotDirectoryCount = 10;
+  optional uint64 snapshotSpaceConsumed = 11;
+  optional string erasureCodingPolicy = 12;
 }
 
 /**
@@ -300,6 +305,44 @@ message LocatedBlocksProto {
   optional LocatedBlockProto lastBlock = 4;
   required bool isLastBlockComplete = 5;
   optional FileEncryptionInfoProto fileEncryptionInfo = 6;
+
+  // Optional field for erasure coding
+  optional ErasureCodingPolicyProto ecPolicy = 7;
+}
+
+/**
+ * ECSchema options entry
+ */
+message ECSchemaOptionEntryProto {
+  required string key = 1;
+  required string value = 2;
+}
+
+/**
+ * ECSchema for erasurecoding
+ */
+message ECSchemaProto {
+  required string codecName = 1;
+  required uint32 dataUnits = 2;
+  required uint32 parityUnits = 3;
+  repeated ECSchemaOptionEntryProto options = 4;
+}
+
+/**
+ * EC policy state.
+ */
+enum ErasureCodingPolicyState {
+  DISABLED = 1;
+  ENABLED = 2;
+  REMOVED = 3;
+}
+
+message ErasureCodingPolicyProto {
+  optional string name = 1;
+  optional ECSchemaProto schema = 2;
+  optional uint32 cellSize = 3;
+  required uint32 id = 4; // Actually a byte - only 8 bits used
+  optional ErasureCodingPolicyState state = 5 [default = ENABLED];
 }
 
 /**
@@ -336,6 +379,8 @@ message HdfsFileStatusProto {
   optional FileEncryptionInfoProto fileEncryptionInfo = 15;
 
   optional uint32 storagePolicy = 16 [default = 0]; // block storage policy id
+
+  optional ErasureCodingPolicyProto ecPolicy = 17;
 } 
 
 /**
