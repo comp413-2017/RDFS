@@ -102,33 +102,6 @@ TEST_F(StorageTest, testExample) {
   system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) + " -rm /f")
              .c_str());
 }
-
-TEST_F(StorageTest, testExample2) {
-  asio::io_service io_service;
-  RPCServer namenodeServer = nn_translator->getRPCServer();
-  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
-      .detach();
-  sleep(3);
-
-  ASSERT_EQ(0, system("python "
-                          "/home/vagrant/rdfs/test/integration/generate_file.py"
-                          " > expected_""testfile1234"));
-  // Put a file into rdfs.
-  system((
-      "hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
-          " -D dfs.blocksize=1048576 "
-          "-copyFromLocal expected_testfile1234 /f").c_str());
-  sleep(5);
-
-  StorageMetrics metrics(zk);
-  LOG(INFO) << " ---- Standard Deviation of blocks per DataNode: " <<
-            metrics.blocksPerDataNodeSD();
-
-  LOG(INFO) << " ---- Fraction of total space used: " <<
-            metrics.usedSpaceFraction();
-  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) + " -rm /f")
-             .c_str());
-}
 }  // namespace
 
 static inline void print_usage() {
