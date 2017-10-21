@@ -1,5 +1,9 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include "ClientNamenodeProtocolImpl.h"
+
+#include <hdfs.pb.h>
+
 #include <easylogging++.h>
 #include <rpcserver.h>
 #include <zkwrapper.h>
@@ -14,7 +18,6 @@
 #include <google/protobuf/generated_message_util.h>
 #include <unistd.h>
 
-#include <hdfs.pb.h>
 #include <iostream>
 #include <string>
 
@@ -24,7 +27,6 @@
 #include <ConfigReader.h>
 #include <ClientNamenodeProtocol.pb.h>
 
-#include "ClientNamenodeProtocolImpl.h"
 #include "zk_nn_client.h"
 
 /**

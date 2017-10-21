@@ -1,8 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_FRESH_LOG_FILE
-#define ELPP_THREAD_SAFE
-
 #include <rpcserver.h>
 #include <easylogging++.h>
 #include <cstdlib>
@@ -11,6 +8,9 @@
 #include "ClientNamenodeProtocolImpl.h"
 #include "HaServiceProtocolImpl.h"
 #include "zk_nn_client.h"
+
+#define ELPP_FRESH_LOG_FILE
+#define ELPP_THREAD_SAFE
 
 INITIALIZE_EASYLOGGINGPP
 
