@@ -1,5 +1,7 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include "ClientNamenodeProtocolImpl.h"
+
 #include <hdfs.pb.h>
 
 #include <easylogging++.h>
@@ -16,7 +18,6 @@
 #include <google/protobuf/generated_message_util.h>
 #include <unistd.h>
 
-#include <hdfs.pb.h>
 #include <iostream>
 #include <string>
 
