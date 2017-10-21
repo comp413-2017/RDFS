@@ -43,7 +43,9 @@ static const int NUM_DATANODES = 3;
 int32_t xferPort = 50010;
 int32_t ipcPort = 50020;
 int maxDatanodeId = 0;
+// Use minDatanodId++ when you want to kill a datanode.
 int minDatanodeId = 0;
+uint16_t nextPort = 5351;
 
 static inline void initializeDatanodes(int numDatanodes) {
   int i = maxDatanodeId;
@@ -93,10 +95,6 @@ class StorageTest : public ::testing::Test {
   std::shared_ptr<ZKWrapper> zk;
   unsigned short port;
 };
-
-zkclient::ZkNnClient *StorageTest::nncli = NULL;
-ClientNamenodeTranslator *StorageTest::nn_translator = NULL;
-std::shared_ptr<ZKWrapper> StorageTest::zk = NULL;
 
 /**
  * The following is an example of using StorageMetrics.
