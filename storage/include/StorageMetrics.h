@@ -26,11 +26,7 @@ class StorageMetrics {
    *        This can be changed to be variable size later if needed.
    * @param zkWrapper_ the zkWrapper
    */
-  explicit StorageMetrics(
-      int numDatanodes_,
-      std::shared_ptr<ZKWrapper> zkWrapper_) :
-        kNumDatanodes(numDatanodes_),
-        zkWrapper(zkWrapper_) {}
+  explicit StorageMetrics(std::shared_ptr<ZKWrapper> zkWrapper_);
 
   /**
    * Returns the proportion of space used.
@@ -80,7 +76,7 @@ class StorageMetrics {
       std::vector<std::pair<std::string, std::string>> targetDatanodes);
 
  private:
-  int kNumDatanodes;
+  uint64_t kNumDatanodes;
   std::shared_ptr<ZKWrapper> zkWrapper;
 
   /**
