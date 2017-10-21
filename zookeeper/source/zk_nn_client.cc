@@ -316,6 +316,7 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
   return false;
 }
 
+
 bool ZkNnClient::add_block(AddBlockRequestProto &req,
                            AddBlockResponseProto &res) {
   // make sure previous addBlock operation has completed
@@ -352,7 +353,12 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  add_block(file_path, block_id, data_nodes, replication_factor);
+  if (znode_data.redundancy_form == REPLICATION) {
+      add_block(file_path, block_id, data_nodes, replication_factor);
+  } else if (znode_data.redundancy_form == EC) {
+      // TODO(Nate): generate a block group and each part of a block group.
+      // TODO(Nate): use the hierarchical naming scheme.
+  }
 
   block->set_offset(0);  // TODO(2016): Set this
   block->set_corrupt(false);
@@ -508,9 +514,10 @@ bool ZkNnClient::create_file_znode(const std::string &path,
   if (!file_exists(path)) {
     LOG(ERROR) << "Creating file znode at " << path;
     {
-      LOG(INFO) << znode_data->replication;
-      LOG(INFO) << znode_data->owner;
-      LOG(INFO) << "size of znode is " << sizeof(*znode_data);
+      LOG(INFO) << znode_data->replication << "\n";
+      LOG(INFO) << znode_data->owner << "\n";
+      LOG(INFO) << "Redundancy is " << znode_data->redundancy_form << "\n";
+      LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
     std::vector<std::uint8_t> data(sizeof(*znode_data));
@@ -790,65 +797,80 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
 }
 
 /**
- * Create a file in zookeeper
+ * Create a new file entry in the namespace.
+ *
+ * This will create an empty file specified by the source path, a full path originated at the root.
+ *
  */
 ZkNnClient::CreateResponse ZkNnClient::create_file(
         CreateRequestProto &request,
         CreateResponseProto &response) {
-    const std::string &path = request.src();
-    LOG(ERROR) << "Trying to create file " << path;
-    const std::string &owner = request.clientname();
-    bool create_parent = request.createparent();
-    std::uint64_t blocksize = request.blocksize();
-    std::uint32_t replication = request.replication();
-    std::uint32_t createflag = request.createflag();
+  const std::string &path = request.src();
+  LOG(INFO) << "Trying to create file " << path;
+  const std::string &owner = request.clientname();
+  bool create_parent = request.createparent();
+  std::uint64_t blocksize = request.blocksize();
+  std::uint32_t replication = request.replication();
+  std::uint32_t createflag = request.createflag();
+  const std::string &ecPolicyName = request.ecpolicyname();
+  int redundancy_form = determineRedundancyForm(ecPolicyName, path);
 
-    if (file_exists(path)) {
-        // TODO(2016) solve this issue of overwriting files
-        LOG(ERROR) << "File already exists";
-        return CreateResponse::FileAlreadyExists;
+  if (file_exists(path)) {
+    // TODO(2016) solve this issue of overwriting files
+    LOG(ERROR) << "File already exists";
+    return CreateResponse::FileAlreadyExists;
+  }
+
+  // If we need to create directories, do so
+  if (create_parent) {
+    std::string directory_paths = "";
+    std::vector<std::string> split_path;
+    boost::split(split_path, path, boost::is_any_of("/"));
+    LOG(INFO) << split_path.size();
+    for (int i = 1; i < split_path.size() - 1; i++) {
+      directory_paths += ("/" + split_path[i]);
+
+      // try and make all the parents
+      if (mkdir_helper(directory_paths, true) !=
+          ZkNnClient::MkdirResponse::Ok)
+        return CreateResponse::FailedMkdir;
     }
+  }
 
-    // If we need to create directories, do so
-    if (create_parent) {
-        LOG(ERROR) << "Creating directories to store ";
-        std::string directory_paths = "";
-        std::vector<std::string> split_path;
-        boost::split(split_path, path, boost::is_any_of("/"));
-        LOG(INFO) << split_path.size();
-        for (int i = 1; i < split_path.size() - 1; i++) {
-            directory_paths += ("/" + split_path[i]);
-        }
-        // try and make all the parents
-        if (mkdir_helper(directory_paths, true) !=
-            ZkNnClient::MkdirResponse::Ok) {
-            LOG(ERROR) << "Failed to Mkdir for " << directory_paths;
-            return CreateResponse::FailedMkdir;
-        }
-    }
+  // Now create the actual file which will hold blocks
+  FileZNode znode_data;
+  znode_data.length = 0;
+  znode_data.under_construction = FileStatus::UnderConstruction;
+  uint64_t mslong = current_time_ms();
+  znode_data.access_time = mslong;
+  znode_data.modification_time = mslong;
+  snprintf(znode_data.owner, strlen(znode_data.owner), owner.c_str());
+  snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
+  znode_data.replication = replication;
+  znode_data.blocksize = blocksize;
+  znode_data.filetype = IS_FILE;
+  znode_data.redundancy_form = redundancy_form;
 
-    // Now create the actual file which will hold blocks
-    FileZNode znode_data;
-    znode_data.length = 0;
-    znode_data.under_construction = FileStatus::UnderConstruction;
-    uint64_t mslong = current_time_ms();
-    znode_data.access_time = mslong;
-    znode_data.modification_time = mslong;
-    snprintf(znode_data.owner, strlen(znode_data.owner), owner.c_str());
-    snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
-    znode_data.replication = replication;
-    znode_data.blocksize = blocksize;
-    znode_data.filetype = IS_FILE;
+  // if we failed, then do not set any status
+  if (!create_file_znode(path, &znode_data))
+      return CreateResponse::FailedCreateZnode;
 
-    // if we failed, then do not set any status
-    if (!create_file_znode(path, &znode_data))
-        return CreateResponse::FailedCreateZnode;
+  HdfsFileStatusProto *status = response.mutable_fs();
+  set_file_info(status, path, znode_data);
 
-    HdfsFileStatusProto *status = response.mutable_fs();
-    set_file_info(status, path, znode_data);
-
-    return CreateResponse::Ok;
+  return CreateResponse::Ok;
 }
+
+int ZkNnClient::determineRedundancyForm(
+        const std::string &ecPolicyString,
+        const std::string &path) {
+    if (ecPolicyString.empty()) {
+        return DEFAULT_REDUNDANCY_FORM;
+    } else {
+        return REPLICATION;
+    }
+}
+
 
 /**
      * Rename a file in the zookeeper filesystem
@@ -927,6 +949,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
+  znode_data->redundancy_form = DEFAULT_REDUNDANCY_FORM;
 }
 
 /**
@@ -1362,6 +1385,14 @@ bool ZkNnClient::add_block(const std::string &file_path,
     return false;
   }
   return true;
+}
+
+
+u_int64_t ZkNnClient::generate_hierarchical_block_id(
+        uint64_t block_group_id,
+        uint32_t index_in_group) {
+    // TODO(Nate): actually implement this naming scheme.
+    return 0;
 }
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
