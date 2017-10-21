@@ -14,15 +14,15 @@
 #include <google/protobuf/generated_message_util.h>
 #include <unistd.h>
 
+#include <hdfs.pb.h>
 #include <iostream>
 #include <string>
+
 #include <thread>
 
 #include <RpcHeader.pb.h>
-
 #include <ConfigReader.h>
 #include <ClientNamenodeProtocol.pb.h>
-#include <hdfs.pb.h>
 
 #include "ClientNamenodeProtocolImpl.h"
 #include "zk_nn_client.h"

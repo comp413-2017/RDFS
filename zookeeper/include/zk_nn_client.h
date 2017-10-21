@@ -31,7 +31,8 @@ typedef enum class FileStatus : int {
 typedef struct {
   uint32_t replication;
   uint64_t blocksize;
-  zkclient::FileStatus under_construction;  // 1 for under construction, 0 for complete
+  // 1 for under construction, 0 for complete
+  zkclient::FileStatus under_construction;
   int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
   std::uint64_t length;
   // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
@@ -156,14 +157,16 @@ class ZkNnClient : public ZkClientCommon {
    */
 
   void get_info(GetFileInfoRequestProto &req, GetFileInfoResponseProto &res);
-  ZkNnClient::CreateResponse  create_file(CreateRequestProto &request, CreateResponseProto &response);
+  ZkNnClient::CreateResponse  create_file(CreateRequestProto &request,
+                                          CreateResponseProto &response);
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res);
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   void rename(RenameRequestProto &req, RenameResponseProto &res);
-  ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
+  ListingResponse get_listing(GetListingRequestProto &req,
+                              GetListingResponseProto &res);
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res);
 

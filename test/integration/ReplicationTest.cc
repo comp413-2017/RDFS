@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
   sleep(3);
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  sleep(10);
+  sleep(15);
   // initialize 3 datanodes
   int32_t xferPort = 50010;
   int32_t ipcPort = 50020;
