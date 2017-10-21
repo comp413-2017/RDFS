@@ -19,7 +19,7 @@ cd build/test
 run_test ./ReadWriteTest
 run_test ./ReplicationTest
 run_test ./DeleteTest
-run_test ./NameNodeTest
+run_test "./NameNodeTest --gtest_filter=-*Performance*"
 run_test ./NativeFsTest
 run_test ./StorageTest
 run_test ./ZKDNClientTest
