@@ -21,8 +21,6 @@ addons:
       - ssh
       - pdsh
       - openjdk-8-jdk-headless
-      - libmysqlclient-dev
-      - libmysql-java
       - sysv-rc-conf
       - ant
       - libcppunit-dev
@@ -40,7 +38,6 @@ before_install:
   - ./.ci/install/zookeeper.sh
   - ./.ci/install/google-test.sh
   - ./.ci/install/google-mock.sh
-  - ./.ci/install/valgrind.sh
   - export PATH=$HOME/hadoop/bin:$PATH
 
 before_script:
