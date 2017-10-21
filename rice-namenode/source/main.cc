@@ -8,9 +8,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <asio.hpp>
-#include "zk_nn_client.h"
 #include "ClientNamenodeProtocolImpl.h"
 #include "HaServiceProtocolImpl.h"
+#include "zk_nn_client.h"
 
 INITIALIZE_EASYLOGGINGPP
 
