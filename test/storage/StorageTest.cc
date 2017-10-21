@@ -96,10 +96,6 @@ class StorageTest : public ::testing::Test {
   unsigned short port;
 };
 
-zkclient::ZkNnClient *StorageTest::nncli = NULL;
-ClientNamenodeTranslator *StorageTest::nn_translator = NULL;
-std::shared_ptr<ZKWrapper> StorageTest::zk = NULL;
-
 /**
  * The following is an example of using StorageMetrics.
  * This test puts a file into RDFS, then prints 2 metrics (SD and % space used)
