@@ -18,18 +18,23 @@
 
 namespace zkclient {
 
-
 typedef enum class FileStatus : int {
     UnderConstruction,
     FileComplete,
     UnderDestruction
 } FileStatus;
 
+
+const int REPLICATION = 0;  // file/directory redundancy form is replication.
+const int EC = 1;  // file/directory redundancy form is erasure coding.
+const int DEFAULT_REDUNDANCY_FORM = REPLICATION;  // the default form.
+
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
-  uint32_t replication;
+  uint32_t replication;  // the block replication factor.
+  int redundancy_form;  // values: REPLICATION and EC. default REPLICATION.
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;
@@ -111,6 +116,7 @@ class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
 
+
   enum class ListingResponse {
       Ok,                   // 0
       FileDoesNotExist,     // 1
@@ -139,6 +145,7 @@ class ZkNnClient : public ZkClientCommon {
       FailedMkdir,
       FailedCreateZnode
   };
+
 
   explicit ZkNnClient(std::string zkIpAndAddress);
 
@@ -177,9 +184,36 @@ class ZkNnClient : public ZkClientCommon {
 
   char get_node_policy();
   /**
-   * Add block.
+   * Adds a block by making appropriate namespace changes and returns information about
+   * the set of DataNodes that the block data should be hosted by.
    */
   bool add_block(AddBlockRequestProto &req, AddBlockResponseProto &res);
+
+  /**
+   * A helper method that achieves the above add_block method.
+   * Does
+   * 1) Creates namespace changes to the given file.
+   * 2) Generates a block id. The id is generated randomly for replication
+   * blocks and based on the hierarchical naming scheme for EC blocks.
+   * 3) Finds a set of data nodes on which to allocate the new block.
+   * In the case of replication, the set of DataNodes has primary / secondary
+   * replicas of the block.
+   * In the case of EC, each DataNode hosts a block group.
+   */
+  bool add_block(const std::string &fileName,
+                 u_int64_t &block_id,
+                 std::vector<std::string> &dataNodes,
+                 uint32_t replication_factor);
+
+  /**
+   * Given the block group id and index in the block group, returns the hierarchical block id.
+   * @param block_group_id
+   * @param index_in_group
+   * @return the hierarchical block id.
+   */
+  u_int64_t generate_hierarchical_block_id(
+          uint64_t block_group_id,
+          uint32_t index_in_group);
 
   /**
    * Abandons the block - basically reverses all of add block's multiops
@@ -200,13 +234,6 @@ class ZkNnClient : public ZkClientCommon {
 
   // this is public because we have not member functions in this file
   static const std::string CLASS_NAME;
-
-  // TODO(2016) lil doc string and move to private
-  // (why does this cause compiler problems?)
-  bool add_block(const std::string &fileName,
-                 u_int64_t &block_id,
-                 std::vector<std::string> &dataNodes,
-                 uint32_t replication_factor);
 
   bool find_datanode_for_block(std::vector<std::string> &datanodes,
                                const std::uint64_t blockId,
@@ -359,6 +386,26 @@ class ZkNnClient : public ZkClientCommon {
   */
   bool blockDeleted(uint64_t uuid, std::string id);
 
+
+  /**
+   * Determines what the redundancy form of a file specified by @path should be and returns the corresponding value.
+   * i.e. zkclient::REPLICATION or zkclinet::EC.
+   *
+   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::REPLICATION.
+   * TODO: we may choose to implement what HDFS does, which is to inherit the redundancy form of its parent directory.
+   * TODO: the path parameter is need in that case.
+   * If not empty, returns the corresponding redundancy form.
+   * @param ecPolicyString the ecPolicyname part of CreateRequestProto.
+   * @param path the file path.
+   * @return zkclient::REPLICATION or zkclinet::EC.
+   */
+  int determineRedundancyForm(
+          const std::string &ecPolicyString,
+          const std::string &path);
+
+  const int UNDER_CONSTRUCTION = 1;
+  const int FILE_COMPLETE = 0;
+  const int UNDER_DESTRUCTION = 2;
   const int IS_FILE = 2;
   const int IS_DIR = 1;
   // TODO(2016): Should eventually be read from a conf file
