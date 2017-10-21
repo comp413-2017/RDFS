@@ -355,26 +355,11 @@ void TransferServer::synchronize(std::function<void(TransferServer &,
   cv.notify_one();
 }
 
-bool TransferServer::replicate(uint64_t len, std::string ip,
-                               std::string xferport,
-                               ExtendedBlockProto blockToTarget) {
-  LOG(INFO)
-    << " replicating length "
-    << len
-    << " with ip "
-    << ip
-    << " and port "
-    << xferport;
-
-  LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
-
-  if (fs->hasBlock(blockToTarget.blockid())) {
-    LOG(INFO) << "Block already exists on this DN";
-    return true;
-  } else {
-    LOG(INFO) << "Block not found on this DN, replicating...";
-  }
-  // connect to the datanode
+bool TransferServer::remote_read(uint64_t len, std::string ip,
+                                   std::string xferport,
+                                   ExtendedBlockProto blockToTarget,
+                                   std::string data, int &read_len) {
+// connect to the datanode
   asio::io_service io_service;
   std::string port = xferport;
   tcp::resolver resolver(io_service);
@@ -436,7 +421,6 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
   } else {
     LOG(INFO) << " successfully read the read response from target datanode";
   }
-  std::string data(len, 0);
 
   // LOCK
   std::unique_lock<std::mutex> lk(m);
@@ -449,7 +433,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
 
   // read in the packets while we still have them, and we haven't processed the
   // final packet
-  int read_len = 0;
+  read_len = 0;
   bool last_packet = false;
   while (read_len < len && !last_packet) {
     asio::error_code error;
@@ -485,24 +469,62 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
   }
   xmits--;
   cv.notify_one();
+  base_proto->release_block();
+  return true;
+}
 
-  // TODO(anyone): send ClientReadStatusProto (delimited)
-  if (!fs->writeBlock(header->baseheader().block().blockid(), data)) {
-    LOG(ERROR)
-      << "Failed to allocate block "
-      << header->baseheader().block().blockid();
-    return false;
+bool TransferServer::replicate(uint64_t len, std::string ip,
+                               std::string xferport,
+                               ExtendedBlockProto blockToTarget) {
+  LOG(INFO)
+    << " replicating length "
+    << len
+    << " with ip "
+    << ip
+    << " and port "
+    << xferport;
+
+  LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
+
+  if (fs->hasBlock(blockToTarget.blockid())) {
+    LOG(INFO) << "Block already exists on this DN";
+    return true;
   } else {
-    dn->blockReceived(header->baseheader().block().blockid(), read_len);
+    LOG(INFO) << "Block not found on this DN, replicating...";
   }
 
-  base_proto->release_block();
+  uint64_t block_id = blockToTarget.blockid();
+
+  std::string data(len, 0);
+  int read_len = 0;
+  if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
+    return false;
+  }
+  
+
+  // TODO(anyone): send ClientReadStatusProto (delimited)
+  if (!fs->writeBlock(block_id, data)) {
+    LOG(ERROR)
+      << "Failed to allocate block "
+      << block_id;
+    return false;
+  } else {
+    dn->blockReceived(block_id, read_len);
+  }
+
+  // Pretty confident we don't need this line,
+  // but if we get a bug this is a place to check
+  // 
   LOG(INFO) << "Replication complete, closing connection.";
   return true;
 }
 
 bool TransferServer::rmBlock(uint64_t block_id) {
   return fs->rmBlock(block_id);
+}
+
+bool TransferServer::writeBlock(uint64_t block_id, std::string data) {
+  return fs->writeBlock(block_id, data);
 }
 
 bool TransferServer::sendStats() {
@@ -517,4 +539,8 @@ bool TransferServer::poll_replicate() {
 
 bool TransferServer::poll_delete() {
   return dn->poll_delete_queue();
+}
+
+bool TransferServer::poll_reconstruct() {
+  return dn->poll_reconstruct_queue();
 }

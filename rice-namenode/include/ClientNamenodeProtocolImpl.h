@@ -65,6 +65,10 @@ class ClientNamenodeTranslator {
   std::string fsync(std::string input);
   std::string finalizeUpgrade(std::string input);
 
+  // EC related RPC calls
+  std::string getErasureCodingPolicies(std::string input);
+  std::string getErasureCodingPolicy(std::string input);
+  std::string setErasureCodingPolicy(std::string input);
   int getPort();
   RPCServer getRPCServer();
 

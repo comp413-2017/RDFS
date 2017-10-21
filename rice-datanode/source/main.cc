@@ -163,6 +163,8 @@ int main(int argc, char *argv[]) {
                                transfer_server.get(), 2);
   factory.create_daemon_thread(&TransferServer::poll_delete,
                                transfer_server.get(), 5);
+  factory.create_daemon_thread(&TransferServer::poll_reconstruct,
+                               transfer_server.get(), 2);
   std::thread(&TransferServer::serve, transfer_server.get(),
               std::ref(io_service)).detach();
   translator.getRPCServer().serve(io_service);

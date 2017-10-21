@@ -13,6 +13,8 @@ apt-get install -y language-pack-en zip unzip curl
 
 apt-get install -y git build-essential cmake automake autoconf libtool libboost-all-dev libasio-dev
 
+apt-get install -y yasm
+
 wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
 tar -xf protobuf-cpp-3.0.0.tar.gz
 rm protobuf-cpp-3.0.0.tar.gz
@@ -54,6 +56,14 @@ cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hado
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
 
+# Setup Intel Storage Acceleration Library (ISA-L)
+wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
+tar -xf isal.tar.gz
+mv isa-l_open_src_2.13 /home/vagrant/isal
+rm isal.tar.gz
+cd /home/vagrant/isal
+make
+cd /home/vagrant
 
 # Setup Apache zookeeper
 wget --quiet http://kevinlin.web.rice.edu/static/zookeeper-3.4.9.tar.gz
