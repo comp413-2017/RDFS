@@ -218,19 +218,25 @@ TEST_F(ReplicationTest, testReplicationOnFailure) {
       " -rm /g").c_str());
 }
 
-TEST(ReplicationTest, testReplicationOnFailure) {
-  int32_t xferPort = 50010;
-  int32_t ipcPort = 50020;
+TEST_F(ReplicationTest, testReplicationOnFailure) {
+  asio::io_service io_service;
+  RPCServer namenodeServer = nn_translator->getRPCServer();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
+      .detach();
+  sleep(3);
+
 
   ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
                           "generate_file.py > expected_testfile1234"));
   // Put it into rdfs with the 3 original DataNodes.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-             "-copyFromLocal expected_testfile1234 /g");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -D dfs.blocksize=1048576 "
+             "-copyFromLocal expected_testfile1234 /g").c_str());
   // Read it from rdfs.
   sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile1234");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -cat /g > actual_testfile1234").c_str());
   // Check that its contents match.
   sleep(10);
   ASSERT_EQ(0,
@@ -239,39 +245,24 @@ TEST(ReplicationTest, testReplicationOnFailure) {
 
   system("rm -f expected_testfile1234 actual_testfile*");
 
-  int i;
-  // Start 3 new datanodes
-  for (i = 0; i < 3; i++) {
-    system(("truncate tfs" + std::to_string(4 + i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = " -x " + std::to_string(xferPort + 4 + i) +
-        " -p " + std::to_string(ipcPort + 4 + i)
-        + " -b tfs" + std::to_string(4 + i) + " &";
-    std::string
-        cmdLine = "bash -c \"exec "
-        "-a ReplicationTestServer" + std::to_string(4 + i) +
-        " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-        dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(10);
+  initializeDatanodes(3);
+
+  StorageMetrics metrics(NUM_DATANODES + 3, zk);
+  float usedBefore = metrics.usedSpace();
+
+  // Kill 3 original datanodes
+  int i = 0;
+  for (; i < 3; i++) {
+    system(("pkill -f ReplicationTestServer" + std::to_string(minDatanodeId++))
+               .c_str());
+    sleep(5);
   }
 
-  // Kill original datanodes
-  system("pkill -f ReplicationTestServer0");
-  sleep(5);
-  system("pkill -f ReplicationTestServer1");
-  sleep(5);
-  system("pkill -f ReplicationTestServer2");
-  sleep(5);
-  system("pkill -f ReplicationTestServer3");
-
   // The data should now be replicated on the new servers.
-  sleep(10);
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /g > actual_testfile12345");
-  ASSERT_EQ(0,
-            system("diff expected_testfile1234 actual_testfile12345 > "
-                       "/dev/null"));
+  ASSERT_EQ(usedBefore, metrics.usedSpace());
 
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+      " -rm /g").c_str());
 }
 }  // namespace
 
