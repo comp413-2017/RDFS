@@ -36,7 +36,7 @@ namespace util {
         }
         new_path += str2;
         if (new_path.at(new_path.length() - 1) == '/'){
-            new_path.at(new_path.length() - 1) = '\0';
+            new_path.pop_back();
         }
         return new_path;
     }
