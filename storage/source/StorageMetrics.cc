@@ -48,7 +48,6 @@ float StorageMetrics::usedSpace() {
   if (!zkWrapper->get_children("/health", datanodeIds, error)) {
     LOG(ERROR) << "Failed to get /health children";
   }
-  LOG(INFO) << " --- METHOD FOUND " << datanodeIds.size() << " DATANODES!!";
   for (std::string &datanodeId : datanodeIds) {
     std::string statsPath = "/health/" + datanodeId + "/stats";
     std::vector<std::uint8_t> statsPayload = std::vector<std::uint8_t>();
