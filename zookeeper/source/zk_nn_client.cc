@@ -14,7 +14,6 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
-#include <zk_nn_client.h>
 
 #include "zk_lock.h"
 #include "zk_dn_client.h"
@@ -1149,7 +1148,8 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
           // GetBlockLocationsRequestProto location_req;
           if (need_location) {
               LocatedBlocksProto *blocks = status->mutable_locations();
-              get_block_locations(child_path, 0, child_data.length, blocks);
+              get_block_locations(child_path, 0, child_data.length, blocks,
+                                  client_name);
           }
         }
       }
@@ -1420,7 +1420,8 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   FsPermissionProto *permission = status->mutable_permission();
   // Shorcut to set permission to 777.
-  // TODO(Security): Should this be changed to read permission only for non-owner users?
+  // TODO(heliumj): Should this be changed to read permission only for non-owner
+  // users?
   permission->set_perm(~0);
   status->set_filetype(filetype);
   status->set_path(path);
@@ -1435,7 +1436,8 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   status->set_access_time(znode_data.access_time);
   LOG(INFO) << "Successfully set the file info ";
 }
-  bool ZkNnClient::set_permission(SetPermissionRequestProto &req, SetPermissionResponseProto &res) {
+  bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
+                                  SetPermissionResponseProto &res) {
     int zk_error;
     const std::string path = req.src();
     FileZNode znode_data;
@@ -1460,17 +1462,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
     return true;
   }
-//bool ZkNnClient::modifyAclEntries(ModifyAclEntriesRequestProto req, ModifyAclEntriesResponseProto res) {
-//    int zk_error;
-//    FileZNode znode_data;
-//    const std::string &path = req.src();
-//    auto entries = req.aclspec();
-//
-//    for (auto entry:entries) {
-//        entry.type();
-//    }
-//
-//}
+
 bool ZkNnClient::add_block(const std::string &file_path,
                            std::uint64_t &block_id,
                            std::vector<std::string> &data_nodes,

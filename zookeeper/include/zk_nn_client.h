@@ -204,23 +204,26 @@ class ZkNnClient : public ZkClientCommon {
                               std::string client_name = "default");
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res,
-                   std::string client_name="default");
-
+                   std::string client_name = "default");
   void set_file_info_content(ContentSummaryProto *status,
-                             const std::string &path, FileZNode &znode_data);
+                             const std::string &path,
+                             FileZNode &znode_data);
 
   void set_node_policy(char policy);
 
   char get_node_policy();
 
-   // bool modifyAclEntries(ModifyAclEntriesRequestProto req, ModifyAclEntriesResponseProto res);
+  // bool modifyAclEntries(ModifyAclEntriesRequestProto req, ModifyAclEntriesResponseProto res);
 
-   bool set_permission(SetPermissionRequestProto &req, SetPermissionResponseProto &res);
+  bool set_permission(SetPermissionRequestProto &req,
+                      SetPermissionResponseProto &res);
 
   /**
    * Sets the owner of the file.
    */
-  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res, std::string client_name="default");
+  bool set_owner(SetOwnerRequestProto &req,
+                 SetOwnerResponseProto &res,
+                 std::string client_name = "default");
 
   /**
    * Add block.
@@ -238,7 +241,7 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool abandon_block(AbandonBlockRequestProto &req,
                      AbandonBlockResponseProto &res,
-                     std::string client_name="default");
+                     std::string client_name = "default");
 
   bool previousBlockComplete(uint64_t prev_id);
   /**
@@ -288,7 +291,7 @@ class ZkNnClient : public ZkClientCommon {
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
-                           std::string client_name="default");
+                           std::string client_name = "default");
 
   /**
    * Read a znode corresponding to a file into znode_data
@@ -424,7 +427,7 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Check access to a file
    */
-  bool checkAccess(std::string username, FileZNode &znode_data); 
+  bool checkAccess(std::string username, FileZNode &znode_data);
 
 
   const int UNDER_CONSTRUCTION = 1;
