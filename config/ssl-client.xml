@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+    <!--<property>-->
+        <!--<name>ssl.client.truststore.password</name>-->
+        <!--<value><password of truststore></value>-->
+    <!--</property>-->
+
+    <!--<property>-->
+        <!--<name>ssl.client.truststore.type</name>-->
+        <!--<value>jks</value>-->
+    <!--</property>-->
+
+    <!--<property>-->
+        <!--<name>ssl.client.truststore.location</name>-->
+        <!--<value><location of truststore.jks></value>-->
+    <!--</property>-->
+</configuration>
