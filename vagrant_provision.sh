@@ -37,6 +37,8 @@ echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/h
 # add custom config files to Hadoop
 cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop/etc/hadoop/hdfs-site.xml
 cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop/etc/hadoop/core-site.xml
+cat /home/vagrant/rdfs/config/ssl-server.xml > /home/vagrant/hadoop/etc/hadoop/ssl-server.xml
+cat /home/vagrant/rdfs/config/ssl-client.xml > /home/vagrant/hadoop/etc/hadoop/ssl-client.xml
 
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
@@ -52,7 +54,8 @@ mv hadoop-2.7.4 /home/vagrant/hadoop2
 rm hadoop-2.7.4.tar.gz
 cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
-
+cp /home/vagrant/hadoop3/etc/hadoop/ssl-server.xml /home/vagrant/hadoop2/etc/hadoop/ssl-server.xml
+cp /home/vagrant/hadoop3/etc/hadoop/ssl-client.xml /home/vagrant/hadoop2/etc/hadoop/ssl-client.xml
 
 
 # Setup Apache zookeeper
