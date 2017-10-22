@@ -38,6 +38,7 @@ TEST(ReadWriteTest, testReadWrite) {
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
                        "/dev/null"));
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 
 TEST(ReadWriteTest, testConcurrentRead) {
@@ -66,6 +67,7 @@ TEST(ReadWriteTest, testConcurrentRead) {
   for (int i = 0; i < num_threads; i++) {
     threads[i].join();
   }
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 }  // namespace
 
