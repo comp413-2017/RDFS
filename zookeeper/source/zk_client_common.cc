@@ -47,14 +47,14 @@ void ZkClientCommon::init() {
   // TODO(2016): Add in error handling for failures
   if (zk->exists("/health", exists, error_code)) {
     if (!exists) {
-      zk->create("/health", vec, error_code);
+      zk->create("/health", vec, error_code, false);
     }
   } else {
     // TODO(2016): Handle error
   }
   if (zk->exists("/fileSystem", exists, error_code)) {
     if (!exists) {
-      zk->create("/fileSystem", vec, error_code);
+      zk->create("/fileSystem", vec, error_code, false);
     } else {
     }
   } else {
@@ -85,7 +85,7 @@ void ZkClientCommon::init() {
   }
   if (zk->exists("/block_locations", exists, error_code)) {
     if (!exists) {
-      zk->create("/block_locations", vec, error_code);
+      zk->create("/block_locations", vec, error_code, false);
     }
   } else {
     // TODO(2016): Handle error
