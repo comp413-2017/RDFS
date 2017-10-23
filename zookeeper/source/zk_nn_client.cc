@@ -1317,6 +1317,30 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
+bool ZkNnClient::add_block_group(const std::string &fileName,
+                     u_int64_t &block_group_id,
+                     std::vector<std::string> &dataNodes,
+                     std::vector<u_int64_t> &storageBlockIDs,
+                     uint32_t total_num_storage_blocks) {
+
+    FileZNode znode_data;
+    read_file_znode(znode_data, fileName);
+
+    // Generate the block group id and storage block ids.
+    block_group_id = generate_block_group_id();
+    for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
+        storageBlockIDs.push_back(generate_storage_block_id(block_group_id, i));
+    }
+
+    // Log them for debugging purposes.
+    LOG(INFO) << "Generated block group id " << block_group_id << "\n";
+    for (auto storageBlockID : storageBlockIDs)
+        LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
+
+    // TODO(nate): figure out what exact zookeepr operations must occur.
+    return true;
+}
+
 
 u_int64_t ZkNnClient::generate_storage_block_id(
         u_int64_t block_group_id,
@@ -1346,6 +1370,16 @@ u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
     u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
     return storage_block_id & mask;
 }
+
+
+uint32_t ZkNnClient::get_total_num_storage_blocks(
+        const std::string &fileName,
+        u_int64_t &block_group_id) {
+    // TODO(nate): actually figure out where this information is stored.
+    // TODO(nate): is it supposed to be figured out from ecPolicyName?
+    return 9; // arbitrarily assume RS(6, 3)
+}
+
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
