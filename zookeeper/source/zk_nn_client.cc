@@ -515,7 +515,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     file_znode_struct_to_vec(znode_data, data);
     // crate the node in zookeeper
     if (!zk->create(ZookeeperPath(path), data, error_code, false)) {
-      LOG(ERROR) << "Create failed" << error_code;
+      LOG(ERROR) << "Create failed with error code " << error_code;
       return false;
       // TODO(2016): handle error
     }

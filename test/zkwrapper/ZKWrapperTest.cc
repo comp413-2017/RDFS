@@ -265,8 +265,12 @@ TEST_F(ZKWrapperTest, set) {
 TEST_F(ZKWrapperTest, delete_node) {
   int error = 0;
 
+<<<<<<< HEAD
   bool result = zk->create("/testcreate2", ZKWrapper::EMPTY_VECTOR,
                            error, false);
+=======
+  bool result = zk->create("/testcreate2", ZKWrapper::EMPTY_VECTOR, error, false);
+>>>>>>> Removed default ephemeral argument for ZKWrapper::create as described in #73. It appears that heartbeat znodes are being handled correctly
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
