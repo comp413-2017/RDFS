@@ -69,11 +69,13 @@ TEST_F(NamenodeTest, findDataNodes) {
   std::vector<uint8_t> stats_vec;
   stats_vec.resize(sizeof(zkclient::DataNodePayload));
   memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-  ASSERT_TRUE(zk->create("/health/localhost:2181/stats", stats_vec, error, true));
+  ASSERT_TRUE(zk->create("/health/localhost:2181/stats",
+                         stats_vec, error, true));
 
   data_node_payload.xmits = 3;
   memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-  ASSERT_TRUE(zk->create("/health/localhost:2182/stats", stats_vec, error, true));
+  ASSERT_TRUE(zk->create("/health/localhost:2182/stats",
+                         stats_vec, error, true));
 
   auto datanodes = std::vector<std::string>();
   u_int64_t block_id;
