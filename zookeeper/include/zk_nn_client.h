@@ -163,6 +163,29 @@ class ZkNnClient : public ZkClientCommon {
                  uint32_t replication_factor);
 
   /**
+   * Makes metadata changes required to add a new block group.
+   * This helper method is called for an EC file.
+   * @param fileName the file name.
+   * @param block_group_id the block group id to be generated.
+   * @param dataNodes the set of data nodes on which to allocate each storage block.
+   * @param storageBlockIDs the set of storage block ids to be generated.
+   * @param total_num_storage_blocks the number of data + parity storage blocks.
+   * @return true if successful. false otherwise.
+   */
+  bool add_block_group(const std::string &fileName,
+                       u_int64_t &block_group_id,
+                       std::vector<std::string> &dataNodes,
+                       std::vector<u_int64_t> &storageBlockIDs,
+                       uint32_t total_num_storage_blocks);
+
+  /**
+   * Given a file, figure out the number of storage blocks to have within a block group.
+   * @param fileName the file name.
+   * @param block_group_id the block group id.
+   * @return the number of storage blocks to have within a block group.
+   */
+  uint32_t get_total_num_storage_blocks(const std::string &fileName, u_int64_t &block_group_id);
+  /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
    * @param block_group_id the id of a block group this storage block belongs to.
    * @param index_within_group the index within the block group.
