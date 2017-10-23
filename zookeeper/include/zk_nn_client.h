@@ -146,6 +146,14 @@ class ZkNnClient : public ZkClientCommon {
       FailedCreateZnode
   };
 
+  enum class RenameResponse {
+      Ok,
+      FileDoesNotExist,
+      RenameOpsFailed,
+      InvalidType,
+      MultiOpFailed
+  };
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -171,9 +179,8 @@ class ZkNnClient : public ZkClientCommon {
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
-  void rename(RenameRequestProto &req, RenameResponseProto &res);
-  ListingResponse get_listing(GetListingRequestProto &req,
-                              GetListingResponseProto &res);
+  RenameResponse rename(RenameRequestProto &req, RenameResponseProto &res);
+  ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res);
 
