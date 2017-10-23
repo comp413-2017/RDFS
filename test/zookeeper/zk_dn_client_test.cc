@@ -65,7 +65,7 @@ TEST_F(ZKDNClientTest, CanReadBlockSize) {
 
   std::string path = "/block_locations/" + std::to_string(block_id);
   std::vector<std::uint8_t> data(sizeof(BlockZNode));
-  zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code);
+  zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code, false);
 
   client->blockReceived(block_id, block_size);
 
@@ -82,7 +82,7 @@ TEST_F(ZKDNClientTest, CanDeleteBlock) {
   std::string path = "/block_locations/" + std::to_string(block_id);
   std::vector<std::uint8_t> data(sizeof(BlockZNode));
 
-  zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code);
+  zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code, false);
 
   client->blockReceived(block_id, block_size);
   ASSERT_TRUE(zk->get(path + "/" + dn_id, data, error_code));

@@ -50,14 +50,14 @@ TEST_F(NamenodeTest, checkNamespace) {
 
 TEST_F(NamenodeTest, findDataNodes) {
   int error;
-  zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
+  zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/health/localhost:2181/heartbeat",
              ZKWrapper::EMPTY_VECTOR,
-             error);
-  zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
+             error, true);
+  zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/health/localhost:2182/heartbeat",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, true);
 
   zkclient::DataNodePayload data_node_payload = zkclient::DataNodePayload();
   data_node_payload.ipcPort = 1;
@@ -69,11 +69,11 @@ TEST_F(NamenodeTest, findDataNodes) {
   std::vector<uint8_t> stats_vec;
   stats_vec.resize(sizeof(zkclient::DataNodePayload));
   memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-  ASSERT_TRUE(zk->create("/health/localhost:2181/stats", stats_vec, error));
+  ASSERT_TRUE(zk->create("/health/localhost:2181/stats", stats_vec, error, true));
 
   data_node_payload.xmits = 3;
   memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-  ASSERT_TRUE(zk->create("/health/localhost:2182/stats", stats_vec, error));
+  ASSERT_TRUE(zk->create("/health/localhost:2182/stats", stats_vec, error, true));
 
   auto datanodes = std::vector<std::string>();
   u_int64_t block_id;
@@ -85,7 +85,7 @@ TEST_F(NamenodeTest, findDataNodes) {
   memcpy(&data_vect[0], &block_data, sizeof(block_data));
   ASSERT_TRUE(zk->create("/block_locations/" + std::to_string(block_id),
                          data_vect,
-                         error));
+                         error, false));
 
   LOG(INFO) << "Finding dn's for block " << block_id;
   int rep_factor = 1;
@@ -123,7 +123,7 @@ TEST_F(NamenodeTest, basicCheckAcks) {
 
   zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-1",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(0, error);
 
   // Only one DN acknowledged, but not timed out, so should succeed
@@ -131,14 +131,14 @@ TEST_F(NamenodeTest, basicCheckAcks) {
 
   zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-2",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(0, error);
   // Only two DNs acknowledged, but not timed out, so should succeed
   ASSERT_EQ(true, client->check_acks());
 
   zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-3",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(0, error);
   // All three DNs acknowledged, so should succeed
   ASSERT_EQ(true, client->check_acks());
@@ -218,10 +218,10 @@ TEST_F(NamenodeTest, DeleteClosedFileWithBlock) {
   memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
   ASSERT_TRUE(zk->create("/fileSystem/file2/block-0000000000",
                          block_vec,
-                         error));
+                         error, false));
   ASSERT_TRUE(zk->create("/block_locations/1234",
                          ZKWrapper::EMPTY_VECTOR,
-                         error));
+                         error, false));
 
   // TODO(2016): create real block_locations for this block once we start
   // doing complete legitimately
@@ -252,15 +252,15 @@ TEST_F(NamenodeTest, previousBlockComplete) {
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
   util::generate_uuid(block_id);
   /* mock the directory */
-  zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
+  zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/block_locations/" + std::to_string(block_id),
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(false, client->previousBlockComplete(block_id));
   /* mock the child directory */
   zk->create("/block_locations/" + std::to_string(block_id) + "/child1",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
 }
 
