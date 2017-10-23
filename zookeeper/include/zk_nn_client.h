@@ -18,15 +18,14 @@
 
 namespace zkclient {
 
-const int REPLICATION = 0;  // file/directory redundancy form is replication.
-const int EC = 1;  // file/directory redundancy form is erasure coding.
-const int DEFAULT_REDUNDANCY_FORM = REPLICATION;  // the default form.
+const char EC_REPLICATION[15] = "EC_REPLICATION";
+const char DEFAULT_EC_POLICY[15] = EC_REPLICATION;  // the default policy.
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
-  int redundancy_form;  // values: REPLICATION and EC. default REPLICATION.
+  std::string ecPolicyName;  // the specified EC policy name.
   uint64_t blocksize;
   int under_construction;  // 1 for under construction, 0 for complete
   int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
@@ -171,9 +170,29 @@ class ZkNnClient : public ZkClientCommon {
    */
   u_int64_t generate_hierarchical_block_id(
           uint64_t block_group_id,
-          uint32_t index_in_group);
+          uint64_t index_in_group);
+  /**
+   * Generates the block group id.
+   * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
+   */
+  u_int64_t generate_block_group_id();
 
   /**
+   * Gets the block group id from the storage block id.
+   * i.e. bit 2 ~ bit 48.
+   * @param storage_block_id the given storage block id.
+   * @return the block group id.
+   */
+  u_int64_t get_block_group_id(u_int64_t storage_block_id);
+
+  /**
+   * Gets the index within the block group.
+   * @param storage_block_id the given storage block id.
+   * @return the index within the block group.
+   */
+  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
+
+    /**
    * Abandons the block - basically reverses all of add block's multiops
    */
   bool abandon_block(AbandonBlockRequestProto &req,
@@ -346,17 +365,16 @@ class ZkNnClient : public ZkClientCommon {
 
   /**
    * Determines what the redundancy form of a file specified by @path should be and returns the corresponding value.
-   * i.e. zkclient::REPLICATION or zkclinet::EC.
    *
-   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::REPLICATION.
+   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::DEFAULT_EC_POLICY.
    * TODO: we may choose to implement what HDFS does, which is to inherit the redundancy form of its parent directory.
    * TODO: the path parameter is need in that case.
-   * If not empty, returns the corresponding redundancy form.
+   * If not empty, simply returns the given ecPolicyString.
    * @param ecPolicyString the ecPolicyname part of CreateRequestProto.
    * @param path the file path.
    * @return zkclient::REPLICATION or zkclinet::EC.
    */
-  int determineRedundancyForm(
+  std::string determineRedundancyForm(
           const std::string &ecPolicyString,
           const std::string &path);
 
