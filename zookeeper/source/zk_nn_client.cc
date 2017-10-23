@@ -14,6 +14,7 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
+#include <zk_nn_client.h>
 
 #include "zk_lock.h"
 #include "zk_dn_client.h"
@@ -352,9 +353,9 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  if (znode_data.redundancy_form == REPLICATION) {
+  if (znode_data.ecPolicyName == EC_REPLICATION) {
       add_block(file_path, block_id, data_nodes, replication_factor);
-  } else if (znode_data.redundancy_form == EC) {
+  } else {  // case when some EC policy is used.
       // TODO(Nate): generate a block group and each part of a block group.
       // TODO(Nate): use the hierarchical naming scheme.
   }
@@ -513,7 +514,7 @@ int ZkNnClient::create_file_znode(const std::string &path,
     {
       LOG(INFO) << znode_data->replication << "\n";
       LOG(INFO) << znode_data->owner << "\n";
-      LOG(INFO) << "Redundancy is " << znode_data->redundancy_form << "\n";
+      LOG(INFO) << "ec policy name is " << znode_data->ecPolicyName << "\n";
       LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
@@ -767,8 +768,8 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   std::uint64_t blocksize = request.blocksize();
   std::uint32_t replication = request.replication();
   std::uint32_t createflag = request.createflag();
-  const std::string &ecPolicyName = request.ecpolicyname();
-  int redundancy_form = determineRedundancyForm(ecPolicyName, path);
+  const std::string &inputECPolicyName = request.ecpolicyname();
+  std::string ecPolicyName = determineRedundancyForm(inputECPolicyName, path);
 
   if (file_exists(path)) {
     // TODO(2016) solve this issue of overwriting files
@@ -802,7 +803,7 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
-  znode_data.redundancy_form = redundancy_form;
+  znode_data.ecPolicyName = ecPolicyName;
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -814,13 +815,13 @@ bool ZkNnClient::create_file(CreateRequestProto &request,
   return true;
 }
 
-int ZkNnClient::determineRedundancyForm(
+std::string ZkNnClient::determineRedundancyForm(
         const std::string &ecPolicyString,
         const std::string &path) {
     if (ecPolicyString.empty()) {
-        return DEFAULT_REDUNDANCY_FORM;
+        return DEFAULT_EC_POLICY;
     } else {
-        return REPLICATION;
+        return ecPolicyString;
     }
 }
 
@@ -896,7 +897,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
-  znode_data->redundancy_form = DEFAULT_REDUNDANCY_FORM;
+  znode_data->ecPolicyName = DEFAULT_EC_POLICY;
 }
 
 /**
@@ -1324,10 +1325,32 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
 
 u_int64_t ZkNnClient::generate_hierarchical_block_id(
-        uint64_t block_group_id,
-        uint32_t index_in_group) {
-    // TODO(Nate): actually implement this naming scheme.
-    return 0;
+        u_int64_t block_group_id,
+        u_int64_t index_in_group) {
+    // TODO(nate): assume a file = no more than 2**47 128 MB blocks
+    // TODO(nate): assume no more than 2**16 storage blocks in a logical block
+    u_int64_t res = 1ull << 63;  // filled with 1 and 63 zeros.
+    res = res & block_group_id;  // & to fill bit2~bit48.
+    res = res & index_in_group;  // & to fill the lower 16 bits.
+    res = res | (1ull << 63);  // filp the highest bit to one.
+    return res;
+}
+
+u_int64_t ZkNnClient::generate_block_group_id() {
+    u_int64_t res;
+    util::generate_uuid(res);  // generate some random 64 bits.
+    res = (res >> 16) << 16;  // fill the lower 16 bits with zeros.
+    return res;
+}
+
+u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
+    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    return storage_block_id & mask;
+}
+
+u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
+    u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
+    return storage_block_id & mask;
 }
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
