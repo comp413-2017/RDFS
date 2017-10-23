@@ -106,7 +106,8 @@ TEST_F(ZKWrapperTest, exists) {
   int error = 0;
   bool exist = false;
 
-  bool result = zk->create("/testcreate", ZKWrapper::EMPTY_VECTOR, error, false);
+  bool result = zk->create("/testcreate", ZKWrapper::EMPTY_VECTOR,
+                           error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -264,7 +265,8 @@ TEST_F(ZKWrapperTest, set) {
 TEST_F(ZKWrapperTest, delete_node) {
   int error = 0;
 
-  bool result = zk->create("/testcreate2", ZKWrapper::EMPTY_VECTOR, error, false);
+  bool result = zk->create("/testcreate2", ZKWrapper::EMPTY_VECTOR,
+                           error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
