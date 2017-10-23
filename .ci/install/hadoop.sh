@@ -2,7 +2,7 @@
 
 set -ex
 
-HADOOP_MIRROR=http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-2.8.1/hadoop-2.8.1.tar.gz
+HADOOP_MIRROR=http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
 
 cd $HOME
 wget --quiet -O hadoop.tar.gz $HADOOP_MIRROR
