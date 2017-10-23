@@ -19,7 +19,7 @@
 namespace zkclient {
 
 const char EC_REPLICATION[15] = {"EC_REPLICATION"};
-const char DEFAULT_EC_POLICY[15] = EC_REPLICATION;  // the default policy.
+const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
 /**
  * This is the basic znode to describe a file
  */
