@@ -165,7 +165,7 @@ void ZkClientDn::registerDataNode(const std::string &ip,
   }
 
   if (!zk->create(HEALTH_BACKSLASH + id,
-                  ZKWrapper::EMPTY_VECTOR, error_code)) {
+                  ZKWrapper::EMPTY_VECTOR, error_code, false)) {
     LOG(ERROR) << "Failed creating /health/<data_node_id> "
                << error_code;
   }
@@ -183,13 +183,13 @@ void ZkClientDn::registerDataNode(const std::string &ip,
   data.resize(sizeof(DataNodePayload));
   memcpy(&data[0], &data_node_payload, sizeof(DataNodePayload));
 
-  if (!zk->create(HEALTH_BACKSLASH + id + STATS, data, error_code, false)) {
+  if (!zk->create(HEALTH_BACKSLASH + id + STATS, data, error_code, true)) {
     LOG(ERROR) << "Failed creating /health/<data_node_id>/stats "
                << error_code;
   }
 
   if (!zk->create(HEALTH_BACKSLASH + id + BLOCKS,
-                  ZKWrapper::EMPTY_VECTOR, error_code)) {
+                  ZKWrapper::EMPTY_VECTOR, error_code, false)) {
     LOG(ERROR) << "Failed creating /health/<data_node_id>/blocks "
                << error_code;
   }
@@ -231,7 +231,7 @@ bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
   std::vector<std::shared_ptr<ZooOp>> ops;
   std::vector<zoo_op_result> results;
   auto work_item = util::concat_path(queue_path, std::to_string(blockid));
-  if (!zk->create(work_item, ZKWrapper::EMPTY_VECTOR, error)) {
+  if (!zk->create(work_item, ZKWrapper::EMPTY_VECTOR, error, false)) {
     LOG(ERROR) << "Failed to create replication commands for pipelining!";
     return false;
   }

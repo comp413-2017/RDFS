@@ -133,7 +133,7 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
  */
 void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
                                       const char *raw_path, void *watcherCtx) {
-  LOG(INFO) << "Health child water triggered on " << raw_path;
+  LOG(INFO) << "Health child watcher triggered on " << raw_path;
 
   ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
   auto zk = cli->zk;
@@ -513,7 +513,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     std::vector<std::uint8_t> data(sizeof(*znode_data));
     file_znode_struct_to_vec(znode_data, data);
     // crate the node in zookeeper
-    if (!zk->create(ZookeeperPath(path), data, error_code)) {
+    if (!zk->create(ZookeeperPath(path), data, error_code, false)) {
       LOG(ERROR) << "Create failed with error code " << error_code;
       return false;
       // TODO(2016): handle error
@@ -1741,6 +1741,8 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
     LOG(ERROR) << "Failed to execute multiop for replicate_blocks";
     return false;
   }
+
+  return true;
 }
 
 bool ZkNnClient::find_all_datanodes_with_block(
