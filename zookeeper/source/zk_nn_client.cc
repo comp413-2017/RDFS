@@ -1324,21 +1324,21 @@ bool ZkNnClient::add_block(const std::string &file_path,
 }
 
 
-u_int64_t ZkNnClient::generate_hierarchical_block_id(
+u_int64_t ZkNnClient::generate_storage_block_id(
         u_int64_t block_group_id,
-        u_int64_t index_in_group) {
+        u_int64_t index_within_group) {
     // TODO(nate): assume a file = no more than 2**47 128 MB blocks
     // TODO(nate): assume no more than 2**16 storage blocks in a logical block
     u_int64_t res = 1ull << 63;  // filled with 1 and 63 zeros.
     res = res & block_group_id;  // & to fill bit2~bit48.
-    res = res & index_in_group;  // & to fill the lower 16 bits.
-    res = res | (1ull << 63);  // filp the highest bit to one.
+    res = res & index_within_group;  // & to fill the lower 16 bits.
     return res;
 }
 
 u_int64_t ZkNnClient::generate_block_group_id() {
     u_int64_t res;
     util::generate_uuid(res);  // generate some random 64 bits.
+    res = res | (1ull << 63);  // filp the highest bit to one.
     res = (res >> 16) << 16;  // fill the lower 16 bits with zeros.
     return res;
 }

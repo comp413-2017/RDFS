@@ -164,13 +164,13 @@ class ZkNnClient : public ZkClientCommon {
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
-   * @param block_group_id
-   * @param index_in_group
-   * @return the hierarchical block id.
+   * @param block_group_id the id of a block group this storage block belongs to.
+   * @param index_within_group the index within the block group.
+   * @return the storage block id.
    */
-  u_int64_t generate_hierarchical_block_id(
+  u_int64_t generate_storage_block_id(
           uint64_t block_group_id,
-          uint64_t index_in_group);
+          uint64_t index_within_group);
   /**
    * Generates the block group id.
    * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
