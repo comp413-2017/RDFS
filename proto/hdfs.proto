@@ -224,7 +224,11 @@ message LocatedBlockProto {
   required hadoop.common.TokenProto blockToken = 5;
   repeated bool isCached = 6 [packed=true]; // if a location in locs is cached
   repeated StorageTypeProto storageTypes = 7;
-  repeated string storageIDs = 8;
+  repeated string storageIDs = 8;  // the IDs of storage blocks.
+
+  // striped block related fields
+  optional bytes blockIndices = 9;  // used for striped block to indicate block index for each storage block
+  repeated hadoop.common.TokenProto blockTokens = 10;  // each internal storage block has a block token.
 }
 
 message DataEncryptionKeyProto {
