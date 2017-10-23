@@ -15,6 +15,8 @@
 
 #define ELPP_THREAD_SAFE
 
+#define ELPP_THREAD_SAFE
+
 INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
