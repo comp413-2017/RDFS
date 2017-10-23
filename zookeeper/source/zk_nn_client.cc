@@ -1267,12 +1267,6 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
-  if (znode_data.under_construction) {  // TODO(2016): This is a faulty check
-    LOG(WARNING) << "Last block for "
-                 << file_path
-                 << " still under construction";
-  }
-  // TODO(2016): Check the replication factor
 
   std::string block_id_str;
 
