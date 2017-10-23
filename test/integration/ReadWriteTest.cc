@@ -1,7 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_THREAD_SAFE
-
 #include <gtest/gtest.h>
 #include <easylogging++.h>
 #include <thread>
@@ -13,6 +11,8 @@
 #include "ClientNamenodeProtocolImpl.h"
 #include "data_transfer_server.h"
 #include <asio.hpp>
+
+#define ELPP_THREAD_SAFE
 
 INITIALIZE_EASYLOGGINGPP
 
