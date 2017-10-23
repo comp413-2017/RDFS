@@ -33,7 +33,6 @@ env:
     - CLASSPATH=$HOME/hadoop/share/hadoop/hdfs/*:$HOME/hadoop/share/hadoop/common/*
 
 before_install:
-  - mkdir -p /tmp/cache
   - ./.ci/install/protobuf.sh
   - ./.ci/install/hadoop.sh
   - ./.ci/install/zookeeper.sh
