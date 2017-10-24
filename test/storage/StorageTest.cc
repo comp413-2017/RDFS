@@ -45,23 +45,17 @@ int32_t ipcPort = 50020;
 int maxDatanodeId = 0;
 // Use minDatanodId++ when you want to kill a datanode.
 int minDatanodeId = 0;
+// This is incremented for each test.
 uint16_t nextPort = 5351;
 
 static inline void initializeDatanodes(int numDatanodes) {
-  int i = maxDatanodeId;
+  initializeDatanodes(
+      maxDatanodeId,
+      numDatanodes,
+      "StorageTestServer",
+      xferPort,
+      ipcPort);
   maxDatanodeId += numDatanodes;
-  for (; i < maxDatanodeId; i++) {
-    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = "-x " +
-        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
-        + " -b tfs" + std::to_string(i) + " &";
-    std::string cmdLine =
-        "bash -c \"exec -a StorageTestServer" + std::to_string(i) +
-            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-            dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(3);
-  }
   xferPort += numDatanodes;
   ipcPort += numDatanodes;
 }
