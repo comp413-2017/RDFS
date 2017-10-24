@@ -49,3 +49,7 @@ script:
 
 after_success:
   - ./.ci/publish/docs.sh
+
+cache:
+  directories:
+    - /tmp/cache
