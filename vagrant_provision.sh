@@ -54,6 +54,12 @@ cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hado
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
 
+# Setup Intel Storage Acceleration Library (ISA-L)
+wget --quiet https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-lopensrc2.13.tar.gz
+tar -xf isa-lopensrc2.13.tar.gz
+mv isa-lopensrc2.13 /home/vagrant/isal
+rm isa-lopensrc2.13.tar.gz
+
 
 # Setup Apache zookeeper
 wget --quiet http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz

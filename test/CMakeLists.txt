@@ -90,3 +90,6 @@ target_link_libraries(StorageTest storage)
 target_link_libraries(StorageTest zk_client_nn rpcserver)
 target_link_libraries(StorageTest namenode_protos)
 target_link_libraries(StorageTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+
+add_executable(ErasureCodeTest isal/erasure_code_test.c)
+target_link_libraries(ErasureCodeTest isal)
