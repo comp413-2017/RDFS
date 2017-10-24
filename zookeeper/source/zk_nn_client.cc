@@ -475,8 +475,8 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   return true;
 }
 
-ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(GetFileInfoRequestProto &req,
-                          GetFileInfoResponseProto &res) {
+ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
+    GetFileInfoRequestProto &req, GetFileInfoResponseProto &res) {
   const std::string &path = req.src();
 
   if (file_exists(path)) {
