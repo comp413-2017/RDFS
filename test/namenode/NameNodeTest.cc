@@ -277,7 +277,7 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 
 int main(int argc, char **argv) {
     el::Configurations conf(LOG_CONFIG_FILE);
-    conf.set(el::Level::Info, el::ConfigurationType::Enabled, "falses");
+    conf.set(el::Level::Info, el::ConfigurationType::Enabled, "false");
     el::Loggers::reconfigureAllLoggers(conf);
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
