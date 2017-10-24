@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
   sleep(10);
-  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(5);
   ::testing::InitGoogleTest(&argc, argv);
   auto ret = RUN_ALL_TESTS();

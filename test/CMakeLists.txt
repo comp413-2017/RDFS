@@ -23,6 +23,7 @@ include_directories(../rice-datanode/include)
 include_directories(../native-filesystem/include)
 include_directories(../rpcserver/include)
 include_directories(../storage/include)
+include_directories(util/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
