@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Zookeeper REQUIRED)
+find_package(ISAL REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
@@ -25,6 +26,7 @@ add_subdirectory(rice-datanode)
 add_subdirectory(native-filesystem)
 add_subdirectory(test)
 add_subdirectory(storage)
+add_subdirectory(isal)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
 	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utility/config-reader/)
