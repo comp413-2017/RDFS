@@ -10,7 +10,7 @@ if [ ! -d /tmp/cache/protobuf ]; then
     unzip protobuf.zip > /dev/null
     mv protobuf-3.0.0 /tmp/cache/protobuf
 fi
-mv /tmp/cache/protobuf protobuf-3.0.0
+ln -s /tmp/cache/protobuf protobuf-3.0.0
 cd protobuf-3.0.0
 sudo make install > /dev/null
 sudo ldconfig

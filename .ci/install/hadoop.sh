@@ -10,6 +10,6 @@ if [ ! -d /tmp/cache/hadoop ]; then
     tar -xf hadoop.tar.gz -C /tmp
     mv /tmp/hadoop-2.8.1 /tmp/cache/hadoop
 fi
-mv /tmp/cache/hadoop hadoop
+ln -s /tmp/cache/hadoop hadoop
 cp $TRAVIS_BUILD_DIR/config/hdfs-site.xml hadoop/etc/hadoop/hdfs-site.xml
 cp $TRAVIS_BUILD_DIR/config/core-site.xml hadoop/etc/hadoop/core-site.xml
