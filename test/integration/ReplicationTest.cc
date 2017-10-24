@@ -17,16 +17,19 @@
 #include "ClientNamenodeProtocolImpl.h"
 #include "data_transfer_server.h"
 #include "native_filesystem.h"
+#include "../util/RDFSTestUtils.h"
 
 INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
 using client_namenode_translator::ClientNamenodeTranslator;
+using RDFSTestUtils::initializeDatanodes;
 
 static const int NUM_DATANODES = 3;
 
 int num_threads = 4;
 int max_xmits = 100000;
+// These are incremented for each test.
 int32_t xferPort = 50010;
 int32_t ipcPort = 50020;
 int maxDatanodeId = 0;
@@ -35,20 +38,13 @@ int minDatanodeId = 0;
 uint16_t nextPort = 5351;
 
 static inline void initializeDatanodes(int numDatanodes) {
-  int i = maxDatanodeId;
+  initializeDatanodes(
+      maxDatanodeId,
+      numDatanodes,
+      "ReplicationTestServer",
+      xferPort,
+      ipcPort);
   maxDatanodeId += numDatanodes;
-  for (; i < maxDatanodeId; i++) {
-    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = "-x " +
-        std::to_string(xferPort + i) + " -p " + std::to_string(ipcPort + i)
-        + " -b tfs" + std::to_string(i) + " &";
-    std::string cmdLine =
-        "bash -c \"exec -a ReplicationTestServer" + std::to_string(i) +
-            " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-            dnCliArgs + "\" & ";
-    system(cmdLine.c_str());
-    sleep(3);
-  }
   xferPort += numDatanodes;
   ipcPort += numDatanodes;
 }
