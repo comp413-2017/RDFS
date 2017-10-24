@@ -38,28 +38,6 @@ static inline void initializeDatanodes(int numDatanodes) {
   ipcPort += numDatanodes;
 }
 
-static const int NUM_DATANODES = 3;
-
-int32_t xferPort = 50010;
-int32_t ipcPort = 50020;
-int maxDatanodeId = 0;
-// Use minDatanodId++ when you want to kill a datanode.
-int minDatanodeId = 0;
-// This is incremented for each test.
-uint16_t nextPort = 5351;
-
-static inline void initializeDatanodes(int numDatanodes) {
-  initializeDatanodes(
-      maxDatanodeId,
-      numDatanodes,
-      "StorageTestServer",
-      xferPort,
-      ipcPort);
-  maxDatanodeId += numDatanodes;
-  xferPort += numDatanodes;
-  ipcPort += numDatanodes;
-}
-
 namespace {
 
 class StorageTest : public ::testing::Test {
