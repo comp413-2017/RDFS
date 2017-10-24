@@ -17,9 +17,9 @@ TEST_F(NamenodeTest, mkdirDepth1) {
     LOG(DEBUG) << "Finished all asserts";
 }
 
-TEST_F(NamenodeTest, mkdirDepth1024) {
+TEST_F(NamenodeTest, mkdirDepth100) {
     std::string src;
-    for (int i = 0; i < 1024; ++i) {
+    for (int i = 0; i < 100; ++i) {
         src.append("/testing/test_mkdir");
     }
     hadoop::hdfs::MkdirsRequestProto mkdir_req;
