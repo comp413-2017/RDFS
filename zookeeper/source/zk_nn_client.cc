@@ -475,7 +475,7 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   return true;
 }
 
-void ZkNnClient::get_info(GetFileInfoRequestProto &req,
+ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(GetFileInfoRequestProto &req,
                           GetFileInfoResponseProto &res) {
   const std::string &path = req.src();
 
@@ -490,10 +490,10 @@ void ZkNnClient::get_info(GetFileInfoRequestProto &req,
 
     set_file_info(status, path, znode_data);
     LOG(INFO) << "Got info for file ";
-    return;
+    return GetFileInfoResponse::Ok;
   }
   LOG(INFO) << "No file to get info for";
-  return;
+  return GetFileInfoResponse::FileDoesNotExist;
 }
 
 /**
