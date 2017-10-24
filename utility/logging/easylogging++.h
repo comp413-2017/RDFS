@@ -500,6 +500,9 @@ typedef std::ostream ostream_t;
 #else
 #   define ELPP_COUT_LINE(logLine) logLine << std::flush
 #endif // defined(ELPP_CUSTOM_COUT_LINE)
+
+#define CI_LOG_CONF "/home/vagrant/rdfs/config/ci-log-conf.conf"
+
 typedef unsigned short EnumType;
 typedef std::shared_ptr<base::Storage> StoragePointer;
 typedef int VerboseLevel;
@@ -2519,9 +2522,11 @@ class Configurations : public base::utils::RegistryWithPred<Configuration, Confi
   Configurations(const std::string &configurationFile,
                  bool useDefaultsForRemaining = true,
                  Configurations *base = nullptr) :
-      m_configurationFile(configurationFile),
       m_isFromFile(false) {
-    parseFromFile(configurationFile, base);
+    const std::string conf = std::getenv("CI") != nullptr ?
+                             CI_LOG_CONF : configurationFile;
+    m_configurationFile = conf;
+    parseFromFile(conf, base);
     if (useDefaultsForRemaining) {
       setRemainingToDefault();
     }
