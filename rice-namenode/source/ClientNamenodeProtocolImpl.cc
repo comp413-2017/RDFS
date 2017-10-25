@@ -110,12 +110,18 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "GetFileInfo ");
   GetFileInfoResponseProto res;
-  if (zk->get_info(req, res) == zkclient::ZkNnClient::GetFileInfoResponse::Ok) {
-    logMessage(&res, "GetFileInfo response ");
-    return Serialize(res);
-  } else {
-    throw GetErrorRPCHeader("Could not getFileInfo", "");
+  switch (zk->get_info(req, res)) {
+    case zkclient::ZkNnClient::GetFileInfoResponse::Ok:
+      logMessage(&res, "GetFileInfo response ");
+      break;
+    case zkclient::ZkNnClient::GetFileInfoResponse::FileDoesNotExist:
+      LOG(INFO) << "get_info returned FileDoesNotExist";
+      break;
+    case zkclient::ZkNnClient::GetFileInfoResponse::FailedReadZnode:
+      LOG(INFO) << "get_info returned FailedReadZnode";
+      break;
   }
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::mkdir(std::string input) {

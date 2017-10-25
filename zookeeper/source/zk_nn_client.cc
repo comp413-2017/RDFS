@@ -491,9 +491,10 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
     set_file_info(status, path, znode_data);
     LOG(INFO) << "Got info for file ";
     return GetFileInfoResponse::Ok;
+  } else {
+    LOG(INFO) << "No file to get info for";
+    return GetFileInfoResponse::FileDoesNotExist;
   }
-  LOG(INFO) << "No file to get info for";
-  return GetFileInfoResponse::FileDoesNotExist;
 }
 
 /**
