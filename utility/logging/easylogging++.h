@@ -1803,16 +1803,7 @@ class Configurations : public base::utils::RegistryWithPred<Configuration, Confi
   /// @see setRemainingToDefault()
   Configurations(const std::string &configurationFile,
                  bool useDefaultsForRemaining = true,
-                 Configurations *base = nullptr) :
-      m_isFromFile(false) {
-    const std::string conf = std::getenv("CI") != nullptr ?
-                             CI_LOG_CONF : configurationFile;
-    m_configurationFile = conf;
-    parseFromFile(conf, base);
-    if (useDefaultsForRemaining) {
-      setRemainingToDefault();
-    }
-  }
+                 Configurations *base = nullptr);
 
   virtual ~Configurations(void) {
   }

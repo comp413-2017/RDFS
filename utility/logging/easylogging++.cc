@@ -194,11 +194,15 @@ Configurations::Configurations(void) :
   m_isFromFile(false) {
 }
 
-Configurations::Configurations(const std::string& configurationFile, bool useDefaultsForRemaining,
-                               Configurations* base) :
-  m_configurationFile(configurationFile),
-  m_isFromFile(false) {
-  parseFromFile(configurationFile, base);
+Configurations::Configurations(
+    const std::string &configurationFile,
+    bool useDefaultsForRemaining,
+    Configurations *base) {
+  m_isFromFile = false;
+  const std::string conf = std::getenv("CI") != nullptr ?
+                           CI_LOG_CONF : configurationFile;
+  m_configurationFile = conf;
+  parseFromFile(conf, base);
   if (useDefaultsForRemaining) {
     setRemainingToDefault();
   }
