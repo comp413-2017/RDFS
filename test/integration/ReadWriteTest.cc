@@ -15,6 +15,8 @@
 
 #define ELPP_THREAD_SAFE
 
+#define ELPP_THREAD_SAFE
+
 INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
@@ -91,6 +93,7 @@ TEST(ReadWriteTest, testConcurrentRead) {
   for (int i = 0; i < num_threads; i++) {
     threads[i].join();
   }
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 }  // namespace
 
@@ -104,7 +107,7 @@ int main(int argc, char **argv) {
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
 
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  sleep(5);
+  sleep(15);
 
   // initialize datanodes
   initializeDatanodes(3);

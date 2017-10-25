@@ -1,7 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_THREAD_SAFE
-
 #include <easylogging++.h>
 #include <gtest/gtest.h>
 
@@ -18,6 +16,8 @@
 #include "data_transfer_server.h"
 #include "native_filesystem.h"
 #include "../util/RDFSTestUtils.h"
+
+#define ELPP_THREAD_SAFE
 
 INITIALIZE_EASYLOGGINGPP
 
