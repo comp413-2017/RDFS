@@ -356,7 +356,12 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   if (znode_data.ecPolicyName == EC_REPLICATION) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
-      // TODO(Nate): generate a block group and each part of a block group.
+      uint64_t block_group_id;
+      std::vector<u_int64_t> storage_block_ids;
+      add_block_group(file_path,
+      block_group_id,
+      data_nodes,
+      storage_block_ids);
       // TODO(Nate): use the hierarchical naming scheme.
   }
 
@@ -1320,8 +1325,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
 bool ZkNnClient::add_block_group(const std::string &fileName,
                      u_int64_t &block_group_id,
                      std::vector<std::string> &dataNodes,
-                     std::vector<u_int64_t> &storageBlockIDs,
-                     uint32_t total_num_storage_blocks) {
+                     std::vector<u_int64_t> &storageBlockIDs) {
 
     FileZNode znode_data;
     read_file_znode(znode_data, fileName);
@@ -1333,11 +1337,27 @@ bool ZkNnClient::add_block_group(const std::string &fileName,
     }
 
     // Log them for debugging purposes.
+    std::vector<std::shared_ptr<ZooOp>> ops;
     LOG(INFO) << "Generated block group id " << block_group_id << "\n";
-    for (auto storageBlockID : storageBlockIDs)
-        LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
-
-    // TODO(nate): figure out what exact zookeepr operations must occur.
+    auto block_location_op = zk->build_create_op(
+            "/block_locations/" + std::to_string(block_group_id), ZKWrapper::EMPTY_VECTOR);
+    ops.push_back(block_location_op);
+    for (auto storageBlockID : storageBlockIDs) {
+      LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
+      auto block_location_op = zk->build_create_op(
+              "/block_locations/" + std::to_string(block_group_id) + "/" +
+              std::to_string(storageBlockID),
+              ZKWrapper::EMPTY_VECTOR);
+      ops.push_back(block_location_op);
+    }
+    auto results = std::vector<zoo_op_result>();
+    int err;
+    if (!zk->execute_multi(ops, results, err, false)) {
+      LOG(ERROR)
+              << "Failed to write the addBlock multiop, ZK state was not changed";
+      ZKWrapper::print_error(err);
+      return false;
+    }
     return true;
 }
 
