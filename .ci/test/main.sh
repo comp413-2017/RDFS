@@ -24,4 +24,4 @@ run_test ./NativeFsTest
 run_test ./StorageTest
 run_test ./ZKDNClientTest
 run_test ./ZKLockTest
-run_test ./ZKWrapperTest
+run_test "./ZKWrapperTest --gtest_filter=-*OnFailure*"
