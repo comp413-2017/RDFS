@@ -26,6 +26,7 @@ var searchData=
   ['logformat',['LogFormat',['../classel_1_1base_1_1_log_format.html',1,'el::base']]],
   ['loggable',['Loggable',['../classel_1_1_loggable.html',1,'el']]],
   ['logger',['Logger',['../classel_1_1_logger.html',1,'el']]],
+  ['loggerregistrationcallback',['LoggerRegistrationCallback',['../classel_1_1_logger_registration_callback.html',1,'el']]],
   ['loggers',['Loggers',['../classel_1_1_loggers.html',1,'el']]],
   ['logmessage',['LogMessage',['../classel_1_1_log_message.html',1,'el']]]
 ];

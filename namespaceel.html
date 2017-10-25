@@ -104,6 +104,10 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structel_1_1_string_to_level_item.html">StringToLevelItem</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structel_1_1_configuration_string_to_type_item.html">ConfigurationStringToTypeItem</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_callback.html">Callback</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_level_helper.html">LevelHelper</a></td></tr>
@@ -130,14 +134,14 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_performance_tracking_callback.html">PerformanceTrackingCallback</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_logger_registration_callback.html">LoggerRegistrationCallback</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_log_builder.html">LogBuilder</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_logger.html">Logger</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a logger holding ID and configurations we need to write logs.  <a href="classel_1_1_logger.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_log_message.html">LogMessage</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_performance_tracking_data.html">PerformanceTrackingData</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_sys_log_initializer.html">SysLogInitializer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes syslog with process ID, options and facility. calls closelog() on d'tor.  <a href="classel_1_1_sys_log_initializer.html#details">More...</a><br/></td></tr>
@@ -153,15 +157,15 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a9fde07d5f5388fdcc804e3eadd5c5473"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9fde07d5f5388fdcc804e3eadd5c5473"></a>
+<tr class="memitem:aeb764b890a6f3cd41d2726bcd4e9c0cf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeb764b890a6f3cd41d2726bcd4e9c0cf"></a>
 typedef std::function&lt; void(const <br class="typebreak"/>
 char *, std::size_t)&gt;&#160;</td><td class="memItemRight" valign="bottom"><b>PreRollOutCallback</b></td></tr>
-<tr class="separator:a9fde07d5f5388fdcc804e3eadd5c5473"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a743c1aa4e1ddb5851719bb6886a61c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8a743c1aa4e1ddb5851719bb6886a61c"></a>
-typedef std::function&lt; const <br class="typebreak"/>
-char *(void)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceel.html#a8a743c1aa4e1ddb5851719bb6886a61c">FormatSpecifierValueResolver</a></td></tr>
-<tr class="memdesc:a8a743c1aa4e1ddb5851719bb6886a61c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolving function for format specifier. <br/></td></tr>
-<tr class="separator:a8a743c1aa4e1ddb5851719bb6886a61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:aeb764b890a6f3cd41d2726bcd4e9c0cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7127f2de2769e2a199a3665f42028a16"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7127f2de2769e2a199a3665f42028a16"></a>
+typedef std::function<br class="typebreak"/>
+&lt; std::string(const <a class="el" href="classel_1_1_log_message.html">LogMessage</a> *)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceel.html#a7127f2de2769e2a199a3665f42028a16">FormatSpecifierValueResolver</a></td></tr>
+<tr class="memdesc:a7127f2de2769e2a199a3665f42028a16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolving function for format specifier. <br/></td></tr>
+<tr class="separator:a7127f2de2769e2a199a3665f42028a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4c4b2f7d70a4b02568a9f70724a6b39"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4c4b2f7d70a4b02568a9f70724a6b39"></a>
 typedef std::shared_ptr<br class="typebreak"/>
 &lt; <a class="el" href="classel_1_1_log_builder.html">LogBuilder</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>LogBuilderPtr</b></td></tr>
@@ -192,11 +196,12 @@ Enumerations</h2></td></tr>
 <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a520d0db389f362bf79ef56ca0af3dcab">ConfigurationType::Format</a> = 8, 
 <br/>
 &#160;&#160;<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a1351017ac6423911223bc19a8cb7c653">ConfigurationType::Filename</a> = 16, 
-<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a052bf0f0c813b3c41c5b5046ebc26529">ConfigurationType::MillisecondsWidth</a> = 32, 
+<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a945b6ef21f66457079a6ab7b6c3459f9">ConfigurationType::SubsecondPrecision</a> = 32, 
+<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a052bf0f0c813b3c41c5b5046ebc26529">ConfigurationType::MillisecondsWidth</a> = SubsecondPrecision, 
 <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124abe9e43d200c5698cb8519daed7035874">ConfigurationType::PerformanceTracking</a> = 64, 
-<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a4b35e615142d60db6383426f051e700b">ConfigurationType::MaxLogFileSize</a> = 128, 
 <br/>
-&#160;&#160;<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124ac1b4aae5c168e64292c9aa87a124ae86">ConfigurationType::LogFlushThreshold</a> = 256, 
+&#160;&#160;<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a4b35e615142d60db6383426f051e700b">ConfigurationType::MaxLogFileSize</a> = 128, 
+<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124ac1b4aae5c168e64292c9aa87a124ae86">ConfigurationType::LogFlushThreshold</a> = 256, 
 <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a88183b946cc5f0e8c96b2e66e1c74a7e">ConfigurationType::Unknown</a> = 1010
 <br/>
  }</td></tr>
@@ -270,8 +275,11 @@ Variables</h2></td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="a281f5db6d6163678bc68a8b23b59e124a1351017ac6423911223bc19a8cb7c653"></a>Filename</em>&#160;</td><td class="fielddoc">
 <p>Determines log file (full path) to write logs to for correponding level and logger. </p>
 </td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a281f5db6d6163678bc68a8b23b59e124a945b6ef21f66457079a6ab7b6c3459f9"></a>SubsecondPrecision</em>&#160;</td><td class="fielddoc">
+<p>Specifies precision of the subsecond part. It should be within range (1-6). </p>
+</td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="a281f5db6d6163678bc68a8b23b59e124a052bf0f0c813b3c41c5b5046ebc26529"></a>MillisecondsWidth</em>&#160;</td><td class="fielddoc">
-<p>Specifies milliseconds width. Width can be within range (1-6) </p>
+<p>Alias of SubsecondPrecision (for backward compatibility) </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="a281f5db6d6163678bc68a8b23b59e124abe9e43d200c5698cb8519daed7035874"></a>PerformanceTracking</em>&#160;</td><td class="fielddoc">
 <p>Determines whether or not performance tracking is enabled. </p>

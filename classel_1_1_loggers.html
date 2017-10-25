@@ -122,73 +122,91 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:aaebf868c558e3ba1d2e4f073a00f1d4a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaebf868c558e3ba1d2e4f073a00f1d4a"></a>
-static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#aaebf868c558e3ba1d2e4f073a00f1d4a">getLogger</a> (const std::string &amp;identity, bool registerIfNotAvailable=true)</td></tr>
-<tr class="memdesc:aaebf868c558e3ba1d2e4f073a00f1d4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets existing or registers new logger. <br/></td></tr>
-<tr class="separator:aaebf868c558e3ba1d2e4f073a00f1d4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a201d261ea57c070f07f0bf2006158587"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a201d261ea57c070f07f0bf2006158587"></a>
-static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a201d261ea57c070f07f0bf2006158587">unregisterLogger</a> (const std::string &amp;identity)</td></tr>
-<tr class="memdesc:a201d261ea57c070f07f0bf2006158587"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregisters logger - use it only when you know what you are doing, you may unregister loggers initialized / used by third-party libs. <br/></td></tr>
-<tr class="separator:a201d261ea57c070f07f0bf2006158587"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d7a056cb7d9da3d96c709a2fac5c2bb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2d7a056cb7d9da3d96c709a2fac5c2bb"></a>
-static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a2d7a056cb7d9da3d96c709a2fac5c2bb">hasLogger</a> (const std::string &amp;identity)</td></tr>
-<tr class="memdesc:a2d7a056cb7d9da3d96c709a2fac5c2bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether or not logger with id is registered. <br/></td></tr>
-<tr class="separator:a2d7a056cb7d9da3d96c709a2fac5c2bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a888aca5bdccccc322da2eed430909d04"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a888aca5bdccccc322da2eed430909d04"></a>
-static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a888aca5bdccccc322da2eed430909d04">reconfigureLogger</a> (<a class="el" href="classel_1_1_logger.html">Logger</a> *logger, const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations)</td></tr>
-<tr class="memdesc:a888aca5bdccccc322da2eed430909d04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures specified logger with new configurations. <br/></td></tr>
-<tr class="separator:a888aca5bdccccc322da2eed430909d04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a105f776fe19cb7fa2fccd2993d9f7a7c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a105f776fe19cb7fa2fccd2993d9f7a7c"></a>
-static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a105f776fe19cb7fa2fccd2993d9f7a7c">reconfigureLogger</a> (const std::string &amp;identity, const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations)</td></tr>
-<tr class="memdesc:a105f776fe19cb7fa2fccd2993d9f7a7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures logger with new configurations after looking it up using identity. <br/></td></tr>
-<tr class="separator:a105f776fe19cb7fa2fccd2993d9f7a7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef49fdae329cefcc1c01428568dced4b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aef49fdae329cefcc1c01428568dced4b"></a>
-static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#aef49fdae329cefcc1c01428568dced4b">reconfigureLogger</a> (const std::string &amp;identity, <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124">ConfigurationType</a> configurationType, const std::string &amp;value)</td></tr>
-<tr class="memdesc:aef49fdae329cefcc1c01428568dced4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures logger's single configuration. <br/></td></tr>
-<tr class="separator:aef49fdae329cefcc1c01428568dced4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac834df0f5e9e3dab18e70321a2543af7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac834df0f5e9e3dab18e70321a2543af7"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ac834df0f5e9e3dab18e70321a2543af7">reconfigureAllLoggers</a> (const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations)</td></tr>
-<tr class="memdesc:ac834df0f5e9e3dab18e70321a2543af7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures all the existing loggers with new configurations. <br/></td></tr>
-<tr class="separator:ac834df0f5e9e3dab18e70321a2543af7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53ebc2f38cf05bcffa6e1a5550ea5d02"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a53ebc2f38cf05bcffa6e1a5550ea5d02"></a>
+static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a53ebc2f38cf05bcffa6e1a5550ea5d02">getLogger</a> (const std::string &amp;identity, bool registerIfNotAvailable=true)</td></tr>
+<tr class="memdesc:a53ebc2f38cf05bcffa6e1a5550ea5d02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets existing or registers new logger. <br/></td></tr>
+<tr class="separator:a53ebc2f38cf05bcffa6e1a5550ea5d02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca42e781a0be67431880756711bed7f8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aca42e781a0be67431880756711bed7f8"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#aca42e781a0be67431880756711bed7f8">setDefaultLogBuilder</a> (el::LogBuilderPtr &amp;logBuilderPtr)</td></tr>
+<tr class="memdesc:aca42e781a0be67431880756711bed7f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Changes default log builder for future loggers. <br/></td></tr>
+<tr class="separator:aca42e781a0be67431880756711bed7f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8df040fad4898c2682be34ba5128b61d"><td class="memTemplParams" colspan="2"><a class="anchor" id="a8df040fad4898c2682be34ba5128b61d"></a>
+template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a8df040fad4898c2682be34ba5128b61d"><td class="memTemplItemLeft" align="right" valign="top">static bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a8df040fad4898c2682be34ba5128b61d">installLoggerRegistrationCallback</a> (const std::string &amp;id)</td></tr>
+<tr class="memdesc:a8df040fad4898c2682be34ba5128b61d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Installs logger registration callback, this callback is triggered when new logger is registered. <br/></td></tr>
+<tr class="separator:a8df040fad4898c2682be34ba5128b61d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68b2014268bf4f31a20b2c3ba923b679"><td class="memTemplParams" colspan="2"><a class="anchor" id="a68b2014268bf4f31a20b2c3ba923b679"></a>
+template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a68b2014268bf4f31a20b2c3ba923b679"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a68b2014268bf4f31a20b2c3ba923b679">uninstallLoggerRegistrationCallback</a> (const std::string &amp;id)</td></tr>
+<tr class="memdesc:a68b2014268bf4f31a20b2c3ba923b679"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uninstalls log dispatch callback. <br/></td></tr>
+<tr class="separator:a68b2014268bf4f31a20b2c3ba923b679"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0423bed2865b6dcd2422e6f8678829d1"><td class="memTemplParams" colspan="2"><a class="anchor" id="a0423bed2865b6dcd2422e6f8678829d1"></a>
+template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a0423bed2865b6dcd2422e6f8678829d1"><td class="memTemplItemLeft" align="right" valign="top">static T *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>loggerRegistrationCallback</b> (const std::string &amp;id)</td></tr>
+<tr class="separator:a0423bed2865b6dcd2422e6f8678829d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada98e0f03534c038907f6b7816ef3a59"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada98e0f03534c038907f6b7816ef3a59"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ada98e0f03534c038907f6b7816ef3a59">unregisterLogger</a> (const std::string &amp;identity)</td></tr>
+<tr class="memdesc:ada98e0f03534c038907f6b7816ef3a59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregisters logger - use it only when you know what you are doing, you may unregister loggers initialized / used by third-party libs. <br/></td></tr>
+<tr class="separator:ada98e0f03534c038907f6b7816ef3a59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4fa5e65054824e81de6f1fe111b920c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac4fa5e65054824e81de6f1fe111b920c"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ac4fa5e65054824e81de6f1fe111b920c">hasLogger</a> (const std::string &amp;identity)</td></tr>
+<tr class="memdesc:ac4fa5e65054824e81de6f1fe111b920c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether or not logger with id is registered. <br/></td></tr>
+<tr class="separator:ac4fa5e65054824e81de6f1fe111b920c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02223004494a404a2c3e7cd0c4380d3b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a02223004494a404a2c3e7cd0c4380d3b"></a>
+static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a02223004494a404a2c3e7cd0c4380d3b">reconfigureLogger</a> (<a class="el" href="classel_1_1_logger.html">Logger</a> *logger, const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations)</td></tr>
+<tr class="memdesc:a02223004494a404a2c3e7cd0c4380d3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures specified logger with new configurations. <br/></td></tr>
+<tr class="separator:a02223004494a404a2c3e7cd0c4380d3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3252cc39fa4ac17b4abf50acf6b4c5e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af3252cc39fa4ac17b4abf50acf6b4c5e"></a>
+static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#af3252cc39fa4ac17b4abf50acf6b4c5e">reconfigureLogger</a> (const std::string &amp;identity, const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations)</td></tr>
+<tr class="memdesc:af3252cc39fa4ac17b4abf50acf6b4c5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures logger with new configurations after looking it up using identity. <br/></td></tr>
+<tr class="separator:af3252cc39fa4ac17b4abf50acf6b4c5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89ec21259cfcfee3f761fca68c4ec043"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a89ec21259cfcfee3f761fca68c4ec043"></a>
+static <a class="el" href="classel_1_1_logger.html">Logger</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a89ec21259cfcfee3f761fca68c4ec043">reconfigureLogger</a> (const std::string &amp;identity, <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124">ConfigurationType</a> configurationType, const std::string &amp;value)</td></tr>
+<tr class="memdesc:a89ec21259cfcfee3f761fca68c4ec043"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures logger's single configuration. <br/></td></tr>
+<tr class="separator:a89ec21259cfcfee3f761fca68c4ec043"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42f99e79d72d391df563df8d09272194"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a42f99e79d72d391df563df8d09272194"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a42f99e79d72d391df563df8d09272194">reconfigureAllLoggers</a> (const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations)</td></tr>
+<tr class="memdesc:a42f99e79d72d391df563df8d09272194"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures all the existing loggers with new configurations. <br/></td></tr>
+<tr class="separator:a42f99e79d72d391df563df8d09272194"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ebd33bc0208b430f41508e34509c7c9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1ebd33bc0208b430f41508e34509c7c9"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a1ebd33bc0208b430f41508e34509c7c9">reconfigureAllLoggers</a> (<a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124">ConfigurationType</a> configurationType, const std::string &amp;value)</td></tr>
 <tr class="memdesc:a1ebd33bc0208b430f41508e34509c7c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures single configuration for all the loggers. <br/></td></tr>
 <tr class="separator:a1ebd33bc0208b430f41508e34509c7c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab24b99e5bb3c907d1418ee3266f15397"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab24b99e5bb3c907d1418ee3266f15397"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ab24b99e5bb3c907d1418ee3266f15397">reconfigureAllLoggers</a> (<a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a> level, <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124">ConfigurationType</a> configurationType, const std::string &amp;value)</td></tr>
-<tr class="memdesc:ab24b99e5bb3c907d1418ee3266f15397"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures single configuration for all the loggers for specified level. <br/></td></tr>
-<tr class="separator:ab24b99e5bb3c907d1418ee3266f15397"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9fb62a8ff904ff887fefde3282f46a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab9fb62a8ff904ff887fefde3282f46a4"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ab9fb62a8ff904ff887fefde3282f46a4">setDefaultConfigurations</a> (const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations, bool reconfigureExistingLoggers=false)</td></tr>
-<tr class="memdesc:ab9fb62a8ff904ff887fefde3282f46a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets default configurations. This configuration is used for future (and conditionally for existing) loggers. <br/></td></tr>
-<tr class="separator:ab9fb62a8ff904ff887fefde3282f46a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a96f2336fafdc3ef2c4df01a73ae5ffb7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a96f2336fafdc3ef2c4df01a73ae5ffb7"></a>
-static const <a class="el" href="classel_1_1_configurations.html">Configurations</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a96f2336fafdc3ef2c4df01a73ae5ffb7">defaultConfigurations</a> (void)</td></tr>
-<tr class="memdesc:a96f2336fafdc3ef2c4df01a73ae5ffb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns current default. <br/></td></tr>
-<tr class="separator:a96f2336fafdc3ef2c4df01a73ae5ffb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad17312c9474d94bc98efcaf08ca279a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad17312c9474d94bc98efcaf08ca279a4"></a>
+<tr class="memitem:a396b601e204ede36f5a9acc76a8c5585"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a396b601e204ede36f5a9acc76a8c5585"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a396b601e204ede36f5a9acc76a8c5585">reconfigureAllLoggers</a> (<a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a> level, <a class="el" href="namespaceel.html#a281f5db6d6163678bc68a8b23b59e124">ConfigurationType</a> configurationType, const std::string &amp;value)</td></tr>
+<tr class="memdesc:a396b601e204ede36f5a9acc76a8c5585"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconfigures single configuration for all the loggers for specified level. <br/></td></tr>
+<tr class="separator:a396b601e204ede36f5a9acc76a8c5585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f478b619f82cab39244ed8cde4778e2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3f478b619f82cab39244ed8cde4778e2"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a3f478b619f82cab39244ed8cde4778e2">setDefaultConfigurations</a> (const <a class="el" href="classel_1_1_configurations.html">Configurations</a> &amp;configurations, bool reconfigureExistingLoggers=false)</td></tr>
+<tr class="memdesc:a3f478b619f82cab39244ed8cde4778e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets default configurations. This configuration is used for future (and conditionally for existing) loggers. <br/></td></tr>
+<tr class="separator:a3f478b619f82cab39244ed8cde4778e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac40ea77b26a058b8f820be7a119ce69f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac40ea77b26a058b8f820be7a119ce69f"></a>
+static const <a class="el" href="classel_1_1_configurations.html">Configurations</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ac40ea77b26a058b8f820be7a119ce69f">defaultConfigurations</a> (void)</td></tr>
+<tr class="memdesc:ac40ea77b26a058b8f820be7a119ce69f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns current default. <br/></td></tr>
+<tr class="separator:ac40ea77b26a058b8f820be7a119ce69f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b9314fd68cdbb0b70264a8a5c7f60ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b9314fd68cdbb0b70264a8a5c7f60ed"></a>
 static const <br class="typebreak"/>
-base::LogStreamsReferenceMap *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ad17312c9474d94bc98efcaf08ca279a4">logStreamsReference</a> (void)</td></tr>
-<tr class="memdesc:ad17312c9474d94bc98efcaf08ca279a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns log stream reference pointer if needed by user. <br/></td></tr>
-<tr class="separator:ad17312c9474d94bc98efcaf08ca279a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af296007c3eb3b71602ec80ff59875b46"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af296007c3eb3b71602ec80ff59875b46"></a>
-static <a class="el" href="classel_1_1base_1_1_typed_configurations.html">base::TypedConfigurations</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#af296007c3eb3b71602ec80ff59875b46">defaultTypedConfigurations</a> (void)</td></tr>
-<tr class="memdesc:af296007c3eb3b71602ec80ff59875b46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default typed configuration based on existing defaultConf. <br/></td></tr>
-<tr class="separator:af296007c3eb3b71602ec80ff59875b46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adea07ec6cbc1dfc50f939d69dcac7160"><td class="memItemLeft" align="right" valign="top">static std::vector&lt; std::string &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#adea07ec6cbc1dfc50f939d69dcac7160">populateAllLoggerIds</a> (std::vector&lt; std::string &gt; *targetList)</td></tr>
-<tr class="memdesc:adea07ec6cbc1dfc50f939d69dcac7160"><td class="mdescLeft">&#160;</td><td class="mdescRight">Populates all logger IDs in current repository.  <a href="#adea07ec6cbc1dfc50f939d69dcac7160">More...</a><br/></td></tr>
-<tr class="separator:adea07ec6cbc1dfc50f939d69dcac7160"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9992995a85745639aa9aa5a2df2255f5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9992995a85745639aa9aa5a2df2255f5"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a9992995a85745639aa9aa5a2df2255f5">configureFromGlobal</a> (const char *globalConfigurationFilePath)</td></tr>
-<tr class="memdesc:a9992995a85745639aa9aa5a2df2255f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets configurations from global configuration file. <br/></td></tr>
-<tr class="separator:a9992995a85745639aa9aa5a2df2255f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28acf6f2b1ea7e5edd1b2560cde82406"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a28acf6f2b1ea7e5edd1b2560cde82406">configureFromArg</a> (const char *argKey)</td></tr>
-<tr class="memdesc:a28acf6f2b1ea7e5edd1b2560cde82406"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures loggers using command line arg. Ensure you have already set command line args,.  <a href="#a28acf6f2b1ea7e5edd1b2560cde82406">More...</a><br/></td></tr>
-<tr class="separator:a28acf6f2b1ea7e5edd1b2560cde82406"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1834480e970c16817459ca3ee26b44b5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1834480e970c16817459ca3ee26b44b5"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a1834480e970c16817459ca3ee26b44b5">flushAll</a> (void)</td></tr>
-<tr class="memdesc:a1834480e970c16817459ca3ee26b44b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes all loggers for all levels - Be careful if you dont know how many loggers are registered. <br/></td></tr>
-<tr class="separator:a1834480e970c16817459ca3ee26b44b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+base::LogStreamsReferenceMap *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a1b9314fd68cdbb0b70264a8a5c7f60ed">logStreamsReference</a> (void)</td></tr>
+<tr class="memdesc:a1b9314fd68cdbb0b70264a8a5c7f60ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns log stream reference pointer if needed by user. <br/></td></tr>
+<tr class="separator:a1b9314fd68cdbb0b70264a8a5c7f60ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a592324bd539ea075101031c14cd9fd41"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a592324bd539ea075101031c14cd9fd41"></a>
+static <a class="el" href="classel_1_1base_1_1_typed_configurations.html">base::TypedConfigurations</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a592324bd539ea075101031c14cd9fd41">defaultTypedConfigurations</a> (void)</td></tr>
+<tr class="memdesc:a592324bd539ea075101031c14cd9fd41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default typed configuration based on existing defaultConf. <br/></td></tr>
+<tr class="separator:a592324bd539ea075101031c14cd9fd41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a607481b21f03f499ce89d2ce443ff08f"><td class="memItemLeft" align="right" valign="top">static std::vector&lt; std::string &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a607481b21f03f499ce89d2ce443ff08f">populateAllLoggerIds</a> (std::vector&lt; std::string &gt; *targetList)</td></tr>
+<tr class="memdesc:a607481b21f03f499ce89d2ce443ff08f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Populates all logger IDs in current repository.  <a href="#a607481b21f03f499ce89d2ce443ff08f">More...</a><br/></td></tr>
+<tr class="separator:a607481b21f03f499ce89d2ce443ff08f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adedfcc17831fe3d3f14026c91e8df88c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adedfcc17831fe3d3f14026c91e8df88c"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#adedfcc17831fe3d3f14026c91e8df88c">configureFromGlobal</a> (const char *globalConfigurationFilePath)</td></tr>
+<tr class="memdesc:adedfcc17831fe3d3f14026c91e8df88c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets configurations from global configuration file. <br/></td></tr>
+<tr class="separator:adedfcc17831fe3d3f14026c91e8df88c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44f58d08d3ccb502e639db1c61893194"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a44f58d08d3ccb502e639db1c61893194">configureFromArg</a> (const char *argKey)</td></tr>
+<tr class="memdesc:a44f58d08d3ccb502e639db1c61893194"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures loggers using command line arg. Ensure you have already set command line args,.  <a href="#a44f58d08d3ccb502e639db1c61893194">More...</a><br/></td></tr>
+<tr class="separator:a44f58d08d3ccb502e639db1c61893194"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47e5eca4ee2f6cfbdccb2efabd2c4f12"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47e5eca4ee2f6cfbdccb2efabd2c4f12"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a47e5eca4ee2f6cfbdccb2efabd2c4f12">flushAll</a> (void)</td></tr>
+<tr class="memdesc:a47e5eca4ee2f6cfbdccb2efabd2c4f12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes all loggers for all levels - Be careful if you dont know how many loggers are registered. <br/></td></tr>
+<tr class="separator:a47e5eca4ee2f6cfbdccb2efabd2c4f12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aedd2de02dd701b0f20ddaa10f1f728f1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aedd2de02dd701b0f20ddaa10f1f728f1"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#aedd2de02dd701b0f20ddaa10f1f728f1">addFlag</a> (<a class="el" href="namespaceel.html#a2784aacd04cb7816ac1c0b20fcbf83cb">LoggingFlag</a> flag)</td></tr>
 <tr class="memdesc:aedd2de02dd701b0f20ddaa10f1f728f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds logging flag used internally. <br/></td></tr>
@@ -205,27 +223,27 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#afbee019d722fef5148d8355f45ba7993">setLoggingLevel</a> (<a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a> level)</td></tr>
 <tr class="memdesc:afbee019d722fef5148d8355f45ba7993"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets hierarchy for logging. Needs to enable logging flag (HierarchicalLogging) <br/></td></tr>
 <tr class="separator:afbee019d722fef5148d8355f45ba7993"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a826b238fe4f3719305a2d19f0c121fa0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a826b238fe4f3719305a2d19f0c121fa0"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a826b238fe4f3719305a2d19f0c121fa0">setVerboseLevel</a> (base::type::VerboseLevel level)</td></tr>
-<tr class="memdesc:a826b238fe4f3719305a2d19f0c121fa0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets verbose level on the fly. <br/></td></tr>
-<tr class="separator:a826b238fe4f3719305a2d19f0c121fa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad4840bb4b6b80746a2212cf3cc058142"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4840bb4b6b80746a2212cf3cc058142"></a>
-static base::type::VerboseLevel&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#ad4840bb4b6b80746a2212cf3cc058142">verboseLevel</a> (void)</td></tr>
-<tr class="memdesc:ad4840bb4b6b80746a2212cf3cc058142"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets current verbose level. <br/></td></tr>
-<tr class="separator:ad4840bb4b6b80746a2212cf3cc058142"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acbc5e2cef230331c57f364852a671507"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbc5e2cef230331c57f364852a671507"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#acbc5e2cef230331c57f364852a671507">setVModules</a> (const char *modules)</td></tr>
-<tr class="memdesc:acbc5e2cef230331c57f364852a671507"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets vmodules as specified (on the fly) <br/></td></tr>
-<tr class="separator:acbc5e2cef230331c57f364852a671507"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afcf50abc11530eb7f28fcab7eab27e4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afcf50abc11530eb7f28fcab7eab27e4f"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#afcf50abc11530eb7f28fcab7eab27e4f">clearVModules</a> (void)</td></tr>
-<tr class="memdesc:afcf50abc11530eb7f28fcab7eab27e4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears vmodules. <br/></td></tr>
-<tr class="separator:afcf50abc11530eb7f28fcab7eab27e4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6526e948f62d7dc77e06b77d355770d6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6526e948f62d7dc77e06b77d355770d6"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a6526e948f62d7dc77e06b77d355770d6">setVerboseLevel</a> (base::type::VerboseLevel level)</td></tr>
+<tr class="memdesc:a6526e948f62d7dc77e06b77d355770d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets verbose level on the fly. <br/></td></tr>
+<tr class="separator:a6526e948f62d7dc77e06b77d355770d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a319ed41034f683fe42542e9c0280246b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a319ed41034f683fe42542e9c0280246b"></a>
+static base::type::VerboseLevel&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a319ed41034f683fe42542e9c0280246b">verboseLevel</a> (void)</td></tr>
+<tr class="memdesc:a319ed41034f683fe42542e9c0280246b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets current verbose level. <br/></td></tr>
+<tr class="separator:a319ed41034f683fe42542e9c0280246b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a564a41ac785a34c57f00b9d8def2f966"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a564a41ac785a34c57f00b9d8def2f966"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a564a41ac785a34c57f00b9d8def2f966">setVModules</a> (const char *modules)</td></tr>
+<tr class="memdesc:a564a41ac785a34c57f00b9d8def2f966"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets vmodules as specified (on the fly) <br/></td></tr>
+<tr class="separator:a564a41ac785a34c57f00b9d8def2f966"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61ee09f32fdb5e00137d5d8862221884"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a61ee09f32fdb5e00137d5d8862221884"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_loggers.html#a61ee09f32fdb5e00137d5d8862221884">clearVModules</a> (void)</td></tr>
+<tr class="memdesc:a61ee09f32fdb5e00137d5d8862221884"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears vmodules. <br/></td></tr>
+<tr class="separator:a61ee09f32fdb5e00137d5d8862221884"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Static helpers to deal with loggers and their configurations. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a28acf6f2b1ea7e5edd1b2560cde82406"></a>
+<a class="anchor" id="a44f58d08d3ccb502e639db1c61893194"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -233,7 +251,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static bool el::Loggers::configureFromArg </td>
+          <td class="memname">bool el::Loggers::configureFromArg </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>argKey</em></td><td>)</td>
@@ -242,7 +260,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -252,7 +270,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 
 </div>
 </div>
-<a class="anchor" id="adea07ec6cbc1dfc50f939d69dcac7160"></a>
+<a class="anchor" id="a607481b21f03f499ce89d2ce443ff08f"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -260,7 +278,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static std::vector&lt;std::string&gt;* el::Loggers::populateAllLoggerIds </td>
+          <td class="memname">std::vector&lt; std::string &gt; * el::Loggers::populateAllLoggerIds </td>
           <td>(</td>
           <td class="paramtype">std::vector&lt; std::string &gt; *&#160;</td>
           <td class="paramname"><em>targetList</em></td><td>)</td>
@@ -269,7 +287,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -284,8 +302,9 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>utility/logging/<a class="el" href="easylogging_09_09_8h_source.html">easylogging++.h</a></li>
+<li>utility/logging/easylogging++.cc</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

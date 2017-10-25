@@ -21,7 +21,7 @@ var searchData=
   ['inodesection_5fxattrfeatureproto',['INodeSection_XAttrFeatureProto',['../classhadoop_1_1hdfs_1_1fsimage_1_1_i_node_section___x_attr_feature_proto.html',1,'hadoop::hdfs::fsimage']]],
   ['installcustomformatspecifier',['installCustomFormatSpecifier',['../classel_1_1_helpers.html#aa6de15a09db4f2a6763a6652c0ea12b1',1,'el::Helpers']]],
   ['installlogdispatchcallback',['installLogDispatchCallback',['../classel_1_1_helpers.html#a3f3e84057567a8ac568a35899318544a',1,'el::Helpers']]],
-  ['installperformancetrackingcallback',['installPerformanceTrackingCallback',['../classel_1_1_helpers.html#a93e2727d3a7a5c06ccc41a2ae7fe1835',1,'el::Helpers']]],
+  ['installloggerregistrationcallback',['installLoggerRegistrationCallback',['../classel_1_1_loggers.html#a8df040fad4898c2682be34ba5128b61d',1,'el::Loggers']]],
   ['installprerolloutcallback',['installPreRollOutCallback',['../classel_1_1_helpers.html#a5fd7ad6d636c28d2e706203d0c43cf8c',1,'el::Helpers']]],
   ['ipcconnectioncontextproto',['IpcConnectionContextProto',['../classhadoop_1_1common_1_1_ipc_connection_context_proto.html',1,'hadoop::common']]],
   ['is_5fproto_5fenum_3c_20_3a_3ahadoop_3a_3acommon_3a_3aharequestsource_20_3e',['is_proto_enum&lt; ::hadoop::common::HARequestSource &gt;',['../structgoogle_1_1protobuf_1_1is__proto__enum_3_01_1_1hadoop_1_1common_1_1_h_a_request_source_01_4.html',1,'google::protobuf']]],

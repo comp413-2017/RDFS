@@ -19,7 +19,6 @@ var searchData=
   ['datetime',['DateTime',['../classel_1_1base_1_1utils_1_1_date_time.html',1,'el::base::utils']]],
   ['defaultlogbuilder',['DefaultLogBuilder',['../classel_1_1base_1_1_default_log_builder.html',1,'el::base']]],
   ['defaultlogdispatchcallback',['DefaultLogDispatchCallback',['../classel_1_1base_1_1_default_log_dispatch_callback.html',1,'el::base']]],
-  ['defaultperformancetrackingcallback',['DefaultPerformanceTrackingCallback',['../classel_1_1base_1_1_default_performance_tracking_callback.html',1,'el::base']]],
   ['deleteblockpoolrequestproto',['DeleteBlockPoolRequestProto',['../classhadoop_1_1hdfs_1_1_delete_block_pool_request_proto.html',1,'hadoop::hdfs']]],
   ['deleteblockpoolresponseproto',['DeleteBlockPoolResponseProto',['../classhadoop_1_1hdfs_1_1_delete_block_pool_response_proto.html',1,'hadoop::hdfs']]],
   ['deleterequestproto',['DeleteRequestProto',['../classhadoop_1_1hdfs_1_1_delete_request_proto.html',1,'hadoop::hdfs']]],

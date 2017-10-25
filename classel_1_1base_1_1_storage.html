@@ -117,15 +117,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4932a8f8a55c3b00467cf2feed6acf59"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4932a8f8a55c3b00467cf2feed6acf59"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Storage</b> (const LogBuilderPtr &amp;defaultLogBuilder)</td></tr>
 <tr class="separator:a4932a8f8a55c3b00467cf2feed6acf59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae99093b82b3f25b6baf5d3d8b00b27e5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae99093b82b3f25b6baf5d3d8b00b27e5"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>validateEveryNCounter</b> (const char *filename, unsigned long int lineNumber, std::size_t occasion)</td></tr>
-<tr class="separator:ae99093b82b3f25b6baf5d3d8b00b27e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad93b7ae53a58a57b85db2dfb310406c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad93b7ae53a58a57b85db2dfb310406c6"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>validateAfterNCounter</b> (const char *filename, unsigned long int lineNumber, std::size_t n)</td></tr>
-<tr class="separator:ad93b7ae53a58a57b85db2dfb310406c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a141d7ef080be7eae11ac6201a538eec9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a141d7ef080be7eae11ac6201a538eec9"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>validateNTimesCounter</b> (const char *filename, unsigned long int lineNumber, std::size_t n)</td></tr>
-<tr class="separator:a141d7ef080be7eae11ac6201a538eec9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74e5fe30c93b535ee7a1fb20e29bcaf3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a74e5fe30c93b535ee7a1fb20e29bcaf3"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>validateEveryNCounter</b> (const char *filename, base::type::LineNumber lineNumber, std::size_t occasion)</td></tr>
+<tr class="separator:a74e5fe30c93b535ee7a1fb20e29bcaf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad09c13eed65ec6d2248d0693357b1e60"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad09c13eed65ec6d2248d0693357b1e60"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>validateAfterNCounter</b> (const char *filename, base::type::LineNumber lineNumber, std::size_t n)</td></tr>
+<tr class="separator:ad09c13eed65ec6d2248d0693357b1e60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6f26975aa70c01ab7f64b2568b2164e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6f26975aa70c01ab7f64b2568b2164e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>validateNTimesCounter</b> (const char *filename, base::type::LineNumber lineNumber, std::size_t n)</td></tr>
+<tr class="separator:af6f26975aa70c01ab7f64b2568b2164e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accd5495cdad77254eb24ef8f75cd71ad"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="accd5495cdad77254eb24ef8f75cd71ad"></a>
 <a class="el" href="classel_1_1base_1_1_registered_hit_counters.html">base::RegisteredHitCounters</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>hitCounters</b> (void) const </td></tr>
 <tr class="separator:accd5495cdad77254eb24ef8f75cd71ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -191,18 +191,13 @@ template&lt;typename T &gt; </td></tr>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a408d2420169a7f7286552fd153967b8d"><td class="memTemplItemLeft" align="right" valign="top">T *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>logDispatchCallback</b> (const std::string &amp;id)</td></tr>
 <tr class="separator:a408d2420169a7f7286552fd153967b8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad95b77123066f0a49817155dd75583b5"><td class="memTemplParams" colspan="2"><a class="anchor" id="ad95b77123066f0a49817155dd75583b5"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ad95b77123066f0a49817155dd75583b5"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>installPerformanceTrackingCallback</b> (const std::string &amp;id)</td></tr>
-<tr class="separator:ad95b77123066f0a49817155dd75583b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e69baf4bf3140fb7bc88bb386d933cf"><td class="memTemplParams" colspan="2"><a class="anchor" id="a0e69baf4bf3140fb7bc88bb386d933cf"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a0e69baf4bf3140fb7bc88bb386d933cf"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>uninstallPerformanceTrackingCallback</b> (const std::string &amp;id)</td></tr>
-<tr class="separator:a0e69baf4bf3140fb7bc88bb386d933cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa511779589370416030d9fc1149a32fd"><td class="memTemplParams" colspan="2"><a class="anchor" id="aa511779589370416030d9fc1149a32fd"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:aa511779589370416030d9fc1149a32fd"><td class="memTemplItemLeft" align="right" valign="top">T *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>performanceTrackingCallback</b> (const std::string &amp;id)</td></tr>
-<tr class="separator:aa511779589370416030d9fc1149a32fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1800a786d72b003997dd8d2599b040e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1800a786d72b003997dd8d2599b040e0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1_storage.html#a1800a786d72b003997dd8d2599b040e0">setThreadName</a> (const std::string &amp;name)</td></tr>
+<tr class="memdesc:a1800a786d72b003997dd8d2599b040e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets thread name for current thread. Requires std::thread. <br/></td></tr>
+<tr class="separator:a1800a786d72b003997dd8d2599b040e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefa8cd1b921eab81d233ae8c5a79f3ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aefa8cd1b921eab81d233ae8c5a79f3ee"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getThreadName</b> (const std::string &amp;threadId)</td></tr>
+<tr class="separator:aefa8cd1b921eab81d233ae8c5a79f3ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classel_1_1base_1_1threading_1_1_thread_safe"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classel_1_1base_1_1threading_1_1_thread_safe')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classel_1_1base_1_1threading_1_1_thread_safe.html">el::base::threading::ThreadSafe</a></td></tr>
 <tr class="memitem:a59db719b214f7118f0919846a85077bf inherit pub_methods_classel_1_1base_1_1threading_1_1_thread_safe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a59db719b214f7118f0919846a85077bf"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>acquireLock</b> (void) ELPP_FINAL</td></tr>
@@ -240,8 +235,9 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>el::base::LogDispatc
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Easylogging++ management storage. </p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>utility/logging/<a class="el" href="easylogging_09_09_8h_source.html">easylogging++.h</a></li>
+<li>utility/logging/easylogging++.cc</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

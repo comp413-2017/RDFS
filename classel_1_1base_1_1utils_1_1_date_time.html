@@ -112,25 +112,29 @@ Inheritance diagram for el::base::utils::DateTime:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ac000e6ecf705c2194a173d618ff4acfd"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#ac000e6ecf705c2194a173d618ff4acfd">gettimeofday</a> (struct timeval *tv)</td></tr>
-<tr class="memdesc:ac000e6ecf705c2194a173d618ff4acfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cross platform gettimeofday for Windows and unix platform. This can be used to determine current millisecond.  <a href="#ac000e6ecf705c2194a173d618ff4acfd">More...</a><br/></td></tr>
-<tr class="separator:ac000e6ecf705c2194a173d618ff4acfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa813c606a98b8741f59ccdf5aacef733"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#aa813c606a98b8741f59ccdf5aacef733">getDateTime</a> (const char *format, const <a class="el" href="classel_1_1base_1_1_milliseconds_width.html">base::MillisecondsWidth</a> *msWidth)</td></tr>
-<tr class="memdesc:aa813c606a98b8741f59ccdf5aacef733"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets current date and time with milliseconds.  <a href="#aa813c606a98b8741f59ccdf5aacef733">More...</a><br/></td></tr>
-<tr class="separator:aa813c606a98b8741f59ccdf5aacef733"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1eea58fffe291c969a526d08515d29d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1eea58fffe291c969a526d08515d29d7"></a>
-static base::type::string_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#a1eea58fffe291c969a526d08515d29d7">formatTime</a> (unsigned long long time, <a class="el" href="namespaceel_1_1base.html#a1b886858c6409097395b24b1bdf03c39">base::TimestampUnit</a> timestampUnit)</td></tr>
-<tr class="memdesc:a1eea58fffe291c969a526d08515d29d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats time to get unit accordingly, units like second if &gt; 1000 or minutes if &gt; 60000 etc. <br/></td></tr>
-<tr class="separator:a1eea58fffe291c969a526d08515d29d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9181a3544442e1d3c05d8c96bbfff16d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9181a3544442e1d3c05d8c96bbfff16d"></a>
-static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#a9181a3544442e1d3c05d8c96bbfff16d">getTimeDifference</a> (const struct timeval &amp;endTime, const struct timeval &amp;startTime, <a class="el" href="namespaceel_1_1base.html#a1b886858c6409097395b24b1bdf03c39">base::TimestampUnit</a> timestampUnit)</td></tr>
-<tr class="memdesc:a9181a3544442e1d3c05d8c96bbfff16d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets time difference in milli/micro second depending on timestampUnit. <br/></td></tr>
-<tr class="separator:a9181a3544442e1d3c05d8c96bbfff16d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7197976eff45378efdca75ae070492e7"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#a7197976eff45378efdca75ae070492e7">gettimeofday</a> (struct timeval *tv)</td></tr>
+<tr class="memdesc:a7197976eff45378efdca75ae070492e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cross platform gettimeofday for Windows and unix platform. This can be used to determine current microsecond.  <a href="#a7197976eff45378efdca75ae070492e7">More...</a><br/></td></tr>
+<tr class="separator:a7197976eff45378efdca75ae070492e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc31fad280188b0b0e8f04dec0e21310"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#acc31fad280188b0b0e8f04dec0e21310">getDateTime</a> (const char *format, const <a class="el" href="classel_1_1base_1_1_subsecond_precision.html">base::SubsecondPrecision</a> *ssPrec)</td></tr>
+<tr class="memdesc:acc31fad280188b0b0e8f04dec0e21310"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets current date and time with a subsecond part.  <a href="#acc31fad280188b0b0e8f04dec0e21310">More...</a><br/></td></tr>
+<tr class="separator:acc31fad280188b0b0e8f04dec0e21310"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a535546a91e5fa6cd30d2ac2a980d442a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a535546a91e5fa6cd30d2ac2a980d442a"></a>
+static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#a535546a91e5fa6cd30d2ac2a980d442a">timevalToString</a> (struct timeval tval, const char *format, const <a class="el" href="classel_1_1base_1_1_subsecond_precision.html">el::base::SubsecondPrecision</a> *ssPrec)</td></tr>
+<tr class="memdesc:a535546a91e5fa6cd30d2ac2a980d442a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts timeval (struct from ctime) to string using specified format and subsecond precision. <br/></td></tr>
+<tr class="separator:a535546a91e5fa6cd30d2ac2a980d442a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f19da20362c685d32be922a06faf586"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9f19da20362c685d32be922a06faf586"></a>
+static base::type::string_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#a9f19da20362c685d32be922a06faf586">formatTime</a> (unsigned long long time, <a class="el" href="namespaceel_1_1base.html#a1b886858c6409097395b24b1bdf03c39">base::TimestampUnit</a> timestampUnit)</td></tr>
+<tr class="memdesc:a9f19da20362c685d32be922a06faf586"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats time to get unit accordingly, units like second if &gt; 1000 or minutes if &gt; 60000 etc. <br/></td></tr>
+<tr class="separator:a9f19da20362c685d32be922a06faf586"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6635a2a31d6f3d79d47012ea3ccf9d31"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6635a2a31d6f3d79d47012ea3ccf9d31"></a>
+static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1base_1_1utils_1_1_date_time.html#a6635a2a31d6f3d79d47012ea3ccf9d31">getTimeDifference</a> (const struct timeval &amp;endTime, const struct timeval &amp;startTime, <a class="el" href="namespaceel_1_1base.html#a1b886858c6409097395b24b1bdf03c39">base::TimestampUnit</a> timestampUnit)</td></tr>
+<tr class="memdesc:a6635a2a31d6f3d79d47012ea3ccf9d31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets time difference in milli/micro second depending on timestampUnit. <br/></td></tr>
+<tr class="separator:a6635a2a31d6f3d79d47012ea3ccf9d31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains utilities for cross-platform date/time. This class make use of <a class="el" href="classel_1_1base_1_1utils_1_1_str.html" title="String utilities helper class used internally. You should not use it. ">el::base::utils::Str</a>. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="aa813c606a98b8741f59ccdf5aacef733"></a>
+<a class="anchor" id="acc31fad280188b0b0e8f04dec0e21310"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -138,7 +142,7 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static std::string el::base::utils::DateTime::getDateTime </td>
+          <td class="memname">std::string el::base::utils::DateTime::getDateTime </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>format</em>, </td>
@@ -146,8 +150,8 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classel_1_1base_1_1_milliseconds_width.html">base::MillisecondsWidth</a> *&#160;</td>
-          <td class="paramname"><em>msWidth</em>&#160;</td>
+          <td class="paramtype">const <a class="el" href="classel_1_1base_1_1_subsecond_precision.html">base::SubsecondPrecision</a> *&#160;</td>
+          <td class="paramname"><em>ssPrec</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -157,16 +161,16 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets current date and time with milliseconds. </p>
+<p>Gets current date and time with a subsecond part. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">format</td><td>User provided date/time format </td></tr>
-    <tr><td class="paramname">msWidth</td><td>A pointer to <a class="el" href="classel_1_1base_1_1_milliseconds_width.html" title="A milliseconds width class containing actual width and offset for date/time. ">base::MillisecondsWidth</a> from configuration (non-null) </td></tr>
+    <tr><td class="paramname">ssPrec</td><td>A pointer to <a class="el" href="classel_1_1base_1_1_subsecond_precision.html" title="A subsecond precision class containing actual width and offset of the subsecond part. ">base::SubsecondPrecision</a> from configuration (non-null) </td></tr>
   </table>
   </dd>
 </dl>
@@ -174,7 +178,7 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
 
 </div>
 </div>
-<a class="anchor" id="ac000e6ecf705c2194a173d618ff4acfd"></a>
+<a class="anchor" id="a7197976eff45378efdca75ae070492e7"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -182,7 +186,7 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static void el::base::utils::DateTime::gettimeofday </td>
+          <td class="memname">void el::base::utils::DateTime::gettimeofday </td>
           <td>(</td>
           <td class="paramtype">struct timeval *&#160;</td>
           <td class="paramname"><em>tv</em></td><td>)</td>
@@ -191,12 +195,12 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Cross platform gettimeofday for Windows and unix platform. This can be used to determine current millisecond. </p>
+<p>Cross platform gettimeofday for Windows and unix platform. This can be used to determine current microsecond. </p>
 <p>For unix system it uses gettimeofday(timeval*, timezone*) and for Windows, a seperate implementation is provided </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -207,8 +211,9 @@ static unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a 
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>utility/logging/<a class="el" href="easylogging_09_09_8h_source.html">easylogging++.h</a></li>
+<li>utility/logging/easylogging++.cc</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

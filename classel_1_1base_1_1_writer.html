@@ -116,9 +116,9 @@ Inheritance diagram for el::base::Writer:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac2a835925f37fd2ca3da00998d8a533c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac2a835925f37fd2ca3da00998d8a533c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Writer</b> (<a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a> level, const char *file, unsigned long int line, const char *func, <a class="el" href="namespaceel_1_1base.html#a3aa2563d38e47388ba242a1694fc2839">base::DispatchAction</a> dispatchAction=base::DispatchAction::NormalLog, base::type::VerboseLevel verboseLevel=0)</td></tr>
-<tr class="separator:ac2a835925f37fd2ca3da00998d8a533c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50ce36cd8d9e60391da37658623a88a0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a50ce36cd8d9e60391da37658623a88a0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Writer</b> (<a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a> level, const char *file, base::type::LineNumber line, const char *func, <a class="el" href="namespaceel_1_1base.html#a3aa2563d38e47388ba242a1694fc2839">base::DispatchAction</a> dispatchAction=base::DispatchAction::NormalLog, base::type::VerboseLevel verboseLevel=0)</td></tr>
+<tr class="separator:a50ce36cd8d9e60391da37658623a88a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab94f0d920c6465a57937e893aa9f5ada"><td class="memTemplParams" colspan="2"><a class="anchor" id="ab94f0d920c6465a57937e893aa9f5ada"></a>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ab94f0d920c6465a57937e893aa9f5ada"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classel_1_1base_1_1_writer.html">Writer</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>operator&lt;&lt;</b> (const T &amp;log)</td></tr>
@@ -126,12 +126,15 @@ template&lt;typename T &gt; </td></tr>
 <tr class="memitem:aea6d7f996ff92e9485a76ad3955f0a29"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aea6d7f996ff92e9485a76ad3955f0a29"></a>
 <a class="el" href="classel_1_1base_1_1_writer.html">Writer</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;(*log)(std::ostream &amp;))</td></tr>
 <tr class="separator:aea6d7f996ff92e9485a76ad3955f0a29"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a282d82f392a3e6fef9eda47ce53e87dc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a282d82f392a3e6fef9eda47ce53e87dc"></a>
+<tr class="memitem:ac518e6b23327127f63c6d26ee83ecbf9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac518e6b23327127f63c6d26ee83ecbf9"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>operator bool</b> ()</td></tr>
+<tr class="separator:ac518e6b23327127f63c6d26ee83ecbf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1678300b6c7144041e09be423821682"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab1678300b6c7144041e09be423821682"></a>
 <a class="el" href="classel_1_1base_1_1_writer.html">Writer</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>construct</b> (<a class="el" href="classel_1_1_logger.html">Logger</a> *logger, bool needLock=true)</td></tr>
-<tr class="separator:a282d82f392a3e6fef9eda47ce53e87dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2bc960787eb3c9b01569629dcbeb246"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2bc960787eb3c9b01569629dcbeb246"></a>
+<tr class="separator:ab1678300b6c7144041e09be423821682"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0662aa19522d77df6e1105f35c8c367a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0662aa19522d77df6e1105f35c8c367a"></a>
 <a class="el" href="classel_1_1base_1_1_writer.html">Writer</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>construct</b> (int count, const char *loggerIds,...)</td></tr>
-<tr class="separator:ab2bc960787eb3c9b01569629dcbeb246"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a0662aa19522d77df6e1105f35c8c367a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -153,9 +156,9 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a1eada1175721ba11b4eb6c9515d8e2dc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1eada1175721ba11b4eb6c9515d8e2dc"></a>
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>m_file</b></td></tr>
 <tr class="separator:a1eada1175721ba11b4eb6c9515d8e2dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac71f81d43f58b80ea31ae248e9fe6a23"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac71f81d43f58b80ea31ae248e9fe6a23"></a>
-const unsigned long int&#160;</td><td class="memItemRight" valign="bottom"><b>m_line</b></td></tr>
-<tr class="separator:ac71f81d43f58b80ea31ae248e9fe6a23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae6f7c08c2617a5ba1ffc38d4eb53207"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae6f7c08c2617a5ba1ffc38d4eb53207"></a>
+const base::type::LineNumber&#160;</td><td class="memItemRight" valign="bottom"><b>m_line</b></td></tr>
+<tr class="separator:aae6f7c08c2617a5ba1ffc38d4eb53207"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57291e0751fe93547d9d5551fb3e8415"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a57291e0751fe93547d9d5551fb3e8415"></a>
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>m_func</b></td></tr>
 <tr class="separator:a57291e0751fe93547d9d5551fb3e8415"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -186,8 +189,9 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>el::Helpers</b></td>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Main entry point of each logging. </p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>utility/logging/<a class="el" href="easylogging_09_09_8h_source.html">easylogging++.h</a></li>
+<li>utility/logging/easylogging++.cc</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

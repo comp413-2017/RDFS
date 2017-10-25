@@ -9,7 +9,6 @@ var searchData=
   ['metadataupdateeventproto',['MetadataUpdateEventProto',['../classhadoop_1_1hdfs_1_1_metadata_update_event_proto.html',1,'hadoop::hdfs']]],
   ['metasaverequestproto',['MetaSaveRequestProto',['../classhadoop_1_1hdfs_1_1_meta_save_request_proto.html',1,'hadoop::hdfs']]],
   ['metasaveresponseproto',['MetaSaveResponseProto',['../classhadoop_1_1hdfs_1_1_meta_save_response_proto.html',1,'hadoop::hdfs']]],
-  ['millisecondswidth',['MillisecondsWidth',['../classel_1_1base_1_1_milliseconds_width.html',1,'el::base']]],
   ['mkdirsrequestproto',['MkdirsRequestProto',['../classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html',1,'hadoop::hdfs']]],
   ['mkdirsresponseproto',['MkdirsResponseProto',['../classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html',1,'hadoop::hdfs']]],
   ['modifyaclentriesrequestproto',['ModifyAclEntriesRequestProto',['../classhadoop_1_1hdfs_1_1_modify_acl_entries_request_proto.html',1,'hadoop::hdfs']]],

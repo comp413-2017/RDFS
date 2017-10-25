@@ -125,15 +125,13 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <tr class="memitem:afac7a023e2c13a62d0295cf0239eb848"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#afac7a023e2c13a62d0295cf0239eb848">setArgs</a> (int argc, const char **argv)</td></tr>
 <tr class="memdesc:afac7a023e2c13a62d0295cf0239eb848"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets application arguments and figures out whats active for logging and whats not.  <a href="#afac7a023e2c13a62d0295cf0239eb848">More...</a><br/></td></tr>
 <tr class="separator:afac7a023e2c13a62d0295cf0239eb848"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4155f6fff0074ad93aa56fd7fe064097"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#a4155f6fff0074ad93aa56fd7fe064097">setCrashHandler</a> (const el::base::debug::CrashHandler::Handler &amp;crashHandler)</td></tr>
-<tr class="memdesc:a4155f6fff0074ad93aa56fd7fe064097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overrides default crash handler and installs custom handler.  <a href="#a4155f6fff0074ad93aa56fd7fe064097">More...</a><br/></td></tr>
-<tr class="separator:a4155f6fff0074ad93aa56fd7fe064097"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e16f0e07ce40e0659fcfec4ea5b6fe1"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#a6e16f0e07ce40e0659fcfec4ea5b6fe1">crashAbort</a> (int sig, const char *sourceFile=&quot;&quot;, unsigned int long line=0)</td></tr>
-<tr class="memdesc:a6e16f0e07ce40e0659fcfec4ea5b6fe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abort due to crash with signal in parameter.  <a href="#a6e16f0e07ce40e0659fcfec4ea5b6fe1">More...</a><br/></td></tr>
-<tr class="separator:a6e16f0e07ce40e0659fcfec4ea5b6fe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf1ae61428740e1e6c5d5f0c36500faa"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#abf1ae61428740e1e6c5d5f0c36500faa">logCrashReason</a> (int sig, bool stackTraceIfAvailable=false, <a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a> level=<a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36a882384ec38ce8d9582b57e70861730e4">Level::Fatal</a>, const char *logger=base::consts::kDefaultLoggerId)</td></tr>
-<tr class="memdesc:abf1ae61428740e1e6c5d5f0c36500faa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logs reason of crash as per sig.  <a href="#abf1ae61428740e1e6c5d5f0c36500faa">More...</a><br/></td></tr>
-<tr class="separator:abf1ae61428740e1e6c5d5f0c36500faa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a315250270334214c2749398feba08863"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a315250270334214c2749398feba08863"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#a315250270334214c2749398feba08863">setThreadName</a> (const std::string &amp;name)</td></tr>
+<tr class="memdesc:a315250270334214c2749398feba08863"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets thread name for current thread. Requires std::thread. <br/></td></tr>
+<tr class="separator:a315250270334214c2749398feba08863"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae19cb3baa6d8081a9e922736a384f70b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae19cb3baa6d8081a9e922736a384f70b"></a>
+static std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getThreadName</b> ()</td></tr>
+<tr class="separator:ae19cb3baa6d8081a9e922736a384f70b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5fd7ad6d636c28d2e706203d0c43cf8c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5fd7ad6d636c28d2e706203d0c43cf8c"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#a5fd7ad6d636c28d2e706203d0c43cf8c">installPreRollOutCallback</a> (const PreRollOutCallback &amp;callback)</td></tr>
 <tr class="memdesc:a5fd7ad6d636c28d2e706203d0c43cf8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Installs pre rollout callback, this callback is triggered when log file is about to be rolled out (can be useful for backing up) <br/></td></tr>
@@ -156,20 +154,6 @@ template&lt;typename T &gt; </td></tr>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:aa01d59ca141bc75c4fdd78a34234611b"><td class="memTemplItemLeft" align="right" valign="top">static T *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>logDispatchCallback</b> (const std::string &amp;id)</td></tr>
 <tr class="separator:aa01d59ca141bc75c4fdd78a34234611b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93e2727d3a7a5c06ccc41a2ae7fe1835"><td class="memTemplParams" colspan="2"><a class="anchor" id="a93e2727d3a7a5c06ccc41a2ae7fe1835"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a93e2727d3a7a5c06ccc41a2ae7fe1835"><td class="memTemplItemLeft" align="right" valign="top">static bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#a93e2727d3a7a5c06ccc41a2ae7fe1835">installPerformanceTrackingCallback</a> (const std::string &amp;id)</td></tr>
-<tr class="memdesc:a93e2727d3a7a5c06ccc41a2ae7fe1835"><td class="mdescLeft">&#160;</td><td class="mdescRight">Installs post performance tracking callback, this callback is triggered when performance tracking is finished. <br/></td></tr>
-<tr class="separator:a93e2727d3a7a5c06ccc41a2ae7fe1835"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1c5a4951991179dca4879ba05fb67a6"><td class="memTemplParams" colspan="2"><a class="anchor" id="af1c5a4951991179dca4879ba05fb67a6"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:af1c5a4951991179dca4879ba05fb67a6"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#af1c5a4951991179dca4879ba05fb67a6">uninstallPerformanceTrackingCallback</a> (const std::string &amp;id)</td></tr>
-<tr class="memdesc:af1c5a4951991179dca4879ba05fb67a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uninstalls post performance tracking handler. <br/></td></tr>
-<tr class="separator:af1c5a4951991179dca4879ba05fb67a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a007844d35095b26301c9218b29d74049"><td class="memTemplParams" colspan="2"><a class="anchor" id="a007844d35095b26301c9218b29d74049"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a007844d35095b26301c9218b29d74049"><td class="memTemplItemLeft" align="right" valign="top">static T *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>performanceTrackingCallback</b> (const std::string &amp;id)</td></tr>
-<tr class="separator:a007844d35095b26301c9218b29d74049"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b032e32cd042ddc4fef4e814bad1082"><td class="memTemplParams" colspan="2"><a class="anchor" id="a8b032e32cd042ddc4fef4e814bad1082"></a>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a8b032e32cd042ddc4fef4e814bad1082"><td class="memTemplItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classel_1_1_helpers.html#a8b032e32cd042ddc4fef4e814bad1082">convertTemplateToStdString</a> (const T &amp;templ)</td></tr>
@@ -199,111 +183,6 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>validateFileRo
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Static helpers for developers. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a6e16f0e07ce40e0659fcfec4ea5b6fe1"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void el::Helpers::crashAbort </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>sig</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>sourceFile</em> = <code>&quot;&quot;</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned int long&#160;</td>
-          <td class="paramname"><em>line</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Abort due to crash with signal in parameter. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">sig</td><td>Crash signal </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="abf1ae61428740e1e6c5d5f0c36500faa"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void el::Helpers::logCrashReason </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>sig</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>stackTraceIfAvailable</em> = <code>false</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36">Level</a>&#160;</td>
-          <td class="paramname"><em>level</em> = <code><a class="el" href="namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36a882384ec38ce8d9582b57e70861730e4">Level::Fatal</a></code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>logger</em> = <code>base::consts::kDefaultLoggerId</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Logs reason of crash as per sig. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">sig</td><td>Crash signal </td></tr>
-    <tr><td class="paramname">stackTraceIfAvailable</td><td>Includes stack trace if available </td></tr>
-    <tr><td class="paramname">level</td><td>Logging level </td></tr>
-    <tr><td class="paramname">logger</td><td><a class="el" href="classel_1_1_logger.html" title="Represents a logger holding ID and configurations we need to write logs. ">Logger</a> to use for logging </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a class="anchor" id="afac7a023e2c13a62d0295cf0239eb848"></a>
 <div class="memitem">
 <div class="memproto">
@@ -337,38 +216,6 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>validateFileRo
 </div><div class="memdoc">
 
 <p>Sets application arguments and figures out whats active for logging and whats not. </p>
-
-</div>
-</div>
-<a class="anchor" id="a4155f6fff0074ad93aa56fd7fe064097"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void el::Helpers::setCrashHandler </td>
-          <td>(</td>
-          <td class="paramtype">const el::base::debug::CrashHandler::Handler &amp;&#160;</td>
-          <td class="paramname"><em>crashHandler</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Overrides default crash handler and installs custom handler. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">crashHandler</td><td>A functor with no return type that takes single int argument. Handler is a typedef with specification: void (*Handler)(int) </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>

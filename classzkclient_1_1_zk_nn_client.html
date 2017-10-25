@@ -89,6 +89,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
@@ -109,6 +110,37 @@ Inheritance diagram for zkclient::ZkNnClient:</div>
 </map>
  </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:aefc61700181ce6f1c72dc1ca3d85dbdb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>ListingResponse</b> { <b>Ok</b>, 
+<b>FileDoesNotExist</b>, 
+<b>FailedChildRetrieval</b>
+ }</td></tr>
+<tr class="separator:aefc61700181ce6f1c72dc1ca3d85dbdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a941fb7b6f2e86b7e5c4c7250ff4189fb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>DeleteResponse</b> { <br/>
+&#160;&#160;<b>Ok</b>, 
+<b>FileDoesNotExist</b>, 
+<b>FileUnderConstruction</b>, 
+<b>FileIsDirectoryMismatch</b>, 
+<br/>
+&#160;&#160;<b>FailedChildRetrieval</b>, 
+<b>FailedBlockRetrieval</b>, 
+<b>FailedDataNodeRetrieval</b>, 
+<b>FailedZookeeperOp</b>
+<br/>
+ }</td></tr>
+<tr class="separator:a941fb7b6f2e86b7e5c4c7250ff4189fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fea471ab8672b5d3671343105ba07d3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>MkdirResponse</b> { <b>Ok</b>, 
+<b>FailedZnodeCreation</b>
+ }</td></tr>
+<tr class="separator:a8fea471ab8672b5d3671343105ba07d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeee7774e372ce0d7f904667bf80b96c9"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>CreateResponse</b> { <b>Ok</b>, 
+<b>FileAlreadyExists</b>, 
+<b>FailedMkdir</b>, 
+<b>FailedCreateZnode</b>
+ }</td></tr>
+<tr class="separator:aeee7774e372ce0d7f904667bf80b96c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac80fffab68fde370b153f77b0187d0b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac80fffab68fde370b153f77b0187d0b2"></a>
@@ -121,23 +153,23 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>register_watches</b> 
 <tr class="separator:a1fd720b040cc4430fa1df2bb55fa5ef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12ed6c52734832e7982fc3ffe40f8aac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a12ed6c52734832e7982fc3ffe40f8aac">get_info</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a12ed6c52734832e7982fc3ffe40f8aac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a118f0822caa9cf121121d617f308f8db"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a118f0822caa9cf121121d617f308f8db">create_file</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request, <a class="el" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response)</td></tr>
-<tr class="separator:a118f0822caa9cf121121d617f308f8db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c006a59991ab12d9d5da5207790ede5"><td class="memItemLeft" align="right" valign="top">ZkNnClient::CreateResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">create_file</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request, <a class="el" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response)</td></tr>
+<tr class="separator:a8c006a59991ab12d9d5da5207790ede5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3294173992acdba748f1d2ba1bcbddfd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3294173992acdba748f1d2ba1bcbddfd"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">GetBlockLocationsResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a3294173992acdba748f1d2ba1bcbddfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c4b3fab2baf4be1035208050e278d9a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a0c4b3fab2baf4be1035208050e278d9a">mkdir</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html">MkdirsResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a0c4b3fab2baf4be1035208050e278d9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac99965ef039c93fb5f8c0998669f1938"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ac99965ef039c93fb5f8c0998669f1938">destroy</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:ac99965ef039c93fb5f8c0998669f1938"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a963fac9b1a5a50c45372167bfa511977"><td class="memItemLeft" align="right" valign="top">DeleteResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a963fac9b1a5a50c45372167bfa511977">destroy</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a963fac9b1a5a50c45372167bfa511977"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66bd01188b9944806d448876d4ae01aa"><td class="memItemLeft" align="right" valign="top">MkdirResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a66bd01188b9944806d448876d4ae01aa">mkdir</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html">MkdirsResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a66bd01188b9944806d448876d4ae01aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8286c58163bf8dd3893fb39f2c30db17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8286c58163bf8dd3893fb39f2c30db17"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>complete</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a8286c58163bf8dd3893fb39f2c30db17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d4f66214cbadc6b06aabd8be2a8d382"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a6d4f66214cbadc6b06aabd8be2a8d382">rename</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a6d4f66214cbadc6b06aabd8be2a8d382"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a712b7ffee01a9d8bf83db5116bc073a1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a712b7ffee01a9d8bf83db5116bc073a1"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>get_listing</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a712b7ffee01a9d8bf83db5116bc073a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3f4a7c99fea44573928d3e75b204091"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac3f4a7c99fea44573928d3e75b204091"></a>
+ListingResponse&#160;</td><td class="memItemRight" valign="bottom"><b>get_listing</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:ac3f4a7c99fea44573928d3e75b204091"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e29ee7caf0ed5094b26365c42c46b1f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e29ee7caf0ed5094b26365c42c46b1f"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>get_content</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">GetContentSummaryResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a4e29ee7caf0ed5094b26365c42c46b1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -180,6 +212,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>rename_ops_for_dir</b
 <tr class="memitem:aa2cf7c2c3eff1b85551b0f1cb02deca7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa2cf7c2c3eff1b85551b0f1cb02deca7"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</b> (const std::string &amp;src, google::protobuf::uint64 offset, google::protobuf::uint64 length, <a class="el" href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">LocatedBlocksProto</a> *blocks)</td></tr>
 <tr class="separator:aa2cf7c2c3eff1b85551b0f1cb02deca7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2b2d82a29053a95d0ed5573d67b6288"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">read_file_znode</a> (<a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data, const std::string &amp;path)</td></tr>
+<tr class="separator:ac2b2d82a29053a95d0ed5573d67b6288"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classzkclient_1_1_zk_client_common"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classzkclient_1_1_zk_client_common')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></td></tr>
 <tr class="memitem:ad825313a732ee17ff7429a9c0beb39e8 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad825313a732ee17ff7429a9c0beb39e8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>ZkClientCommon</b> (std::string hostAndIp)</td></tr>
@@ -368,12 +402,12 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
-<a class="anchor" id="a118f0822caa9cf121121d617f308f8db"></a>
+<a class="anchor" id="a8c006a59991ab12d9d5da5207790ede5"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool zkclient::ZkNnClient::create_file </td>
+          <td class="memname">ZkNnClient::CreateResponse zkclient::ZkNnClient::create_file </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>
@@ -395,12 +429,12 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
-<a class="anchor" id="ac99965ef039c93fb5f8c0998669f1938"></a>
+<a class="anchor" id="a963fac9b1a5a50c45372167bfa511977"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void zkclient::ZkNnClient::destroy </td>
+          <td class="memname">ZkNnClient::DeleteResponse zkclient::ZkNnClient::destroy </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>
@@ -493,12 +527,12 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
-<a class="anchor" id="a0c4b3fab2baf4be1035208050e278d9a"></a>
+<a class="anchor" id="a66bd01188b9944806d448876d4ae01aa"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void zkclient::ZkNnClient::mkdir </td>
+          <td class="memname">ZkNnClient::MkdirResponse zkclient::ZkNnClient::mkdir </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>
@@ -517,6 +551,33 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
       </table>
 </div><div class="memdoc">
 <p>Make a directory in zookeeper </p>
+
+</div>
+</div>
+<a class="anchor" id="ac2b2d82a29053a95d0ed5573d67b6288"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zkclient::ZkNnClient::read_file_znode </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;&#160;</td>
+          <td class="paramname"><em>znode_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Read a znode corresponding to a file into znode_data </p>
 
 </div>
 </div>
