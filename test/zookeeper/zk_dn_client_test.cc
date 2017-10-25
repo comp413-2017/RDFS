@@ -36,9 +36,6 @@ class ZKDNClientTest : public ::testing::Test {
         (const uint32_t) xferPort);
     dn_id = "127.0.0.1:50020";
   }
-  virtual void TearDown() {
-    system("sudo ~/zookeeper/bin/zkCli.sh rmr /testing");
-  }
   uint64_t block_id;
   uint64_t block_size;
   int32_t xferPort;
@@ -96,10 +93,11 @@ int main(int argc, char **argv) {
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
   sleep(10);
-  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  sleep(5);
   ::testing::InitGoogleTest(&argc, argv);
   auto ret = RUN_ALL_TESTS();
-  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return ret;
 }

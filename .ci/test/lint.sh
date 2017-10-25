@@ -2,7 +2,7 @@
 
 set -ex
 
-IGNORED_RULES=( build/include_subdir build/c++11 runtime/references )
+IGNORED_RULES=( build/include_subdir build/c++11 runtime/references build/include )
 SOURCE_DIRECTORIES=( native-filesystem rice-datanode rice-namenode rpcserver test zkwrapper zookeeper)
 
 # Build `filter` argument for a list of ignored rules

@@ -582,7 +582,7 @@ bool ZKWrapper::flush(const std::string &full_path, bool synchronous) const {
     if (rc) {
       LOG(ERROR) << "Flushing " << full_path << " failed";
       print_error(rc);
-      return rc;
+      return false;
     }
 
     // Wait for the asynchronous function to complete
@@ -595,7 +595,7 @@ bool ZKWrapper::flush(const std::string &full_path, bool synchronous) const {
     if (count == 2000) {
       LOG(ERROR) << "SYNC FOR" << full_path << " was slow";
     }
-    return rc;
+    return true;
   } else {
     auto no_op = [&](int rc, const char *value, const void *data) {};
     return zoo_async(zh, full_path.c_str(), no_op, nullptr);
