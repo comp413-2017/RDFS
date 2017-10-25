@@ -17,11 +17,11 @@ run_test() {
 
 cd build/test
 run_test ./ReadWriteTest
-run_test ./ReplicationTest
+run_test "./ReplicationTest --gtest_filter=-*OnFailure"
 run_test ./DeleteTest
 run_test "./NameNodeTest --gtest_filter=-*Performance*"
 run_test ./NativeFsTest
 run_test ./StorageTest
 run_test ./ZKDNClientTest
 run_test ./ZKLockTest
-run_test "./ZKWrapperTest --gtest_filter=-*OnFailure*"
+run_test ./ZKWrapperTest

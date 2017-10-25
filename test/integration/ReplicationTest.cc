@@ -204,7 +204,7 @@ TEST_F(ReplicationTest, testReplicationOnFailure) {
   for (; i < 3; i++) {
     system(("pkill -f ReplicationTestServer" + std::to_string(minDatanodeId++))
                .c_str());
-    sleep(5);
+    sleep(10);
   }
 
   // The data should now be replicated on the new servers.
