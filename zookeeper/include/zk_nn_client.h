@@ -180,7 +180,8 @@ class ZkNnClient : public ZkClientCommon {
   MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
   RenameResponse rename(RenameRequestProto &req, RenameResponseProto &res);
-  ListingResponse get_listing(GetListingRequestProto &req, GetListingResponseProto &res);
+  ListingResponse get_listing(GetListingRequestProto &req,
+                              GetListingResponseProto &res);
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res);
 

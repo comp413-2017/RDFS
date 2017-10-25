@@ -820,7 +820,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 /**
      * Rename a file in the zookeeper filesystem
      */
-ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
+ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
+                                              RenameResponseProto& res) {
   std::string file_path = req.src();
 
   FileZNode znode_data;
