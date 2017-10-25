@@ -1270,7 +1270,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   std::string block_id_str;
 
-  util::generate_uuid(block_id);
+    util::generate_block_id(block_id);
   block_id_str = std::to_string(block_id);
   LOG(INFO) << "Generated block id " << block_id_str;
 
@@ -1355,7 +1355,7 @@ u_int64_t ZkNnClient::generate_storage_block_id(
 
 u_int64_t ZkNnClient::generate_block_group_id() {
     u_int64_t res;
-    util::generate_uuid(res);  // generate some random 64 bits.
+    util::generate_block_id(res);  // generate some random 64 bits.
     res = res | (1ull << 63);  // filp the highest bit to one.
     res = (res >> 16) << 16;  // fill the lower 16 bits with zeros.
     return res;

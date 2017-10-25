@@ -77,7 +77,7 @@ TEST_F(NamenodeTest, findDataNodes) {
 
   auto datanodes = std::vector<std::string>();
   u_int64_t block_id;
-  util::generate_uuid(block_id);
+        util::generate_block_id(block_id);
 
   zkclient::BlockZNode block_data;
   block_data.block_size = 64;
@@ -250,7 +250,7 @@ TEST_F(NamenodeTest, previousBlockComplete) {
   LOG(INFO) << "Previous block_id is " << block_id;
   // Calling previousblockcomplete on the first block should be true.
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
-  util::generate_uuid(block_id);
+        util::generate_block_id(block_id);
   /* mock the directory */
   zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
   zk->create("/block_locations/" + std::to_string(block_id),
