@@ -3,23 +3,21 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
-#include <sys/time.h>
-#include <easylogging++.h>
-#include <google/protobuf/message.h>
-#include <iostream>
-#include <sstream>
-#include <ctime>
-#include <chrono>
+#include "zk_lock.h"
+#include "zk_dn_client.h"
+#include "zkwrapper.h"
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
 #include <zk_nn_client.h>
-
-#include "zk_lock.h"
-#include "zk_dn_client.h"
-#include "zk_nn_client.h"
-#include "zkwrapper.h"
+#include <iostream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
+#include <sys/time.h>
+#include <easylogging++.h>
+#include <google/protobuf/message.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -1343,7 +1341,6 @@ bool ZkNnClient::add_block_group(const std::string &fileName,
                      std::vector<std::string> &dataNodes,
                      std::vector<u_int64_t> &storageBlockIDs,
                      uint32_t total_num_storage_blocks) {
-
     FileZNode znode_data;
     read_file_znode(znode_data, fileName);
 
@@ -1398,13 +1395,15 @@ uint32_t ZkNnClient::get_total_num_storage_blocks(
         u_int64_t &block_group_id) {
     // TODO(nate): actually figure out where this information is stored.
     // TODO(nate): is it supposed to be figured out from ecPolicyName?
-    return 9; // arbitrarily assume RS(6, 3)
+    return 9;  // arbitrarily assume RS(6, 3)
 }
 
-std::pair<uint32_t, uint32_t> ZkNnClient::get_num_data_parity_blocks(uint32_t ecID) {
-    // TODO(nate): the value must sum up to the return value of get_total_num_storage_blocks
+std::pair<uint32_t, uint32_t> ZkNnClient::get_num_data_parity_blocks(
+        uint32_t ecID) {
+    // TODO(nate): the value must sum up to the return value of
+    // get_total_num_storage_blocks
     return std::make_pair(6, 3);
-};
+}
 
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param

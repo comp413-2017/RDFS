@@ -188,7 +188,9 @@ class ZkNnClient : public ZkClientCommon {
    * @param block_group_id the block group id.
    * @return the number of storage blocks to have within a block group.
    */
-  uint32_t get_total_num_storage_blocks(const std::string &fileName, u_int64_t &block_group_id);
+  uint32_t get_total_num_storage_blocks(
+          const std::string &fileName,
+          u_int64_t &block_group_id);
 
   /**
    * Given the ID of an EC policy, returns the numbers of data blocks and parity blocks within a block group.
