@@ -10,5 +10,6 @@ var searchData=
   ['unregisterlogger',['unregisterLogger',['../classel_1_1_loggers.html#a201d261ea57c070f07f0bf2006158587',1,'el::Loggers']]],
   ['updatedateformat',['updateDateFormat',['../classel_1_1base_1_1_log_format.html#a3146651eadd6b1164bde74e5b273ec94',1,'el::base::LogFormat']]],
   ['updateformatspec',['updateFormatSpec',['../classel_1_1base_1_1_log_format.html#afee2335cce2b627dfd7f918d5a2b85f3',1,'el::base::LogFormat']]],
+  ['usedspace',['usedSpace',['../class_storage_metrics.html#abb013aefcc8ab6458854c55ce2a4b57e',1,'StorageMetrics']]],
   ['usedspacefraction',['usedSpaceFraction',['../class_storage_metrics.html#a6c13468daf452bb12884d249554e0085',1,'StorageMetrics']]]
 ];

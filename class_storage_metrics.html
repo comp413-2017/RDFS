@@ -94,19 +94,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab598c93d58af6f742e6818a0c5068e32"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#ab598c93d58af6f742e6818a0c5068e32">StorageMetrics</a> (int numDatanodes_, std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt; zkWrapper_)</td></tr>
-<tr class="separator:ab598c93d58af6f742e6818a0c5068e32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3cae52efd0d137e4fcf08199edb6b9b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#ab3cae52efd0d137e4fcf08199edb6b9b">StorageMetrics</a> (std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt; zkWrapper_)</td></tr>
+<tr class="separator:ab3cae52efd0d137e4fcf08199edb6b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c13468daf452bb12884d249554e0085"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a6c13468daf452bb12884d249554e0085">usedSpaceFraction</a> ()</td></tr>
 <tr class="separator:a6c13468daf452bb12884d249554e0085"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb013aefcc8ab6458854c55ce2a4b57e"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#abb013aefcc8ab6458854c55ce2a4b57e">usedSpace</a> ()</td></tr>
+<tr class="separator:abb013aefcc8ab6458854c55ce2a4b57e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00672f2815f4a11470b56c64185f591b"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a00672f2815f4a11470b56c64185f591b">blocksPerDataNodeSD</a> ()</td></tr>
 <tr class="separator:a00672f2815f4a11470b56c64185f591b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78f19e7a7079ccef8acc95a008636981"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a78f19e7a7079ccef8acc95a008636981">recoverySpeed</a> ()</td></tr>
 <tr class="separator:a78f19e7a7079ccef8acc95a008636981"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ca96ca4596f01107dd21fbfc4bef628"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a4ca96ca4596f01107dd21fbfc4bef628">degenerateRead</a> ()</td></tr>
-<tr class="separator:a4ca96ca4596f01107dd21fbfc4bef628"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50282ff2cd011e411487d12f5b07c8bd"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a50282ff2cd011e411487d12f5b07c8bd">degenerateRead</a> (std::string file, std::string destination, std::vector&lt; std::pair&lt; std::string, std::string &gt;&gt; targetDatanodes)</td></tr>
+<tr class="separator:a50282ff2cd011e411487d12f5b07c8bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="ab598c93d58af6f742e6818a0c5068e32"></a>
+<a class="anchor" id="ab3cae52efd0d137e4fcf08199edb6b9b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -116,24 +118,14 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">StorageMetrics::StorageMetrics </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>numDatanodes_</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt;&#160;</td>
-          <td class="paramname"><em>zkWrapper_</em>&#160;</td>
-        </tr>
-        <tr>
+          <td class="paramname"><em>zkWrapper_</em></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -166,20 +158,47 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a4ca96ca4596f01107dd21fbfc4bef628"></a>
+<a class="anchor" id="a50282ff2cd011e411487d12f5b07c8bd"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">float StorageMetrics::degenerateRead </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>file</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>destination</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::pair&lt; std::string, std::string &gt;&gt;&#160;</td>
+          <td class="paramname"><em>targetDatanodes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Measures how long a read takes while a desired block is being recovered. </p>
-<dl class="section return"><dt>Returns</dt><dd>wall clock time for the read </dd></dl>
+<p>Measures how long a read takes while a data block is being recovered.</p>
+<p>Prints the resulting time.</p>
+<p>Note that files under replication have no degenerate read. The degenerate case is the file being unreadable. Files under EC must have a downed data block (not parity block) for the degenerate read case. Keep that in mind when passing in target DataNodes</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">file</td><td>The file path to read. </td></tr>
+    <tr><td class="paramname">destination</td><td>The file name for writing cat output </td></tr>
+    <tr><td class="paramname">targetDatanodes</td><td>first: unix process name of a datanode to kill second: cliArgs for restarting that datanode. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, 1 on error </dd></dl>
 
 </div>
 </div>
@@ -197,6 +216,23 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Measures the time for recovering from a DataNode failure. </p>
 <dl class="section return"><dt>Returns</dt><dd>wall clock time from failure to being prepared for another failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="abb013aefcc8ab6458854c55ce2a4b57e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float StorageMetrics::usedSpace </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the total space used. </p>
+<dl class="section return"><dt>Returns</dt><dd>totalUsedSpace </dd></dl>
 
 </div>
 </div>

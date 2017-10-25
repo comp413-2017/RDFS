@@ -19,5 +19,5 @@ var searchData=
   ['size',['size',['../classel_1_1base_1_1utils_1_1_command_line_args.html#ab335b66a2ca2dea6c9c7b8d54760e975',1,'el::base::utils::CommandLineArgs::size()'],['../classel_1_1base_1_1utils_1_1_abstract_registry.html#a58a7b8ea964bdf6008701dcfb6609ca5',1,'el::base::utils::AbstractRegistry::size()']]],
   ['startswith',['startsWith',['../classel_1_1base_1_1utils_1_1_str.html#acf80221cec72da701ef50995a61ab91f',1,'el::base::utils::Str']]],
   ['storage',['storage',['../classel_1_1_helpers.html#a13a5365de36b3af27660cf9b358829d3',1,'el::Helpers']]],
-  ['storagemetrics',['StorageMetrics',['../class_storage_metrics.html#ab598c93d58af6f742e6818a0c5068e32',1,'StorageMetrics']]]
+  ['storagemetrics',['StorageMetrics',['../class_storage_metrics.html#ab3cae52efd0d137e4fcf08199edb6b9b',1,'StorageMetrics']]]
 ];

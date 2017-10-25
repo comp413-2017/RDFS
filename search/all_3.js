@@ -23,7 +23,7 @@ var searchData=
   ['defaultlogdispatchcallback',['DefaultLogDispatchCallback',['../classel_1_1base_1_1_default_log_dispatch_callback.html',1,'el::base']]],
   ['defaultperformancetrackingcallback',['DefaultPerformanceTrackingCallback',['../classel_1_1base_1_1_default_performance_tracking_callback.html',1,'el::base']]],
   ['defaulttypedconfigurations',['defaultTypedConfigurations',['../classel_1_1_loggers.html#af296007c3eb3b71602ec80ff59875b46',1,'el::Loggers']]],
-  ['degenerateread',['degenerateRead',['../class_storage_metrics.html#a4ca96ca4596f01107dd21fbfc4bef628',1,'StorageMetrics']]],
+  ['degenerateread',['degenerateRead',['../class_storage_metrics.html#a50282ff2cd011e411487d12f5b07c8bd',1,'StorageMetrics']]],
   ['delete_5fnode',['delete_node',['../class_z_k_wrapper.html#a55a8a4582b0f8c625b10619b99d1981a',1,'ZKWrapper']]],
   ['deleteblockpoolrequestproto',['DeleteBlockPoolRequestProto',['../classhadoop_1_1hdfs_1_1_delete_block_pool_request_proto.html',1,'hadoop::hdfs']]],
   ['deleteblockpoolresponseproto',['DeleteBlockPoolResponseProto',['../classhadoop_1_1hdfs_1_1_delete_block_pool_response_proto.html',1,'hadoop::hdfs']]],

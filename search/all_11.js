@@ -111,7 +111,7 @@ var searchData=
   ['storage',['Storage',['../classel_1_1base_1_1_storage.html',1,'el::base']]],
   ['storageblockreportproto',['StorageBlockReportProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_storage_block_report_proto.html',1,'hadoop::hdfs::datanode']]],
   ['storageinfoproto',['StorageInfoProto',['../classhadoop_1_1hdfs_1_1_storage_info_proto.html',1,'hadoop::hdfs']]],
-  ['storagemetrics',['StorageMetrics',['../class_storage_metrics.html',1,'StorageMetrics'],['../class_storage_metrics.html#ab598c93d58af6f742e6818a0c5068e32',1,'StorageMetrics::StorageMetrics()']]],
+  ['storagemetrics',['StorageMetrics',['../class_storage_metrics.html',1,'StorageMetrics'],['../class_storage_metrics.html#ab3cae52efd0d137e4fcf08199edb6b9b',1,'StorageMetrics::StorageMetrics()']]],
   ['storagereceiveddeletedblocksproto',['StorageReceivedDeletedBlocksProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_storage_received_deleted_blocks_proto.html',1,'hadoop::hdfs::datanode']]],
   ['storagereportproto',['StorageReportProto',['../classhadoop_1_1hdfs_1_1_storage_report_proto.html',1,'hadoop::hdfs']]],
   ['storagetypequotainfoproto',['StorageTypeQuotaInfoProto',['../classhadoop_1_1hdfs_1_1_storage_type_quota_info_proto.html',1,'hadoop::hdfs']]],
