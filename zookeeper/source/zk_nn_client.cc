@@ -918,6 +918,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
+
   // in the case of EC, this inputECPolicyName is empty.
   if (inputECPolicyName.empty()) {
     znode_data.isEC = false;
@@ -932,7 +933,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
   return CreateResponse::Ok;
 }
-
 
 /**
      * Rename a file in the zookeeper filesystem
@@ -1539,6 +1539,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
+<<<<<<< 083d086e9036805937a35660e26303f464243013
 bool ZkNnClient::add_block_group(const std::string &filePath,
                      u_int64_t &block_group_id,
                      std::vector<std::string> &dataNodes,

@@ -26,12 +26,25 @@ typedef enum class FileStatus : int {
     UnderDestruction
 } FileStatus;
 
+<<<<<<< 083d086e9036805937a35660e26303f464243013
+=======
+
+const char EC_REPLICATION[15] = {"EC_REPLICATION"};
+const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
+uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+uint32_t DEFAULT_EC_ID = 1;
+const char* DEFAULT_EC_CODEC_NAME = "RS64";
+>>>>>>> a fix for ecPolicyName. also implemented the hierarchical naming func… (#90)
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
+<<<<<<< 083d086e9036805937a35660e26303f464243013
   bool isEC;  // 1 if EC file. 0 if replication based.
+=======
+  std::string ecPolicyName;  // the specified EC policy name.
+>>>>>>> a fix for ecPolicyName. also implemented the hierarchical naming func… (#90)
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;
@@ -274,6 +287,7 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * Makes metadata changes required to add a new block group.
    * This helper method is called for an EC file.
+<<<<<<< 083d086e9036805937a35660e26303f464243013
    * @param filePath the file specified by its path.
    * @param block_group_id the block group id to be generated.
    * @param dataNodes the set of data nodes on which to allocate each storage block.
@@ -285,6 +299,19 @@ class ZkNnClient : public ZkClientCommon {
                        u_int64_t &block_group_id,
                        std::vector<std::string> &dataNodes,
                        std::vector<char> &blockIndices,
+=======
+   * @param fileName the file name.
+   * @param block_group_id the block group id to be generated.
+   * @param dataNodes the set of data nodes on which to allocate each storage block.
+   * @param storageBlockIDs the set of storage block ids to be generated.
+   * @param total_num_storage_blocks the number of data + parity storage blocks.
+   * @return true if successful. false otherwise.
+   */
+  bool add_block_group(const std::string &fileName,
+                       u_int64_t &block_group_id,
+                       std::vector<std::string> &dataNodes,
+                       std::vector<u_int64_t> &storageBlockIDs,
+>>>>>>> a fix for ecPolicyName. also implemented the hierarchical naming func… (#90)
                        uint32_t total_num_storage_blocks);
 
   /**
@@ -298,6 +325,16 @@ class ZkNnClient : public ZkClientCommon {
           u_int64_t &block_group_id);
 
   /**
+<<<<<<< 083d086e9036805937a35660e26303f464243013
+=======
+   * Given the ID of an EC policy, returns the numbers of data blocks and parity blocks within a block group.
+   * @param ecID the ID of an EC policy.
+   * @return a pair denoting (# of data blocks, # of parity blocks);
+   */
+  std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
+
+  /**
+>>>>>>> a fix for ecPolicyName. also implemented the hierarchical naming func… (#90)
    * Given the block group id and index in the block group, returns the hierarchical block id.
    * @param block_group_id the id of a block group this storage block belongs to.
    * @param index_within_group the index within the block group.
@@ -311,6 +348,24 @@ class ZkNnClient : public ZkClientCommon {
    * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
    */
   u_int64_t generate_block_group_id();
+<<<<<<< 083d086e9036805937a35660e26303f464243013
+
+  /**
+   * Gets the block group id from the storage block id.
+   * i.e. bit 2 ~ bit 48.
+   * @param storage_block_id the given storage block id.
+   * @return the block group id.
+   */
+  u_int64_t get_block_group_id(u_int64_t storage_block_id);
+
+  /**
+   * Gets the index within the block group.
+   * @param storage_block_id the given storage block id.
+   * @return the index within the block group.
+   */
+  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
+=======
+>>>>>>> a fix for ecPolicyName. also implemented the hierarchical naming func… (#90)
 
   /**
    * Gets the block group id from the storage block id.
@@ -327,7 +382,7 @@ class ZkNnClient : public ZkClientCommon {
    */
   u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
 
-  /**
+    /**
    * Abandons the block - basically reverses all of add block's multiops
    */
   bool abandon_block(AbandonBlockRequestProto &req,
