@@ -1,7 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_THREAD_SAFE
-
 #include <gtest/gtest.h>
 #include <easylogging++.h>
 #include <thread>
@@ -13,13 +11,41 @@
 #include "ClientNamenodeProtocolImpl.h"
 #include "data_transfer_server.h"
 #include <asio.hpp>
+#include "../util/RDFSTestUtils.h"
+
+#define ELPP_THREAD_SAFE
+
+#define ELPP_THREAD_SAFE
 
 INITIALIZE_EASYLOGGINGPP
 
 using asio::ip::tcp;
 using client_namenode_translator::ClientNamenodeTranslator;
+using RDFSTestUtils::initializeDatanodes;
+
+static const int NUM_DATANODES = 3;
+
 int num_threads = 4;
 int max_xmits = 2;
+// These are incremented for each test.
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+// Use minDatanodId++ when you want to kill a datanode.
+int minDatanodeId = 0;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  initializeDatanodes(
+      maxDatanodeId,
+      numDatanodes,
+      "ReadWriteTestServer",
+      xferPort,
+      ipcPort);
+  maxDatanodeId += numDatanodes;
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
+
 namespace {
 
 TEST(ReadWriteTest, testReadWrite) {
@@ -38,6 +64,7 @@ TEST(ReadWriteTest, testReadWrite) {
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
                        "/dev/null"));
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 
 TEST(ReadWriteTest, testConcurrentRead) {
@@ -66,6 +93,7 @@ TEST(ReadWriteTest, testConcurrentRead) {
   for (int i = 0; i < num_threads; i++) {
     threads[i].join();
   }
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 }  // namespace
 
@@ -79,31 +107,16 @@ int main(int argc, char **argv) {
   system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
 
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  sleep(5);
+  sleep(15);
 
   // initialize datanodes
-  uint32_t xferPort = 50010;
-  uint32_t ipcPort = 50020;
-  for (int i = 0; i < 3; i++) {
-    system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
-    std::string dnCliArgs = "-x " + std::to_string(xferPort + i) +
-        " -p " + std::to_string(ipcPort + i) +
-        " -b tfs" + std::to_string(i) +
-        " &";
-    std::string cmdLine = "bash -c \"exec "
-        "-a ReadWriteTestServer" + std::to_string(i) +
-        " /home/vagrant/rdfs/build/rice-datanode/datanode " + dnCliArgs +
-        "\" & ";
-    system(cmdLine.c_str());
-    sleep(3);
-  }
+  initializeDatanodes(3);
 
-  sleep(5);
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
 
-  system("pkill -f namenode");
+  system("pkill -f namenode");  // uses port 5351
   system("pkill -f ReadWriteTestServer*");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;

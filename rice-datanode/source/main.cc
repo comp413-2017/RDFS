@@ -1,8 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_FRESH_LOG_FILE
-#define ELPP_THREAD_SAFE
-
 #include <easylogging++.h>
 #include <rpcserver.h>
 
@@ -16,6 +13,9 @@
 #include "data_transfer_server.h"
 #include "native_filesystem.h"
 #include "zk_dn_client.h"
+
+#define ELPP_FRESH_LOG_FILE
+#define ELPP_THREAD_SAFE
 
 // initialize the logging library (only do this once!)
 INITIALIZE_EASYLOGGINGPP
