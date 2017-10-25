@@ -3,22 +3,21 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
-#include <sys/time.h>
-#include <easylogging++.h>
-#include <google/protobuf/message.h>
-#include <iostream>
-#include <sstream>
-#include <ctime>
-#include <chrono>
+#include "zk_lock.h"
+#include "zk_dn_client.h"
+#include "zkwrapper.h"
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
-
-#include "zk_lock.h"
-#include "zk_dn_client.h"
-#include "zk_nn_client.h"
-#include "zkwrapper.h"
+#include <zk_nn_client.h>
+#include <iostream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
+#include <sys/time.h>
+#include <easylogging++.h>
+#include <google/protobuf/message.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -52,6 +51,8 @@ using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::FsPermissionProto;
 using hadoop::hdfs::DatanodeInfoProto;
 using hadoop::hdfs::DatanodeIDProto;
+using hadoop::hdfs::ErasureCodingPolicyProto;
+using hadoop::hdfs::ECSchemaProto;
 
 namespace zkclient {
 
@@ -352,9 +353,9 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  if (znode_data.redundancy_form == REPLICATION) {
+  if (znode_data.ecPolicyName == EC_REPLICATION) {
       add_block(file_path, block_id, data_nodes, replication_factor);
-  } else if (znode_data.redundancy_form == EC) {
+  } else {  // case when some EC policy is used.
       // TODO(Nate): generate a block group and each part of a block group.
       // TODO(Nate): use the hierarchical naming scheme.
   }
@@ -514,7 +515,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     {
       LOG(INFO) << znode_data->replication << "\n";
       LOG(INFO) << znode_data->owner << "\n";
-      LOG(INFO) << "Redundancy is " << znode_data->redundancy_form << "\n";
+      LOG(INFO) << "ec policy name is " << znode_data->ecPolicyName << "\n";
       LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
@@ -782,8 +783,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   std::uint64_t blocksize = request.blocksize();
   std::uint32_t replication = request.replication();
   std::uint32_t createflag = request.createflag();
-  const std::string &ecPolicyName = request.ecpolicyname();
-  int redundancy_form = determineRedundancyForm(ecPolicyName, path);
+  const std::string &inputECPolicyName = request.ecpolicyname();
+  std::string ecPolicyName = determineRedundancyForm(inputECPolicyName, path);
 
   if (file_exists(path)) {
     // TODO(2016) solve this issue of overwriting files
@@ -819,7 +820,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
-  znode_data.redundancy_form = redundancy_form;
+  znode_data.ecPolicyName = ecPolicyName;
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -831,13 +832,13 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   return CreateResponse::Ok;
 }
 
-int ZkNnClient::determineRedundancyForm(
+std::string ZkNnClient::determineRedundancyForm(
         const std::string &ecPolicyString,
         const std::string &path) {
     if (ecPolicyString.empty()) {
-        return DEFAULT_REDUNDANCY_FORM;
+        return DEFAULT_EC_POLICY;
     } else {
-        return REPLICATION;
+        return ecPolicyString;
     }
 }
 
@@ -913,7 +914,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
-  znode_data->redundancy_form = DEFAULT_REDUNDANCY_FORM;
+  znode_data->ecPolicyName = DEFAULT_EC_POLICY;
 }
 
 /**
@@ -1274,6 +1275,25 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   status->set_modification_time(znode_data.modification_time);
   status->set_access_time(znode_data.access_time);
+
+  // If a block is an EC block, optionally set the ecPolicy field.
+  if (znode_data.ecPolicyName != EC_REPLICATION) {
+      ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
+      ecPolicyProto->set_name(znode_data.ecPolicyName);
+      // TODO(nate): check to see if the unit is expected to be in kb.
+      ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+      ecPolicyProto->set_id(DEFAULT_EC_ID);
+
+      ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
+      ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
+      std::pair<uint32_t, uint32_t> num_blocks = get_num_data_parity_blocks(
+              DEFAULT_EC_ID);
+      ecSchema->set_dataunits(num_blocks.first);
+      ecSchema->set_parityunits(num_blocks.second);
+      ecPolicyProto->set_allocated_schema(ecSchema);
+      status->set_allocated_ecpolicy(ecPolicyProto);
+  }
+
   LOG(INFO) << "Successfully set the file info ";
 }
 
@@ -1288,17 +1308,10 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
-  // TODO(2016): This is a faulty check
-  if (znode_data.under_construction == FileStatus::UnderConstruction) {
-    LOG(WARNING) << "Last block for "
-                 << file_path
-                 << " still under construction";
-  }
-  // TODO(2016): Check the replication factor
 
   std::string block_id_str;
 
-  util::generate_uuid(block_id);
+    util::generate_block_id(block_id);
   block_id_str = std::to_string(block_id);
   LOG(INFO) << "Generated block id " << block_id_str;
 
@@ -1345,13 +1358,75 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
+bool ZkNnClient::add_block_group(const std::string &fileName,
+                     u_int64_t &block_group_id,
+                     std::vector<std::string> &dataNodes,
+                     std::vector<u_int64_t> &storageBlockIDs,
+                     uint32_t total_num_storage_blocks) {
+    FileZNode znode_data;
+    read_file_znode(znode_data, fileName);
 
-u_int64_t ZkNnClient::generate_hierarchical_block_id(
-        uint64_t block_group_id,
-        uint32_t index_in_group) {
-    // TODO(Nate): actually implement this naming scheme.
-    return 0;
+    // Generate the block group id and storage block ids.
+    block_group_id = generate_block_group_id();
+    for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
+        storageBlockIDs.push_back(generate_storage_block_id(block_group_id, i));
+    }
+
+    // Log them for debugging purposes.
+    LOG(INFO) << "Generated block group id " << block_group_id << "\n";
+    for (auto storageBlockID : storageBlockIDs)
+        LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
+
+    // TODO(nate): figure out what exact zookeepr operations must occur.
+    return true;
 }
+
+
+u_int64_t ZkNnClient::generate_storage_block_id(
+        u_int64_t block_group_id,
+        u_int64_t index_within_group) {
+    // TODO(nate): assume a file = no more than 2**47 128 MB blocks
+    // TODO(nate): assume no more than 2**16 storage blocks in a logical block
+    u_int64_t res = 1ull << 63;  // filled with 1 and 63 zeros.
+    res = res & block_group_id;  // & to fill bit2~bit48.
+    res = res & index_within_group;  // & to fill the lower 16 bits.
+    return res;
+}
+
+u_int64_t ZkNnClient::generate_block_group_id() {
+    u_int64_t res;
+    util::generate_block_id(res);  // generate some random 64 bits.
+    res = res | (1ull << 63);  // filp the highest bit to one.
+    res = (res >> 16) << 16;  // fill the lower 16 bits with zeros.
+    return res;
+}
+
+u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
+    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    return storage_block_id & mask;
+}
+
+u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
+    u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
+    return storage_block_id & mask;
+}
+
+
+uint32_t ZkNnClient::get_total_num_storage_blocks(
+        const std::string &fileName,
+        u_int64_t &block_group_id) {
+    // TODO(nate): actually figure out where this information is stored.
+    // TODO(nate): is it supposed to be figured out from ecPolicyName?
+    return 9;  // arbitrarily assume RS(6, 3)
+}
+
+std::pair<uint32_t, uint32_t> ZkNnClient::get_num_data_parity_blocks(
+        uint32_t ecID) {
+    // TODO(nate): the value must sum up to the return value of
+    // get_total_num_storage_blocks
+    return std::make_pair(6, 3);
+}
+
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas

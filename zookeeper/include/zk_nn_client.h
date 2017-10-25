@@ -11,6 +11,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <utility>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
@@ -25,16 +26,17 @@ typedef enum class FileStatus : int {
 } FileStatus;
 
 
-const int REPLICATION = 0;  // file/directory redundancy form is replication.
-const int EC = 1;  // file/directory redundancy form is erasure coding.
-const int DEFAULT_REDUNDANCY_FORM = REPLICATION;  // the default form.
-
+const char EC_REPLICATION[15] = {"EC_REPLICATION"};
+const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
+uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+uint32_t DEFAULT_EC_ID = 1;
+const char* DEFAULT_EC_CODEC_NAME = "RS64";
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
-  int redundancy_form;  // values: REPLICATION and EC. default REPLICATION.
+  std::string ecPolicyName;  // the specified EC policy name.
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;
@@ -213,16 +215,69 @@ class ZkNnClient : public ZkClientCommon {
                  uint32_t replication_factor);
 
   /**
-   * Given the block group id and index in the block group, returns the hierarchical block id.
-   * @param block_group_id
-   * @param index_in_group
-   * @return the hierarchical block id.
+   * Makes metadata changes required to add a new block group.
+   * This helper method is called for an EC file.
+   * @param fileName the file name.
+   * @param block_group_id the block group id to be generated.
+   * @param dataNodes the set of data nodes on which to allocate each storage block.
+   * @param storageBlockIDs the set of storage block ids to be generated.
+   * @param total_num_storage_blocks the number of data + parity storage blocks.
+   * @return true if successful. false otherwise.
    */
-  u_int64_t generate_hierarchical_block_id(
-          uint64_t block_group_id,
-          uint32_t index_in_group);
+  bool add_block_group(const std::string &fileName,
+                       u_int64_t &block_group_id,
+                       std::vector<std::string> &dataNodes,
+                       std::vector<u_int64_t> &storageBlockIDs,
+                       uint32_t total_num_storage_blocks);
 
   /**
+   * Given a file, figure out the number of storage blocks to have within a block group.
+   * @param fileName the file name.
+   * @param block_group_id the block group id.
+   * @return the number of storage blocks to have within a block group.
+   */
+  uint32_t get_total_num_storage_blocks(
+          const std::string &fileName,
+          u_int64_t &block_group_id);
+
+  /**
+   * Given the ID of an EC policy, returns the numbers of data blocks and parity blocks within a block group.
+   * @param ecID the ID of an EC policy.
+   * @return a pair denoting (# of data blocks, # of parity blocks);
+   */
+  std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
+
+  /**
+   * Given the block group id and index in the block group, returns the hierarchical block id.
+   * @param block_group_id the id of a block group this storage block belongs to.
+   * @param index_within_group the index within the block group.
+   * @return the storage block id.
+   */
+  u_int64_t generate_storage_block_id(
+          uint64_t block_group_id,
+          uint64_t index_within_group);
+  /**
+   * Generates the block group id.
+   * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
+   */
+  u_int64_t generate_block_group_id();
+
+  /**
+   * Gets the block group id from the storage block id.
+   * i.e. bit 2 ~ bit 48.
+   * @param storage_block_id the given storage block id.
+   * @return the block group id.
+   */
+  u_int64_t get_block_group_id(u_int64_t storage_block_id);
+
+  /**
+   * Gets the index within the block group.
+   * @param storage_block_id the given storage block id.
+   * @return the index within the block group.
+   */
+  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
+
+    /**
    * Abandons the block - basically reverses all of add block's multiops
    */
   bool abandon_block(AbandonBlockRequestProto &req,
@@ -284,6 +339,7 @@ class ZkNnClient : public ZkClientCommon {
 
   /**
    * Set the file status proto with information from the znode struct and the path
+   *
    */
   void set_file_info(HdfsFileStatusProto *fs,
                      const std::string &path,
@@ -396,17 +452,16 @@ class ZkNnClient : public ZkClientCommon {
 
   /**
    * Determines what the redundancy form of a file specified by @path should be and returns the corresponding value.
-   * i.e. zkclient::REPLICATION or zkclinet::EC.
    *
-   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::REPLICATION.
+   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::DEFAULT_EC_POLICY.
    * TODO: we may choose to implement what HDFS does, which is to inherit the redundancy form of its parent directory.
    * TODO: the path parameter is need in that case.
-   * If not empty, returns the corresponding redundancy form.
+   * If not empty, simply returns the given ecPolicyString.
    * @param ecPolicyString the ecPolicyname part of CreateRequestProto.
    * @param path the file path.
    * @return zkclient::REPLICATION or zkclinet::EC.
    */
-  int determineRedundancyForm(
+  std::string determineRedundancyForm(
           const std::string &ecPolicyString,
           const std::string &path);
 
