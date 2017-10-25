@@ -11,6 +11,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <utility>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
@@ -20,6 +21,9 @@ namespace zkclient {
 
 const char EC_REPLICATION[15] = {"EC_REPLICATION"};
 const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
+uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+uint32_t DEFAULT_EC_ID = 1;
+const char* DEFAULT_EC_CODEC_NAME = "RS64";
 /**
  * This is the basic znode to describe a file
  */
@@ -185,6 +189,14 @@ class ZkNnClient : public ZkClientCommon {
    * @return the number of storage blocks to have within a block group.
    */
   uint32_t get_total_num_storage_blocks(const std::string &fileName, u_int64_t &block_group_id);
+
+  /**
+   * Given the ID of an EC policy, returns the numbers of data blocks and parity blocks within a block group.
+   * @param ecID the ID of an EC policy.
+   * @return a pair denoting (# of data blocks, # of parity blocks);
+   */
+  std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
+
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
    * @param block_group_id the id of a block group this storage block belongs to.
@@ -272,6 +284,7 @@ class ZkNnClient : public ZkClientCommon {
 
   /**
    * Set the file status proto with information from the znode struct and the path
+   *
    */
   void set_file_info(HdfsFileStatusProto *fs,
                      const std::string &path,

@@ -53,6 +53,8 @@ using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::FsPermissionProto;
 using hadoop::hdfs::DatanodeInfoProto;
 using hadoop::hdfs::DatanodeIDProto;
+using hadoop::hdfs::ErasureCodingPolicyProto;
+using hadoop::hdfs::ECSchemaProto;
 
 namespace zkclient {
 
@@ -1253,6 +1255,25 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   status->set_modification_time(znode_data.modification_time);
   status->set_access_time(znode_data.access_time);
+
+  // If a block is an EC block, optionally set the ecPolicy field.
+  if (znode_data.ecPolicyName != EC_REPLICATION) {
+      ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
+      ecPolicyProto->set_name(znode_data.ecPolicyName);
+      // TODO(nate): check to see if the unit is expected to be in kb.
+      ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+      ecPolicyProto->set_id(DEFAULT_EC_ID);
+
+      ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
+      ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
+      std::pair<uint32_t, uint32_t> num_blocks = get_num_data_parity_blocks(
+              DEFAULT_EC_ID);
+      ecSchema->set_dataunits(num_blocks.first);
+      ecSchema->set_parityunits(num_blocks.second);
+      ecPolicyProto->set_allocated_schema(ecSchema);
+      status->set_allocated_ecpolicy(ecPolicyProto);
+  }
+
   LOG(INFO) << "Successfully set the file info ";
 }
 
@@ -1379,6 +1400,11 @@ uint32_t ZkNnClient::get_total_num_storage_blocks(
     // TODO(nate): is it supposed to be figured out from ecPolicyName?
     return 9; // arbitrarily assume RS(6, 3)
 }
+
+std::pair<uint32_t, uint32_t> ZkNnClient::get_num_data_parity_blocks(uint32_t ecID) {
+    // TODO(nate): the value must sum up to the return value of get_total_num_storage_blocks
+    return std::make_pair(6, 3);
+};
 
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
