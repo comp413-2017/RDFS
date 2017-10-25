@@ -5,9 +5,10 @@ set -ex
 ZOOKEEPER_MIRROR=http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
 
 cd $HOME
-wget --quiet -O zookeeper.tar.gz $ZOOKEEPER_MIRROR
-tar -xf zookeeper.tar.gz
-rm zookeeper.tar.gz
+if [ ! -f /tmp/cache/zookeeper.tar.gz ]; then
+    wget --quiet -O /tmp/cache/zookeeper.tar.gz $ZOOKEEPER_MIRROR
+fi
+tar -xf /tmp/cache/zookeeper.tar.gz
 mv zookeeper-3.4.9 zookeeper
 cat > zookeeper/conf/zoo.cfg <<EOF
 tickTime=2000
@@ -19,7 +20,7 @@ EOF
 cd zookeeper
 ant compile_jute
 cd src/c
-autoreconf -if
+autoreconf -if > /dev/null
 ./configure
 sudo make > /dev/null
 sudo make install

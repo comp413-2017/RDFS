@@ -23,6 +23,7 @@ include_directories(../rice-datanode/include)
 include_directories(../native-filesystem/include)
 include_directories(../rpcserver/include)
 include_directories(../storage/include)
+include_directories(util/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
@@ -49,6 +50,7 @@ target_link_libraries(ReplicationTest zk_client_nn zk_client_dn rpcserver)
 target_link_libraries(ReplicationTest data_transfer_server)
 target_link_libraries(ReplicationTest namenode_protos)
 target_link_libraries(ReplicationTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(ReplicationTest storage)
 target_link_libraries(ReplicationTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ReplicationTest ${GTEST})
 

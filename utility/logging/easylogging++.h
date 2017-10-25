@@ -531,9 +531,13 @@ typedef std::ostream ostream_t;
 #else
 #  define ELPP_COUT_LINE(logLine) logLine << std::flush
 #endif // defined(ELPP_CUSTOM_COUT_LINE)
+
+#define CI_LOG_CONF "/home/vagrant/rdfs/config/ci-log-conf.conf"
+
 typedef unsigned int EnumType;
 typedef unsigned short VerboseLevel;
 typedef unsigned long int LineNumber;
+
 typedef std::shared_ptr<base::Storage> StoragePointer;
 typedef std::shared_ptr<LogDispatchCallback> LogDispatchCallbackPtr;
 typedef std::shared_ptr<PerformanceTrackingCallback> PerformanceTrackingCallbackPtr;
@@ -1797,8 +1801,18 @@ class Configurations : public base::utils::RegistryWithPred<Configuration, Confi
   /// @param base If provided, this configuration will be based off existing repository that this argument is pointing to.
   /// @see parseFromFile(const std::string&, Configurations* base)
   /// @see setRemainingToDefault()
-  Configurations(const std::string& configurationFile, bool useDefaultsForRemaining = true,
-                 Configurations* base = nullptr);
+  Configurations(const std::string &configurationFile,
+                 bool useDefaultsForRemaining = true,
+                 Configurations *base = nullptr) :
+      m_isFromFile(false) {
+    const std::string conf = std::getenv("CI") != nullptr ?
+                             CI_LOG_CONF : configurationFile;
+    m_configurationFile = conf;
+    parseFromFile(conf, base);
+    if (useDefaultsForRemaining) {
+      setRemainingToDefault();
+    }
+  }
 
   virtual ~Configurations(void) {
   }
