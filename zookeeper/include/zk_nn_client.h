@@ -128,6 +128,12 @@ class ZkNnClient : public ZkClientCommon {
       FailedZookeeperOp
   };
 
+  enum class GetFileInfoResponse {
+    Ok,
+    FileDoesNotExist,
+    FailedReadZnode
+  };
+
   enum class MkdirResponse {
       Ok,
       FailedZnodeCreation
@@ -156,7 +162,8 @@ class ZkNnClient : public ZkClientCommon {
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
 
-  void get_info(GetFileInfoRequestProto &req, GetFileInfoResponseProto &res);
+  GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
+                               GetFileInfoResponseProto &res);
   ZkNnClient::CreateResponse  create_file(CreateRequestProto &request,
                                           CreateResponseProto &response);
   void get_block_locations(GetBlockLocationsRequestProto &req,
