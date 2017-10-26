@@ -270,6 +270,22 @@ class ZkNnClient : public ZkClientCommon {
    */
   u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
 
+  /**
+   * true if the highest bit is set to 1. false otherwise.
+   * @param block_id the id of a block (or a block group)
+   * @return true or false.
+   */
+  bool is_ec_block(u_int64_t block_id);
+
+  /**
+   * Given a block or block group id, returns the path to the corresponding metadata.
+   * For a non EC block, it is BLOCK_LOCATIONS + ID
+   * For an EC block, it is BLOCK_GROUP_LOCATIONS + ID
+   * @param block_or_block_group_id the id of a block or a block group.
+   * @return the path to the corresponding metadata.
+   */
+  std::string get_block_metadata_path(u_int64_t block_or_block_group_id);
+
     /**
    * Abandons the block - basically reverses all of add block's multiops
    */
@@ -296,7 +312,7 @@ class ZkNnClient : public ZkClientCommon {
                                bool newBlock,
                                uint64_t blocksize);
 
-  bool find_all_datanodes_with_block(const std::string &block_uuid_str,
+  bool find_all_datanodes_with_block(uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,
                                      int &error_code);
 

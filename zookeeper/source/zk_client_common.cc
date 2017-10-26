@@ -26,6 +26,7 @@ const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
 const char ZkClientCommon::STATS[] = "/stats";
 const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
+const char ZkClientCommon::BLOCK_GROUP_LOCATIONS[] = "/block_group_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
 
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {

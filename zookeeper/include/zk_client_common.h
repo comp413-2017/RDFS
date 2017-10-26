@@ -34,6 +34,7 @@ class ZkClientCommon {
   static const char WAIT_FOR_ACK_BACKSLASH[];
   static const char REPLICATE_BACKSLASH[];
   static const char BLOCK_LOCATIONS[];
+  static const char BLOCK_GROUP_LOCATIONS[];
   static const char BLOCKS[];
 
  private:
