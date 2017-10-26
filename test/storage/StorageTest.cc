@@ -3,6 +3,7 @@
 #include <easylogging++.h>
 #include <gtest/gtest.h>
 #include <zk_nn_client.h>
+#include <util.h>
 #include "zkwrapper.h"
 #include "ClientNamenodeProtocolImpl.h"
 
@@ -66,6 +67,55 @@ TEST_F(StorageTest, testExample) {
   LOG(INFO) << " ---- Fraction of total space used: " <<
                                                   metrics.usedSpaceFraction();
 }
+
+/**
+ * This test checks that the hierarchical naming scheme generates appropriate
+ * block_ids, block_group_ids, and storage_block_ids, and that the hierarchical
+ * naming scheme allows us to convert between (storage_block_id, index) and
+ * block_group_id correctly.
+ * 
+ * TODO(Adam): add testing for zk functionality and file associations once
+ * those are implemented in the codebase.
+ */
+TEST_F(StorageTest, testIDGeneration) {
+
+  //Use add_block_group to generate block_group_ids and storage_block_ids
+  //Generate bogus filename & datanode strings:
+  //add_block_group takes them as parameters but does not yet use them
+  const std::string filename = "bogus";
+  std::vector<std::string> dataNodes = {"bogus"};
+
+  //TODO(Adam): Change to nncli.get_total_num_storage_blocks once it's implemented
+  uint32_t num_storage_blocks = 9 
+
+  //TODO(Adam): use a real ecID
+  std::pair<uint32_t, uint32_t> data_parity_blocks = get_num_data_parity_blocks((uint32_t)0);
+  ASSERT_EQ(num_storage_blocks, data_parity_blocks.first + data_parity_blocks.second);
+
+  uint64_t block_group_id = malloc(sizeof(uint64_t));
+  uint64_t block_id = malloc(sizeof(uint64_t));
+  uint64_t storage_blocks[num_storage_blocks];
+  nncli.add_block_group(filename, block_group_id, datanodes, num_storage_blocks);
+  util.generate_block_id(block_id);
+
+  //Make sure block ids are valid: 1st bit signifies EC/block_group(1) 
+  //or Replication/contiguous(0)
+  //and last 16 bits of EC are 0 (for hierarchical naming scheme)
+  uint64_t bit1_mask = (1ull << 63); //one 1 and 63 0's
+  uint64_t bit16_mask = ~(~(0ull) << 16) //48 0's and 16 1's
+  ASSERT_EQ(0ull, (block_id) & bit1_mask);
+  ASSERT_EQ(1ull, (block_group_id & bit1_mask) >> 63);
+  ASSERT_EQ(0ull, block_group_id & bit16_mask);
+
+
+  //Make sure we can generate block group id and index from storage block id
+  int i;
+  for(i = 0; i < num_storage_blocks; i++) {
+    ASSERT_EQ(block_group_id, nncli.get_block_group_id(storage_blocks[i]));
+    ASSERT_EQ(i, nncli.get_index_within_block_group(storage_blocks[i]));
+  }
+}
+
 }  // namespace
 
 static inline void print_usage() {
