@@ -312,7 +312,7 @@ class ZkNnClient : public ZkClientCommon {
                                bool newBlock,
                                uint64_t blocksize);
 
-  bool find_all_datanodes_with_block(uint64_t &block_uuid,
+  bool find_all_datanodes_with_block(const uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,
                                      int &error_code);
 

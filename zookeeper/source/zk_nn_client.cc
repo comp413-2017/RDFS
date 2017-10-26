@@ -1868,7 +1868,7 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
 }
 
 bool ZkNnClient::find_all_datanodes_with_block(
-    uint64_t &block_uuid,
+    const uint64_t &block_uuid,
     std::vector<std::string> &rdatanodes, int &error_code) {
   std::string block_loc_path = get_block_metadata_path(block_uuid);
 
