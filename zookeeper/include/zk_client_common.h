@@ -21,6 +21,7 @@ class ZkClientCommon {
 
   // constants used by the clients
   static const char NAMESPACE_PATH[];
+  static const char BLOCKS_TREE[];
   static const char HEALTH[];
   static const char HEALTH_BACKSLASH[];
   static const char STATS[];
