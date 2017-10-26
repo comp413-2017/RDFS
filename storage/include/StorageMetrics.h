@@ -49,9 +49,16 @@ class StorageMetrics {
 
   /**
    * Measures the time for recovering from a DataNode failure.
-   * @return wall clock time from failure to being prepared for another failure.
+   *
+   * This method polls the zookeeper work_queues/replication until there are
+   * none left. This should only be called from tests with a controlled number
+   * of replications.
+   *
+   * Prints wall clock time spent in this function using easylogging++
+   *
+   * @return 0 success, -1 failure
    */
-  float recoverySpeed();
+  float replicationRecoverySpeed();
 
   /**
    * Measures how long a read takes while a data block is being recovered.

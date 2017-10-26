@@ -86,8 +86,22 @@ float StorageMetrics::blocksPerDataNodeSD() {
   return stDev(dataNodeBlockCounts);
 }
 
-float StorageMetrics::recoverySpeed() {
-  // TODO(ejd6): implement
+float StorageMetrics::replicationRecoverySpeed() {
+  TIMED_FUNC_IF(timerObj, VLOG_IS_ON(9));
+
+  int error;
+  std::vector<std::string> datanode_ids;
+  uint64_t workItems = 1;
+  while (workItems > 0) {
+    datanode_ids.clear();
+    if (
+      !zkWrapper->get_children("/work_queues/replicate", datanode_ids, error)
+    ) {
+      LOG(ERROR) << "Storage metrics failed to get work items.";
+      return -1;
+    }
+    workItems = datanode_ids.size();
+  }
   return 0.0;
 }
 
@@ -107,7 +121,7 @@ float StorageMetrics::degenerateRead(
   // Do the read.
   int status;
   {
-    TIMED_SCOPE(timerBlkObj, "degenerate-read");
+    TIMED_SCOPE_IF(timerBlkObj, "degenerate-read", VLOG_IS_ON(9));
     status = system(("hdfs dfs -fs hdfs://localhost:5351 -cat "
         + file
         + " > "
