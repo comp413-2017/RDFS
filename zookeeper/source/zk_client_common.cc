@@ -28,6 +28,7 @@ const char ZkClientCommon::STATS[] = "/stats";
 const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
+const char ZkClientCommon::LEASES[] = "/leases";
 
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
   int error_code;
