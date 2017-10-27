@@ -25,26 +25,26 @@ TEST_F(NamenodeTest, renameBasicFile) {
     int error_code;
 
     // Create a test file for renaming
-    hadoop::hdfs::CreateResponseProto create_resp;
     hadoop::hdfs::CreateRequestProto create_req =
-            getCreateRequestProto("basic_file");
+            getCreateRequestProto("orig_file");
     create_req.set_blocksize(0);
     create_req.set_replication(1);
     create_req.set_createflag(0);
+    hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp),
     zkclient::ZkNnClient::CreateResponse::Ok);
 
     // Create a child of the old file with a fake block
     std::string new_path;
-    zk->create_sequential("/fileSystem/basic_file/block-",
+    zk->create_sequential("/fileSystem/orig_file/block-",
     zk->get_byte_vector("Block uuid"), new_path, false, error_code);
     ASSERT_EQ(0, error_code);
-    ASSERT_EQ("/fileSystem/basic_file/block-0000000000", new_path);
+    ASSERT_EQ("/fileSystem/orig_file/block-0000000000", new_path);
 
     // Rename
     hadoop::hdfs::RenameRequestProto rename_req;
     hadoop::hdfs::RenameResponseProto rename_resp;
-    rename_req.set_src("/basic_file");
+    rename_req.set_src("/orig_file");
     rename_req.set_dst("/renamed_file");
     ASSERT_EQ(client->rename(rename_req, rename_resp),
     zkclient::ZkNnClient::RenameResponse::Ok);
@@ -69,7 +69,7 @@ TEST_F(NamenodeTest, renameBasicFile) {
 
     // Ensure that old_name was delete
     bool exist;
-    zk->exists("/fileSystem/basic_file", exist, error_code);
+    zk->exists("/fileSystem/orig_file", exist, error_code);
     ASSERT_EQ(false, exist);
 }
 
