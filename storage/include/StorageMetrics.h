@@ -8,6 +8,8 @@
 
 #include "zkwrapper.h"
 
+using std::clock;
+
 #pragma once
 
 typedef struct {
@@ -56,9 +58,26 @@ class StorageMetrics {
    *
    * Prints wall clock time spent in this function using easylogging++
    *
-   * @return 0 success, -1 failure
+   * Logging level must be set to 9 before calling this function.
+   *
+   * @return 0 success, -1 error
    */
-  float replicationRecoverySpeed();
+  int replicationRecoverySpeed();
+
+  /**
+   * watcher function to set on /work_queues/replicate.
+   *
+   * @param zzh unused
+   * @param type unused
+   * @param state unused
+   * @param path Path to the znode to watch.
+   * @param watcherCtx  "this"
+   */
+  static void watcher_replicate(zhandle_t *zzh,
+                                int type,
+                                int state,
+                                const char *path,
+                                void *watcherCtx);
 
   /**
    * Measures how long a read takes while a data block is being recovered.
@@ -69,6 +88,8 @@ class StorageMetrics {
    *    case is the file being unreadable.
    * Files under EC must have a downed data block (not parity block) for the
    *    degenerate read case. Keep that in mind when passing in target DataNodes
+   *
+   * Logging level must be set to 9 before calling this function.
    *
    * @param file The file path to read.
    * @param destination The file name for writing cat output
@@ -85,6 +106,8 @@ class StorageMetrics {
  private:
   uint64_t kNumDatanodes;
   std::shared_ptr<ZKWrapper> zkWrapper;
+
+  clock_t tempClock;
 
   /**
    * Takes an array of integers and returns the standard deviation.

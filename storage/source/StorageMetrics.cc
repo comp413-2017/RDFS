@@ -86,32 +86,55 @@ float StorageMetrics::blocksPerDataNodeSD() {
   return stDev(dataNodeBlockCounts);
 }
 
-float StorageMetrics::replicationRecoverySpeed() {
-  TIMED_FUNC_IF(timerObj, VLOG_IS_ON(9));
+int StorageMetrics::replicationRecoverySpeed() {
+  tempClock = clock();
 
   int error;
   std::vector<std::string> datanode_ids;
-  uint64_t workItems = 1;
-  while (workItems > 0) {
-    datanode_ids.clear();
-    if (
-      !zkWrapper->get_children("/work_queues/replicate", datanode_ids, error)
-    ) {
-      LOG(ERROR) << "Storage metrics failed to get work items.";
-      return -1;
-    }
-    workItems = datanode_ids.size();
+  if (!zkWrapper->wget_children(
+      "/work_queues/replicate",
+      datanode_ids,
+      watcher_replicate,
+      this,
+      error)) {
+    LOG(ERROR) << "Storage metrics failed to set watcher.";
+    return -1;
   }
-  return 0.0;
+  return 0;
+}
+
+void StorageMetrics::watcher_replicate(zhandle_t *zzh,
+                                       int type,
+                                       int state,
+                                       const char *path,
+                                       void *watcherCtx) {
+  LOG(INFO) << "STORAGE METRICS WATCHER TRIGGERED";
+  StorageMetrics *metrics = reinterpret_cast<StorageMetrics *>(watcherCtx);
+  std::shared_ptr<ZKWrapper> zkWrapper = metrics->zkWrapper;
+  int error;
+  std::vector<std::string> datanode_ids;
+  if (!zkWrapper->get_children("/work_queues/replicate", datanode_ids, error)) {
+    LOG(ERROR) << "watcher_replicate failed to set watcher 1.";
+  }
+  if (datanode_ids.size() == 0) {
+    metrics->tempClock = clock() - metrics->tempClock;
+    LOG(INFO) << "STORAGE METRICS Recovery Time: " <<
+                    static_cast<double>(metrics->tempClock) / CLOCKS_PER_SEC;
+  } else {
+    if (!zkWrapper->wget_children("/work_queues/replicate",
+                                  datanode_ids,
+                                  StorageMetrics::watcher_replicate,
+                                  watcherCtx,
+                                  error)) {
+      LOG(ERROR) << "watcher_replicate failed to set watcher 2.";
+    }
+  }
 }
 
 float StorageMetrics::degenerateRead(
     std::string file,
     std::string destination,
     std::vector<std::pair<std::string, std::string>> targetDatanodes) {
-  // Timing should be done on verbosity level 9.
-  el::Loggers::setVerboseLevel(9);
-
   // Kill the datanodes.
   for (std::pair<std::string, std::string> datanode : targetDatanodes) {
     system(("pkill -f " + datanode.first).c_str());
