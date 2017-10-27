@@ -26,11 +26,6 @@ typedef enum class FileStatus : int {
 } FileStatus;
 
 
-const char EC_REPLICATION[15] = {"EC_REPLICATION"};
-const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
-uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
-uint32_t DEFAULT_EC_ID = 1;
-const char* DEFAULT_EC_CODEC_NAME = "RS64";
 /**
  * This is the basic znode to describe a file
  */
@@ -118,8 +113,13 @@ class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
 
+  const char* EC_REPLICATION = "EC_REPLICATION";
+  const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
+  uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+  uint32_t DEFAULT_EC_ID = 1;
+  const char* DEFAULT_EC_CODEC_NAME = "RS64";
 
-  enum class ListingResponse {
+enum class ListingResponse {
       Ok,                   // 0
       FileDoesNotExist,     // 1
       FailedChildRetrieval  // 2
