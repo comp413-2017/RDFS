@@ -31,7 +31,7 @@ typedef enum class FileStatus : int {
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
-  std::string ecPolicyName;  // the specified EC policy name.
+//  std::string ecPolicyName;  // the specified EC policy name.
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;

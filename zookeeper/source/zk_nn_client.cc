@@ -353,7 +353,9 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  if (znode_data.ecPolicyName == EC_REPLICATION) {
+  // TODO(nate): figure out how to store string values in FileZNode.
+  if (true) {
+//  if (znode_data.ecPolicyName == EC_REPLICATION) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
       // TODO(Nate): generate a block group and each part of a block group.
@@ -514,7 +516,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     {
       LOG(INFO) << znode_data->replication << "\n";
       LOG(INFO) << znode_data->owner << "\n";
-      LOG(INFO) << "ec policy name is " << znode_data->ecPolicyName << "\n";
+//      LOG(INFO) << "ec policy name is " << znode_data->ecPolicyName << "\n";
       LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
@@ -821,7 +823,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
-  znode_data.ecPolicyName = ecPolicyName;
+//  znode_data.ecPolicyName = ecPolicyName;
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -915,7 +917,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
-  znode_data->ecPolicyName = DEFAULT_EC_POLICY;
+//  znode_data->ecPolicyName = DEFAULT_EC_POLICY;
 }
 
 /**
@@ -1278,9 +1280,11 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   status->set_access_time(znode_data.access_time);
 
   // If a block is an EC block, optionally set the ecPolicy field.
-  if (znode_data.ecPolicyName != EC_REPLICATION) {
+  // TODO(nate): fix this once I figure out how to save string in znode_data.
+  if (false) {
+//  if (znode_data.ecPolicyName != EC_REPLICATION) {
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
-      ecPolicyProto->set_name(znode_data.ecPolicyName);
+//      ecPolicyProto->set_name(znode_data.ecPolicyName);
       // TODO(nate): check to see if the unit is expected to be in kb.
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
