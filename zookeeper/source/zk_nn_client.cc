@@ -1432,20 +1432,6 @@ std::pair<uint32_t, uint32_t> ZkNnClient::get_num_data_parity_blocks(
     return std::make_pair(6, 3);
 }
 
-bool ZkNnClient::is_ec_block(u_int64_t block_id) {
-  // & with 1000000...000(63 zeros). If the highest bit is set, this value is
-  // non zero. 0 otherwise.
-  return ((1ull << 63) & block_id) > 0;
-}
-
-std::string ZkNnClient::get_block_metadata_path(
-        u_int64_t block_or_block_group_id) {
-  if (is_ec_block(block_or_block_group_id))
-    return BLOCK_GROUP_LOCATIONS + std::to_string(block_or_block_group_id);
-  else
-    return BLOCK_LOCATIONS + std::to_string(block_or_block_group_id);
-}
-
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,

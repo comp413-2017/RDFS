@@ -149,7 +149,7 @@ class ZkClientDn : public ZkClientCommon {
   /**
    * Find one datanode that has the block_uuid
    */
-  bool find_datanode_with_block(const std::string &block_uuid_str,
+  bool find_datanode_with_block(uint64_t &block_uuid,
                                 std::string &datanode,
                                 int &error_code);
 
