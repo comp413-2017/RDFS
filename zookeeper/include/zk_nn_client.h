@@ -279,7 +279,7 @@ class ZkNnClient : public ZkClientCommon {
    * Given the filesystem path, get the full zookeeper path for the dir
    * where the file metadata is written
    */
-  std::string ZkNnClient::ZookeeperFilePath(const std::string &hadoopPath);
+  std::string ZookeeperFilePath(const std::string &hadoopPath);
 
   /**
    * Use to read values from config

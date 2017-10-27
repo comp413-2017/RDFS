@@ -1164,7 +1164,7 @@ std::string ZkNnClient::ZookeeperFilePath(const std::string &hadoopPath) {
 }
 
 std::string ZkNnClient::ZookeeperBlocksPath(const std::string &hadoopPath) {
-  std::string zkpath = ZookeeperFilePath(&hadoopPath);
+  std::string zkpath = ZookeeperFilePath(hadoopPath);
   zkpath += BLOCKS_TREE;
   return zkpath;
 }
