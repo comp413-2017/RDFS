@@ -123,6 +123,8 @@ TEST_F(StorageTest, testRecoveryTime) {
   el::Loggers::setVerboseLevel(9);
   StorageMetrics metrics(zk);
 
+  float usedBefore = metrics.usedSpace();
+
   // Kill an original datanode and trigger the metric measurement during repl.
   system(("pkill -f StorageTestServer" + std::to_string(minDatanodeId++))
              .c_str());
@@ -130,7 +132,10 @@ TEST_F(StorageTest, testRecoveryTime) {
     LOG(ERROR) << "testRecoveryTime: storage metrics failed to measure time.";
   }
 
-  sleep(200);
+  sleep(100);
+
+  // The data should now be replicated on the new servers.
+  ASSERT_EQ(usedBefore, metrics.usedSpace());
 
   system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) + " -rm /f")
              .c_str());
