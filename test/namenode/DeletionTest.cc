@@ -140,10 +140,10 @@ TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
     memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
     ASSERT_TRUE(zk->create("/fileSystem/delete_file/block-0000000000",
                            block_vec,
-                           error));
+                           error, false));
     ASSERT_TRUE(zk->create("/block_locations/1234",
                            ZKWrapper::EMPTY_VECTOR,
-                           error));
+                           error, false));
 
     // TODO(2016): create real block_locations for this block once we start
     // doing complete legitimately
