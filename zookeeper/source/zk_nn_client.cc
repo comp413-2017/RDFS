@@ -1647,7 +1647,6 @@ bool ZkNnClient::find_live_datanodes(const uint64_t blockId, int error_code,
   return zk->get_children(HEALTH, live_data_nodes, error_code);
 }
 
-
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
