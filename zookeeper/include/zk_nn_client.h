@@ -26,17 +26,12 @@ typedef enum class FileStatus : int {
 } FileStatus;
 
 
-const char EC_REPLICATION[15] = {"EC_REPLICATION"};
-const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
-uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
-uint32_t DEFAULT_EC_ID = 1;
-const char* DEFAULT_EC_CODEC_NAME = "RS64";
 /**
  * This is the basic znode to describe a file
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
-  std::string ecPolicyName;  // the specified EC policy name.
+//  std::string ecPolicyName;  // the specified EC policy name.
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;
@@ -118,8 +113,13 @@ class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
 
+  const char* EC_REPLICATION = "EC_REPLICATION";
+  const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
+  uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+  uint32_t DEFAULT_EC_ID = 1;
+  const char* DEFAULT_EC_CODEC_NAME = "RS64";
 
-  enum class ListingResponse {
+enum class ListingResponse {
       Ok,                   // 0
       FileDoesNotExist,     // 1
       FailedChildRetrieval  // 2
@@ -296,7 +296,7 @@ class ZkNnClient : public ZkClientCommon {
                                bool newBlock,
                                uint64_t blocksize);
 
-  bool find_all_datanodes_with_block(const std::string &block_uuid_str,
+  bool find_all_datanodes_with_block(const uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,
                                      int &error_code);
 
