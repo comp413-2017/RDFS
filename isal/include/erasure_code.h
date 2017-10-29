@@ -15,8 +15,8 @@
  *  limitations under the License.
  */
 
-#ifndef _ERASURE_CODE_H_
-#define _ERASURE_CODE_H_
+#ifndef ISAL_INCLUDE_ERASURE_CODE_H_
+#define ISAL_INCLUDE_ERASURE_CODE_H_
 
 #include <stddef.h>
 
@@ -52,7 +52,7 @@
  *               generated from input coefficients.  Must be of size 32*k*rows.
  * @returns none
  */
-void h_ec_init_tables(int k, int rows, unsigned char* a, unsigned char* gftbls);
+void h_ec_init_tables(int k, int rows, unsigned char *a, unsigned char *gftbls);
 
 /**
  * Generate or decode erasure codes on blocks of data, runs appropriate version.
@@ -102,6 +102,7 @@ void h_ec_encode_data(int len, int k, int rows, unsigned char *gftbls,
  * @returns none
  */
 void h_ec_encode_data_update(int len, int k, int rows, int vec_i,
-                             unsigned char *gftbls, unsigned char *data, unsigned char **coding);
+                             unsigned char *gftbls, unsigned char *data,
+                             unsigned char **coding);
 
-#endif //_ERASURE_CODE_H_
+#endif  // ISAL_INCLUDE_ERASURE_CODE_H_

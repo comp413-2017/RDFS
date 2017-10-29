@@ -16,6 +16,7 @@ run_test() {
 }
 
 cd build/test
+run_test ./ErasureCodeTest
 run_test ./ReadWriteTest
 run_test ./ReplicationTest
 run_test ./DeleteTest

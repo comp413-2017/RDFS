@@ -20,8 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/isal_load.h"
-#include "../include/erasure_code.h"
+#include "erasure_code.h"
+#include "isal_load.h"
 
 /**
  *  erasure_code.c
@@ -29,16 +29,18 @@
  *
  */
 
-void h_ec_init_tables(int k, int rows, unsigned char* a, unsigned char* gftbls) {
-    isaLoader->ec_init_tables(k, rows, a, gftbls);
+void h_ec_init_tables(int k, int rows, unsigned char *a,
+                      unsigned char *gftbls) {
+  isaLoader->ec_init_tables(k, rows, a, gftbls);
 }
 
 void h_ec_encode_data(int len, int k, int rows, unsigned char *gftbls,
                       unsigned char **data, unsigned char **coding) {
-    isaLoader->ec_encode_data(len, k, rows, gftbls, data, coding);
+  isaLoader->ec_encode_data(len, k, rows, gftbls, data, coding);
 }
 
 void h_ec_encode_data_update(int len, int k, int rows, int vec_i,
-                             unsigned char *gftbls, unsigned char *data, unsigned char **coding) {
-    isaLoader->ec_encode_data_update(len, k, rows, vec_i, gftbls, data, coding);
+                             unsigned char *gftbls, unsigned char *data,
+                             unsigned char **coding) {
+  isaLoader->ec_encode_data_update(len, k, rows, vec_i, gftbls, data, coding);
 }

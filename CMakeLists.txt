@@ -18,6 +18,7 @@ add_subdirectory(proto)
 include_directories(${ProtobufIncludePath})
 
 add_subdirectory(utility)
+add_subdirectory(isal)
 add_subdirectory(rpcserver)
 add_subdirectory(rice-namenode)
 add_subdirectory(zookeeper)
@@ -26,7 +27,6 @@ add_subdirectory(rice-datanode)
 add_subdirectory(native-filesystem)
 add_subdirectory(test)
 add_subdirectory(storage)
-add_subdirectory(isal)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
 	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utility/config-reader/)
