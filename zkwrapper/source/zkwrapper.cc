@@ -560,44 +560,5 @@ void ZKWrapper::close() {
 }
 
 bool ZKWrapper::flush(const std::string &full_path, bool synchronous) const {
-  // flush is only blocking when the synchronous flag is set
-  if (synchronous) {
-    // I tried using condition variables,
-    // but it ended up failing on occasion, so sadly I resort to polling :(
-    bool *flag = reinterpret_cast<bool *>(malloc(sizeof(bool)));
-
-    // Lambda to call on function completion
-    string_completion_t completion = [](int rc,
-                                        const char *value,
-                                        const void *data) {
-      bool *flag_ptr = const_cast<bool *>(reinterpret_cast<const bool *>(data));
-      *flag_ptr = true;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      free(flag_ptr);
-    };
-
-    int rc = zoo_async(zh, full_path.c_str(), completion, flag);
-
-    // Exit early if async failed
-    if (rc) {
-      LOG(ERROR) << "Flushing " << full_path << " failed";
-      print_error(rc);
-      return false;
-    }
-
-    // Wait for the asynchronous function to complete
-    int count = 0;
-    // ZooKeeper is guaranteed to be synced within 2 seconds
-    while (!(*flag) && count < 2000) {
-      count++;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-    if (count == 2000) {
-      LOG(ERROR) << "SYNC FOR" << full_path << " was slow";
-    }
-    return true;
-  } else {
-    auto no_op = [&](int rc, const char *value, const void *data) {};
-    return zoo_async(zh, full_path.c_str(), no_op, nullptr);
-  }
+  return true;
 }
