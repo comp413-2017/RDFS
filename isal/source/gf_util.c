@@ -20,8 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/isal_load.h"
-#include "../include/gf_util.h"
+#include "gf_util.h"
+#include "isal_load.h"
 
 /**
  *  gf_util.c
@@ -30,25 +30,25 @@
  */
 
 unsigned char h_gf_mul(unsigned char a, unsigned char b) {
-    return isaLoader->gf_mul(a, b);
+  return isaLoader->gf_mul(a, b);
 }
 
 unsigned char h_gf_inv(unsigned char a) {
-    return isaLoader->gf_inv(a);
+  return isaLoader->gf_inv(a);
 }
 
 void h_gf_gen_rs_matrix(unsigned char *a, int m, int k) {
-    isaLoader->gf_gen_rs_matrix(a, m, k);
+  isaLoader->gf_gen_rs_matrix(a, m, k);
 }
 
 void h_gf_gen_cauchy_matrix(unsigned char *a, int m, int k) {
-    isaLoader->gf_gen_cauchy_matrix(a, m, k);
+  isaLoader->gf_gen_cauchy_matrix(a, m, k);
 }
 
 int h_gf_invert_matrix(unsigned char *in, unsigned char *out, const int n) {
-    return isaLoader->gf_invert_matrix(in, out, n);
+  return isaLoader->gf_invert_matrix(in, out, n);
 }
 
 int h_gf_vect_mul(int len, unsigned char *gftbl, void *src, void *dest) {
-    return isaLoader->gf_vect_mul(len, gftbl, src, dest);
+  return isaLoader->gf_vect_mul(len, gftbl, src, dest);
 }

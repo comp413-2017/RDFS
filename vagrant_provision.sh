@@ -13,6 +13,8 @@ apt-get install -y language-pack-en zip unzip curl
 
 apt-get install -y git build-essential cmake automake autoconf libtool libboost-all-dev libasio-dev
 
+apt-get install -y yasm
+
 wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
 tar -xf protobuf-cpp-3.0.0.tar.gz
 rm protobuf-cpp-3.0.0.tar.gz
@@ -26,7 +28,7 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
-wget --quiet http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-2.8.1/hadoop-2.8.1.tar.gz
+wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
 tar -xf hadoop-2.8.1.tar.gz
 mv hadoop-2.8.1 /home/vagrant/hadoop3
 rm hadoop-2.8.1.tar.gz
@@ -57,9 +59,11 @@ cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hado
 # Setup Intel Storage Acceleration Library (ISA-L)
 wget --quiet https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-lopensrc2.13.tar.gz
 tar -xf isa-lopensrc2.13.tar.gz
-mv isa-lopensrc2.13 /home/vagrant/isal
+mv isa-l_open_src_2.13 /home/vagrant/isal
 rm isa-lopensrc2.13.tar.gz
-
+cd /home/vagrant/isal
+make
+cd /home/vagrant
 
 # Setup Apache zookeeper
 wget --quiet http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz

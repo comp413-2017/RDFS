@@ -16,84 +16,84 @@
  * limitations under the License.
  */
 
-#include "../include/erasure_code.h"
-#include "../include/gf_util.h"
-#include "../include/erasure_coder.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void dump(unsigned char* buf, int len) {
-    int i;
-    for (i = 0; i < len;) {
-        printf(" %2x", 0xff & buf[i++]);
-        if (i % 32 == 0)
-            printf("\n");
-    }
+#include "erasure_code.h"
+#include "erasure_coder.h"
+#include "gf_util.h"
+
+void dump(unsigned char *buf, int len) {
+  int i;
+  for (i = 0; i < len;) {
+    printf(" %2x", 0xff & buf[i++]);
+    if (i % 32 == 0)
+      printf("\n");
+  }
 }
 
-void dumpMatrix(unsigned char** buf, int n1, int n2) {
-    int i, j;
-    for (i = 0; i < n1; i++) {
-        for (j = 0; j < n2; j++) {
-            printf(" %2x", buf[i][j]);
-        }
-        printf("\n");
+void dumpMatrix(unsigned char **buf, int n1, int n2) {
+  int i, j;
+  for (i = 0; i < n1; i++) {
+    for (j = 0; j < n2; j++) {
+      printf(" %2x", buf[i][j]);
     }
     printf("\n");
+  }
+  printf("\n");
 }
 
-void dumpCodingMatrix(unsigned char* buf, int n1, int n2) {
-    int i, j;
-    for (i = 0; i < n1; i++) {
-        for (j = 0; j < n2; j++) {
-            printf(" %d", 0xff & buf[j + (i * n2)]);
-        }
-        printf("\n");
+void dumpCodingMatrix(unsigned char *buf, int n1, int n2) {
+  int i, j;
+  for (i = 0; i < n1; i++) {
+    for (j = 0; j < n2; j++) {
+      printf(" %d", 0xff & buf[j + (i * n2)]);
     }
     printf("\n");
+  }
+  printf("\n");
 }
 
-void dumpEncoder(IsalEncoder* pCoder) {
-    int numDataUnits = pCoder->coder.numDataUnits;
-    int numParityUnits = pCoder->coder.numDataUnits;
-    int numAllUnits = pCoder->coder.numAllUnits;
+void dumpEncoder(IsalEncoder *pCoder) {
+  int numDataUnits = pCoder->coder.numDataUnits;
+  int numParityUnits = pCoder->coder.numDataUnits;
+  int numAllUnits = pCoder->coder.numAllUnits;
 
-    printf("Encoding (numAlnumParityUnitslUnits = %d, numDataUnits = %d)\n",
-           numParityUnits, numDataUnits);
+  printf("Encoding (numAlnumParityUnitslUnits = %d, numDataUnits = %d)\n",
+         numParityUnits, numDataUnits);
 
-    printf("\n\nEncodeMatrix:\n");
-    dumpCodingMatrix((unsigned char*) pCoder->encodeMatrix,
-                     numDataUnits, numAllUnits);
+  printf("\n\nEncodeMatrix:\n");
+  dumpCodingMatrix((unsigned char *) pCoder->encodeMatrix,
+                   numDataUnits, numAllUnits);
 }
 
-void dumpDecoder(IsalDecoder* pCoder) {
-    int i, j;
-    int numDataUnits = pCoder->coder.numDataUnits;
-    int numAllUnits = pCoder->coder.numAllUnits;
+void dumpDecoder(IsalDecoder *pCoder) {
+  int i, j;
+  int numDataUnits = pCoder->coder.numDataUnits;
+  int numAllUnits = pCoder->coder.numAllUnits;
 
-    printf("Recovering (numAllUnits = %d, numDataUnits = %d, numErased = %d)\n",
-           numAllUnits, numDataUnits, pCoder->numErased);
+  printf("Recovering (numAllUnits = %d, numDataUnits = %d, numErased = %d)\n",
+         numAllUnits, numDataUnits, pCoder->numErased);
 
-    printf(" - ErasedIndexes = ");
-    for (j = 0; j < pCoder->numErased; j++) {
-        printf(" %d", pCoder->erasedIndexes[j]);
-    }
-    printf("       - DecodeIndex = ");
-    for (i = 0; i < numDataUnits; i++) {
-        printf(" %d", pCoder->decodeIndex[i]);
-    }
+  printf(" - ErasedIndexes = ");
+  for (j = 0; j < pCoder->numErased; j++) {
+    printf(" %d", pCoder->erasedIndexes[j]);
+  }
+  printf("       - DecodeIndex = ");
+  for (i = 0; i < numDataUnits; i++) {
+    printf(" %d", pCoder->decodeIndex[i]);
+  }
 
-    printf("\n\nEncodeMatrix:\n");
-    dumpCodingMatrix((unsigned char*) pCoder->encodeMatrix,
-                     numDataUnits, numAllUnits);
+  printf("\n\nEncodeMatrix:\n");
+  dumpCodingMatrix((unsigned char *) pCoder->encodeMatrix,
+                   numDataUnits, numAllUnits);
 
-    printf("InvertMatrix:\n");
-    dumpCodingMatrix((unsigned char*) pCoder->invertMatrix,
-                     numDataUnits, numDataUnits);
+  printf("InvertMatrix:\n");
+  dumpCodingMatrix((unsigned char *) pCoder->invertMatrix,
+                   numDataUnits, numDataUnits);
 
-    printf("DecodeMatrix:\n");
-    dumpCodingMatrix((unsigned char*) pCoder->decodeMatrix,
-                     numDataUnits, numAllUnits);
+  printf("DecodeMatrix:\n");
+  dumpCodingMatrix((unsigned char *) pCoder->decodeMatrix,
+                   numDataUnits, numAllUnits);
 }

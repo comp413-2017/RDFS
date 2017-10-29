@@ -15,8 +15,8 @@
  *  limitations under the License.
  */
 
-#ifndef _GF_UTIL_H
-#define _GF_UTIL_H
+#ifndef ISAL_INCLUDE_GF_UTIL_H_
+#define ISAL_INCLUDE_GF_UTIL_H_
 
 /**
  *  gf_util.h
@@ -108,4 +108,4 @@ int h_gf_invert_matrix(unsigned char *in, unsigned char *out, const int n);
 int h_gf_vect_mul(int len, unsigned char *gftbl, void *src, void *dest);
 
 
-#endif //_GF_UTIL_H
+#endif  // ISAL_INCLUDE_GF_UTIL_H_
