@@ -1,5 +1,9 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include "ClientNamenodeProtocolImpl.h"
+
+#include <hdfs.pb.h>
+
 #include <easylogging++.h>
 #include <rpcserver.h>
 #include <zkwrapper.h>
@@ -16,13 +20,13 @@
 
 #include <iostream>
 #include <string>
+
 #include <thread>
 
 #include <RpcHeader.pb.h>
-
 #include <ConfigReader.h>
+#include <ClientNamenodeProtocol.pb.h>
 
-#include "ClientNamenodeProtocolImpl.h"
 #include "zk_nn_client.h"
 
 /**
@@ -106,29 +110,47 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "GetFileInfo ");
   GetFileInfoResponseProto res;
-  zk->get_info(req, res);
-  logMessage(&res, "GetFileInfo response ");
+  switch (zk->get_info(req, res)) {
+    case zkclient::ZkNnClient::GetFileInfoResponse::Ok:
+      logMessage(&res, "GetFileInfo response ");
+      break;
+    case zkclient::ZkNnClient::GetFileInfoResponse::FileDoesNotExist:
+      LOG(INFO) << "get_info returned FileDoesNotExist";
+      break;
+    case zkclient::ZkNnClient::GetFileInfoResponse::FailedReadZnode:
+      LOG(INFO) << "get_info returned FailedReadZnode";
+      break;
+  }
   return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::mkdir(std::string input) {
+  TIMED_FUNC_IF(destroyHandlerTimer, VLOG_IS_ON(9));
   MkdirsRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "Mkdir ");
   MkdirsResponseProto res;
-  zk->mkdir(req, res);
-  return Serialize(res);
+  if (zk->mkdir(req, res) == zkclient::ZkNnClient::MkdirResponse::Ok) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not mkdir", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::destroy(std::string input) {
+  TIMED_FUNC_IF(destroyTimer, VLOG_IS_ON(9));
+
   DeleteRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "Delete ");
   const std::string &src = req.src();
   const bool recursive = req.recursive();
   DeleteResponseProto res;
-  zk->destroy(req, res);
-  return Serialize(res);
+  if (zk->destroy(req, res) == zkclient::ZkNnClient::DeleteResponse::Ok) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not delete", "");
+  }
 }
 
 std::string ClientNamenodeTranslator::create(std::string input) {
@@ -136,7 +158,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "Create ");
   CreateResponseProto res;
-  if (zk->create_file(req, res)) {
+  if (zk->create_file(req, res) == zkclient::ZkNnClient::CreateResponse::Ok) {
   } else {
     throw GetErrorRPCHeader("Could not create file", "");
   }
@@ -235,7 +257,7 @@ std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingResponseProto res;
   req.ParseFromString(input);
   logMessage(&req, "GetListing ");
-  if (zk->get_listing(req, res)) {
+  if (zk->get_listing(req, res) == zkclient::ZkNnClient::ListingResponse::Ok) {
     return Serialize(res);
   } else {
     throw GetErrorRPCHeader("Could not get listing", "");
