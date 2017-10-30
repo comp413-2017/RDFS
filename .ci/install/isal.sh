@@ -2,7 +2,7 @@
 
 set -ex
 
-ISAL_MIRROR=https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-lopensrc2.13.tar.gz
+ISAL_MIRROR=http://kevinlin.web.rice.edu/static/isal.tar.gzh
 
 cd $HOME
 if [ ! -f /tmp/cache/isal ]; then
