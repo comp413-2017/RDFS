@@ -820,7 +820,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 /**
      * Rename a file in the zookeeper filesystem
      */
-void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
+ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
+                                              RenameResponseProto& res) {
   std::string file_path = req.src();
 
   FileZNode znode_data;
@@ -828,19 +829,22 @@ void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
   if (!file_exists(file_path)) {
     LOG(ERROR) << "Requested rename source: " << file_path << " does not exist";
     res.set_result(false);
+      return RenameResponse::FileDoesNotExist;
   }
 
   auto ops = std::vector<std::shared_ptr<ZooOp>>();
   if (znode_data.filetype == IS_DIR) {
     if (!rename_ops_for_dir(req.src(), req.dst(), ops)) {
-      LOG(ERROR) << "Failed to generate reame operatons for: " << file_path;
+      LOG(ERROR) << "Failed to generate rename operatons for: " << file_path;
       res.set_result(false);
+        return RenameResponse::RenameOpsFailed;
     }
 
   } else if (znode_data.filetype == IS_FILE) {
     if (!rename_ops_for_file(req.src(), req.dst(), ops)) {
-      LOG(ERROR) << "Failed to generate reame operatons for: " << file_path;
+      LOG(ERROR) << "Failed to generate rename operatons for: " << file_path;
       res.set_result(false);
+        return RenameResponse::RenameOpsFailed;
     }
 
   } else {
@@ -848,6 +852,7 @@ void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
                << file_path
                << " is not a file or dir";
     res.set_result(false);
+      return RenameResponse::InvalidType;
   }
 
   LOG(INFO) << "Renameing multiop has "
@@ -872,6 +877,7 @@ void ZkNnClient::rename(RenameRequestProto& req, RenameResponseProto& res) {
               << " to "
               << req.dst();
     res.set_result(true);
+      return RenameResponse::Ok;
   }
 }
 
