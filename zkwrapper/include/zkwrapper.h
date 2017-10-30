@@ -94,7 +94,7 @@ class ZKWrapper {
   bool create(const std::string &path,
               const std::vector<std::uint8_t> &data,
               int &error_code,
-              bool ephemeral = false,
+              bool ephemeral,
               bool sync = true) const;
 
   bool create_ephemeral(const std::string &path,
