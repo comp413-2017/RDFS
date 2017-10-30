@@ -45,6 +45,21 @@ typedef struct {
   char group[256];
 } FileZNode;
 
+/**
+ * Lease info that stores in each lease node.
+ */
+typedef struct {
+  std::string clientName; // Same as the clientName passed
+                          // from RenewLeaseRequestProto
+} LeaseInfo;
+
+/**
+ * Client info that stores in each client node
+ */
+typedef struct {
+  uint64_t timestamp; // std::time()
+} ClientInfo;
+
 struct TargetDN {
   char policy;
   std::string dn_id;
@@ -103,6 +118,10 @@ using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
 using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::RenewLeaseRequestProto;
+using hadoop::hdfs::RenewLeaseResponseProto;
+using hadoop::hdfs::RecoverLeaseRequestProto;
+using hadoop::hdfs::RecoverLeaseResponseProto;
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -169,7 +188,8 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
-
+  void renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProto &res);
+  void recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseResponseProto &res);
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
                                GetFileInfoResponseProto &res);
   ZkNnClient::CreateResponse  create_file(CreateRequestProto &request,
@@ -313,6 +333,10 @@ class ZkNnClient : public ZkClientCommon {
    */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
+  template <class T>
+  void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+  template <class T>
+  void read_znode_data(T &znode_data, const std::string &path);
 
   /**
    * Try to delete a node and log error if we couldnt and set response to false
@@ -380,6 +404,11 @@ class ZkNnClient : public ZkClientCommon {
   uint64_t current_time_ms();
 
   /**
+   * Returns whether the input client is still alive.
+   */
+  bool lease_expired(std::string lease_holder_client);
+
+  /**
   * Informs Zookeeper when the DataNode has deleted a block.
   * @param uuid The UUID of the block deleted by the DataNode.
   * @param size_bytes The number of bytes in the block
@@ -393,6 +422,7 @@ class ZkNnClient : public ZkClientCommon {
   // in millisecons, 10 minute timeout when waiting for
   // replication acknowledgements
   const int ACK_TIMEOUT = 600000;
+  const uint64_t EXPIRATION_TIME = 2 * 60 * 60 * 1000; // 2 hours in milliseconds.
 };
 
 }  // namespace zkclient

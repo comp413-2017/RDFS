@@ -196,6 +196,7 @@ std::string ClientNamenodeTranslator::renewLease(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "RenewLease ");
   RenewLeaseResponseProto res;
+  zk->renew_lease(req, res);
   return Serialize(res);
 }
 
@@ -287,18 +288,13 @@ std::string ClientNamenodeTranslator::getContentSummary(std::string input) {
   zk->get_content(req, res);
   return Serialize(res);
 }
-/**
- * While we expect clients to renew their lease, we should never allow
- * a client to "recover" a lease, since we only allow a write-once system
- */
+
 std::string ClientNamenodeTranslator::recoverLease(std::string input) {
   RecoverLeaseRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "RecoverLease ");
   RecoverLeaseResponseProto res;
-  // just tell the client they could not recover the lease, so they won't try
-  // and write
-  res.set_result(false);
+  zk->recover_lease(req, res);
   return Serialize(res);
 }
 
