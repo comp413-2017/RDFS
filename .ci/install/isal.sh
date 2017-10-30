@@ -2,7 +2,7 @@
 
 set -ex
 
-ISAL_MIRROR=http://kevinlin.web.rice.edu/static/isal.tar.gzh
+ISAL_MIRROR=http://kevinlin.web.rice.edu/static/isal.tar.gz
 
 cd $HOME
 if [ ! -f /tmp/cache/isal ]; then
