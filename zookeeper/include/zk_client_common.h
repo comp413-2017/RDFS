@@ -17,6 +17,24 @@ class ZkClientCommon {
   explicit ZkClientCommon(std::shared_ptr<ZKWrapper> zk);
 
   void init();
+
+
+  /**
+   * true if the highest bit is set to 1. false otherwise.
+   * @param block_id the id of a block (or a block group)
+   * @return true or false.
+   */
+  bool is_ec_block(u_int64_t block_id);
+
+  /**
+   * Given a block or block group id, returns the path to the corresponding metadata.
+   * For a non EC block, it is BLOCK_LOCATIONS + ID
+   * For an EC block, it is BLOCK_GROUP_LOCATIONS + ID
+   * @param block_or_block_group_id the id of a block or a block group.
+   * @return the path to the corresponding metadata.
+   */
+  std::string get_block_metadata_path(u_int64_t block_or_block_group_id);
+
   std::shared_ptr<ZKWrapper> zk;
 
   // constants used by the clients
@@ -34,6 +52,7 @@ class ZkClientCommon {
   static const char WAIT_FOR_ACK_BACKSLASH[];
   static const char REPLICATE_BACKSLASH[];
   static const char BLOCK_LOCATIONS[];
+  static const char BLOCK_GROUP_LOCATIONS[];
   static const char BLOCKS[];
 
  private:

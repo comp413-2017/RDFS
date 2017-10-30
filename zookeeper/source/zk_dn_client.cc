@@ -73,13 +73,13 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
       created_correctly = false;
   }
   */
-
-  if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid), exists, error_code)) {
+  std::string block_metadata_path = get_block_metadata_path(uuid);
+  if (zk->exists(block_metadata_path, exists, error_code)) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
     if (!exists) {
-      zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + std::to_string(uuid)));
-      if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid),
+      zk->flush(zk->prepend_zk_root(block_metadata_path));
+      if (zk->exists(block_metadata_path,
                      exists, error_code)) {
         LOG(ERROR) << "/block_locations/<block_uuid> did not exist "
                    << error_code;
@@ -91,7 +91,7 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
     block_data.block_size = size_bytes;
     std::vector<std::uint8_t> data_vect(sizeof(block_data));
     memcpy(&data_vect[0], &block_data, sizeof(block_data));
-    if (!zk->set(BLOCK_LOCATIONS + std::to_string(uuid),
+    if (!zk->set(block_metadata_path,
                  data_vect, error_code, false)) {
       LOG(ERROR)
               << "Failed writing block size to /block_locations/<block_uuid> "
@@ -101,7 +101,7 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
 
     // We do not need to sync these operations immediately
     // Add this datanode as the block's location in block_locations
-    if (!zk->create(BLOCK_LOCATIONS + std::to_string(uuid) +
+    if (!zk->create(block_metadata_path +
                             "/" + id,
                     ZKWrapper::EMPTY_VECTOR,
                     error_code,
@@ -274,12 +274,14 @@ void ZkClientDn::handleReplicateCmds(const std::string &path) {
   std::vector<std::shared_ptr<ZooOp>> ops;
   for (auto &block : work_items) {
     auto full_work_item_path = util::concat_path(path, block);
-
+    std::uint64_t block_id;
+    std::stringstream strm(block);
+    strm >> block_id;
     std::string read_from;
     // get block size
     std::vector<std::uint8_t> block_size_vec(sizeof(std::uint64_t));
     std::uint64_t block_size;
-    if (!zk->get(util::concat_path(BLOCK_LOCATIONS, block), block_size_vec,
+    if (!zk->get(get_block_metadata_path(block_id), block_size_vec,
                  err, sizeof(std::uint64_t))) {
       LOG(ERROR) << "could not get the block length for "
                  << block
@@ -291,14 +293,11 @@ void ZkClientDn::handleReplicateCmds(const std::string &path) {
 
     // build block proto
     hadoop::hdfs::ExtendedBlockProto block_proto;
-    std::uint64_t block_id;
-    std::stringstream strm(block);
-    strm >> block_id;
     LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
     buildExtendedBlockProto(&block_proto, block_id, block_size);
 
     bool delete_item = false;
-    if (!find_datanode_with_block(std::to_string(block_id), read_from, err)) {
+    if (!find_datanode_with_block(block_id, read_from, err)) {
       LOG(ERROR) << "Could not find datanode with block, going to delete";
       delete_item = true;  // delete it
     } else {
@@ -421,11 +420,11 @@ bool ZkClientDn::buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto *eb,
   return true;
 }
 
-bool ZkClientDn::find_datanode_with_block(const std::string &block_uuid_str,
+bool ZkClientDn::find_datanode_with_block(uint64_t &block_uuid,
                                           std::string &datanode,
                                           int &error_code) {
   std::vector<std::string> datanodes;
-  std::string block_loc_path = BLOCK_LOCATIONS + block_uuid_str;
+  std::string block_loc_path = get_block_metadata_path(block_uuid);
 
   if (!zk->get_children(block_loc_path, datanodes, error_code)) {
     LOG(ERROR) << "Failed to get children of: " << block_loc_path;
@@ -433,7 +432,7 @@ bool ZkClientDn::find_datanode_with_block(const std::string &block_uuid_str,
   }
   if (datanodes.size() < 1) {
     LOG(ERROR) << "There are no datanodes with a replica of block "
-               << block_uuid_str;
+               << block_uuid;
     // TODO(2016): set error_code
     return false;
   }
@@ -443,7 +442,7 @@ bool ZkClientDn::find_datanode_with_block(const std::string &block_uuid_str,
   LOG(INFO) << "Found DN: "
             << datanode
             << " which has a replica of: "
-            << block_uuid_str;
+            << block_uuid;
   return true;
 }
 }  // namespace zkclient
