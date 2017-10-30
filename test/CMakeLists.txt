@@ -95,7 +95,6 @@ target_link_libraries(StorageTest namenode_protos)
 target_link_libraries(StorageTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
 
 add_executable(ErasureCodeTest isal/ErasureCodeTest.cc)
-#add_executable(ErasureCodeTest isal/erasure_code_test.c)
 target_link_libraries(ErasureCodeTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ErasureCodeTest ${GTEST})
 target_link_libraries(ErasureCodeTest isal)
