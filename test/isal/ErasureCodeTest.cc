@@ -1,8 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#define ELPP_FRESH_LOG_FILE
-#define ELPP_THREAD_SAFE
-
 #include <easylogging++.h>
 #include <gtest/gtest.h>
 #include <cstring>
@@ -15,9 +12,10 @@ extern "C" {
 #include "isal_load.h"
 };
 
-INITIALIZE_EASYLOGGINGPP
-
+#define ELPP_THREAD_SAFE
 #define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
+
+INITIALIZE_EASYLOGGINGPP
 
 class ErasureCodeTest : public ::testing::Test {
  protected:
