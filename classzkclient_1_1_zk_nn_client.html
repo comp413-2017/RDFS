@@ -145,6 +145,16 @@ Public Types</h2></td></tr>
 <b>FailedCreateZnode</b>
  }</td></tr>
 <tr class="separator:aeee7774e372ce0d7f904667bf80b96c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0bfebd9345cd2fc3be4371991dd854e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>RenameResponse</b> { <br/>
+&#160;&#160;<b>Ok</b>, 
+<b>FileDoesNotExist</b>, 
+<b>RenameOpsFailed</b>, 
+<b>InvalidType</b>, 
+<br/>
+&#160;&#160;<b>MultiOpFailed</b>
+<br/>
+ }</td></tr>
+<tr class="separator:af0bfebd9345cd2fc3be4371991dd854e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -170,8 +180,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</
 <tr class="memitem:a8286c58163bf8dd3893fb39f2c30db17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8286c58163bf8dd3893fb39f2c30db17"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>complete</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a8286c58163bf8dd3893fb39f2c30db17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d4f66214cbadc6b06aabd8be2a8d382"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a6d4f66214cbadc6b06aabd8be2a8d382">rename</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a6d4f66214cbadc6b06aabd8be2a8d382"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f0042276bdeefefe2e934766c45cc13"><td class="memItemLeft" align="right" valign="top">RenameResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a3f0042276bdeefefe2e934766c45cc13">rename</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a3f0042276bdeefefe2e934766c45cc13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3f4a7c99fea44573928d3e75b204091"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac3f4a7c99fea44573928d3e75b204091"></a>
 ListingResponse&#160;</td><td class="memItemRight" valign="bottom"><b>get_listing</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:ac3f4a7c99fea44573928d3e75b204091"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -586,12 +596,12 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
-<a class="anchor" id="a6d4f66214cbadc6b06aabd8be2a8d382"></a>
+<a class="anchor" id="a3f0042276bdeefefe2e934766c45cc13"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void zkclient::ZkNnClient::rename </td>
+          <td class="memname">ZkNnClient::RenameResponse zkclient::ZkNnClient::rename </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;&#160;</td>
           <td class="paramname"><em>req</em>, </td>
