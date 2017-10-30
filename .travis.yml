@@ -26,6 +26,7 @@ addons:
       - libcppunit-dev
       - libtool
       - libc6-dbg
+      - yasm
 
 env:
   global:
@@ -33,6 +34,7 @@ env:
     - CLASSPATH=$HOME/hadoop/share/hadoop/hdfs/*:$HOME/hadoop/share/hadoop/common/*
 
 before_install:
+  - ./.ci/install/isal.sh
   - ./.ci/install/protobuf.sh
   - ./.ci/install/hadoop.sh
   - ./.ci/install/zookeeper.sh
