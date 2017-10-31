@@ -433,7 +433,8 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   // Build the multi op - it's a reverse of the one's in add_block.
   // Note that it was due to the ZOO_SEQUENCE flag that this first
   // znode's path has the 9 digit number on the end.
-  auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperBlocksPath(file_path +
+  auto undo_seq_file_block_op = zk->
+          build_delete_op(ZookeeperBlocksPath(file_path +
       "/" + sorted_fs_znodes.back()));
   auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/"
                                              + block_id_str);
@@ -519,7 +520,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
       return false;
       // TODO(2016): handle error
     }
-    if (!zk->create(ZookeeperBlocksPath(path), data, error_code)) {
+    if (!zk->create(ZookeeperBlocksPath(path), data, error_code, false)) {
       LOG(ERROR) << "Create failed with error code " << error_code;
       return false;
       // TODO(2016): handle error
@@ -615,7 +616,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
     }
     for (auto &child : children) {
       auto child_path = util::concat_path(ZookeeperBlocksPath(path), child);
-      LOG(INFO) << "  path: " << ZookeeperBlocksPath(path) << " child: " << child;
+      LOG(INFO) << "  path: " <<
+                              ZookeeperBlocksPath(path) << " child: " << child;
       child_path = child_path;
       LOG(INFO) << " child path: " << child_path;
       ops.push_back(zk->build_delete_op(child_path));
@@ -645,6 +647,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
         blockDeleted(block, dn);
       }
     }
+    ops.push_back(zk->build_delete_op(ZookeeperBlocksPath(path)));
   }
   ops.push_back(zk->build_delete_op(ZookeeperFilePath(path)));
   return DeleteResponse::Ok;
@@ -761,10 +764,19 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
     return status;
   }
 
+  LOG(INFO) << "Deleting multiop has "
+          << ops.size()
+          << " operations. Executing...";
   std::vector<zoo_op_result> results;
   if (!zk->execute_multi(ops, results, error_code)) {
-    LOG(ERROR) << "Failed to execute multi op to delete " << path << " Co: " << error_code;
+    LOG(ERROR) <<
+               "Failed to execute multi op to delete " <<
+                path << " Co: " << error_code;
     response.set_result(false);
+
+    for (int i = 0; i < results.size(); i++) {
+      LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
+    }
     return DeleteResponse::FailedZookeeperOp;
   }
 
@@ -1556,7 +1568,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
               << ops.size()
               << ": create "
               << dst_znode + "/" + child;
-    ops.push_back(zk->build_create_op(dst_znode_blocks + "/" + child, child_data));
+    ops.push_back(zk->build_create_op(dst_znode_blocks + "/" + child,
+                                      child_data));
 
     // Delete src_znode's child
     LOG(INFO) << "Added op#"
