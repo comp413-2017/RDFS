@@ -21,6 +21,7 @@ const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
 const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
 const char ZkClientCommon::REPLICATE_BACKSLASH[] = "replicate/";
 const char ZkClientCommon::NAMESPACE_PATH[] = "/fileSystem";
+const char ZkClientCommon::BLOCKS_TREE[] = "/blocks";
 const char ZkClientCommon::HEALTH[] = "/health";
 const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
 const char ZkClientCommon::STATS[] = "/stats";

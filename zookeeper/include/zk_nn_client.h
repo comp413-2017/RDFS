@@ -270,9 +270,17 @@ class ZkNnClient : public ZkClientCommon {
                      const std::string &path,
                      FileZNode &node);
   /**
-   * Given the filesystem path, get the full zookeeper path
+   * Given the filesystem path, get the full zookeeper path for the blocks
+   * where the data is located
    */
-  std::string ZookeeperPath(const std::string &hadoopPath);
+  std::string ZookeeperBlocksPath(const std::string &hadoopPath);
+
+   /**
+   * Given the filesystem path, get the full zookeeper path for the dir
+   * where the file metadata is written
+   */
+  std::string ZookeeperFilePath(const std::string &hadoopPath);
+
   /**
    * Use to read values from config
    */
