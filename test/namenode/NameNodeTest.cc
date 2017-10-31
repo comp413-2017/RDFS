@@ -2,6 +2,9 @@
 
 #include "NameNodeTest.h"
 
+#define ELPP_THREAD_SAFE
+
+#define ELPP_THREAD_SAFE
 INITIALIZE_EASYLOGGINGPP
 
 void NamenodeTest::SetUp() {
@@ -174,13 +177,13 @@ TEST_F(NamenodeTest, testRenameFile) {
 
   // Create a child of the old file with a fake block
   std::string new_path;
-  zk->create_sequential("/fileSystem/old_name/block-",
+  zk->create_sequential("/fileSystem/old_name/blocks/block-",
                         zk->get_byte_vector("Block uuid"),
                         new_path,
                         false,
                         error_code);
   ASSERT_EQ(0, error_code);
-  ASSERT_EQ("/fileSystem/old_name/block-0000000000", new_path);
+  ASSERT_EQ("/fileSystem/old_name/blocks/block-0000000000", new_path);
 
   // Rename
   hadoop::hdfs::RenameRequestProto rename_req;
@@ -202,7 +205,8 @@ TEST_F(NamenodeTest, testRenameFile) {
 
   // Ensure that the file's child indicating block_id was renamed as well
   auto new_block_data = std::vector<std::uint8_t>();
-  zk->get("/fileSystem/new_name/block-0000000000", new_block_data, error_code);
+  zk->get("/fileSystem/new_name/blocks/block-0000000000",
+          new_block_data, error_code);
   ASSERT_EQ(0, error_code);
   ASSERT_EQ("Block uuid",
             std::string(new_block_data.begin(), new_block_data.end()));

@@ -14,6 +14,7 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
+#include <zk_nn_client.h>
 
 #include "zk_lock.h"
 #include "zk_dn_client.h"
@@ -505,7 +506,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
                                   FileZNode *znode_data) {
   int error_code;
   if (!file_exists(path)) {
-    LOG(INFO) << "Creating file znode at " << path;
+    LOG(ERROR) << "Creating file znode at " << path;
     {
       LOG(INFO) << znode_data->replication;
       LOG(INFO) << znode_data->owner;
@@ -520,10 +521,13 @@ bool ZkNnClient::create_file_znode(const std::string &path,
       return false;
       // TODO(2016): handle error
     }
-    if (!zk->create(ZookeeperBlocksPath(path), data, error_code, false)) {
-      LOG(ERROR) << "Create failed with error code " << error_code;
-      return false;
-      // TODO(2016): handle error
+    if (znode_data->filetype == 2) {
+        std::vector<std::uint8_t> data2(sizeof(*znode_data));
+        if (!zk->create(ZookeeperBlocksPath(path), data2, error_code, false)) {
+            LOG(ERROR) << "Create failed with error code " << error_code;
+            return false;
+            // TODO(2016): handle error
+        }
     }
     return true;
   }
@@ -592,8 +596,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
   FileZNode znode_data;
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
-  LOG(INFO) << "read file znode successful 597";
+  LOG(INFO) << "read file znode successful";
   if (znode_data.filetype == IS_DIR) {
+    LOG(ERROR) << "deleting file";
     if (!zk->get_children(ZookeeperFilePath(path), children, error_code)) {
           LOG(FATAL) << "Failed to get children for " << path;
           return DeleteResponse::FailedChildRetrieval;
@@ -606,6 +611,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       }
     }
   } else if (znode_data.filetype == IS_FILE) {
+    LOG(ERROR) << "deleting file";
     if (!zk->get_children(ZookeeperBlocksPath(path), children, error_code)) {
       LOG(FATAL) << "Failed to get children for " << path;
       return DeleteResponse::FailedChildRetrieval;
@@ -619,7 +625,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       LOG(INFO) << "  path: " <<
                               ZookeeperBlocksPath(path) << " child: " << child;
       child_path = child_path;
-      LOG(INFO) << " child path: " << child_path;
+      LOG(ERROR) << " child path: " << child_path;
       ops.push_back(zk->build_delete_op(child_path));
       std::vector<std::uint8_t> block_vec;
       std::uint64_t block;
@@ -790,7 +796,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
         CreateRequestProto &request,
         CreateResponseProto &response) {
     const std::string &path = request.src();
-    LOG(INFO) << "Trying to create file " << path;
+    LOG(ERROR) << "Trying to create file " << path;
     const std::string &owner = request.clientname();
     bool create_parent = request.createparent();
     std::uint64_t blocksize = request.blocksize();
@@ -805,6 +811,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
     // If we need to create directories, do so
     if (create_parent) {
+        LOG(ERROR) << "Creating directories to store ";
         std::string directory_paths = "";
         std::vector<std::string> split_path;
         boost::split(split_path, path, boost::is_any_of("/"));
@@ -814,8 +821,10 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
         }
         // try and make all the parents
         if (mkdir_helper(directory_paths, true) !=
-            ZkNnClient::MkdirResponse::Ok)
+            ZkNnClient::MkdirResponse::Ok) {
+            LOG(ERROR) << "Failed to Mkdir for " << directory_paths;
             return CreateResponse::FailedMkdir;
+        }
     }
 
     // Now create the actual file which will hold blocks
@@ -938,7 +947,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
  */
 ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
                                                    bool create_parent) {
-  LOG(INFO) << "mkdir_helper called with input " << path;
+  LOG(ERROR) << "mkdir_helper called with input " << path;
   if (create_parent) {
     std::vector<std::string> split_path;
     boost::split(split_path, path, boost::is_any_of("/"));
@@ -1001,8 +1010,8 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(GetListingRequestProto &req,
       }
     } else {
       std::vector<std::string> children;
-      if (!zk->get_children(ZookeeperBlocksPath(src), children, error_code)) {
-        LOG(FATAL) << "Failed to get children for " << ZookeeperBlocksPath(src);
+      if (!zk->get_children(ZookeeperFilePath(src), children, error_code)) {
+        LOG(FATAL) << "Failed to get children for " << ZookeeperFilePath(src);
         return ListingResponse::FailedChildRetrieval;
       } else {
         for (auto &child : children) {
