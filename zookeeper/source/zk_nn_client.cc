@@ -239,7 +239,7 @@ bool ZkNnClient::file_exists(const std::string &path) {
   if (zk->exists(ZookeeperFilePath(path), exists, error_code)) {
     return exists;
   } else {
-    // TODO(2016): Handle error
+//    return false;
   }
 }
 
@@ -519,6 +519,11 @@ bool ZkNnClient::create_file_znode(const std::string &path,
       return false;
       // TODO(2016): handle error
     }
+    if (!zk->create(ZookeeperBlocksPath(path), data, error_code)) {
+      LOG(ERROR) << "Create failed with error code " << error_code;
+      return false;
+      // TODO(2016): handle error
+    }
     return true;
   }
   return false;
@@ -586,11 +591,12 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
   FileZNode znode_data;
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
-  if (!zk->get_children(ZookeeperBlocksPath(path), children, error_code)) {
-    LOG(FATAL) << "Failed to get children for " << path;
-    return DeleteResponse::FailedChildRetrieval;
-  }
+  LOG(INFO) << "read file znode successful 597";
   if (znode_data.filetype == IS_DIR) {
+    if (!zk->get_children(ZookeeperFilePath(path), children, error_code)) {
+          LOG(FATAL) << "Failed to get children for " << path;
+          return DeleteResponse::FailedChildRetrieval;
+    }
     for (auto& child : children) {
       auto child_path = util::concat_path(path, child);
       auto status = destroy_helper(child_path, ops);
@@ -599,13 +605,19 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       }
     }
   } else if (znode_data.filetype == IS_FILE) {
+    if (!zk->get_children(ZookeeperBlocksPath(path), children, error_code)) {
+      LOG(FATAL) << "Failed to get children for " << path;
+      return DeleteResponse::FailedChildRetrieval;
+    }
     if (znode_data.under_construction == FileStatus::UnderConstruction) {
       LOG(ERROR) << path << " is under construction, so it cannot be deleted.";
       return DeleteResponse::FileUnderConstruction;
     }
     for (auto &child : children) {
-      auto child_path = util::concat_path(path, child);
-      child_path = ZookeeperBlocksPath(child_path);
+      auto child_path = util::concat_path(ZookeeperBlocksPath(path), child);
+      LOG(INFO) << "  path: " << ZookeeperBlocksPath(path) << " child: " << child;
+      child_path = child_path;
+      LOG(INFO) << " child path: " << child_path;
       ops.push_back(zk->build_delete_op(child_path));
       std::vector<std::uint8_t> block_vec;
       std::uint64_t block;
@@ -751,7 +763,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
 
   std::vector<zoo_op_result> results;
   if (!zk->execute_multi(ops, results, error_code)) {
-    LOG(ERROR) << "Failed to execute multi op to delete " << path;
+    LOG(ERROR) << "Failed to execute multi op to delete " << path << " Co: " << error_code;
     response.set_result(false);
     return DeleteResponse::FailedZookeeperOp;
   }
@@ -1305,7 +1317,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
   // (Note the actual path of the znode the first create op makes will have a 9
   // digit number appended onto the end because of the ZOO_SEQUENCE flag)
   auto seq_file_block_op = zk->build_create_op(
-      ZookeeperBlocksPath(file_path + "/block_"),
+      ZookeeperBlocksPath(file_path) + "/block_",
       data,
       ZOO_SEQUENCE);
   auto ack_op = zk->build_create_op(
@@ -1490,7 +1502,9 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   int error_code = 0;
   auto data = std::vector<std::uint8_t>();
   std::string src_znode = ZookeeperFilePath(src);
+  std::string src_znode_blocks = ZookeeperBlocksPath(src);
   std::string dst_znode = ZookeeperFilePath(dst);
+  std::string dst_znode_blocks = ZookeeperBlocksPath(dst);
 
   // Get the payload from the old filesystem znode for the src
   zk->get(src_znode, data, error_code);
@@ -1505,10 +1519,22 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   LOG(INFO) << "Added op#" << ops.size() << ": create " << dst_znode;
   ops.push_back(zk->build_create_op(dst_znode, data));
 
+    zk->get(src_znode_blocks, data, error_code);
+    if (error_code != ZOK) {
+        LOG(ERROR) << "Failed to get data from '"
+                   << src_znode
+                   << "' when renaming.";
+        return false;
+    }
+
+    // Create a new znode in the filesystem for the dst
+    LOG(INFO) << "Added op#" << ops.size() << ": create " << dst_znode_blocks;
+    ops.push_back(zk->build_create_op(dst_znode_blocks, data));
+
   // Copy over the data from the children of the src_znode
   // into new children of the dst_znode
   auto children = std::vector<std::string>();
-  zk->get_children(src_znode, children, error_code);
+  zk->get_children(src_znode_blocks, children, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get children of znode '"
                << src_znode
@@ -1519,7 +1545,7 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   for (auto child : children) {
     // Get child's data
     auto child_data = std::vector<std::uint8_t>();
-    zk->get(src_znode + "/" + child, child_data, error_code);
+    zk->get(src_znode_blocks + "/" + child, child_data, error_code);
     if (error_code != ZOK) {
       LOG(ERROR) << "Failed to get data from '" << child << "' when renaming.";
       return false;
@@ -1530,19 +1556,23 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
               << ops.size()
               << ": create "
               << dst_znode + "/" + child;
-    ops.push_back(zk->build_create_op(dst_znode + "/" + child, child_data));
+    ops.push_back(zk->build_create_op(dst_znode_blocks + "/" + child, child_data));
 
     // Delete src_znode's child
     LOG(INFO) << "Added op#"
               << ops.size()
               << ": delete "
               << src_znode + "/" + child;
-    ops.push_back(zk->build_delete_op(src_znode + "/" + child));
+    ops.push_back(zk->build_delete_op(src_znode_blocks + "/" + child));
   }
 
   // Remove the old znode for the src
+  LOG(INFO) << "Added op#" << ops.size() << ": delete " << src_znode_blocks;
+  ops.push_back(zk->build_delete_op(src_znode_blocks));
   LOG(INFO) << "Added op#" << ops.size() << ": delete " << src_znode;
+
   ops.push_back(zk->build_delete_op(src_znode));
+
 
   return true;
 }
