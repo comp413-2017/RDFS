@@ -294,7 +294,13 @@ char ZkNnClient::get_node_policy() {
 	return ZkNnClient::policy;
 }
 
+bool ZkNnClient::cache_contains(const std::string &path) {
+    return cache.contains(path);
+}
 
+int ZkNnClient::cache_size() {
+    return cache.currentSize();
+}
 // --------------------------- PROTOCOL CALLS -------------------------------
 void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
                              RenewLeaseResponseProto &res) {

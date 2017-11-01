@@ -289,6 +289,10 @@ namespace lru {
             }
 
         }
+
+        int currentSize() {
+            return m_cache.size();
+        }
     protected:
         size_t prune() {
             if (m_maxSize > 0 && m_cache.size() >= (m_maxSize + m_elasticity)) {
