@@ -68,6 +68,7 @@ class TransferServer {
   bool rmBlock(uint64_t block_id);
   bool poll_replicate();
   bool poll_delete();
+  bool poll_reconstruct();
 
  private:
   int max_xmits;
