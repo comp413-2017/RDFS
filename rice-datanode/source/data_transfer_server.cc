@@ -518,3 +518,7 @@ bool TransferServer::poll_replicate() {
 bool TransferServer::poll_delete() {
   return dn->poll_delete_queue();
 }
+
+bool TransferServer::poll_reconstruct() {
+  return dn->poll_reconstruct_queue();
+}

@@ -102,6 +102,8 @@ class ZkClientDn : public ZkClientCommon {
 
   bool poll_delete_queue();
 
+  bool poll_replication_queue();
+
   std::string get_datanode_id();
 
  private:
