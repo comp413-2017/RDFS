@@ -7,7 +7,7 @@
 #define ELPP_FEATURE_PERFORMANCE_TRACKING
 
 StorageMetrics::StorageMetrics(std::shared_ptr<ZKWrapper> zkWrapper_):
-    zkWrapper(zkWrapper_) {
+    zkWrapper(zkWrapper_), timeInProgress() {
   int error;
   std::vector<std::string> datanodeIds;
   if (!zkWrapper->get_children("/health", datanodeIds, error)) {
@@ -87,6 +87,11 @@ float StorageMetrics::blocksPerDataNodeSD() {
 }
 
 int StorageMetrics::replicationRecoverySpeed() {
+  if (timeInProgress) {
+    LOG(ERROR) << "StorageMetrics: recovery timing already in progress";
+    return -1;
+  }
+  timeInProgress = true;
   tempClock = clock();
 
   int error;
@@ -100,6 +105,7 @@ int StorageMetrics::replicationRecoverySpeed() {
     LOG(ERROR) << "Storage metrics failed to set watcher.";
     return -1;
   }
+  LOG(INFO) << "STORAGE METRICS WATCHER set";
   return 0;
 }
 
@@ -114,9 +120,10 @@ void StorageMetrics::watcher_replicate(zhandle_t *zzh,
   int error;
   std::vector<std::string> datanode_ids;
   if (!zkWrapper->get_children("/work_queues/replicate", datanode_ids, error)) {
-    LOG(ERROR) << "watcher_replicate failed to set watcher 1.";
+    LOG(ERROR) << "watcher_replicate failed to get children 1.";
   }
   if (datanode_ids.size() == 0) {
+    metrics->timeInProgress = false;
     metrics->tempClock = clock() - metrics->tempClock;
     LOG(INFO) << "STORAGE METRICS Recovery Time: " <<
                     static_cast<double>(metrics->tempClock) / CLOCKS_PER_SEC;

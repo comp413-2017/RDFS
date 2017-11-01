@@ -108,6 +108,7 @@ class StorageMetrics {
   std::shared_ptr<ZKWrapper> zkWrapper;
 
   clock_t tempClock;
+  bool timeInProgress;
 
   /**
    * Takes an array of integers and returns the standard deviation.
