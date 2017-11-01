@@ -116,7 +116,6 @@ TEST_F(NamenodeTest, modifyCache) {
 // try this on a child of a directory, make sure directory is changed
 TEST_F(NamenodeTest, getMultipleFilesFromDir) {
     // First, create some files in a directory.
-    //TODO : implement this
 
     hadoop::hdfs::CreateRequestProto create_req;
     hadoop::hdfs::CreateResponseProto create_resp;
@@ -182,4 +181,20 @@ TEST_F(NamenodeTest, getMultipleFilesFromDir) {
     ASSERT_TRUE(file_status.path() == "/testing/list_testing2/file1" ||
                 file_status.path() == "/testing/list_testing2/file2" ||
                 file_status.path() == "/testing/list_testing2/file3");
+
+    // Check to make sure the cache has been accessed
+    ASSERT_EQ(client->cache_size(), 1);
+    ASSERT_TRUE(client->cache_contains(src));
+
+    // Now delete a child and see if the parent is still in the cache (it shouldn't)
+    hadoop::hdfs::DeleteRequestProto delete_req;
+    hadoop::hdfs::DeleteResponseProto delete_resp;
+    delete_req.set_src("/testing/list_testing2/file1");
+    delete_req.set_recursive(false);
+    ASSERT_EQ(client->destroy(delete_req, delete_resp),
+        zkclient::ZkNnClient::DeleteResponse::Ok);
+
+    // Check to make sure the cache has been accessed
+    ASSERT_EQ(client->cache_size(), 0);
+    ASSERT_FALSE(client->cache_contains(src));
 }
