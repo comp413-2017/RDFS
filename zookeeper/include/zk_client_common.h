@@ -54,6 +54,8 @@ class ZkClientCommon {
   static const char BLOCK_LOCATIONS[];
   static const char BLOCK_GROUP_LOCATIONS[];
   static const char BLOCKS[];
+  static const char EC_RECOVER_QUEUES[];
+  static const char EC_RECOVER_QUEUES_NO_BACKSLASH[];
 
  private:
   static const std::string CLASS_NAME;

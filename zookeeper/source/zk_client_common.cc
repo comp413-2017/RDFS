@@ -17,6 +17,9 @@ const char ZkClientCommon::
         REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
 const char ZkClientCommon::DELETE_QUEUES[] = "/work_queues/delete/";
 const char ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH[] = "/work_queues/delete";
+const char ZKClientCommon::EC_RECOVER_QUEUES[] = "/work_queues/ec_recover/";
+const char ZKClientCommon::
+        EC_RECOVER_QUEUES_NO_BACKSLASH[] = "/work_queues/ec_recover";
 const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
 const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
 const char ZkClientCommon::REPLICATE_BACKSLASH[] = "replicate/";
@@ -95,6 +98,15 @@ void ZkClientCommon::init() {
                       error_code, false)) {
         // Handle failed to create replicate node
         LOG(INFO) << "Creation failed for repl queue";;
+      }
+    }
+  }
+  if (zk->exists(EC_RECOVER_QUEUES_NO_BACKSLASH, exists, error_code)) {
+    if (!exists) {
+      if (!zk->create(EC_RECOVER_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        // Handle failed to create ec_recover node.
+        LOG(INFO) << "Creation failed for ec_rec queue";;
       }
     }
   }
