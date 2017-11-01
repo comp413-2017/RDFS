@@ -1228,7 +1228,7 @@ void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
                                        FileZNode &znode_data) {
   // get the filetype, since we do not want to serialize an enum
   int error_code = 0;
-  if (znode_data.filetype == IS_FILE) {
+  if (znode_data.filetype == IS_DIR) {
     int num_file = 0;
     int num_dir = 0;
     std::vector<std::string> children;
@@ -1239,7 +1239,7 @@ void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
         auto child_path = util::concat_path(path, child);
         FileZNode child_data;
         read_file_znode(child_data, child_path);
-        if (znode_data.filetype == IS_FILE) {
+        if (child_data.filetype == IS_FILE) {
           num_file += 1;
         } else {
           num_dir += 1;
