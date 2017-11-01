@@ -110,8 +110,7 @@ TEST_F(StorageTest, testRecoveryTime) {
                           "/home/vagrant/rdfs/test/integration/generate_file.py"
                           " > expected_testfile1234"));
   // Put a file into rdfs.
-  system((
-             "hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
                  " -D dfs.blocksize=1048576 "
                      "-copyFromLocal expected_testfile1234 /f").c_str());
   sleep(5);
@@ -128,14 +127,17 @@ TEST_F(StorageTest, testRecoveryTime) {
   // Kill an original datanode and trigger the metric measurement during repl.
   system(("pkill -f StorageTestServer" + std::to_string(minDatanodeId++))
              .c_str());
-  if (metrics.replicationRecoverySpeed() != 0) {
-    LOG(ERROR) << "testRecoveryTime: storage metrics failed to measure time.";
+
+  // TODO(ejd6): revisit this for a better recovery time estimate.
+  // Use StorageMetrics
+  clock_t tempClock = clock();
+  sleep(10);
+  while (usedBefore != metrics.usedSpace()) {
+    sleep(10);
   }
 
-  sleep(100);
-
-  // The data should now be replicated on the new servers.
-  ASSERT_EQ(usedBefore, metrics.usedSpace());
+  LOG(INFO) << "loop done at "
+            << static_cast<double>(clock() - tempClock) / CLOCKS_PER_SEC;;
 
   system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) + " -rm /f")
              .c_str());
