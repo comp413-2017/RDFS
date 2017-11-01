@@ -87,8 +87,8 @@ void ZkClientCommon::init() {
     if (!exists) {
       if (!zk->create(DELETE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
-        // Handle failed to create replicate node
-        LOG(INFO) << "Creation failed for delete ueue";;
+        // Handle failed to create delete node
+        LOG(INFO) << "Creation failed for delete queue";
       }
     }
   }
@@ -97,7 +97,7 @@ void ZkClientCommon::init() {
       if (!zk->create(REPLICATE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
         // Handle failed to create replicate node
-        LOG(INFO) << "Creation failed for repl queue";;
+        LOG(INFO) << "Creation failed for repl queue";
       }
     }
   }
@@ -106,7 +106,7 @@ void ZkClientCommon::init() {
       if (!zk->create(EC_RECOVER_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
         // Handle failed to create ec_recover node.
-        LOG(INFO) << "Creation failed for ec_rec queue";;
+        LOG(INFO) << "Creation failed for ec_rec queue";
       }
     }
   }
