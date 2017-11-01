@@ -254,6 +254,32 @@ bool ZkClientDn::poll_delete_queue() {
   return true;
 }
 
+bool ZkClientDn::poll_replication_queue() {
+  handleReconstructCmds();
+}
+
+void ZkClientDn::handleReconstructCmds(uint64_t storage_id, uint64_t dn_id) {
+  int err;
+  uint64_t block_group_id = ZkNnClient::get_block_group_id(storage_id);
+  std::vector<std::string> strg_blks;
+  std::string path = zkclient::get_block_metadata_path(block_group_id);
+  if (!zk->get_children(path, strg_blks, err)) {
+    LOG(ERROR) << "Could not find block group!";
+    return;
+  }
+  std::vector<std::string> datanodes;
+  for (std:string strg_blk : strg_blks) {
+    zk->get_children(path + "/" + strg_blk, datanodes, err);
+  }
+
+
+  // TODO(ADAM): check liveness of each node, pick only first <num_data_blks>
+  // TODO(ADAM): Read data from dns
+
+
+
+}
+
 void ZkClientDn::handleReplicateCmds(const std::string &path) {
   int err;
   // LOG(ERROR) << "handling replicate watcher for " << path;
@@ -441,7 +467,7 @@ bool ZkClientDn::find_datanode_with_block(const std::string &block_uuid_str,
 
   datanode = datanodes[0];
   LOG(INFO) << "Found DN: "
-            << datanode
+            << DataNode
             << " which has a replica of: "
             << block_uuid_str;
   return true;
