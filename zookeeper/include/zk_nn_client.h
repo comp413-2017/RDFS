@@ -14,6 +14,7 @@
 #include <utility>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
+#include "erasurecoding.pb.h"
 #include <ConfigReader.h>
 #include "util.h"
 
@@ -105,6 +106,11 @@ using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
 using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::ErasureCodingPolicyProto;
+using hadoop::hdfs::ECSchemaProto;
+using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
+using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
+
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -115,9 +121,15 @@ class ZkNnClient : public ZkClientCommon {
 
   const char* EC_REPLICATION = "EC_REPLICATION";
   const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
-  const char* DEFAULT_EC_CODEC_NAME = "RS64";
+  const uint32_t DEFAULT_DATA_UNITS = 6;
+  const uint32_t DEFAULT_PARITY_UNITS = 3;
+  const char* DEFAULT_EC_CODEC_NAME = "rs";
+  const char* DEFAULT_EC_POLICY_NAME = "RS-6-3-1024k";
+  ECSchemaProto DEFAULT_EC_SCHEMA;
+  ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+
 
 enum class ListingResponse {
       Ok,                   // 0
@@ -152,6 +164,10 @@ enum class ListingResponse {
       FileAlreadyExists,
       FailedMkdir,
       FailedCreateZnode
+  };
+
+  enum class ErasureCodingPoliciesResponse {
+      Ok
   };
 
 
@@ -192,6 +208,14 @@ enum class ListingResponse {
   void set_node_policy(char policy);
 
   char get_node_policy();
+
+  /**
+   * Returns the erasure coding policies loaded in Namenode, excluding REPLICATION
+   * policy.
+   */
+  ErasureCodingPoliciesResponse get_erasure_coding_policies(
+      GetErasureCodingPoliciesRequestProto &req,
+      GetErasureCodingPoliciesResponseProto &res);
   /**
    * Adds a block by making appropriate namespace changes and returns information about
    * the set of DataNodes that the block data should be hosted by.
@@ -239,13 +263,6 @@ enum class ListingResponse {
   uint32_t get_total_num_storage_blocks(
           const std::string &fileName,
           u_int64_t &block_group_id);
-
-  /**
-   * Given the ID of an EC policy, returns the numbers of data blocks and parity blocks within a block group.
-   * @param ecID the ID of an EC policy.
-   * @return a pair denoting (# of data blocks, # of parity blocks);
-   */
-  std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
@@ -464,6 +481,11 @@ enum class ListingResponse {
   std::string determineRedundancyForm(
           const std::string &ecPolicyString,
           const std::string &path);
+
+  /**
+   * Populates DEFAULT_EC_SCHEMA and RS_SOLOMON_PROTO fields.
+   */
+  void populateDefaultECProto();
 
   const int UNDER_CONSTRUCTION = 1;
   const int FILE_COMPLETE = 0;
