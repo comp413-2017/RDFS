@@ -1,4 +1,4 @@
-  // Copyright 2017 Rice University, COMP 413 2017
+// Copyright 2017 Rice University, COMP 413 2017
 
 #ifndef ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 #define ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
@@ -23,14 +23,14 @@ namespace zkclient {
 
 
 typedef enum class FileStatus : int {
-    UnderConstruction,
-    FileComplete,
-    UnderDestruction
+	UnderConstruction,
+	FileComplete,
+	UnderDestruction
 } FileStatus;
 
 /**
- * This is the basic znode to describe a file
- */
+* This is the basic znode to describe a file
+*/
 typedef struct {
   uint32_t replication;
   uint64_t blocksize;
@@ -68,33 +68,33 @@ typedef struct {
 } ClientInfo;
 
 struct TargetDN {
-  char policy;
-  std::string dn_id;
-  uint64_t free_bytes;    // free space on disk
-  uint32_t num_xmits;        // current number of xmits
+	char policy;
+	std::string dn_id;
+	uint64_t free_bytes;    // free space on disk
+	uint32_t num_xmits;        // current number of xmits
 
-  TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
-                                                   free_bytes(bytes),
-                                                   policy(policy),
-                                                   num_xmits(xmits) {
-  }
+	TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
+																  free_bytes(bytes),
+																  policy(policy),
+																  num_xmits(xmits) {
+	}
 
-  bool operator<(const struct TargetDN &other) const {
-    // If storage policy is 'x' for xmits, choose the min xmits node
-    if (policy == MIN_XMITS) {
-        if (num_xmits == other.num_xmits) {
-            return free_bytes < other.free_bytes;
-        }
-        return num_xmits > other.num_xmits;
+	bool operator<(const struct TargetDN &other) const {
+	  // If storage policy is 'x' for xmits, choose the min xmits node
+	  if (policy == MIN_XMITS) {
+		if (num_xmits == other.num_xmits) {
+		  return free_bytes < other.free_bytes;
+		}
+		return num_xmits > other.num_xmits;
 
-    // Default policy is choose the node with the most free space
-    } else {
-        if (free_bytes == other.free_bytes) {
-            return num_xmits > other.num_xmits;
-        }
-        return free_bytes < other.free_bytes;
-    }
-  }
+		// Default policy is choose the node with the most free space
+	  } else {
+		if (free_bytes == other.free_bytes) {
+		  return num_xmits > other.num_xmits;
+		}
+		return free_bytes < other.free_bytes;
+	  }
+	}
 };
 
 using hadoop::hdfs::AddBlockRequestProto;
