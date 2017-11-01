@@ -15,6 +15,7 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include "util.h"
+#include "LRUCache.h"
 
 #define MAX_USERNAME_LEN 256
 
@@ -588,6 +589,8 @@ class ZkNnClient : public ZkClientCommon {
   bool isSecureMode = false;
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
+
+	lru::Cache<std::string, std::vector<std::uint8_t>> cache;
 };
 
 }  // namespace zkclient
