@@ -111,6 +111,15 @@ void ZkClientCommon::init() {
       }
     }
   }
+  if (zk->exists(EC_RECOVER_QUEUES_NO_BACKSLASH, exists, error_code)) {
+    if (!exists) {
+      if (!zk->create(EC_RECOVER_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        // Handle failed to create ec_recover node.
+        LOG(INFO) << "Creation failed for ec_rec queue";;
+      }
+    }
+  }
   if (zk->exists("/block_locations", exists, error_code)) {
     if (!exists) {
       zk->create("/block_locations", vec, error_code, false);
