@@ -277,7 +277,7 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProt
   std::string client_name = req.clientname();
   bool exists;
   int error_code;
-  if (!zk->exists(CLIENTS + client_name, exists, error_code)) {
+  if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " << CLIENTS + client_name << " exits.";
   } else {
     ClientInfo clientInfo;
@@ -286,11 +286,11 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProt
     znode_data_to_vec(&clientInfo, data);
 
     if (!exists) {
-      if(!zk->create(CLIENTS + client_name, data, error_code)) {
+      if(!zk->create(CLIENTS + '/' + client_name, data, error_code)) {
         LOG(ERROR) << "Failed to create zk path " << CLIENTS + client_name << ".";
       }
     } else {
-      if(!zk->set(CLIENTS + client_name, data, error_code)) {
+      if(!zk->set(CLIENTS + '/' + client_name, data, error_code)) {
         LOG(ERROR) << "Failed to set data for " << CLIENTS + client_name << ".";
       }
     }
