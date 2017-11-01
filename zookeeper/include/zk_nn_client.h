@@ -189,7 +189,10 @@ class ZkNnClient : public ZkClientCommon {
       FileAccessRestricted
   };
 
-  explicit ZkNnClient(std::string zkIpAndAddress);
+  explicit ZkNnClient(std::string zkIpAndAddress) : cache(),
+                            ZkClientCommon(zkIpAndAddress) {
+    mkdir_helper("/", false);
+  };
 
   /**
    * Use this constructor to build ZkNnClient with a custom ZKWrapper.
@@ -200,7 +203,11 @@ class ZkNnClient : public ZkClientCommon {
    * @return ZkNnClient
    */
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
-                      bool secureMode = false);
+                      bool secureMode = false) : cache(),
+                                                 ZkClientCommon(zk_in) {
+    mkdir_helper("/", false);
+    isSecureMode = secureMode;
+  }
   void register_watches();
   /**
    * Returns the current timestamp in milliseconds
@@ -552,6 +559,9 @@ class ZkNnClient : public ZkClientCommon {
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
+  static void watcher_listing(zhandle_t *zzh, int type, int state,
+                              const char *path, void *watcherCtx);
+
   /**
    * Returns whether the input client is still alive.
    */
@@ -590,7 +600,7 @@ class ZkNnClient : public ZkClientCommon {
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
-	lru::Cache<std::string, std::vector<std::uint8_t>> cache;
+  lru::Cache<std::string, hadoop::hdfs::DirectoryListingProto *> *cache;
 };
 
 }  // namespace zkclient
