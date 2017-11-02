@@ -184,7 +184,7 @@ TEST_F(NamenodeTest, getMultipleFilesFromDir) {
 
     // Check to make sure the cache has been accessed
     ASSERT_EQ(client->cache_size(), 1);
-    ASSERT_TRUE(client->cache_contains(src));
+    ASSERT_TRUE(client->cache_contains("/testing/list_testing2"));
 
     // Now delete a child and see if the parent is still in the cache (it shouldn't)
     hadoop::hdfs::DeleteRequestProto delete_req;
@@ -196,5 +196,5 @@ TEST_F(NamenodeTest, getMultipleFilesFromDir) {
 
     // Check to make sure the cache has been accessed
     ASSERT_EQ(client->cache_size(), 0);
-    ASSERT_FALSE(client->cache_contains(src));
+    ASSERT_FALSE(client->cache_contains("/testing/list_testing2"));
 }
