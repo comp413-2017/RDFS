@@ -1158,8 +1158,8 @@ void ZkNnClient::get_block_locations(const std::string &src,
 }
 
 
-
-ZkNnClient::ErasureCodingPoliciesResponse ZkNnClient::get_erasure_coding_policies(
+ZkNnClient::ErasureCodingPoliciesResponse
+ZkNnClient::get_erasure_coding_policies(
     GetErasureCodingPoliciesRequestProto &req,
     GetErasureCodingPoliciesResponseProto &res) {
 
