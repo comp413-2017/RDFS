@@ -286,7 +286,7 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProt
     znode_data_to_vec(&clientInfo, data);
 
     if (!exists) {
-      if(!zk->create(CLIENTS + '/' + client_name, data, error_code)) {
+      if(!zk->create(CLIENTS + '/' + client_name, data, error_code, false)) {
         LOG(ERROR) << "Failed to create zk path " << CLIENTS + client_name << ".";
       }
     } else {
@@ -302,8 +302,8 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseRespon
   std::string file_path = req.src();
   int error_code;
   bool exists;
-  if (!zk->exists(ZookeeperPath(file_path), exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " << ZookeeperPath(file_path) << " exists.";
+  if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
+    LOG(ERROR) << "Failed to check whether " << ZookeeperFilePath(file_path) << " exists.";
     res.set_result(false);
     return;
   }
@@ -313,13 +313,13 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseRespon
     return;
   }
   std::vector<std::string> children;
-  if (!zk->get_children(ZookeeperPath(file_path), children, error_code)) {
-    LOG(ERROR) << "Failed to get children of " << ZookeeperPath(file_path) << ".";
+  if (!zk->get_children(ZookeeperFilePath(file_path), children, error_code)) {
+    LOG(ERROR) << "Failed to get children of " << ZookeeperFilePath(file_path) << ".";
     res.set_result(false);
     return;
   }
   if (children.size() > 0) {
-    LOG(ERROR) << "Fatal error: there are more than one leases for " << ZookeeperPath(file_path) << ".";
+    LOG(ERROR) << "Fatal error: there are more than one leases for " << ZookeeperFilePath(file_path) << ".";
     res.set_result(false);
     return;
   }
@@ -332,8 +332,8 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseRespon
   if (lease_expired(lease_holder_client)) {
     // TODO: start the lease recovery process that closes the file for the
     // client and make sure the replicas are consistent.
-    if (!zk->delete_node(ZookeeperPath(file_path) + LEASES + '/' + lease_holder_client, error_code, true)) {
-      LOG(ERROR) << "Failed to delete the dead lease holder client for " + ZookeeperPath(file_path) + ".";
+    if (!zk->delete_node(ZookeeperFilePath(file_path) + LEASES + '/' + lease_holder_client, error_code, true)) {
+      LOG(ERROR) << "Failed to delete the dead lease holder client for " + ZookeeperFilePath(file_path) + ".";
       res.set_result(false);
       return;
     }
@@ -2057,9 +2057,7 @@ bool ZkNnClient::lease_expired(std::string lease_holder_client) {
     // Thanks god it is for sure dead.
     return true;
   }
-  ClientInfo clientInfo;
-  read_znode_data(clientInfo, CLIENTS + '/' + lease_holder_client);
-  uint64_t timestamp = clientInfo.timestamp;
+  uint64_t timestamp = get_client_lease_timestamp(lease_holder_client);
   if (timestamp - current_time_ms() < EXPIRATION_TIME) {
     return false;
   } else {
@@ -2068,6 +2066,12 @@ bool ZkNnClient::lease_expired(std::string lease_holder_client) {
       return false;
     }
   }
+}
+
+uint64_t ZkNnClient::get_client_lease_timestamp(std::string client_name) {
+  ClientInfo clientInfo;
+  read_znode_data(clientInfo, CLIENTS + '/' + client_name);
+  return clientInfo.timestamp;
 }
 }  // namespace zkclient
 
