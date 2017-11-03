@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <easylogging++.h>
+#include <string.h>
 INITIALIZE_EASYLOGGINGPP
 using ::testing::AtLeast;
 
@@ -29,7 +30,7 @@ TEST_F(NativeFSTest, CanWriteBlock) {
   ASSERT_EQ(true, filesystem.writeBlock(1, blk));
 }
 
-TEST_F(NativeFSTest, CanGetBlock) {
+TEST_F(NativeFSTest, CanWriteAndGetBlock) {
   NativeFS filesystem(backing);
   bool write_success = filesystem.writeBlock(2, blk);
   ASSERT_EQ(true, write_success);
@@ -37,7 +38,7 @@ TEST_F(NativeFSTest, CanGetBlock) {
   ASSERT_EQ(true, filesystem.hasBlock(2));
   bool success = filesystem.getBlock(2, newBlock);
   ASSERT_EQ(true, success);
-  ASSERT_EQ(blk[0], newBlock[0]);
+  ASSERT_EQ(0, blk.compare(0, blk.length(), newBlock));
 }
 
 TEST_F(NativeFSTest, CanRemoveBlock) {
