@@ -152,11 +152,14 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
       + dn_id;
   const std::string &delete_q_path = zkclient::ZkClientCommon::DELETE_QUEUES
       + dn_id;
+  const std::string &ec_rec_q_path = zkclient::ZkClientCommon::EC_RECOVER_QUEUES
+      + dn_id;
   const std::string &block_path = util::concat_path(
       path,
       zkclient::ZkClientCommon::BLOCKS);
   std::vector<std::uint8_t> bytes;
   std::vector<std::string> to_replicate;
+  std::vector<std::string> to_ec_recover;
   /* Lock the znode */
   ZKLock race_lock(*zk.get(), std::string(path));
   if (race_lock.lock()) {
@@ -192,6 +195,15 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
   }
   children.clear();
 
+  /* Get all ec_recover queue items for this datanode, save it */
+  if (!zk->get_children(ec_rec_q_path.c_str(), children, err)) {
+    LOG(ERROR) << " Failed to get dead datanode's ec_recover queue";
+    goto unlock;
+  }
+  for (auto child : children)
+    to_ec_recover.push_back(child);
+  children.clear();
+
   /* Delete all work queues for this datanode */
   if (!zk->recursive_delete(repl_q_path, err)) {
     LOG(ERROR) << " Failed to delete dead datanode's replication queue";
@@ -199,6 +211,10 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
   }
   if (!zk->recursive_delete(delete_q_path, err)) {
     LOG(ERROR) << " Failed to delete dead datanode's delete queue";
+    goto unlock;
+  }
+  if (!zk->recursive_delete(ec_rec_q_path, err)) {
+    LOG(ERROR) << " Failed to delete dead datanode's ec_recover queue";
     goto unlock;
   }
 
@@ -213,7 +229,10 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
 
   /* Push blocks this datanode has onto replication to-queue list */
   for (auto child : children) {
-    to_replicate.push_back(child);
+    if (ZkClientCommon::is_ec_block(child))
+      to_ec_recover.push_back(child);
+    else
+      to_replicate.push_back(child);
   }
   children.clear();
 
@@ -225,6 +244,11 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
   /* Push all blocks needing to be replicated onto the queue */
   if (!cli->replicate_blocks(to_replicate, err)) {
     LOG(ERROR) << "Failed to push all items on to replication queues!";
+    goto unlock;
+  }
+  /* Push all ec blocks needing to be recovered onto the queue */
+  if (!cli->recover_ec_blocks(to_ec_recover, err)) {
+    LOG(ERROR) << "Failed to push all items on to ec_recover queues!";
     goto unlock;
   }
   unlock:
@@ -1823,6 +1847,41 @@ bool ZkNnClient::check_acks() {
 
   return true;
 }
+
+bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
+                                  int err) {
+  std::vector<std::shared_ptr<ZooOp>> ops;
+  std::vector<zoo_op_result> results;
+
+  for (auto rec : to_ec_recover) {
+    std::string read_from;
+    std::vector<std::string> target_dn;
+    std::uint64_t block_id;
+    std::stringstream strm(rec);
+    strm >> block_id;
+    uint64_t blocksize;
+    if (!get_block_size(block_id, blocksize)) {
+      LOG(ERROR) << "Replicate could not read the block size for block: "
+                 << block_id;
+      return false;
+    }
+    if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
+        || target_dn.size() == 0) {
+      LOG(ERROR) << " Failed to find datanode for this block! " << repl;
+      return false;
+    }
+    auto queue = EC_RECOVER_QUEUES + target_dn[0];
+    auto rec_item = util::concat_path(queue, rec);
+    ops.push_back(zk->build_create_op(rec_item, ZKWrapper::EMPTY_VECTOR));
+  }
+
+  // We do not need to sync this multi-op immediately
+  if (!zk->execute_multi(ops, results, err, false)) {
+    LOG(ERROR) << "Failed to execute multiop for recover_ec_blocks";
+    return false;
+  }
+}
+
 
 bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
                                   int err) {
