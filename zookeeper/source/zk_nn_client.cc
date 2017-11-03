@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <easylogging++.h>
 #include <google/protobuf/message.h>
+#include <erasurecoding.pb.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -53,17 +54,31 @@ using hadoop::hdfs::DatanodeInfoProto;
 using hadoop::hdfs::DatanodeIDProto;
 using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
+using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
+using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 
 namespace zkclient {
 
 ZkNnClient::ZkNnClient(std::string zkIpAndAddress) :
     ZkClientCommon(zkIpAndAddress) {
   mkdir_helper("/", false);
+  populateDefaultECProto();
 }
 
 ZkNnClient::ZkNnClient(std::shared_ptr<ZKWrapper> zk_in) :
     ZkClientCommon(zk_in) {
   mkdir_helper("/", false);
+  populateDefaultECProto();
+}
+
+void ZkNnClient::populateDefaultECProto() {
+  DEFAULT_EC_SCHEMA.set_parityunits(DEFAULT_PARITY_UNITS);
+  DEFAULT_EC_SCHEMA.set_dataunits(DEFAULT_DATA_UNITS);
+  DEFAULT_EC_SCHEMA.set_codecname(DEFAULT_EC_CODEC_NAME);
+  RS_SOLOMON_PROTO.set_name(DEFAULT_EC_POLICY_NAME);
+  RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
+  RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
 }
 
 /*
@@ -1143,6 +1158,18 @@ void ZkNnClient::get_block_locations(const std::string &src,
 }
 
 
+ZkNnClient::ErasureCodingPoliciesResponse
+ZkNnClient::get_erasure_coding_policies(
+    GetErasureCodingPoliciesRequestProto &req,
+    GetErasureCodingPoliciesResponseProto &res) {
+
+  auto ec_policies = res.mutable_ecpolicies();
+  ErasureCodingPolicyProto *ec_policy_to_add = ec_policies->Add();
+  ec_policy_to_add = &RS_SOLOMON_PROTO;
+  return ErasureCodingPoliciesResponse::Ok;
+}
+
+
 // ------------------------------ HELPERS ---------------------------
 
 bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
@@ -1292,10 +1319,8 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
       ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
       ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
-      std::pair<uint32_t, uint32_t> num_blocks = get_num_data_parity_blocks(
-              DEFAULT_EC_ID);
-      ecSchema->set_dataunits(num_blocks.first);
-      ecSchema->set_parityunits(num_blocks.second);
+      ecSchema->set_dataunits(DEFAULT_DATA_UNITS);
+      ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
       ecPolicyProto->set_allocated_schema(ecSchema);
       status->set_allocated_ecpolicy(ecPolicyProto);
   }
@@ -1426,12 +1451,6 @@ uint32_t ZkNnClient::get_total_num_storage_blocks(
     return 9;  // arbitrarily assume RS(6, 3)
 }
 
-std::pair<uint32_t, uint32_t> ZkNnClient::get_num_data_parity_blocks(
-        uint32_t ecID) {
-    // TODO(nate): the value must sum up to the return value of
-    // get_total_num_storage_blocks
-    return std::make_pair(6, 3);
-}
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
