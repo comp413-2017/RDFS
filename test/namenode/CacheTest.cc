@@ -27,6 +27,7 @@ TEST_F(NamenodeTest, cacheOneFile) {
     client_response = client->get_listing(listing_req, listing_resp);
     ASSERT_EQ(client_response,
               zkclient::ZkNnClient::ListingResponse::Ok) << "File not found";
+    LOG(INFO) << "Listing found";
 
     // Check that we've gotten exactly the file we expected.
     hadoop::hdfs::DirectoryListingProto dir_listing;
@@ -38,25 +39,31 @@ TEST_F(NamenodeTest, cacheOneFile) {
     ASSERT_EQ(file_status.filetype(),
               hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
     ASSERT_EQ(file_status.path(), "/testing/cache_testing");
+    LOG(INFO) << "Listing correct";
 
     // Check to make sure the cache has been accessed
     ASSERT_EQ(client->cache_size(), 1);
     ASSERT_TRUE(client->cache_contains("/testing/cache_testing"));
+    LOG(INFO) << "Cache size correct";
 
     // Now try to get the same file again
     client_response = client->get_listing(listing_req, listing_resp);
     ASSERT_EQ(client_response,
         zkclient::ZkNnClient::ListingResponse::Ok) << "File not found";
+    LOG(INFO) << "Listing found in cache";
 
     // Check the listing information again
     ASSERT_TRUE(listing_resp.has_dirlist());
+    LOG(INFO) << "Listing has dirlist";
     dir_listing = listing_resp.dirlist();
     EXPECT_EQ(dir_listing.partiallisting_size(), 1);
+    LOG(INFO) << "Partial listing";
     file_status = dir_listing.partiallisting(0);
+    LOG(INFO) << "Get partial listing";
     ASSERT_EQ(file_status.filetype(),
             hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
     ASSERT_EQ(file_status.path(), "/testing/cache_testing");
-
+    LOG(INFO) << "Info done";
     // Check to make sure cache isn't funky
     ASSERT_EQ(client->cache_size(), 1);
     ASSERT_TRUE(client->cache_contains("/testing/cache_testing"));

@@ -73,9 +73,9 @@ struct TargetDN {
 	uint64_t free_bytes;    // free space on disk
 	uint32_t num_xmits;        // current number of xmits
 
-	TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
+	TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
+																  dn_id(id),
 																  free_bytes(bytes),
-																  policy(policy),
 																  num_xmits(xmits) {
 	}
 
@@ -189,8 +189,10 @@ class ZkNnClient : public ZkClientCommon {
       FileAccessRestricted
   };
 
-  explicit ZkNnClient(std::string zkIpAndAddress) : cache(),
-                            ZkClientCommon(zkIpAndAddress) {
+  explicit ZkNnClient(std::string zkIpAndAddress) 
+    : ZkClientCommon(zkIpAndAddress),
+      cache(new lru::Cache<std::string, 
+      std::shared_ptr<hadoop::hdfs::DirectoryListingProto>>(64, 10)) {
     mkdir_helper("/", false);
   };
 
@@ -203,8 +205,10 @@ class ZkNnClient : public ZkClientCommon {
    * @return ZkNnClient
    */
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
-                      bool secureMode = false) : cache(),
-                                                 ZkClientCommon(zk_in) {
+          bool secureMode = false) 
+            : ZkClientCommon(zk_in),
+              cache(new lru::Cache<std::string, 
+              std::shared_ptr<hadoop::hdfs::DirectoryListingProto>>(64, 10)) {
     mkdir_helper("/", false);
     isSecureMode = secureMode;
   }
@@ -600,7 +604,7 @@ class ZkNnClient : public ZkClientCommon {
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
-  lru::Cache<std::string, hadoop::hdfs::DirectoryListingProto *> *cache;
+  lru::Cache<std::string, std::shared_ptr<hadoop::hdfs::DirectoryListingProto>> *cache;
 };
 
 }  // namespace zkclient

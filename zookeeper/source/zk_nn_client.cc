@@ -239,7 +239,7 @@ void ZkNnClient::watcher_listing(zhandle_t *zzh, int type, int state,
 
 	ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
 	auto zk = cli->zk;
-	auto src = zk->removeZKRoot(std::string(path));
+	auto src = std::string(path);
 
 	// Remove cache entry for this path
 	cli->cache->remove(src);
@@ -1290,9 +1290,9 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
     LOG(INFO) << "size of cache is" << cache->currentSize();
 	if (cache->contains(src)) {
 		// Get cached
-        LOG(INFO) << "Found path " << src << "listing in cache";
+        LOG(INFO) << "Found path " << src << " listing in cache";
 		auto listing = cache->get(src);
-		res.set_allocated_dirlist(listing);
+		res.set_allocated_dirlist(listing.get());
 	} else {
         LOG(INFO) << "Did not find path " << src << " listing in cache";
 		// From 2016:
@@ -1305,10 +1305,12 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 
 		const int start_after = req.startafter();
 		const bool need_location = req.needlocation();
-		DirectoryListingProto *listing = res.mutable_dirlist();
+		DirectoryListingProto *raw_listing = res.mutable_dirlist();
+		std::shared_ptr<DirectoryListingProto> listing(raw_listing);
+		
 
 		// Set watcher on root and examine node
-		if (zk->wexists(src, exists, watcher_listing, this, error_code) && exists) {
+		if (zk->wexists(ZookeeperFilePath(src), exists, watcher_listing, this, error_code) && exists) {
 
 			// Read node data
 			FileZNode znode_data;
@@ -1359,7 +1361,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 			}
 			listing->set_remainingentries(0);
 			cache->insert(src, listing);
-            LOG(INFO) << "Adding path to cache";
+            LOG(INFO) << "Adding path to cache " << src;
 		} else {
 			LOG(ERROR) << "File does not exist with name " << src;
 			return ListingResponse::FileDoesNotExist;
