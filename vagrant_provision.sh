@@ -58,9 +58,9 @@ cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hado
 
 # Setup Intel Storage Acceleration Library (ISA-L)
 wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
-tar -xf isa-lopensrc2.13.tar.gz
+tar -xf isal.tar.gz
 mv isa-l_open_src_2.13 /home/vagrant/isal
-rm isa-lopensrc2.13.tar.gz
+rm isal.tar.gz
 cd /home/vagrant/isal
 make
 cd /home/vagrant
