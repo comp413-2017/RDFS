@@ -255,9 +255,7 @@ bool ZkClientDn::poll_delete_queue() {
 }
 
 bool ZkClientDn::poll_reconstruct_queue() {
-  handleReconstrucCmds(util::concat_path(EC_RECOVER_QUEUES, get_datanode_id()));
-
-  bool success = handleReconstructCmds();
+  return handleReconstrucCmds(util::concat_path(EC_RECOVER_QUEUES, get_datanode_id()));
 }
 
 bool ZkClientDn::handleReconstructCmds(std::string &path) {
@@ -312,6 +310,7 @@ bool ZkClientDn::handleReconstructCmds(std::string &path) {
     }
     // TODO(ADAM): Read data from datanodes
     // TODO(Will): do ISAL computation and write
+    // TODO(ADAM/WILL): write acks
 
     ops.push_back(zk->build_delete_op(full_work_item_path));
   }
@@ -321,7 +320,8 @@ bool ZkClientDn::handleReconstructCmds(std::string &path) {
     LOG(ERROR)
             << "Failed to delete successfully completed reconstruct commands!";
   }
-  // TODO(ADAM): write acks?
+  
+  return true;
 }
 
 void ZkClientDn::handleReplicateCmds(const std::string &path) {
