@@ -30,7 +30,7 @@ TEST_F(NativeFSTest, CanWriteBlock) {
 TEST_F(NativeFSTest, WriteExistingBlock) {
   NativeFS filesystem(backing);
   filesystem.writeBlock(1, blk);
-  ASSERT_FALSE(filesystem.writeBlock(1,blk));
+  ASSERT_FALSE(filesystem.writeBlock(1, blk));
 }
 
 TEST_F(NativeFSTest, CanWriteAndGetBlock) {
@@ -80,7 +80,6 @@ TEST_F(NativeFSTest, CanRemoveBlock) {
   ASSERT_TRUE(filesystem.rmBlock(10));
   ASSERT_TRUE(filesystem.rmBlock(11));
   ASSERT_TRUE(filesystem.rmBlock(12));
-
 }
 
 TEST_F(NativeFSTest, RemoveNonExistBlockReturnsError) {
