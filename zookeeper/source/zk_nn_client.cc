@@ -229,7 +229,10 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
 
   /* Push blocks this datanode has onto replication to-queue list */
   for (auto child : children) {
-    if (ZkClientCommon::is_ec_block(child))
+    std::uint64_t block_id;
+    std::stringstream strm(child);
+    strm >> block_id;
+    if (ZkClientCommon::is_ec_block(block_id))
       to_ec_recover.push_back(child);
     else
       to_replicate.push_back(child);
@@ -1749,7 +1752,6 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
  * Checks that each block UUID in the wait_for_acks dir:
  *	 1. has REPLICATION_FACTOR many children
  *	 2. if the block UUID was created more than ACK_TIMEOUT milliseconds ago
- * TODO: Add to header file
  * @return
  */
 bool ZkNnClient::check_acks() {
@@ -1851,7 +1853,6 @@ bool ZkNnClient::check_acks() {
 bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
                                   int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
-  std::vector<zoo_op_result> results;
 
   for (auto rec : to_ec_recover) {
     std::string read_from;
