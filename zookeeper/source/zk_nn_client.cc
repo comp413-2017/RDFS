@@ -1286,11 +1286,15 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 
 	const std::string &src = req.src();
 
+    LOG(INFO) << "get listing called";
+    LOG(INFO) << "size of cache is" << cache->currentSize();
 	if (cache->contains(src)) {
 		// Get cached
+        LOG(INFO) << "Found path " << src << "listing in cache";
 		auto listing = cache->get(src);
 		res.set_allocated_dirlist(listing);
 	} else {
+        LOG(INFO) << "Did not find path " << src << " listing in cache";
 		// From 2016:
 		// if src is a file then just return that file with remaining = 0
 		// otherwise return first 1000 files in src dir starting at start_after
@@ -1355,6 +1359,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 			}
 			listing->set_remainingentries(0);
 			cache->insert(src, listing);
+            LOG(INFO) << "Adding path to cache";
 		} else {
 			LOG(ERROR) << "File does not exist with name " << src;
 			return ListingResponse::FileDoesNotExist;

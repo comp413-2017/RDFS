@@ -15,6 +15,7 @@ TEST_F(NamenodeTest, cacheOneFile) {
     create_req.set_createflag(0);
     ASSERT_EQ(client->create_file(create_req, create_resp),
               zkclient::ZkNnClient::CreateResponse::Ok);
+    LOG(INFO) << "File created";
 
     // Now attempt to get the listing
     hadoop::hdfs::GetListingRequestProto listing_req;
