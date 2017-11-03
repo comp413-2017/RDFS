@@ -27,6 +27,12 @@ TEST_F(NativeFSTest, CanWriteBlock) {
   ASSERT_TRUE(filesystem.writeBlock(1, blk));
 }
 
+TEST_F(NativeFSTest, WriteExistingBlock) {
+  NativeFS filesystem(backing);
+  filesystem.writeBlock(1, blk);
+  ASSERT_FALSE(filesystem.writeBlock(1,blk));
+}
+
 TEST_F(NativeFSTest, CanWriteAndGetBlock) {
   NativeFS filesystem(backing);
   bool write_success = filesystem.writeBlock(2, blk);
