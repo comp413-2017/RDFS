@@ -254,30 +254,74 @@ bool ZkClientDn::poll_delete_queue() {
   return true;
 }
 
-bool ZkClientDn::poll_replication_queue() {
-  handleReconstructCmds();
+bool ZkClientDn::poll_reconstruct_queue() {
+  handleReconstrucCmds(util::concat_path(EC_RECOVER_QUEUES, get_datanode_id()));
+
+  bool success = handleReconstructCmds();
 }
 
-void ZkClientDn::handleReconstructCmds(uint64_t storage_id, uint64_t dn_id) {
+bool ZkClientDn::handleReconstructCmds(std::string &path) {
   int err;
-  uint64_t block_group_id = ZkNnClient::get_block_group_id(storage_id);
-  std::vector<std::string> strg_blks;
-  std::string path = zkclient::get_block_metadata_path(block_group_id);
-  if (!zk->get_children(path, strg_blks, err)) {
-    LOG(ERROR) << "Could not find block group!";
+  std::vector<std::string> work_items;
+
+  if (!zk->get_children(path, work_items, err)) {
+    LOG(ERROR) << "Failed to get work items!";
     return;
   }
-  std::vector<std::string> datanodes;
-  for (std:string strg_blk : strg_blks) {
-    zk->get_children(path + "/" + strg_blk, datanodes, err);
+
+  if (work_items.size() > 0) {
+    LOG(INFO) << get_datanode_id()
+              << "FOUND "
+              << work_items.size()
+              << " work items";
   }
 
+  std::vector<std::shared_ptr<ZooOp>> ops;
+  for (auto &block : work_items) {
+    auto full_work_item_path = util::concat_path(path, block);
+    std::uint64_t storage_id
+    std::stringstream strm(block);
+    strm >> storage_id;
+    uint64_t storage_id
+    uint64_t block_group_id = zkclient::ZkNnClient::get_block_group_id(storage_id);
+    std::vector<std::string> strg_blks = {};
+    std::string blk_grp_path = zkclient::get_block_metadata_path(block_group_id);
+    if (!zk->get_children(blk_grp_path, strg_blks, err)) {
+      LOG(ERROR) << "Could not find block group!";
+      return;
+    }
+    std::vector<std::string> datanodes = {};
+    for (std:string strg_blk : strg_blks) {
+      zk->get_children(blk_grp_path + "/" + strg_blk, datanodes, err);
+    }
 
-  // TODO(ADAM): check liveness of each node, pick only first <num_data_blks>
-  // TODO(ADAM): Read data from dns
+    // Assume hard-coded RS(6,3), with 6 datablocks and 3 parity blocks
+    int num_data_blks = 6;
+    std::vector<std::pair<uint64_t, std::string>> blk_nodes = {};
+    for (int i = 0; i < datanodes.size(); i++) {
+      bool healthy
+      if (zk->exists(HEALTH_BACKSLASH + datanodes[i] + HEARTBEAT, healthy, err)) {
+        LOG(ERROR) << "Failed to check existence of DN";
+      }
+      if (healthy) {
+        std::pair<uint64_t, std::string> node (strg_blks[i], datanodes[i]);
+        blk_nodes.push_back(node);
+        if (blk_nodes.size() >= num_data_blks)
+          break;
+      }
+    }
+    // TODO(ADAM): Read data from datanodes
+    // TODO(Will): do ISAL computation and write
 
-
-
+    ops.push_back(zk->build_delete_op(full_work_item_path));
+  }
+  // delete work items
+  std::vector<zoo_op_result> results;
+  if (!zk->execute_multi(ops, results, err)) {
+    LOG(ERROR)
+            << "Failed to delete successfully completed reconstruct commands!";
+  }
+  // TODO(ADAM): write acks?
 }
 
 void ZkClientDn::handleReplicateCmds(const std::string &path) {
