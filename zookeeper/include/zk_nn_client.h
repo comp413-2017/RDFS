@@ -184,6 +184,14 @@ class ZkNnClient : public ZkClientCommon {
    */
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in);
   void register_watches();
+  /**
+   * Returns the current timestamp in milliseconds
+   */
+  uint64_t current_time_ms();
+  /**
+   * Returns the latest timestamp by the client
+   */
+  uint64_t get_client_lease_timestamp(std::string client_name);
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
@@ -397,11 +405,6 @@ class ZkNnClient : public ZkClientCommon {
    */
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
-
-  /**
-   * Returns the current timestamp in milliseconds
-   */
-  uint64_t current_time_ms();
 
   /**
    * Returns whether the input client is still alive.
