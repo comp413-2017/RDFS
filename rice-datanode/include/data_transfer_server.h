@@ -83,6 +83,10 @@ class TransferServer {
   bool receive_header(tcp::socket &sock, uint16_t *version,
                       unsigned char *type);
   bool write_header(tcp::socket &sock, uint16_t version, unsigned char type);
+  bool remote_read(uint64_t len, std::string ip, 
+                                   std::string xferport,
+                                   ExtendedBlockProto blockToTarget, 
+                                   std::string data, int &read_len);
   void handle_connection(tcp::socket sock);
   void processWriteRequest(tcp::socket &sock);
   void processReadRequest(tcp::socket &sock);
