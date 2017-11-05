@@ -14,8 +14,17 @@ void WebRDFSServer::start() {
 
   // Register all handlers.
   WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
+                                  HTTP_GET,
+                                  get_handler);
+  WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
+                                  HTTP_POST,
+                                  post_handler);
+  WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
                                   HTTP_PUT,
-                                  create_file_handler);
+                                  put_handler);
+  WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
+                                  HTTP_DELETE,
+                                  delete_handler);
 
   server.start();
 }
