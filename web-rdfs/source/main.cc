@@ -13,7 +13,7 @@ INITIALIZE_EASYLOGGINGPP
 
 static inline void parse_cmdline_options(int argc,
                                          char *argv[],
-                                         unsigned short *port) {
+                                         int16_t *port) {
   int c;
   char buf[64];
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
   el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
   el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
 
-  unsigned short port = 8080;
+  int16_t port = 8080;
   parse_cmdline_options(argc, argv, &port);
 
   WebRDFSServer server(port);

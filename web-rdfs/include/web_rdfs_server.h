@@ -1,7 +1,7 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#ifndef WEB_RDFS_INCLUDE_RDFS_SERVER_H_
-#define WEB_RDFS_INCLUDE_RDFS_SERVER_H_
+#ifndef WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_
+#define WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_
 
 #include "server_http.hpp"
 
@@ -14,20 +14,20 @@
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 class WebRDFSServer {
-public:
+ public:
   /**
    * Create an WebRDFSServer instance.
    *
    * @param port Port number on which to listen for HTTP requests.
    */
-  explicit WebRDFSServer(unsigned short port);
+  explicit WebRDFSServer(int16_t port);
 
   /**
    * Start the WebRDFS server.
    */
   void start();
 
-private:
+ private:
   /**
    * Simple-Web-Server HTTP server instance.
    */
@@ -40,10 +40,12 @@ private:
    * @param verb HTTP verb to register.
    * @param handler Handler callback function associated with this endpoint.
    */
-  void register_handler(std::string pattern, const char verb[],
-                        std::function<void(
-                          std::shared_ptr<HttpServer::Response> response,
-                          std::shared_ptr<HttpServer::Request> request)> handler);
+  void register_handler(
+    std::string pattern,
+    const char verb[],
+    std::function<void(
+      std::shared_ptr<HttpServer::Response> response,
+      std::shared_ptr<HttpServer::Request> request)> handler);
 };
 
-#endif  // WEB_RDFS_INCLUDE_RDFS_SERVER_H_
+#endif  // WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_

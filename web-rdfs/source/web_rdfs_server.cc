@@ -4,7 +4,7 @@
 #include <easylogging++.h>
 #include "http_handlers.h"
 
-WebRDFSServer::WebRDFSServer(unsigned short port) {
+WebRDFSServer::WebRDFSServer(int16_t port) {
   LOG(INFO) << "WebRDFS listening on port " << port;
   server.config.port = port;
 }
