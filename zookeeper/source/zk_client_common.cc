@@ -17,8 +17,8 @@ const char ZkClientCommon::
         REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
 const char ZkClientCommon::DELETE_QUEUES[] = "/work_queues/delete/";
 const char ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH[] = "/work_queues/delete";
-const char ZKClientCommon::EC_RECOVER_QUEUES[] = "/work_queues/ec_recover/";
-const char ZKClientCommon::
+const char ZkClientCommon::EC_RECOVER_QUEUES[] = "/work_queues/ec_recover/";
+const char ZkClientCommon::
         EC_RECOVER_QUEUES_NO_BACKSLASH[] = "/work_queues/ec_recover";
 const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
 const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
