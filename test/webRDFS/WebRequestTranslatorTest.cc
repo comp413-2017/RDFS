@@ -12,11 +12,6 @@
 INITIALIZE_EASYLOGGINGPP
 
 namespace {
-  TEST(webRequestTranslator, testConvertToResponse) {
-    hadoop::hdfs::DeleteResponseProto delete_resp;
-    webRequestTranslator::convertToResponse(delete_resp);
-}
-
 }
 
 int main(int argc, char **argv) {
