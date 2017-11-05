@@ -166,10 +166,16 @@ enum class ListingResponse {
       FailedCreateZnode
   };
 
+  enum class RenameResponse {
+      Ok,
+      FileDoesNotExist,
+      RenameOpsFailed,
+      InvalidType,
+      MultiOpFailed
+  };
   enum class ErasureCodingPoliciesResponse {
       Ok
   };
-
 
   explicit ZkNnClient(std::string zkIpAndAddress);
 
@@ -196,7 +202,7 @@ enum class ListingResponse {
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
-  void rename(RenameRequestProto &req, RenameResponseProto &res);
+  RenameResponse rename(RenameRequestProto &req, RenameResponseProto &res);
   ListingResponse get_listing(GetListingRequestProto &req,
                               GetListingResponseProto &res);
   void get_content(GetContentSummaryRequestProto &req,
@@ -362,9 +368,17 @@ enum class ListingResponse {
                      const std::string &path,
                      FileZNode &node);
   /**
-   * Given the filesystem path, get the full zookeeper path
+   * Given the filesystem path, get the full zookeeper path for the blocks
+   * where the data is located
    */
-  std::string ZookeeperPath(const std::string &hadoopPath);
+  std::string ZookeeperBlocksPath(const std::string &hadoopPath);
+
+   /**
+   * Given the filesystem path, get the full zookeeper path for the dir
+   * where the file metadata is written
+   */
+  std::string ZookeeperFilePath(const std::string &hadoopPath);
+
   /**
    * Use to read values from config
    */

@@ -260,13 +260,13 @@ void ZkClientDn::handleReplicateCmds(const std::string &path) {
   std::vector<std::string> work_items;
 
   if (!zk->get_children(path, work_items, err)) {
-    LOG(ERROR) << "Failed to get work items!";
+    LOG(ERROR) << "Failed to get replication work items!";
     return;
   }
 
   if (work_items.size() > 0) {
     LOG(INFO) << get_datanode_id()
-              << "FOUND "
+              << " FOUND "
               << work_items.size()
               << " work items";
   }
