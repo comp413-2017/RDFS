@@ -1832,7 +1832,9 @@ bool ZkNnClient::check_acks() {
   LOG(INFO) << "Checking acks for: " << block_uuids.size() << " blocks";
 
   for (auto block_uuid : block_uuids) {
-    uint64_t block_id = reinterpret_cast<uint64_t>(block_uuid);
+    uint64_t block_id;
+    std::stringstream strm(block_uuid);
+    strm >> block_id;
     bool ec = ZkClientCommon::is_ec_block(block_id);
     LOG(INFO) << "Considering block: " << block_uuid;
     std::string block_path = WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH)
@@ -1926,6 +1928,7 @@ bool ZkNnClient::check_acks() {
 bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
                                   int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
+  std::vector<zoo_op_result> results;
 
   for (auto rec : to_ec_recover) {
     std::string read_from;
@@ -1941,7 +1944,7 @@ bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover
     }
     if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
         || target_dn.size() == 0) {
-      LOG(ERROR) << " Failed to find datanode for this block! " << repl;
+      LOG(ERROR) << " Failed to find datanode for this block! " << rec;
       return false;
     }
     auto queue = EC_RECOVER_QUEUES + target_dn[0];
