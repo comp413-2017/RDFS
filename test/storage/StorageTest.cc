@@ -98,6 +98,50 @@ TEST_F(StorageTest, testExample) {
   system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) + " -rm /f")
              .c_str());
 }
+
+TEST_F(StorageTest, testRecoveryTime) {
+  asio::io_service io_service;
+  RPCServer namenodeServer = nn_translator->getRPCServer();
+  std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service))
+      .detach();
+  sleep(3);
+
+  ASSERT_EQ(0, system("python "
+                          "/home/vagrant/rdfs/test/integration/generate_file.py"
+                          " > expected_testfile1234"));
+  // Put a file into rdfs.
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) +
+                 " -D dfs.blocksize=1048576 "
+                     "-copyFromLocal expected_testfile1234 /f").c_str());
+  sleep(5);
+
+  // start a datanode to replicate to.
+  initializeDatanodes(1);
+  sleep(5);
+
+  el::Loggers::setVerboseLevel(9);
+  StorageMetrics metrics(zk);
+
+  float usedBefore = metrics.usedSpace();
+
+  // Kill an original datanode and trigger the metric measurement during repl.
+  system(("pkill -f StorageTestServer" + std::to_string(minDatanodeId++))
+             .c_str());
+
+  // TODO(ejd6): revisit this for a better recovery time estimate.
+  // Use StorageMetrics
+  clock_t tempClock = clock();
+  sleep(10);
+  while (usedBefore != metrics.usedSpace()) {
+    sleep(10);
+  }
+
+  LOG(INFO) << "loop done at "
+            << static_cast<double>(clock() - tempClock) / CLOCKS_PER_SEC;;
+
+  system(("hdfs dfs -fs hdfs://localhost:" + std::to_string(port) + " -rm /f")
+             .c_str());
+}
 }  // namespace
 
 static inline void print_usage() {
@@ -106,7 +150,7 @@ static inline void print_usage() {
       "no argument runs the tests.";
 }
 
-static inline int runTests(int argc, char **argv) {
+int main(int argc, char **argv) {
   // Start up zookeeper
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
@@ -123,15 +167,4 @@ static inline int runTests(int argc, char **argv) {
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
-}
-
-int main(int argc, char **argv) {
-  if (argc > 2) {
-    print_usage();
-  }
-  if (argc == 2 && strcmp(argv[1], "-h")) {
-    print_usage();
-    return 0;
-  }
-  return runTests(argc, argv);
 }
