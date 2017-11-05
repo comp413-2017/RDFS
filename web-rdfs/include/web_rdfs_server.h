@@ -13,27 +13,34 @@
 
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
-class RDFSServer {
+class WebRDFSServer {
 public:
   /**
-   * TODO
+   * Create an WebRDFSServer instance.
    *
-   * @param port
+   * @param port Port number on which to listen for HTTP requests.
    */
-  explicit RDFSServer(unsigned short port);
+  explicit WebRDFSServer(unsigned short port);
 
   /**
-   * TODO
+   * Start the WebRDFS server.
    */
   void start();
 
 private:
   /**
-   * TODO
+   * Simple-Web-Server HTTP server instance.
    */
   HttpServer server;
 
-  void register_handler(const std::string pattern, const char verb[],
+  /**
+   * Register an endpoint handler on the server.
+   *
+   * @param pattern URL pattern to register.
+   * @param verb HTTP verb to register.
+   * @param handler Handler callback function associated with this endpoint.
+   */
+  void register_handler(std::string pattern, const char verb[],
                         std::function<void(
                           std::shared_ptr<HttpServer::Response> response,
                           std::shared_ptr<HttpServer::Request> request)> handler);
