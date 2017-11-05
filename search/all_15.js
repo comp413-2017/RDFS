@@ -2,6 +2,7 @@ var searchData=
 [
   ['warning',['Warning',['../namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36a0eaadb4fcb48a0a0ed7bc9868be9fbaa',1,'el']]],
   ['watcher',['watcher',['../class_z_k_wrapper.html#af9c1b65d94bce9fb69d14a2556bf3794',1,'ZKWrapper']]],
+  ['watcher_5freplicate',['watcher_replicate',['../class_storage_metrics.html#a1246b9eaedf7c1c37ed1b8720cdfb9c5',1,'StorageMetrics']]],
   ['wchar_5fdecoder',['wchar_decoder',['../structwchar__decoder.html',1,'']]],
   ['wchar_5fselector',['wchar_selector',['../structwchar__selector.html',1,'']]],
   ['wchar_5fselector_3c_202_20_3e',['wchar_selector&lt; 2 &gt;',['../structwchar__selector_3_012_01_4.html',1,'']]],

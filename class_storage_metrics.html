@@ -86,6 +86,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="class_storage_metrics-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">StorageMetrics Class Reference</div>  </div>
@@ -102,10 +103,15 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abb013aefcc8ab6458854c55ce2a4b57e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00672f2815f4a11470b56c64185f591b"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a00672f2815f4a11470b56c64185f591b">blocksPerDataNodeSD</a> ()</td></tr>
 <tr class="separator:a00672f2815f4a11470b56c64185f591b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78f19e7a7079ccef8acc95a008636981"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a78f19e7a7079ccef8acc95a008636981">recoverySpeed</a> ()</td></tr>
-<tr class="separator:a78f19e7a7079ccef8acc95a008636981"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90096e431ba70758402ee04a1ba6ea3c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a90096e431ba70758402ee04a1ba6ea3c">replicationRecoverySpeed</a> ()</td></tr>
+<tr class="separator:a90096e431ba70758402ee04a1ba6ea3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50282ff2cd011e411487d12f5b07c8bd"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a50282ff2cd011e411487d12f5b07c8bd">degenerateRead</a> (std::string file, std::string destination, std::vector&lt; std::pair&lt; std::string, std::string &gt;&gt; targetDatanodes)</td></tr>
 <tr class="separator:a50282ff2cd011e411487d12f5b07c8bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a1246b9eaedf7c1c37ed1b8720cdfb9c5"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_storage_metrics.html#a1246b9eaedf7c1c37ed1b8720cdfb9c5">watcher_replicate</a> (zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx)</td></tr>
+<tr class="separator:a1246b9eaedf7c1c37ed1b8720cdfb9c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="ab3cae52efd0d137e4fcf08199edb6b9b"></a>
@@ -190,6 +196,7 @@ Public Member Functions</h2></td></tr>
 <p>Measures how long a read takes while a data block is being recovered.</p>
 <p>Prints the resulting time.</p>
 <p>Note that files under replication have no degenerate read. The degenerate case is the file being unreadable. Files under EC must have a downed data block (not parity block) for the degenerate read case. Keep that in mind when passing in target DataNodes</p>
+<p>Logging level must be set to 9 before calling this function.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">file</td><td>The file path to read. </td></tr>
@@ -202,20 +209,23 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a78f19e7a7079ccef8acc95a008636981"></a>
+<a class="anchor" id="a90096e431ba70758402ee04a1ba6ea3c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">float StorageMetrics::recoverySpeed </td>
+          <td class="memname">int StorageMetrics::replicationRecoverySpeed </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Measures the time for recovering from a DataNode failure. </p>
-<dl class="section return"><dt>Returns</dt><dd>wall clock time from failure to being prepared for another failure. </dd></dl>
+<p>Measures the time for recovering from a DataNode failure.</p>
+<p>This method polls the zookeeper work_queues/replication until there are none left. This should only be called from tests with a controlled number of replications.</p>
+<p>Prints wall clock time spent in this function using easylogging++</p>
+<p>Logging level must be set to 9 before calling this function.</p>
+<dl class="section return"><dt>Returns</dt><dd>0 success, -1 error </dd></dl>
 
 </div>
 </div>
@@ -250,6 +260,69 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the proportion of space used. </p>
 <dl class="section return"><dt>Returns</dt><dd>totalUsedSpace / totalSpace </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1246b9eaedf7c1c37ed1b8720cdfb9c5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void StorageMetrics::watcher_replicate </td>
+          <td>(</td>
+          <td class="paramtype">zhandle_t *&#160;</td>
+          <td class="paramname"><em>zzh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>watcherCtx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>watcher function to set on /work_queues/replicate.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">zzh</td><td>unused </td></tr>
+    <tr><td class="paramname">type</td><td>unused </td></tr>
+    <tr><td class="paramname">state</td><td>unused </td></tr>
+    <tr><td class="paramname">path</td><td>Path to the znode to watch. </td></tr>
+    <tr><td class="paramname">watcherCtx</td><td>"this" </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
