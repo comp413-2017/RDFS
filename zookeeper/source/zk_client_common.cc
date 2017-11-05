@@ -27,6 +27,7 @@ const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
 const char ZkClientCommon::STATS[] = "/stats";
 const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
+const char ZkClientCommon::BLOCK_GROUP_LOCATIONS[] = "/block_group_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
 
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
@@ -37,6 +38,20 @@ ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
 
 ZkClientCommon::ZkClientCommon(std::shared_ptr<ZKWrapper> zk_in) : zk(zk_in) {
   init();
+}
+
+bool ZkClientCommon::is_ec_block(u_int64_t block_id) {
+  // & with 1000000...000(63 zeros). If the highest bit is set, this value is
+  // non zero. 0 otherwise.
+  return ((1ull << 63) & block_id) > 0;
+}
+
+std::string ZkClientCommon::get_block_metadata_path(
+        u_int64_t block_or_block_group_id) {
+  if (is_ec_block(block_or_block_group_id))
+    return BLOCK_GROUP_LOCATIONS + std::to_string(block_or_block_group_id);
+  else
+    return BLOCK_LOCATIONS + std::to_string(block_or_block_group_id);
 }
 
 void ZkClientCommon::init() {

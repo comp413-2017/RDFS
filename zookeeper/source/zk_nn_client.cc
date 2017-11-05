@@ -3,23 +3,24 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
-#include <sys/time.h>
-#include <easylogging++.h>
-#include <google/protobuf/message.h>
-#include <iostream>
-#include <sstream>
-#include <ctime>
-#include <chrono>
+#include "zk_lock.h"
+#include "zk_dn_client.h"
+#include "zkwrapper.h"
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
 #include <zk_nn_client.h>
-
-#include "zk_lock.h"
-#include "zk_dn_client.h"
 #include "zk_nn_client.h"
 #include "zkwrapper.h"
+#include <iostream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
+#include <sys/time.h>
+#include <easylogging++.h>
+#include <google/protobuf/message.h>
+#include <erasurecoding.pb.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -53,17 +54,33 @@ using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::FsPermissionProto;
 using hadoop::hdfs::DatanodeInfoProto;
 using hadoop::hdfs::DatanodeIDProto;
+using hadoop::hdfs::ErasureCodingPolicyProto;
+using hadoop::hdfs::ECSchemaProto;
+using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
+using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 
 namespace zkclient {
 
 ZkNnClient::ZkNnClient(std::string zkIpAndAddress) :
     ZkClientCommon(zkIpAndAddress) {
   mkdir_helper("/", false);
+  populateDefaultECProto();
 }
 
 ZkNnClient::ZkNnClient(std::shared_ptr<ZKWrapper> zk_in) :
     ZkClientCommon(zk_in) {
   mkdir_helper("/", false);
+  populateDefaultECProto();
+}
+
+void ZkNnClient::populateDefaultECProto() {
+  DEFAULT_EC_SCHEMA.set_parityunits(DEFAULT_PARITY_UNITS);
+  DEFAULT_EC_SCHEMA.set_dataunits(DEFAULT_DATA_UNITS);
+  DEFAULT_EC_SCHEMA.set_codecname(DEFAULT_EC_CODEC_NAME);
+  RS_SOLOMON_PROTO.set_name(DEFAULT_EC_POLICY_NAME);
+  RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
+  RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
 }
 
 /*
@@ -247,7 +264,7 @@ bool ZkNnClient::file_exists(const std::string &path) {
 bool ZkNnClient::get_block_size(const u_int64_t &block_id,
                                 uint64_t &blocksize) {
   int error_code;
-  std::string block_path = BLOCK_LOCATIONS + std::to_string(block_id);
+  std::string block_path = get_block_metadata_path(block_id);
 
   BlockZNode block_data;
   std::vector<std::uint8_t> data(sizeof(block_data));
@@ -299,15 +316,15 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
   /* this value will eventually be read from config file */
   int MIN_REPLICATION = 1;
   std::vector<std::string> children;
-  std::string block_id_str = std::to_string(prev_id);
-  if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children, error_code)) {
+  std::string block_metadata_path = get_block_metadata_path(prev_id);
+  if (zk->get_children(block_metadata_path, children, error_code)) {
     if (children.size() >= MIN_REPLICATION) {
       return true;
     } else {
       LOG(INFO) << "Had to sync: previous block failed";
       // If we failed initially attempt to sync the changes, then check again
-      zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + block_id_str), true);
-      if (zk->get_children(BLOCK_LOCATIONS + block_id_str,
+      zk->flush(zk->prepend_zk_root(block_metadata_path), true);
+      if (zk->get_children(block_metadata_path,
                            children, error_code)) {
         return children.size() >= MIN_REPLICATION;
       }
@@ -315,6 +332,7 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
   }
   return false;
 }
+
 
 bool ZkNnClient::add_block(AddBlockRequestProto &req,
                            AddBlockResponseProto &res) {
@@ -352,7 +370,14 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  add_block(file_path, block_id, data_nodes, replication_factor);
+  // TODO(nate): figure out how to store string values in FileZNode.
+  if (true) {
+//  if (znode_data.ecPolicyName == EC_REPLICATION) {
+      add_block(file_path, block_id, data_nodes, replication_factor);
+  } else {  // case when some EC policy is used.
+      // TODO(Nate): generate a block group and each part of a block group.
+      // TODO(Nate): use the hierarchical naming scheme.
+  }
 
   block->set_offset(0);  // TODO(2016): Set this
   block->set_corrupt(false);
@@ -441,7 +466,7 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
                                              + block_id_str);
 
   std::vector<std::string> datanodes;
-  if (!find_all_datanodes_with_block(block_id_str, datanodes, error_code)) {
+  if (!find_all_datanodes_with_block(blockId, datanodes, error_code)) {
     LOG(ERROR) << "Could not find datandoes with the block";
   }
 
@@ -508,9 +533,10 @@ bool ZkNnClient::create_file_znode(const std::string &path,
   if (!file_exists(path)) {
     LOG(ERROR) << "Creating file znode at " << path;
     {
-      LOG(INFO) << znode_data->replication;
-      LOG(INFO) << znode_data->owner;
-      LOG(INFO) << "size of znode is " << sizeof(*znode_data);
+      LOG(INFO) << znode_data->replication << "\n";
+      LOG(INFO) << znode_data->owner << "\n";
+//      LOG(INFO) << "ec policy name is " << znode_data->ecPolicyName << "\n";
+      LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
     std::vector<std::uint8_t> data(sizeof(*znode_data));
@@ -541,23 +567,22 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
   LOG(INFO) << "DataNode deleted a block with UUID " << std::to_string(uuid);
 
   auto ops = std::vector<std::shared_ptr<ZooOp>>();
-
+  std::string block_metadata_path = get_block_metadata_path(uuid);
   // Delete block locations
-  if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) +
+  if (zk->exists(block_metadata_path +
       "/" + id, exists, error_code)) {
     if (exists) {
-      ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS + std::to_string(uuid) +
+      ops.push_back(zk->build_delete_op(block_metadata_path +
           "/" + id));
       std::vector<std::string> children = std::vector<std::string>();
-      if (!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid),
+      if (!zk->get_children(block_metadata_path,
                             children, error_code)) {
         LOG(ERROR) << "getting children failed";
       }
       // If deleting last child of block locations,
       // delete block locations at this block uuid
       if (children.size() == 1) {
-        ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS
-                                              + std::to_string(uuid)));
+        ops.push_back(zk->build_delete_op(block_metadata_path));
       }
     }
   }
@@ -635,8 +660,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       block = *reinterpret_cast<std::uint64_t *>(block_vec.data());
       std::vector<std::string> datanodes;
 
-      if (!zk->get_children(util::concat_path(BLOCK_LOCATIONS,
-                                              std::to_string(block)),
+      if (!zk->get_children(get_block_metadata_path(block),
                             datanodes, error_code)) {
         LOG(ERROR) << "Failed getting datanode locations for block: "
                    << block
@@ -661,7 +685,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
 
 void ZkNnClient::complete(CompleteRequestProto& req,
                           CompleteResponseProto& res) {
-  // TODO(2016): Completion makes a few guarantees that we should handle
+  // TODO(nate):  A call to complete() will not return true until
+  // all the file's blocks have been replicated the minimum number of times.
+
   int error_code;
   // change the under construction bit
   const std::string& src = req.src();
@@ -699,16 +725,18 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     }
     uint64_t block_uuid = *reinterpret_cast<uint64_t *>(&data[0]);
     auto block_data = std::vector<std::uint8_t>();
-    if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid),
+    std::string block_metadata_path = get_block_metadata_path(block_uuid);
+    if (!zk->get(block_metadata_path,
                  block_data, error_code, sizeof(uint64_t))) {
       LOG(ERROR) << "Failed to get "
-                 << BLOCK_LOCATIONS
-                 << std::to_string(block_uuid)
+                 << block_metadata_path
                  << " with error: "
                  << error_code;
       res.set_result(false);
       return;
     }
+
+    // TODO(nate): figure out why this value is the length.
     uint64_t length = *reinterpret_cast<uint64_t *>(&block_data[0]);
     file_length += length;
   }
@@ -790,65 +818,80 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
 }
 
 /**
- * Create a file in zookeeper
+ * Create a new file entry in the namespace.
+ *
+ * This will create an empty file specified by the source path, a full path originated at the root.
+ *
  */
 ZkNnClient::CreateResponse ZkNnClient::create_file(
         CreateRequestProto &request,
         CreateResponseProto &response) {
-    const std::string &path = request.src();
-    LOG(ERROR) << "Trying to create file " << path;
-    const std::string &owner = request.clientname();
-    bool create_parent = request.createparent();
-    std::uint64_t blocksize = request.blocksize();
-    std::uint32_t replication = request.replication();
-    std::uint32_t createflag = request.createflag();
+  const std::string &path = request.src();
+  LOG(INFO) << "Trying to create file " << path;
+  const std::string &owner = request.clientname();
+  bool create_parent = request.createparent();
+  std::uint64_t blocksize = request.blocksize();
+  std::uint32_t replication = request.replication();
+  std::uint32_t createflag = request.createflag();
+  const std::string &inputECPolicyName = request.ecpolicyname();
+  std::string ecPolicyName = determineRedundancyForm(inputECPolicyName, path);
 
-    if (file_exists(path)) {
-        // TODO(2016) solve this issue of overwriting files
-        LOG(ERROR) << "File already exists";
-        return CreateResponse::FileAlreadyExists;
+  if (file_exists(path)) {
+    // TODO(2016) solve this issue of overwriting files
+    LOG(ERROR) << "File already exists";
+    return CreateResponse::FileAlreadyExists;
+  }
+
+  // If we need to create directories, do so
+  if (create_parent) {
+    std::string directory_paths = "";
+    std::vector<std::string> split_path;
+    boost::split(split_path, path, boost::is_any_of("/"));
+    LOG(INFO) << split_path.size();
+    for (int i = 1; i < split_path.size() - 1; i++) {
+      directory_paths += ("/" + split_path[i]);
+
+      // try and make all the parents
+      if (mkdir_helper(directory_paths, true) !=
+          ZkNnClient::MkdirResponse::Ok)
+        return CreateResponse::FailedMkdir;
     }
+  }
 
-    // If we need to create directories, do so
-    if (create_parent) {
-        LOG(ERROR) << "Creating directories to store ";
-        std::string directory_paths = "";
-        std::vector<std::string> split_path;
-        boost::split(split_path, path, boost::is_any_of("/"));
-        LOG(INFO) << split_path.size();
-        for (int i = 1; i < split_path.size() - 1; i++) {
-            directory_paths += ("/" + split_path[i]);
-        }
-        // try and make all the parents
-        if (mkdir_helper(directory_paths, true) !=
-            ZkNnClient::MkdirResponse::Ok) {
-            LOG(ERROR) << "Failed to Mkdir for " << directory_paths;
-            return CreateResponse::FailedMkdir;
-        }
-    }
+  // Now create the actual file which will hold blocks
+  FileZNode znode_data;
+  znode_data.length = 0;
+  znode_data.under_construction = FileStatus::UnderConstruction;
+  uint64_t mslong = current_time_ms();
+  znode_data.access_time = mslong;
+  znode_data.modification_time = mslong;
+  snprintf(znode_data.owner, strlen(znode_data.owner), owner.c_str());
+  snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
+  znode_data.replication = replication;
+  znode_data.blocksize = blocksize;
+  znode_data.filetype = IS_FILE;
+//  znode_data.ecPolicyName = ecPolicyName;
 
-    // Now create the actual file which will hold blocks
-    FileZNode znode_data;
-    znode_data.length = 0;
-    znode_data.under_construction = FileStatus::UnderConstruction;
-    uint64_t mslong = current_time_ms();
-    znode_data.access_time = mslong;
-    znode_data.modification_time = mslong;
-    snprintf(znode_data.owner, strlen(znode_data.owner), owner.c_str());
-    snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
-    znode_data.replication = replication;
-    znode_data.blocksize = blocksize;
-    znode_data.filetype = IS_FILE;
+  // if we failed, then do not set any status
+  if (!create_file_znode(path, &znode_data))
+      return CreateResponse::FailedCreateZnode;
 
-    // if we failed, then do not set any status
-    if (!create_file_znode(path, &znode_data))
-        return CreateResponse::FailedCreateZnode;
+  HdfsFileStatusProto *status = response.mutable_fs();
+  set_file_info(status, path, znode_data);
 
-    HdfsFileStatusProto *status = response.mutable_fs();
-    set_file_info(status, path, znode_data);
-
-    return CreateResponse::Ok;
+  return CreateResponse::Ok;
 }
+
+std::string ZkNnClient::determineRedundancyForm(
+        const std::string &ecPolicyString,
+        const std::string &path) {
+    if (ecPolicyString.empty()) {
+        return DEFAULT_EC_POLICY;
+    } else {
+        return ecPolicyString;
+    }
+}
+
 
 /**
      * Rename a file in the zookeeper filesystem
@@ -927,6 +970,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
+//  znode_data->ecPolicyName = DEFAULT_EC_POLICY;
 }
 
 /**
@@ -1110,14 +1154,14 @@ void ZkNnClient::get_block_locations(const std::string &src,
       buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
       auto data_nodes = std::vector<std::string>();
-
+      std::string block_metadata_path = get_block_metadata_path(block_id);
       LOG(INFO) << "Getting datanode locations for block: "
-                << "/block_locations/" + std::to_string(block_id);
+                << block_metadata_path;
 
-      if (!zk->get_children("/block_locations/" + std::to_string(block_id),
+      if (!zk->get_children(block_metadata_path,
                             data_nodes, error_code)) {
         LOG(ERROR) << "Failed getting datanode locations for block: "
-                   << "/block_locations/" + std::to_string(block_id)
+                   << block_metadata_path
                    << " with error: "
                    << error_code;
       }
@@ -1148,6 +1192,18 @@ void ZkNnClient::get_block_locations(const std::string &src,
     }
     size += block_size;
   }
+}
+
+
+ZkNnClient::ErasureCodingPoliciesResponse
+ZkNnClient::get_erasure_coding_policies(
+    GetErasureCodingPoliciesRequestProto &req,
+    GetErasureCodingPoliciesResponseProto &res) {
+
+  auto ec_policies = res.mutable_ecpolicies();
+  ErasureCodingPolicyProto *ec_policy_to_add = ec_policies->Add();
+  ec_policy_to_add = &RS_SOLOMON_PROTO;
+  return ErasureCodingPoliciesResponse::Ok;
 }
 
 
@@ -1293,6 +1349,25 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   status->set_modification_time(znode_data.modification_time);
   status->set_access_time(znode_data.access_time);
+
+  // If a block is an EC block, optionally set the ecPolicy field.
+  // TODO(nate): fix this once I figure out how to save string in znode_data.
+  if (false) {
+//  if (znode_data.ecPolicyName != EC_REPLICATION) {
+      ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
+//      ecPolicyProto->set_name(znode_data.ecPolicyName);
+      // TODO(nate): check to see if the unit is expected to be in kb.
+      ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+      ecPolicyProto->set_id(DEFAULT_EC_ID);
+
+      ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
+      ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
+      ecSchema->set_dataunits(DEFAULT_DATA_UNITS);
+      ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
+      ecPolicyProto->set_allocated_schema(ecSchema);
+      status->set_allocated_ecpolicy(ecPolicyProto);
+  }
+
   LOG(INFO) << "Successfully set the file info ";
 }
 
@@ -1307,17 +1382,10 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
-  // TODO(2016): This is a faulty check
-  if (znode_data.under_construction == FileStatus::UnderConstruction) {
-    LOG(WARNING) << "Last block for "
-                 << file_path
-                 << " still under construction";
-  }
-  // TODO(2016): Check the replication factor
 
   std::string block_id_str;
 
-  util::generate_uuid(block_id);
+  util::generate_block_id(block_id);
   block_id_str = std::to_string(block_id);
   LOG(INFO) << "Generated block id " << block_id_str;
 
@@ -1345,7 +1413,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
       "/work_queues/wait_for_acks/" + block_id_str,
       ZKWrapper::EMPTY_VECTOR);
   auto block_location_op = zk->build_create_op(
-      "/block_locations/" + block_id_str,
+      get_block_metadata_path(block_id),
       ZKWrapper::EMPTY_VECTOR);
 
   std::vector<std::shared_ptr<ZooOp>> ops = {seq_file_block_op,
@@ -1364,6 +1432,69 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
+bool ZkNnClient::add_block_group(const std::string &fileName,
+                     u_int64_t &block_group_id,
+                     std::vector<std::string> &dataNodes,
+                     std::vector<u_int64_t> &storageBlockIDs,
+                     uint32_t total_num_storage_blocks) {
+    FileZNode znode_data;
+    read_file_znode(znode_data, fileName);
+
+    // Generate the block group id and storage block ids.
+    block_group_id = generate_block_group_id();
+    for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
+        storageBlockIDs.push_back(generate_storage_block_id(block_group_id, i));
+    }
+
+    // Log them for debugging purposes.
+    LOG(INFO) << "Generated block group id " << block_group_id << "\n";
+    for (auto storageBlockID : storageBlockIDs)
+        LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
+
+    // TODO(nate): figure out what exact zookeepr operations must occur.
+    return true;
+}
+
+
+u_int64_t ZkNnClient::generate_storage_block_id(
+        u_int64_t block_group_id,
+        u_int64_t index_within_group) {
+    // TODO(nate): assume a file = no more than 2**47 128 MB blocks
+    // TODO(nate): assume no more than 2**16 storage blocks in a logical block
+    u_int64_t res = 1ull << 63;  // filled with 1 and 63 zeros.
+    res = res & block_group_id;  // & to fill bit2~bit48.
+    res = res & index_within_group;  // & to fill the lower 16 bits.
+    return res;
+}
+
+u_int64_t ZkNnClient::generate_block_group_id() {
+    u_int64_t res;
+    util::generate_block_id(res);  // generate some random 64 bits.
+    res = res | (1ull << 63);  // filp the highest bit to one.
+    res = (res >> 16) << 16;  // fill the lower 16 bits with zeros.
+    return res;
+}
+
+u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
+    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    return storage_block_id & mask;
+}
+
+u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
+    u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
+    return storage_block_id & mask;
+}
+
+
+uint32_t ZkNnClient::get_total_num_storage_blocks(
+        const std::string &fileName,
+        u_int64_t &block_group_id) {
+    // TODO(nate): actually figure out where this information is stored.
+    // TODO(nate): is it supposed to be figured out from ecPolicyName?
+    return 9;  // arbitrarily assume RS(6, 3)
+}
+
+
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
@@ -1376,17 +1507,17 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
 
   std::vector<std::string> live_data_nodes = std::vector<std::string>();
   int error_code;
-
+  std::string block_metadata_path = get_block_metadata_path(blockId);
   // Get all of the live datanodes
   if (zk->get_children(HEALTH, live_data_nodes, error_code)) {
     // LOG(INFO) << "Found live DNs: " << live_data_nodes;
     auto excluded_datanodes = std::vector<std::string>();
     if (!newBlock) {
       // Get the list of datanodes which already have a replica
-      if (!zk->get_children(BLOCK_LOCATIONS + std::to_string(blockId),
+      if (!zk->get_children(block_metadata_path,
                             excluded_datanodes, error_code)) {
         LOG(ERROR) << "Error getting children of: "
-                   << BLOCK_LOCATIONS + std::to_string(blockId);
+                   << block_metadata_path;
         return false;
       }
     }
@@ -1811,9 +1942,9 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
 }
 
 bool ZkNnClient::find_all_datanodes_with_block(
-    const std::string &block_uuid_str,
+    const uint64_t &block_uuid,
     std::vector<std::string> &rdatanodes, int &error_code) {
-  std::string block_loc_path = BLOCK_LOCATIONS + block_uuid_str;
+  std::string block_loc_path = get_block_metadata_path(block_uuid);
 
   if (!zk->get_children(block_loc_path, rdatanodes, error_code)) {
     LOG(ERROR) << "Failed to get children of: " << block_loc_path;
@@ -1821,7 +1952,7 @@ bool ZkNnClient::find_all_datanodes_with_block(
   }
   if (rdatanodes.size() < 1) {
     LOG(ERROR) << "There are no datanodes with a replica of block "
-               << block_uuid_str;
+               << block_uuid;
     return false;
   }
   return true;
