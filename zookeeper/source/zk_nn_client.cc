@@ -1772,6 +1772,10 @@ bool ZkNnClient::check_acks() {
   LOG(INFO) << "Checking acks for: " << block_uuids.size() << " blocks";
 
   for (auto block_uuid : block_uuids) {
+    uint64_t block_id;
+    std::stringstream strm(block_uuid);
+    strm >> block_id;
+    bool ec = ZkClientCommon::is_ec_block(block_id);
     LOG(INFO) << "Considering block: " << block_uuid;
     std::string block_path = WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH)
         + block_uuid;
@@ -1806,7 +1810,7 @@ bool ZkNnClient::check_acks() {
       LOG(ERROR) << "Failed to get elapsed time";
     }
 
-    if (existing_dn_replicas.size() == 0 && elapsed_time > ACK_TIMEOUT) {
+    if (existing_dn_replicas.size() == 0 && elapsed_time > ACK_TIMEOUT && !ec) {
       // Block is not available on any DNs and cannot be replicated.
       // Emit error and remove this block from wait_for_acks
       LOG(ERROR) << block_path << " has 0 replicas! Delete from wait_for_acks.";
@@ -1827,13 +1831,25 @@ bool ZkNnClient::check_acks() {
       for (int i = 0; i < replicas_needed; i++) {
         to_replicate.push_back(block_uuid);
       }
-      if (!replicate_blocks(to_replicate, error_code)) {
-        LOG(ERROR) << "Failed to add necessary items to replication queue.";
-        return false;
+      if (ec) {
+        if (!recover_ec_blocks(to_replicate, error_code)) {
+          LOG(ERROR) << "Failed to add necessary items to ec_recover queue.";
+          return false;
+        } else {
+          LOG(INFO) << "Created "
+                    << to_replicate.size()
+                    << " items in the ec_recover queue.";
+        }
+      } else {
+        if (!replicate_blocks(to_replicate, error_code)) {
+          LOG(ERROR) << "Failed to add necessary items to replication queue.";
+          return false;
+        } else {
+          LOG(INFO) << "Created "
+                    << to_replicate.size()
+                    << " items in the replication queue.";
+        }
       }
-      LOG(INFO) << "Created "
-                << to_replicate.size()
-                << " items in the replication queue.";
 
     } else if (existing_dn_replicas.size() == replication_factor) {
       LOG(INFO) << "Enough replicas have been made, no longer need to wait on "
@@ -1846,13 +1862,13 @@ bool ZkNnClient::check_acks() {
       LOG(INFO) << "Not enough replicas, but still time left" << block_path;
     }
   }
-
   return true;
 }
 
 bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
                                   int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
+  std::vector<zoo_op_result> results;
 
   for (auto rec : to_ec_recover) {
     std::string read_from;
@@ -1868,7 +1884,7 @@ bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover
     }
     if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
         || target_dn.size() == 0) {
-      LOG(ERROR) << " Failed to find datanode for this block! " << repl;
+      LOG(ERROR) << " Failed to find datanode for this block! " << rec;
       return false;
     }
     auto queue = EC_RECOVER_QUEUES + target_dn[0];

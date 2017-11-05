@@ -24,7 +24,7 @@ class ZkClientCommon {
    * @param block_id the id of a block (or a block group)
    * @return true or false.
    */
-  bool is_ec_block(u_int64_t block_id);
+  static bool is_ec_block(u_int64_t block_id);
 
   /**
    * Given a block or block group id, returns the path to the corresponding metadata.
