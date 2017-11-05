@@ -138,6 +138,17 @@ std::string ZKWrapper::removeZKRoot(const std::string &path) const {
   return path;
 }
 
+std::string ZKWrapper::removeZKRootAndDirectory(const std::string &prefix, const std::string &path) const {
+	if (path.substr(0, root.size()) == root) {
+		auto temp = path.substr(root.size());
+		if (temp.substr(0, prefix.size()) == prefix) {
+			return temp.substr(prefix.size());
+		}
+		return temp;
+	}
+	return path;
+}
+
 /* Wrapper Implementation of Zookeeper Functions */
 
 bool ZKWrapper::create(const std::string &path,

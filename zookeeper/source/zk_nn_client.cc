@@ -239,8 +239,8 @@ void ZkNnClient::watcher_listing(zhandle_t *zzh, int type, int state,
 
 	ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
 	auto zk = cli->zk;
-	auto src = std::string(path);
-
+	auto src = zk->removeZKRootAndDirectory(std::string(zkclient::ZkClientCommon::NAMESPACE_PATH), std::string(path));
+	LOG(INFO) << "Removing path " << src;
 	// Remove cache entry for this path
 	cli->cache->remove(src);
 }
@@ -1292,10 +1292,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 		// Get cached
         LOG(INFO) << "Found path " << src << " listing in cache";
 		auto listing = cache->get(src);
-
 		res.set_allocated_dirlist(listing.get()->mutable_dirlist());
-//        hadoop::hdfs::DirectoryListingProto dir_listing = res.dirlist();
-//        LOG(INFO) << "Found listing " << dir_listing.partiallisting_size();
 	} else {
         LOG(INFO) << "Did not find path " << src << " listing in cache";
 		// From 2016:

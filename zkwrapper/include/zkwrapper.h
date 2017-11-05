@@ -74,6 +74,8 @@ class ZKWrapper {
 
   std::string removeZKRoot(const std::string &path) const;
 
+  std::string removeZKRootAndDirectory(const std::string &prefix, const std::string &path) const;
+
   /**
    * Translate numerical error code to zookeeper error string
    *

@@ -104,11 +104,12 @@ TEST_F(NamenodeTest, cacheModify) {
     delete_req.set_recursive(false);
     ASSERT_EQ(client->destroy(delete_req, delete_resp),
     zkclient::ZkNnClient::DeleteResponse::Ok);
+
+	sleep(10);
+
     client_response = client->get_listing(listing_req, listing_resp);
     ASSERT_EQ(client_response,
-            zkclient::ZkNnClient::ListingResponse::Ok) << "File not found";
-
-	sleep(30);
+            zkclient::ZkNnClient::ListingResponse::FileDoesNotExist) << "File not found";
 
     // Check that the cache is empty now
     ASSERT_EQ(client->cache_size(), 0);
@@ -202,7 +203,7 @@ TEST_F(NamenodeTest, cacheGetMultipleFilesFromDir) {
         zkclient::ZkNnClient::DeleteResponse::Ok);
 
 
-    sleep(30);
+    sleep(10);
 
     // Check to make sure the cache has been accessed
     ASSERT_EQ(client->cache_size(), 0);
