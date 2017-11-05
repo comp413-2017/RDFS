@@ -1293,9 +1293,9 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
         LOG(INFO) << "Found path " << src << " listing in cache";
 		auto listing = cache->get(src);
 
-		res.set_allocated_dirlist(listing.get());
-        hadoop::hdfs::DirectoryListingProto dir_listing = res.dirlist();
-        LOG(INFO) << "Found listing " << dir_listing.partiallisting_size();
+		res.set_allocated_dirlist(listing.get()->mutable_dirlist());
+//        hadoop::hdfs::DirectoryListingProto dir_listing = res.dirlist();
+//        LOG(INFO) << "Found listing " << dir_listing.partiallisting_size();
 	} else {
         LOG(INFO) << "Did not find path " << src << " listing in cache";
 		// From 2016:
@@ -1362,7 +1362,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 			}
 			raw_listing->set_remainingentries(0);
 
-            std::shared_ptr<DirectoryListingProto> listing = std::make_shared<DirectoryListingProto> (*raw_listing);
+            std::shared_ptr<GetListingResponseProto> listing = std::make_shared<GetListingResponseProto> (res);
 			cache->insert(src, listing);
             LOG(INFO) << "Adding path to cache " << src;
 		} else {

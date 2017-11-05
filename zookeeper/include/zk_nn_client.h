@@ -192,7 +192,7 @@ class ZkNnClient : public ZkClientCommon {
   explicit ZkNnClient(std::string zkIpAndAddress) 
     : ZkClientCommon(zkIpAndAddress),
       cache(new lru::Cache<std::string, 
-      std::shared_ptr<hadoop::hdfs::DirectoryListingProto>>(64, 10)) {
+      std::shared_ptr<hadoop::hdfs::GetListingResponseProto>>(64, 10)) {
     mkdir_helper("/", false);
   };
 
@@ -205,10 +205,10 @@ class ZkNnClient : public ZkClientCommon {
    * @return ZkNnClient
    */
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
-          bool secureMode = false) 
-            : ZkClientCommon(zk_in),
-              cache(new lru::Cache<std::string, 
-              std::shared_ptr<hadoop::hdfs::DirectoryListingProto>>(64, 10)) {
+        bool secureMode = false) 
+          : ZkClientCommon(zk_in),
+            cache(new lru::Cache<std::string, 
+            std::shared_ptr<hadoop::hdfs::GetListingResponseProto>>(64, 10)) {
     mkdir_helper("/", false);
     isSecureMode = secureMode;
   }
@@ -604,7 +604,7 @@ class ZkNnClient : public ZkClientCommon {
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
-  lru::Cache<std::string, std::shared_ptr<hadoop::hdfs::DirectoryListingProto>> *cache;
+  lru::Cache<std::string, std::shared_ptr<hadoop::hdfs::GetListingResponseProto>> *cache;
 };
 
 }  // namespace zkclient
