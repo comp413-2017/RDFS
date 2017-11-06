@@ -310,7 +310,41 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
           break;
       }
     }
-    // TODO(ADAM): Read data from datanodes
+
+    //Read in the data for each chosen storage block
+    std::vector<std::string> data_vec = {};
+    uint64_t blk_size = 65536ull; // Assume hard-coded 64KB cell-size
+    for (auto node : blk_nodes) {
+      hadoop::hdfs::ExtendedBlockProto block_proto;
+      uint64_t block_id = node.first;
+      LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
+      buildExtendedBlockProto(&block_proto, block_id, blk_size);
+      std::vector<std::string> split_address;
+      boost::split(split_address, node.second, boost::is_any_of(":"));
+      assert(split_address.size() == 2);
+      // get the port
+      std::string dn_ip = split_address[0];
+      DataNodePayload dn_target_info;
+      std::vector<std::uint8_t> dn_data(sizeof(DataNodePayload));
+      if (!zk->get(HEALTH_BACKSLASH + node.second + STATS, dn_data, err,
+                   sizeof(DataNodePayload))) {
+        LOG(ERROR) << "failed to read target dn payload" << err;
+        continue;
+      }
+      memcpy(&dn_target_info, &dn_data[0], sizeof(DataNodePayload));
+      std::uint32_t xferPort = dn_target_info.xferPort;
+      // Do the remote read
+      std::string data;
+      int read_len;
+      if (server->remote_read(blk_size, dn_ip, std::to_string(xferPort), block_proto, 
+                                data, read_len)) {
+        data_vec.push_back(data);
+      } else {
+        LOG(ERROR) << "Read unsuccessful, abort";
+      }
+    }
+    assert(data_vec.size() == num_data_blks);
+
     // TODO(Will): do ISAL computation and write
     // TODO(ADAM/WILL): write acks
 
