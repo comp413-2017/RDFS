@@ -151,8 +151,7 @@ TEST_F(StorageTest, testIDGeneration) {
     ASSERT_EQ(i, nncli->get_index_within_block_group(storage_blocks[i]));
   }
 }
-  
-  
+
 TEST_F(StorageTest, testRecoveryTime) {
   asio::io_service io_service;
   RPCServer namenodeServer = nn_translator->getRPCServer();
