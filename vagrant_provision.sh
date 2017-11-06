@@ -26,10 +26,10 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
-wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
-tar -xf hadoop-2.8.1.tar.gz
-mv hadoop-2.8.1 /home/vagrant/hadoop3
-rm hadoop-2.8.1.tar.gz
+wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1.tar.gz
+tar -xf hadoop-3.0.0-beta1.tar.gz
+mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
+rm hadoop-3.0.0-beta1.tar.gz
 ln -s hadoop3 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
