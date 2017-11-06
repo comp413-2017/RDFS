@@ -177,7 +177,7 @@ namespace webRequestTranslator {
     len += snprintf(buf + len, 400, "\"modificationTime\":%ld\n", (long)file_status->modification_time());
     len += snprintf(buf + len, 400, "\"owner\":%s\n", file_status->owner().c_str());
     len += snprintf(buf + len, 400, "\"path\":%s\n", file_status->path().c_str());
-    len += snprintf(buf + len, 400, "\"permission\":%ld\n", file_status->permission()->perm());
+    len += snprintf(buf + len, 400, "\"permission\":%ld\n", file_status->permission().perm());
     len += snprintf(buf + len, 400, "\"replication\":%ld\n", (long)file_status->block_replication());
     len += snprintf(buf + len, 400, "\"type\":%d\n", file_status->filetype());
 
