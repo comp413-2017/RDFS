@@ -1292,7 +1292,8 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 		// Get cached
         LOG(INFO) << "Found path " << src << " listing in cache";
 		auto listing = cache->get(src);
-		res.set_allocated_dirlist(listing.get()->mutable_dirlist());
+        DirectoryListingProto *listing_copy = new DirectoryListingProto(*listing.get()->mutable_dirlist());
+		res.set_allocated_dirlist(listing_copy);
 	} else {
         LOG(INFO) << "Did not find path " << src << " listing in cache";
 		// From 2016:
