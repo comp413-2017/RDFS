@@ -245,7 +245,7 @@ enum class ListingResponse {
    * @param ecID the ID of an EC policy.
    * @return a pair denoting (# of data blocks, # of parity blocks);
    */
-  std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
+  static std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
@@ -261,21 +261,6 @@ enum class ListingResponse {
    * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
    */
   u_int64_t generate_block_group_id();
-
-  /**
-   * Gets the block group id from the storage block id.
-   * i.e. bit 2 ~ bit 48.
-   * @param storage_block_id the given storage block id.
-   * @return the block group id.
-   */
-  u_int64_t get_block_group_id(u_int64_t storage_block_id);
-
-  /**
-   * Gets the index within the block group.
-   * @param storage_block_id the given storage block id.
-   * @return the index within the block group.
-   */
-  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
 
     /**
    * Abandons the block - basically reverses all of add block's multiops

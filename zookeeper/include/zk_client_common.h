@@ -35,6 +35,21 @@ class ZkClientCommon {
    */
   std::string get_block_metadata_path(u_int64_t block_or_block_group_id);
 
+    /**
+   * Gets the block group id from the storage block id.
+   * i.e. bit 2 ~ bit 48.
+   * @param storage_block_id the given storage block id.
+   * @return the block group id.
+   */
+  u_int64_t get_block_group_id(u_int64_t storage_block_id);
+
+  /**
+   * Gets the index within the block group.
+   * @param storage_block_id the given storage block id.
+   * @return the index within the block group.
+   */
+  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
+
   std::shared_ptr<ZKWrapper> zk;
 
   // constants used by the clients

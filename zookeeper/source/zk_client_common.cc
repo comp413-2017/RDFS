@@ -56,6 +56,16 @@ std::string ZkClientCommon::get_block_metadata_path(
     return BLOCK_LOCATIONS + std::to_string(block_or_block_group_id);
 }
 
+u_int64_t ZkClientCommon::get_block_group_id(u_int64_t storage_block_id) {
+    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    return storage_block_id & mask;
+}
+
+u_int64_t ZkClientCommon::get_index_within_block_group(u_int64_t storage_block_id) {
+    u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
+    return storage_block_id & mask;
+}
+
 void ZkClientCommon::init() {
   LOG(INFO) << "Initializing ZkClientCommon";
   auto vec = ZKWrapper::get_byte_vector("");

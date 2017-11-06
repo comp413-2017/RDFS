@@ -142,6 +142,11 @@ class ZkClientDn : public ZkClientCommon {
    */
   void handleReplicateCmds(const std::string &path);
 
+  /**
+   * Handle all reconstruct items on path
+   */
+  bool handleReconstructCmds(const std::string &path);
+
   static void thisDNDeleteQueueWatcher(zhandle_t *zzh,
                                        int type,
                                        int state,

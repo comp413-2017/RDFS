@@ -1434,16 +1434,6 @@ u_int64_t ZkNnClient::generate_block_group_id() {
     return res;
 }
 
-u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
-    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
-    return storage_block_id & mask;
-}
-
-u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
-    u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
-    return storage_block_id & mask;
-}
-
 
 uint32_t ZkNnClient::get_total_num_storage_blocks(
         const std::string &fileName,
