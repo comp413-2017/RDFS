@@ -1461,9 +1461,8 @@ u_int64_t ZkNnClient::generate_storage_block_id(
         u_int64_t index_within_group) {
     // TODO(nate): assume a file = no more than 2**47 128 MB blocks
     // TODO(nate): assume no more than 2**16 storage blocks in a logical block
-    u_int64_t res = 1ull << 63;  // filled with 1 and 63 zeros.
-    res = res & block_group_id;  // & to fill bit2~bit48.
-    res = res & index_within_group;  // & to fill the lower 16 bits.
+    u_int64_t res = block_group_id;  // filled with 1 and 63 zeros.
+    res = res | index_within_group;  // & to fill the lower 16 bits.
     return res;
 }
 
@@ -1476,7 +1475,7 @@ u_int64_t ZkNnClient::generate_block_group_id() {
 }
 
 u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
-    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    u_int64_t mask = (~(0ull) << 16);
     return storage_block_id & mask;
 }
 
