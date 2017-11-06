@@ -519,6 +519,10 @@ bool TransferServer::rmBlock(uint64_t block_id) {
   return fs->rmBlock(block_id);
 }
 
+bool TransferServer::writeBlock(uint64_t block_id, std::string data) {
+  return fs->writeBlock(block_id, data);
+}
+
 bool TransferServer::sendStats() {
   uint64_t free_space = fs->getFreeSpace();
   // LOG(INFO) << "Sending stats " << free_space;

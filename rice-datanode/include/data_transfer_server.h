@@ -71,6 +71,7 @@ class TransferServer {
                                    std::string data, int &read_len);
 
   bool rmBlock(uint64_t block_id);
+  bool writeBlock(uint64_t block_id, std::string data);
   bool poll_replicate();
   bool poll_delete();
   bool poll_reconstruct();
