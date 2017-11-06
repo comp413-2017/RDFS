@@ -1475,7 +1475,7 @@ u_int64_t ZkNnClient::generate_block_group_id() {
 }
 
 u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
-    u_int64_t mask = (~(0ull)<<16);
+    u_int64_t mask = (~(0ull) << 16);
     return storage_block_id & mask;
 }
 
