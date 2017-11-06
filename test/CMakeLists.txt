@@ -29,7 +29,6 @@ include_directories(../web-rdfs/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
-
 add_executable(LeaseTest namenode/NameNodeTest.cc namenode/LeaseTest.cc)
 target_link_libraries(LeaseTest namenode_protos)
 target_link_libraries(LeaseTest zk_client_nn zk_client_dn)
