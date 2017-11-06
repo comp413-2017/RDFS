@@ -14,4 +14,3 @@ sudo ./config > /dev/null
 sudo make > /dev/null
 sudo make install > /dev/null
 sudo ldconfig > /dev/null
-
