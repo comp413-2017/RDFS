@@ -15,6 +15,16 @@
 
 namespace webRequestTranslator {
   /**
+  * Converts the RDFS namenode create response into the appropriate webRDFS response.
+  */
+  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+
+  /**
+  * Converts the RDFS datanode create response into the appropriate webRDFS response.
+  */
+  std::string getDatanodeCreateResponse(std::string contentOfFile);
+
+  /**
    * Converts the RDFS namenode info response into the appropriate webRDFS response.
    */
   std::string getNamenodeReadResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
@@ -23,6 +33,21 @@ namespace webRequestTranslator {
    * Converts the RDFS datanode read response into the appropriate webRDFS response.
    */
   std::string getDatanodeReadResponse(std::string contentOfFile);
+
+  /**
+  * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
+  */
+  std::string getMkdirResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+
+  /**
+  * Converts the RDFS datanode mv response into the appropriate webRDFS response.
+  */
+  std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+
+  /**
+  * Converts the RDFS datanode delete response into the appropriate webRDFS response.
+  */
+  std::string getDeleteResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
 
   /**
    * Gets all the file info from the status and converts it to a string.
