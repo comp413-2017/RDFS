@@ -172,12 +172,12 @@ namespace webRequestTranslator {
 
     len += snprintf(buf, 400, "\"accessTime\":%ld\n", (long)file_status->access_time());
     len += snprintf(buf + len, 400, "\"blockSize\":%ld\n", (long)file_status->blocksize());
-    len += snprintf(buf + len, 400, "\"group\":%s\n", file_status->group());
+    len += snprintf(buf + len, 400, "\"group\":%s\n", file_status->group().c_str());
     len += snprintf(buf + len, 400, "\"length\":%ld\n", (long)file_status->length());
     len += snprintf(buf + len, 400, "\"modificationTime\":%ld\n", (long)file_status->modification_time());
-    len += snprintf(buf + len, 400, "\"owner\":%s\n", file_status->owner());
-    len += snprintf(buf + len, 400, "\"path\":%s\n", file_status->path());
-    len += snprintf(buf + len, 400, "\"permission\":%d\n", file_status->permission());
+    len += snprintf(buf + len, 400, "\"owner\":%s\n", file_status->owner().c_str());
+    len += snprintf(buf + len, 400, "\"path\":%s\n", file_status->path().c_str());
+    len += snprintf(buf + len, 400, "\"permission\":%ld\n", file_status->permission());
     len += snprintf(buf + len, 400, "\"replication\":%ld\n", (long)file_status->block_replication());
     len += snprintf(buf + len, 400, "\"type\":%d\n", file_status->filetype());
 
