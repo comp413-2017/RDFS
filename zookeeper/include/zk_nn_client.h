@@ -173,7 +173,6 @@ enum class ListingResponse {
       InvalidType,
       MultiOpFailed
   };
-
   enum class ErasureCodingPoliciesResponse {
       Ok
   };
