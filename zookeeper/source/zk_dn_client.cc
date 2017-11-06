@@ -255,16 +255,16 @@ bool ZkClientDn::poll_delete_queue() {
 }
 
 bool ZkClientDn::poll_reconstruct_queue() {
-  return handleReconstrucCmds(util::concat_path(EC_RECOVER_QUEUES, get_datanode_id()));
+  return handleReconstructCmds(util::concat_path(EC_RECOVER_QUEUES, get_datanode_id()));
 }
 
-bool ZkClientDn::handleReconstructCmds(std::string &path) {
+bool ZkClientDn::handleReconstructCmds(const std::string &path) {
   int err;
   std::vector<std::string> work_items;
 
   if (!zk->get_children(path, work_items, err)) {
     LOG(ERROR) << "Failed to get work items!";
-    return;
+    return false;
   }
 
   if (work_items.size() > 0) {
@@ -277,19 +277,18 @@ bool ZkClientDn::handleReconstructCmds(std::string &path) {
   std::vector<std::shared_ptr<ZooOp>> ops;
   for (auto &block : work_items) {
     auto full_work_item_path = util::concat_path(path, block);
-    std::uint64_t storage_id
+    std::uint64_t storage_id;
     std::stringstream strm(block);
     strm >> storage_id;
-    uint64_t storage_id
-    uint64_t block_group_id = zkclient::ZkNnClient::get_block_group_id(storage_id);
+    uint64_t block_group_id = ZkClientCommon::get_block_group_id(storage_id);
     std::vector<std::string> strg_blks = {};
-    std::string blk_grp_path = zkclient::get_block_metadata_path(block_group_id);
+    std::string blk_grp_path = ZkClientCommon::get_block_metadata_path(block_group_id);
     if (!zk->get_children(blk_grp_path, strg_blks, err)) {
       LOG(ERROR) << "Could not find block group!";
-      return;
+      return false;
     }
     std::vector<std::string> datanodes = {};
-    for (std:string strg_blk : strg_blks) {
+    for (std::string strg_blk : strg_blks) {
       zk->get_children(blk_grp_path + "/" + strg_blk, datanodes, err);
     }
 
@@ -297,12 +296,15 @@ bool ZkClientDn::handleReconstructCmds(std::string &path) {
     int num_data_blks = 6;
     std::vector<std::pair<uint64_t, std::string>> blk_nodes = {};
     for (int i = 0; i < datanodes.size(); i++) {
-      bool healthy
+      bool healthy;
       if (zk->exists(HEALTH_BACKSLASH + datanodes[i] + HEARTBEAT, healthy, err)) {
         LOG(ERROR) << "Failed to check existence of DN";
       }
       if (healthy) {
-        std::pair<uint64_t, std::string> node (strg_blks[i], datanodes[i]);
+        uint64_t blk;
+        std::stringstream blkstrm(strg_blks[i]);
+        blkstrm >> blk;
+        std::pair<uint64_t, std::string> node (blk, datanodes[i]);
         blk_nodes.push_back(node);
         if (blk_nodes.size() >= num_data_blks)
           break;
@@ -510,7 +512,7 @@ bool ZkClientDn::find_datanode_with_block(uint64_t &block_uuid,
 
   datanode = datanodes[0];
   LOG(INFO) << "Found DN: "
-            << DataNode
+            << datanode
             << " which has a replica of: "
             << block_uuid;
   return true;
