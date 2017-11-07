@@ -32,7 +32,7 @@ typedef enum class FileStatus : int {
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
-//  std::string ecPolicyName;  // the specified EC policy name.
+  bool isEC;  // 1 if EC file. 0 if replication based.
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;
@@ -119,14 +119,13 @@ class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
 
-  const char* EC_REPLICATION = "EC_REPLICATION";
-  const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
+  const char* EC_REPLICATION = "REPLICATION";
+  const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
   uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
-  const char* DEFAULT_EC_POLICY_NAME = "RS-6-3-1024k";
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
@@ -479,22 +478,6 @@ enum class ListingResponse {
   * @return True on success, false on error.
   */
   bool blockDeleted(uint64_t uuid, std::string id);
-
-
-  /**
-   * Determines what the redundancy form of a file specified by @path should be and returns the corresponding value.
-   *
-   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::DEFAULT_EC_POLICY.
-   * TODO: we may choose to implement what HDFS does, which is to inherit the redundancy form of its parent directory.
-   * TODO: the path parameter is need in that case.
-   * If not empty, simply returns the given ecPolicyString.
-   * @param ecPolicyString the ecPolicyname part of CreateRequestProto.
-   * @param path the file path.
-   * @return zkclient::REPLICATION or zkclinet::EC.
-   */
-  std::string determineRedundancyForm(
-          const std::string &ecPolicyString,
-          const std::string &path);
 
   /**
    * Populates DEFAULT_EC_SCHEMA and RS_SOLOMON_PROTO fields.
