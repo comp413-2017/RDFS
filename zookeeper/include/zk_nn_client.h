@@ -298,6 +298,10 @@ class ZkNnClient : public ZkClientCommon {
                      const std::string &path,
                      FileZNode &node);
   /**
+   * Given the client name, get the client path.
+   */
+  std::string ClientZookeeperPath(const std::string & clientname);
+  /**
     * Given the filesystem path, get the full zookeeper path for leases
     */
   std::string LeaseZookeeperPath(const std::string & hadoopPath);
