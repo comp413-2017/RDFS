@@ -77,7 +77,7 @@ void ZkNnClient::populateDefaultECProto() {
   DEFAULT_EC_SCHEMA.set_parityunits(DEFAULT_PARITY_UNITS);
   DEFAULT_EC_SCHEMA.set_dataunits(DEFAULT_DATA_UNITS);
   DEFAULT_EC_SCHEMA.set_codecname(DEFAULT_EC_CODEC_NAME);
-  RS_SOLOMON_PROTO.set_name(DEFAULT_EC_POLICY_NAME);
+  RS_SOLOMON_PROTO.set_name(DEFAULT_EC_POLICY);
   RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
   RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
@@ -370,9 +370,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
 
-  // TODO(nate): figure out how to store string values in FileZNode.
-  if (true) {
-//  if (znode_data.ecPolicyName == EC_REPLICATION) {
+  if (!znode_data.isEC) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
       // TODO(Nate): generate a block group and each part of a block group.
@@ -535,7 +533,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     {
       LOG(INFO) << znode_data->replication << "\n";
       LOG(INFO) << znode_data->owner << "\n";
-//      LOG(INFO) << "ec policy name is " << znode_data->ecPolicyName << "\n";
+      LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
       LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     }
     // serialize struct to byte vector
@@ -834,7 +832,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   std::uint32_t replication = request.replication();
   std::uint32_t createflag = request.createflag();
   const std::string &inputECPolicyName = request.ecpolicyname();
-  std::string ecPolicyName = determineRedundancyForm(inputECPolicyName, path);
 
   if (file_exists(path)) {
     // TODO(2016) solve this issue of overwriting files
@@ -870,7 +867,12 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
-//  znode_data.ecPolicyName = ecPolicyName;
+  // in the case of EC, this inputECPolicyName is empty.
+  if (inputECPolicyName.empty()) {
+    znode_data.isEC = false;
+  } else {
+    znode_data.isEC = true;
+  }
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -881,17 +883,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
   return CreateResponse::Ok;
 }
-
-std::string ZkNnClient::determineRedundancyForm(
-        const std::string &ecPolicyString,
-        const std::string &path) {
-    if (ecPolicyString.empty()) {
-        return DEFAULT_EC_POLICY;
-    } else {
-        return ecPolicyString;
-    }
-}
-
 
 /**
      * Rename a file in the zookeeper filesystem
@@ -970,7 +961,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->blocksize = 0;
   znode_data->replication = 0;
   znode_data->filetype = IS_DIR;
-//  znode_data->ecPolicyName = DEFAULT_EC_POLICY;
+  znode_data->isEC = false;
 }
 
 /**
@@ -1351,11 +1342,9 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   status->set_access_time(znode_data.access_time);
 
   // If a block is an EC block, optionally set the ecPolicy field.
-  // TODO(nate): fix this once I figure out how to save string in znode_data.
-  if (false) {
-//  if (znode_data.ecPolicyName != EC_REPLICATION) {
+  if (znode_data.isEC) {
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
-//      ecPolicyProto->set_name(znode_data.ecPolicyName);
+      ecPolicyProto->set_name(DEFAULT_EC_POLICY);
       // TODO(nate): check to see if the unit is expected to be in kb.
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
@@ -1482,15 +1471,6 @@ u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
 u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
     u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
     return storage_block_id & mask;
-}
-
-
-uint32_t ZkNnClient::get_total_num_storage_blocks(
-        const std::string &fileName,
-        u_int64_t &block_group_id) {
-    // TODO(nate): actually figure out where this information is stored.
-    // TODO(nate): is it supposed to be figured out from ecPolicyName?
-    return 9;  // arbitrarily assume RS(6, 3)
 }
 
 
