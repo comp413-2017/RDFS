@@ -63,6 +63,14 @@ void ZkClientCommon::init() {
   } else {
     // TODO(2016): Handle error
   }
+  if (zk->exists(std::string(CLIENTS), exists, error_code)) {
+    if (!exists) {
+      zk->create(std::string(CLIENTS), vec, error_code, false);
+    } else {
+    }
+  } else {
+    // TODO(2016): Handle error
+  }
   if (!zk->recursive_create("/work_queues/wait_for_acks",
                             ZKWrapper::EMPTY_VECTOR, error_code)) {
     LOG(ERROR) << "Failed creating /work_queues/wait_for_acks: " << error_code;

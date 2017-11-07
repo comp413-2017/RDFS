@@ -1,11 +1,13 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <ClientNamenodeProtocol.pb.h>
 #include "NameNodeTest.h"
 
 // Ensure that a lease is created successfully and that it does its job,
 // by making sure another client can't request a lease on the same file
 
 TEST_F(NamenodeTest, renewLeaseCorrectnessTest) {
+  LOG(INFO) << "In renewLeaseCorrectnessTest";
   // Create a file in a folder that doesn't already exist
   hadoop::hdfs::RenewLeaseRequestProto renew_lease_req;
   hadoop::hdfs::RenewLeaseResponseProto renew_lease_res;
@@ -21,8 +23,30 @@ TEST_F(NamenodeTest, renewLeaseCorrectnessTest) {
 }
 
 TEST_F(NamenodeTest, recoverLeaseCorrectnessTest) {
+  LOG(INFO) << "In recoverLeaseCorrectnessTest";
 
+  // RecoverLease is expected to return true for a file that does not exist in the system.
+  hadoop::hdfs::RecoverLeaseRequestProto recover_lease_req;
+  hadoop::hdfs::RecoverLeaseResponseProto recover_lease_res;
+
+  recover_lease_req.set_clientname("test_client");
+  recover_lease_req.set_src("test_filename");
+  client->recover_lease(recover_lease_req, recover_lease_res);
+  ASSERT_FALSE(recover_lease_res.result());
+
+  // Create the file
+  hadoop::hdfs::CreateRequestProto create_req =
+    getCreateRequestProto("test_filename");
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+            zkclient::ZkNnClient::CreateResponse::Ok);
+
+  // RecoverLease should return true given a file that does not have a lease holder.
+  client->recover_lease(recover_lease_req, recover_lease_res);
+  ASSERT_TRUE(recover_lease_res.result());
 }
+
+// TODO: After append is implemented (where lease is actually acquired, more tests that check expiration are needed.)
 
 TEST_F(NamenodeTest, issueLeaseTest) {
   // Open a lease on some file, through an append request

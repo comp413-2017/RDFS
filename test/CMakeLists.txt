@@ -28,6 +28,14 @@ include_directories(../web-request/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
+add_executable(LeaseTest namenode/NameNodeTest.cc namenode/LeaseTest.cc)
+target_link_libraries(LeaseTest namenode_protos)
+target_link_libraries(LeaseTest zk_client_nn zk_client_dn)
+target_link_libraries(LeaseTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(LeaseTest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(LeaseTest ${GTEST})
+target_link_libraries(LeaseTest protobuf)
+
 add_executable(NameNodeTest namenode/NameNodeTest.cc namenode/ListingTest.cc namenode/NameNodeTest.h namenode/CreationTest.cc namenode/DeletionTest.cc namenode/FileInfoTest.cc namenode/MkdirTest.cc namenode/RenameTest.cc namenode/LeaseTest.cc)
 target_link_libraries(NameNodeTest namenode_protos)
 target_link_libraries(NameNodeTest zk_client_nn zk_client_dn)
