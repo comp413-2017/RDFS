@@ -65,9 +65,9 @@ class TransferServer {
   bool replicate(uint64_t len, std::string ip, std::string xferport,
                  ExtendedBlockProto blockToTarget);
 
-  bool remote_read(uint64_t len, std::string ip, 
+  bool remote_read(uint64_t len, std::string ip,
                                    std::string xferport,
-                                   ExtendedBlockProto blockToTarget, 
+                                   ExtendedBlockProto blockToTarget,
                                    std::string data, int &read_len);
 
   bool rmBlock(uint64_t block_id);

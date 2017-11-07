@@ -235,7 +235,7 @@ void ZkClientDn::registerDataNode(const std::string &ip,
   LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
 }
 
-// TODO (Will): Determine whether push_dn_on_recq is needed for ec_recover.
+// TODO(willkoh): Determine whether push_dn_on_recq is needed for ec_recover.
 bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
   auto queue_path = util::concat_path(ZkClientCommon::REPLICATE_QUEUES,
                                       dn_name);
@@ -274,7 +274,8 @@ bool ZkClientDn::poll_delete_queue() {
 }
 
 bool ZkClientDn::poll_reconstruct_queue() {
-  return handleReconstructCmds(util::concat_path(EC_RECOVER_QUEUES, get_datanode_id()));
+  return handleReconstructCmds(util::concat_path(EC_RECOVER_QUEUES,
+                                                 get_datanode_id()));
 }
 
 bool ZkClientDn::handleReconstructCmds(const std::string &path) {
@@ -300,9 +301,11 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
     std::stringstream strm(block);
     strm >> storage_id;
     uint64_t block_group_id = ZkClientCommon::get_block_group_id(storage_id);
-    uint64_t block_idx = ZkClientCommon::get_index_within_block_group(storage_id);
+    uint64_t block_idx =
+                    ZkClientCommon::get_index_within_block_group(storage_id);
     std::vector<std::string> strg_blks = {};
-    std::string blk_grp_path = ZkClientCommon::get_block_metadata_path(block_group_id);
+    std::string blk_grp_path =
+                    ZkClientCommon::get_block_metadata_path(block_group_id);
     if (!zk->get_children(blk_grp_path, strg_blks, err)) {
       LOG(ERROR) << "Could not find block group!";
       return false;
@@ -318,30 +321,32 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
     std::vector<std::pair<uint64_t, std::string>> blk_nodes = {};
     for (int i = 0; i < datanodes.size(); i++) {
       bool healthy;
-      if (zk->exists(HEALTH_BACKSLASH + datanodes[i] + HEARTBEAT, healthy, err)) {
+      if (zk->exists(HEALTH_BACKSLASH + datanodes[i] + HEARTBEAT,
+                     healthy, err)) {
         LOG(ERROR) << "Failed to check existence of DN";
       }
       uint64_t blk;
       std::stringstream blkstrm(strg_blks[i]);
       blkstrm >> blk;
       if (healthy) {
-        std::pair<uint64_t, std::string> node (blk, datanodes[i]);
+        std::pair<uint64_t, std::string> node(blk, datanodes[i]);
         blk_nodes.push_back(node);
 //        if (blk_nodes.size() >= num_data_blks)
 //          break;
       }
     }
 
-    //Read in the data for each chosen storage block
+    // Read in the data for each chosen storage block
     std::vector<std::string> data_vec = {};
     unsigned char *data_ptrs[num_data_blks + num_parity_blks];
     for (auto ptr : data_ptrs)
       ptr = nullptr;
-    uint64_t blk_size = 65536ull; // Assume hard-coded 64KB cell-size
+    uint64_t blk_size = 65536ull;  // Assume hard-coded 64KB cell-size
     for (auto node : blk_nodes) {
       hadoop::hdfs::ExtendedBlockProto block_proto;
       uint64_t block_id = node.first;
-      uint64_t other_block_idx = ZkClientCommon::get_index_within_block_group(block_id);
+      uint64_t other_block_idx =
+                        ZkClientCommon::get_index_within_block_group(block_id);
       LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
       buildExtendedBlockProto(&block_proto, block_id, blk_size);
       std::vector<std::string> split_address;
@@ -361,8 +366,8 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
       // Do the remote read
       std::string data;
       int read_len;
-      if (server->remote_read(blk_size, dn_ip, std::to_string(xferPort), block_proto, 
-                                data, read_len)) {
+      if (server->remote_read(blk_size, dn_ip, std::to_string(xferPort),
+                              block_proto, data, read_len)) {
         data_vec.push_back(data);
         data_ptrs[other_block_idx] = reinterpret_cast<unsigned char*>(&data);
       } else {
@@ -383,7 +388,8 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
 
     decode(decoder, data_ptrs, erasedIndexes, 1, recovered, blk_size);
 
-    if (!server->writeBlock(storage_id, std::string(reinterpret_cast<char *>(recovered[0])))) {
+    if (!server->writeBlock(storage_id, std::string(
+                                reinterpret_cast<char *>(recovered[0])))) {
       LOG(ERROR) << "Write unsuccessful, abort";
       continue;
     }
@@ -391,8 +397,8 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
     int error_code;
     bool exists;
     // Write to acks to show that job was completed.
-    ZKLock queue_lock(*zk.get(), WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH)
-                                 + block);
+    ZKLock queue_lock(*zk.get(), WORK_QUEUES +
+                      std::string(WAIT_FOR_ACK_BACKSLASH) + block);
     if (queue_lock.lock() != 0) {
         LOG(ERROR)
         <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> ";
@@ -405,7 +411,7 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
             << WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH) + block
             << " does not exist";
         }
-        if(!zk->create(WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH) +
+        if (!zk->create(WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH) +
         block + "/" + get_datanode_id(), ZKWrapper::EMPTY_VECTOR,
         error_code, true, false)) {
             LOG(ERROR)
@@ -428,7 +434,7 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
     LOG(ERROR)
             << "Failed to delete successfully completed reconstruct commands!";
   }
-  
+
   return true;
 }
 
