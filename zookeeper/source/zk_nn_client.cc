@@ -3,21 +3,21 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
-#include "zk_lock.h"
-#include "zk_dn_client.h"
-#include "zkwrapper.h"
-#include "hdfs.pb.h"
-#include "ClientNamenodeProtocol.pb.h"
-#include <ConfigReader.h>
 #include <boost/algorithm/string.hpp>
-#include <zk_nn_client.h>
-#include <iostream>
-#include <sstream>
-#include <ctime>
 #include <chrono>
-#include <sys/time.h>
+#include <ctime>
+#include <ConfigReader.h>
 #include <easylogging++.h>
 #include <google/protobuf/message.h>
+#include <iostream>
+#include <sstream>
+#include <sys/time.h>
+#include "ClientNamenodeProtocol.pb.h"
+#include "hdfs.pb.h"
+#include "zk_dn_client.h"
+#include "zk_lock.h"
+#include "zk_nn_client.h"
+#include "zkwrapper.h"
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -1855,8 +1855,8 @@ bool ZkNnClient::check_acks() {
   return true;
 }
 
-bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
-                                  int err) {
+bool ZkNnClient::recover_ec_blocks(
+            const std::vector<std::string> &to_ec_recover, int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
   std::vector<zoo_op_result> results;
 

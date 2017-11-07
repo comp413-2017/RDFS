@@ -245,7 +245,8 @@ enum class ListingResponse {
    * @param ecID the ID of an EC policy.
    * @return a pair denoting (# of data blocks, # of parity blocks);
    */
-  static std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
+  static std::pair<uint32_t, uint32_t>
+                                  get_num_data_parity_blocks(uint32_t ecID);
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.

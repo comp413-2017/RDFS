@@ -355,9 +355,9 @@ void TransferServer::synchronize(std::function<void(TransferServer &,
   cv.notify_one();
 }
 
-bool TransferServer::remote_read(uint64_t len, std::string ip, 
+bool TransferServer::remote_read(uint64_t len, std::string ip,
                                    std::string xferport,
-                                   ExtendedBlockProto blockToTarget, 
+                                   ExtendedBlockProto blockToTarget,
                                    std::string data, int &read_len) {
 // connect to the datanode
   asio::io_service io_service;
@@ -378,7 +378,7 @@ bool TransferServer::remote_read(uint64_t len, std::string ip,
   read_block_proto.set_offset(0);
   read_block_proto.set_sendchecksums(true);
 
-  ClientOperationHeaderProto *header =  
+  ClientOperationHeaderProto *header =
     read_block_proto.mutable_header();
   // TODO(anyone): same as DFS client for now
   header->set_clientname("DFSClient_NONMAPREDUCE_2010667435_1");
