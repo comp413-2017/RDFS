@@ -11,6 +11,14 @@
 #include "util.h"
 #include "data_transfer_server.h"
 
+extern "C" {
+#include "dump.h"
+#include "erasure_code.h"
+#include "erasure_coder.h"
+#include "gf_util.h"
+#include "isal_load.h"
+};
+
 namespace zkclient {
 
 ZkClientDn::ZkClientDn(const std::string &ip, std::shared_ptr<ZKWrapper> zk_in,
@@ -214,9 +222,20 @@ void ZkClientDn::registerDataNode(const std::string &ip,
       }
     }
   }
+  // Create the ec_reover queue
+  if (zk->exists(EC_RECOVER_QUEUES + id, exists, error_code)) {
+    if (!exists) {
+      LOG(INFO) << "doesn't exist, trying to make it";
+      if (!zk->create(EC_RECOVER_QUEUES + id, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        LOG(INFO) << "ec_recover queue Creation failed";
+      }
+    }
+  }
   LOG(INFO) << "Registered datanode " + build_datanode_id(data_node_id);
 }
 
+// TODO (Will): Determine whether push_dn_on_recq is needed for ec_recover.
 bool ZkClientDn::push_dn_on_repq(std::string dn_name, uint64_t blockid) {
   auto queue_path = util::concat_path(ZkClientCommon::REPLICATE_QUEUES,
                                       dn_name);
@@ -281,6 +300,7 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
     std::stringstream strm(block);
     strm >> storage_id;
     uint64_t block_group_id = ZkClientCommon::get_block_group_id(storage_id);
+    uint64_t block_idx = ZkClientCommon::get_index_within_block_group(storage_id);
     std::vector<std::string> strg_blks = {};
     std::string blk_grp_path = ZkClientCommon::get_block_metadata_path(block_group_id);
     if (!zk->get_children(blk_grp_path, strg_blks, err)) {
@@ -294,29 +314,34 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
 
     // Assume hard-coded RS(6,3), with 6 datablocks and 3 parity blocks
     int num_data_blks = 6;
+    int num_parity_blks = 3;
     std::vector<std::pair<uint64_t, std::string>> blk_nodes = {};
     for (int i = 0; i < datanodes.size(); i++) {
       bool healthy;
       if (zk->exists(HEALTH_BACKSLASH + datanodes[i] + HEARTBEAT, healthy, err)) {
         LOG(ERROR) << "Failed to check existence of DN";
       }
+      uint64_t blk;
+      std::stringstream blkstrm(strg_blks[i]);
+      blkstrm >> blk;
       if (healthy) {
-        uint64_t blk;
-        std::stringstream blkstrm(strg_blks[i]);
-        blkstrm >> blk;
         std::pair<uint64_t, std::string> node (blk, datanodes[i]);
         blk_nodes.push_back(node);
-        if (blk_nodes.size() >= num_data_blks)
-          break;
+//        if (blk_nodes.size() >= num_data_blks)
+//          break;
       }
     }
 
     //Read in the data for each chosen storage block
     std::vector<std::string> data_vec = {};
+    unsigned char *data_ptrs[num_data_blks + num_parity_blks];
+    for (auto ptr : data_ptrs)
+      ptr = nullptr;
     uint64_t blk_size = 65536ull; // Assume hard-coded 64KB cell-size
     for (auto node : blk_nodes) {
       hadoop::hdfs::ExtendedBlockProto block_proto;
       uint64_t block_id = node.first;
+      uint64_t other_block_idx = ZkClientCommon::get_index_within_block_group(block_id);
       LOG(INFO) << "Block id is " << std::to_string(block_id) << " " << block;
       buildExtendedBlockProto(&block_proto, block_id, blk_size);
       std::vector<std::string> split_address;
@@ -339,14 +364,61 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
       if (server->remote_read(blk_size, dn_ip, std::to_string(xferPort), block_proto, 
                                 data, read_len)) {
         data_vec.push_back(data);
+        data_ptrs[other_block_idx] = reinterpret_cast<unsigned char*>(&data);
       } else {
         LOG(ERROR) << "Read unsuccessful, abort";
       }
     }
-    assert(data_vec.size() == num_data_blks);
 
-    // TODO(Will): do ISAL computation and write
-    // TODO(ADAM/WILL): write acks
+    // Build the array of data pointers.
+    IsalDecoder *decoder;
+    unsigned char *recovered[1];
+    recovered[0] = reinterpret_cast<unsigned char *>(malloc(blk_size));
+    int erasedIndexes[1];
+    erasedIndexes[0] = block_idx;
+
+    decoder = reinterpret_cast<IsalDecoder *>(malloc(sizeof(IsalDecoder)));
+    memset(decoder, 0, sizeof(*decoder));
+    initDecoder(decoder, num_data_blks, num_parity_blks);
+
+    decode(decoder, data_ptrs, erasedIndexes, 1, recovered, blk_size);
+
+    if (!server->writeBlock(storage_id, std::string(reinterpret_cast<char *>(recovered[0])))) {
+      LOG(ERROR) << "Write unsuccessful, abort";
+      continue;
+    }
+
+    int error_code;
+    bool exists;
+    // Write to acks to show that job was completed.
+    ZKLock queue_lock(*zk.get(), WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH)
+                                 + block);
+    if (queue_lock.lock() != 0) {
+        LOG(ERROR)
+        <<  "Failed locking on /work_queues/wait_for_acks/<block_uuid> ";
+    }
+
+    if (zk->exists(WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH) + block,
+     exists, error_code)) {
+        if (!exists) {
+            LOG(ERROR)
+            << WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH) + block
+            << " does not exist";
+        }
+        if(!zk->create(WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH) +
+        block + "/" + get_datanode_id(), ZKWrapper::EMPTY_VECTOR,
+        error_code, true, false)) {
+            LOG(ERROR)
+            <<  "Failed to create wait_for_acks/<block_uuid>/datanode_id "
+            << error_code;
+        }
+    }
+
+    if (queue_lock.unlock() != 0) {
+        LOG(ERROR)
+        <<  "Failed unlocking on /work_queues/wait_for_acks/<block_uuid> ";
+    }
+
 
     ops.push_back(zk->build_delete_op(full_work_item_path));
   }
