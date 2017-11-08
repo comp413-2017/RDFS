@@ -288,7 +288,7 @@ bool ZkNnClient::append_file(AppendRequestProto &req,
 
 }
 
-bool ZkNnClient::process_request(string client_name, string file_path, AppendRequestProto &req) {
+bool ZkNnClient::process_request(std::string client_name, std::string file_path, AppendRequestProto &req) {
   std::string file_path = req.src();
   std::string client_name = req.clientName();
   bool exists;
@@ -306,31 +306,95 @@ bool ZkNnClient::process_request(string client_name, string file_path, AppendReq
   return true;
 }
 
-std::string ZkNnClient::get_primary_block_info(string file_path, AppendRequestProto &req,  AppendResponseProto &res ) {
-  // Get block id by using children
-  std::vector<std::string> children;
+std::string ZkNnClient::get_primary_block_info(std::string file_path, AppendRequestProto &req,  AppendResponseProto &res) {
   int error_code;
-  if (!zk->get_children(ZookeeperPath(file_path + BLOCKS), children, error_code)) {
-    LOG(ERROR) << "Failed to get children of " << ZookeeperPath(file_path) << BLOCKS << ".";
-    res.set_result(false);
-    return NULL;
+  std::uint64_t block_id;
+  std::vector<std::string> data_nodes;
+
+  // Trying to get replication_factor
+  FileZNode znode_data;
+  if (!file_exists(file_path)) {
+    LOG(ERROR) << "Requested file " << file_path << " does not exist";
+    return false;
   }
-  if (children.size() > 0) {
-    LOG(ERROR) << "Fatal error: there are more than one block_id for " << ZookeeperPath(file_path) << BLOCKS << ".";
-    res.set_result(false);
-    return NULL;
+  read_file_znode(znode_data, file_path);
+  // Assert that the znode we want to modify is a file
+  if (znode_data.filetype != IS_FILE) {
+    LOG(ERROR) << "Requested file " << file_path << " is not a file";
+    return false;
   }
-  if (children.size() == 0) {
-    // Currently there is no primary block for this file!
-    res.set_result(true);
-    return NULL;
+  uint32_t replication_factor = znode_data.replication;
+
+
+  // Getting new block and dn "reservations"
+  ZkNnClient::add_block(file_path, block_id, data_nodes, replication_factor);
+  std::string block_id_str = std::to_string(block_id);
+
+  // Store results in metadata part 1 - dn ids under block_locations
+  bool exists;
+  if (!zk->exists(BLOCKS + '/' + block_id_str, exists, error_code)) {
+    LOG(ERROR) << "Failed to check whether " << BLOCKS + '/' + block_id_str << " exists.";
+    return;
   }
-  std::string block_id = children[0];
-  return block_id;
+  if (!exists) {
+    for (int i = 0; i < data_nodes.size(); i++) {
+      if(!zk->create(BLOCKS + '/' + block_id_str + '/' + data_nodes[i], ZKWrapper::EMPTY_VECTOR, error_code)) {
+        LOG(ERROR) << "Failed to put dn_id " << data_nodes[i] << " at block_id " << block_id_str;
+      }
+    }
+
+  } else {
+    LOG(ERROR) << "Block id " << block_id_str << "already exists"; // shouldn't be there since just created
+  }
+
+  // Store results in metadata part 2 - filename->blocks
+  if (!zk->exists(ZookeeperPath(file_path), exists, error_code)) {
+    LOG(ERROR) << "Failed to check whether " << ZookeeperPath(file_path) << " exists.";
+    return;
+  }
+  if (!exists) {
+    LOG(ERROR) << "File path " << file_path << " not exists when trying to append!";
+  } else {
+    // WE CANNOT FIGURE OUT HOW TO DO THIS
+  }
+
+
+
+
 }
 
-bool ZkNnClient::construct_lease(string client_name, string file_path) {
-
+bool ZkNnClient::construct_lease(std::string client_name, std::string file_path) {
+  int error_code;
+  bool exists;
+  if (!zk->exists(ZookeeperPath(file_path), exists, error_code)) {
+    LOG(ERROR) << "Failed to check whether " << ZookeeperPath(file_path) << " exists.";
+    return;
+  }
+  //In the case below no client exists
+  if (!exists) {
+    // TODO: not sure how to throw IOException.
+    return;
+  }
+  std::vector<std::string> children;
+  if (!zk->get_children(ZookeeperPath(file_path), children, error_code)) {
+    LOG(ERROR) << "Failed to get children of " << ZookeeperPath(file_path) << ".";
+    return;
+  }
+  if (children.size() != 0) {
+    LOG(ERROR) << "Fatal error: there already exist leases for " << ZookeeperPath(file_path) << ".";
+    return;
+  }
+  else {
+    // Currently there is no client holding a lease for this file.
+    ClientInfo clientInfo;
+    clientInfo.timestamp = current_time_ms();
+    std::vector<std::uint8_t> data(sizeof(clientInfo));
+    znode_data_to_vec(&clientInfo, data);
+    if(!zk->create(ZookeeperPath(file_path) + LEASES + '/' + client_name, data, error_code)) {
+      LOG(ERROR) << "Failed to create the lease holder client for " + ZookeeperPath(file_path) + ".";
+    }
+    return;
+  }
 }
 
 
