@@ -1,7 +1,6 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
 #include "zkwrapper.h"
-
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -72,6 +71,17 @@ void watcher(zhandle_t *zzh,
 	}
 }
 
+void watcher_znode_data(zhandle_t *zzh,
+						int type,
+						int state,
+						const char *path,
+						void *watcherCtx) {
+	LOG(INFO) << "Watcher triggered on path '" << path << "'";
+
+	ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
+
+}
+
 std::string ZKWrapper::translate_error(int errorcode) {
 	std::string message;
 	message = error_message.at(errorcode);
@@ -97,7 +107,6 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
                    << root
                    << " exists "
                    << error_code;
-          return;
       }
       if (!root_exists) {
         if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
