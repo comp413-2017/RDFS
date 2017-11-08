@@ -12,6 +12,7 @@
 #include <memory>
 #include <cstring>
 #include <map>
+#include "LRUCache.h"
 
 enum ZK_ERRORS {
   OK = 0,
@@ -35,6 +36,7 @@ class ZooOp {
       memcpy(this->data, data_in.data(), data_in.size());
     }
     op = new zoo_op_t();
+    cache(new lru::Cache<std::string, std::vector<std::uint8_t>>(64,10));
   }
 
   ~ZooOp() {
@@ -376,6 +378,8 @@ class ZKWrapper {
 
   static const std::map<int, std::string> error_message;
   static const std::string CLASS_NAME;
+
+  lru::Cache<std::string, std::vector<std::uint8_t> *cache;
 };
 
 #endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_
