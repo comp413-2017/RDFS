@@ -45,7 +45,7 @@ typedef struct {
   std::uint64_t modification_time;
   char owner[MAX_USERNAME_LEN];  // the client who created the file
   char group[MAX_USERNAME_LEN];
-  char permissions[20][MAX_USERNAME_LEN]; // max 20 users can view the file.
+  char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
   int perm_length;  // number of slots filled in permissions
   int permission_number;
 } FileZNode;
@@ -122,10 +122,10 @@ class ZkNnClient : public ZkClientCommon {
   char policy;
 
   enum class ListingResponse {
-      Ok,                   // 0
-      FileDoesNotExist,     // 1
-      FailedChildRetrieval, // 2
-      FileAccessRestricted  // 3
+      Ok,                    // 0
+      FileDoesNotExist,      // 1
+      FailedChildRetrieval,  // 2
+      FileAccessRestricted   // 3
   };
 
   enum class DeleteResponse {
@@ -217,7 +217,8 @@ class ZkNnClient : public ZkClientCommon {
 
   char get_node_policy();
 
-  // bool modifyAclEntries(ModifyAclEntriesRequestProto req, ModifyAclEntriesResponseProto res);
+//  bool modifyAclEntries(ModifyAclEntriesRequestProto req,
+//                        ModifyAclEntriesResponseProto res);
 
   bool set_permission(SetPermissionRequestProto &req,
                       SetPermissionResponseProto &res);
