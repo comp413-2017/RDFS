@@ -124,7 +124,8 @@ class ZkNnClient : public ZkClientCommon {
   enum class ListingResponse {
       Ok,                   // 0
       FileDoesNotExist,     // 1
-      FailedChildRetrieval  // 2
+      FailedChildRetrieval, // 2
+      FileAccessRestricted  // 3
   };
 
   enum class DeleteResponse {
@@ -135,13 +136,15 @@ class ZkNnClient : public ZkClientCommon {
       FailedChildRetrieval,
       FailedBlockRetrieval,
       FailedDataNodeRetrieval,
-      FailedZookeeperOp
+      FailedZookeeperOp,
+      FileAccessRestricted
   };
 
   enum class GetFileInfoResponse {
     Ok,
     FileDoesNotExist,
-    FailedReadZnode
+    FailedReadZnode,
+    FileAccessRestricted
   };
 
   enum class MkdirResponse {
@@ -161,7 +164,8 @@ class ZkNnClient : public ZkClientCommon {
       FileDoesNotExist,
       RenameOpsFailed,
       InvalidType,
-      MultiOpFailed
+      MultiOpFailed,
+      FileAccessRestricted
   };
 
   explicit ZkNnClient(std::string zkIpAndAddress);
@@ -183,7 +187,7 @@ class ZkNnClient : public ZkClientCommon {
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
                                GetFileInfoResponseProto &res,
                                std::string client_name = "default");
-  ZkNnClient::CreateResponse create_file(CreateRequestProto &request,
+  CreateResponse create_file(CreateRequestProto &request,
                                          CreateResponseProto &response);
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res,
