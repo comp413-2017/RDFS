@@ -128,6 +128,7 @@ class ZkNnClient : public ZkClientCommon {
   const char* DEFAULT_EC_CODEC_NAME = "rs";
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+  ErasureCodingPolicyProto REPLICATION_PROTO;
 
 
 enum class ListingResponse {
