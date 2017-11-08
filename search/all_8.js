@@ -23,6 +23,7 @@ var searchData=
   ['installlogdispatchcallback',['installLogDispatchCallback',['../classel_1_1_helpers.html#a3f3e84057567a8ac568a35899318544a',1,'el::Helpers']]],
   ['installloggerregistrationcallback',['installLoggerRegistrationCallback',['../classel_1_1_loggers.html#a8df040fad4898c2682be34ba5128b61d',1,'el::Loggers']]],
   ['installprerolloutcallback',['installPreRollOutCallback',['../classel_1_1_helpers.html#a5fd7ad6d636c28d2e706203d0c43cf8c',1,'el::Helpers']]],
+  ['io_5fservice',['io_service',['../class_simple_web_1_1_client_base.html#a751ea45ccc44ab9c4afaa0738bd305ea',1,'SimpleWeb::ClientBase::io_service()'],['../class_simple_web_1_1_server_base.html#a215ecd56e2772085a1447337293abc48',1,'SimpleWeb::ServerBase::io_service()']]],
   ['ipcconnectioncontextproto',['IpcConnectionContextProto',['../classhadoop_1_1common_1_1_ipc_connection_context_proto.html',1,'hadoop::common']]],
   ['is_5fproto_5fenum_3c_20_3a_3ahadoop_3a_3acommon_3a_3aharequestsource_20_3e',['is_proto_enum&lt; ::hadoop::common::HARequestSource &gt;',['../structgoogle_1_1protobuf_1_1is__proto__enum_3_01_1_1hadoop_1_1common_1_1_h_a_request_source_01_4.html',1,'google::protobuf']]],
   ['is_5fproto_5fenum_3c_20_3a_3ahadoop_3a_3acommon_3a_3ahaservicestateproto_20_3e',['is_proto_enum&lt; ::hadoop::common::HAServiceStateProto &gt;',['../structgoogle_1_1protobuf_1_1is__proto__enum_3_01_1_1hadoop_1_1common_1_1_h_a_service_state_proto_01_4.html',1,'google::protobuf']]],

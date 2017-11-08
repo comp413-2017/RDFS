@@ -1,6 +1,7 @@
 var searchData=
 [
   ['balancerbandwidthcommandproto',['BalancerBandwidthCommandProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_balancer_bandwidth_command_proto.html',1,'hadoop::hdfs::datanode']]],
+  ['base64',['Base64',['../class_simple_web_1_1_crypto_1_1_base64.html',1,'SimpleWeb::Crypto']]],
   ['baseheaderproto',['BaseHeaderProto',['../classhadoop_1_1hdfs_1_1_base_header_proto.html',1,'hadoop::hdfs']]],
   ['begin',['begin',['../classel_1_1base_1_1utils_1_1_abstract_registry.html#a4ad971b1dddff996d327452d852e55b2',1,'el::base::utils::AbstractRegistry']]],
   ['binary_5fop_5ft',['binary_op_t',['../structxpath__parser_1_1binary__op__t.html',1,'xpath_parser']]],

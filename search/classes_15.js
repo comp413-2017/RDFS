@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['wchar_5fdecoder',['wchar_decoder',['../structwchar__decoder.html',1,'']]],
-  ['wchar_5fselector',['wchar_selector',['../structwchar__selector.html',1,'']]],
-  ['wchar_5fselector_3c_202_20_3e',['wchar_selector&lt; 2 &gt;',['../structwchar__selector_3_012_01_4.html',1,'']]],
-  ['wchar_5fselector_3c_204_20_3e',['wchar_selector&lt; 4 &gt;',['../structwchar__selector_3_014_01_4.html',1,'']]],
-  ['writer',['Writer',['../classel_1_1base_1_1_writer.html',1,'el::base']]]
+  ['versioninfo',['VersionInfo',['../classel_1_1_version_info.html',1,'el']]],
+  ['versionrequestproto',['VersionRequestProto',['../classhadoop_1_1hdfs_1_1_version_request_proto.html',1,'hadoop::hdfs']]],
+  ['versionresponseproto',['VersionResponseProto',['../classhadoop_1_1hdfs_1_1_version_response_proto.html',1,'hadoop::hdfs']]],
+  ['volumefailuresummaryproto',['VolumeFailureSummaryProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_volume_failure_summary_proto.html',1,'hadoop::hdfs::datanode']]],
+  ['vregistry',['VRegistry',['../classel_1_1base_1_1_v_registry.html',1,'el::base']]]
 ];

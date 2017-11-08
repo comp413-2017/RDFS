@@ -8,5 +8,6 @@ var searchData=
   ['heartbeatresponseproto',['HeartbeatResponseProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_heartbeat_response_proto.html',1,'hadoop::hdfs::qjournal']]],
   ['heartbeatresponseproto',['HeartbeatResponseProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_heartbeat_response_proto.html',1,'hadoop::hdfs::datanode']]],
   ['helpers',['Helpers',['../classel_1_1_helpers.html',1,'el']]],
-  ['hitcounter',['HitCounter',['../classel_1_1base_1_1_hit_counter.html',1,'el::base']]]
+  ['hitcounter',['HitCounter',['../classel_1_1base_1_1_hit_counter.html',1,'el::base']]],
+  ['httpheader',['HttpHeader',['../class_simple_web_1_1_http_header.html',1,'SimpleWeb']]]
 ];

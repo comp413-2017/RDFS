@@ -5,6 +5,8 @@ var searchData=
   ['make_5funsigned_3c_20long_20_3e',['make_unsigned&lt; long &gt;',['../structmake__unsigned_3_01long_01_4.html',1,'']]],
   ['make_5funsigned_3c_20unsigned_20int_20_3e',['make_unsigned&lt; unsigned int &gt;',['../structmake__unsigned_3_01unsigned_01int_01_4.html',1,'']]],
   ['make_5funsigned_3c_20unsigned_20long_20_3e',['make_unsigned&lt; unsigned long &gt;',['../structmake__unsigned_3_01unsigned_01long_01_4.html',1,'']]],
+  ['max_5frequest_5fstreambuf_5fsize',['max_request_streambuf_size',['../class_simple_web_1_1_server_base_1_1_config.html#a81bd9a4816000009f3f6abee3400fb7a',1,'SimpleWeb::ServerBase::Config']]],
+  ['max_5fresponse_5fstreambuf_5fsize',['max_response_streambuf_size',['../class_simple_web_1_1_client_base_1_1_config.html#a9858f6441a88cb6307584da4509681cb',1,'SimpleWeb::ClientBase::Config']]],
   ['maxlogfilesize',['MaxLogFileSize',['../namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a4b35e615142d60db6383426f051e700b',1,'el']]],
   ['messagebuilder',['MessageBuilder',['../classel_1_1base_1_1_message_builder.html',1,'el::base']]],
   ['metadataupdateeventproto',['MetadataUpdateEventProto',['../classhadoop_1_1hdfs_1_1_metadata_update_event_proto.html',1,'hadoop::hdfs']]],
