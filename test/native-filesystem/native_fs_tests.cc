@@ -147,7 +147,7 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
 
     // Firstly, write mostly big blocks
     std::string fullblk(MAX_BLOCK_SIZE, 'z');
-    int64 memory_left = DISK_SIZE - RESERVED_SIZE;
+    int64_t memory_left = DISK_SIZE - RESERVED_SIZE;
     int i = 0;
     for (; i < (DISK_SIZE - RESERVED_SIZE) / MAX_BLOCK_SIZE - 1; i++) {
       std::string readblk;
@@ -162,7 +162,7 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
     size_t semi_big_block_size = 1 << ((nativefs::MIN_BLOCK_POWER
                                         + nativefs::MAX_BLOCK_POWER)/2);
     std::string semiblk(semi_big_block_size, 'z');
-    int64 num_blocks = memory_left / semi_big_block_size - 1;
+    int64_t num_blocks = memory_left / semi_big_block_size - 1;
     int k;
     for (k = i; k < i + num_blocks; k++) {
       std::string readblk;
