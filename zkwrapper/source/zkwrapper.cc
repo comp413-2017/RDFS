@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <zk_client_common.h>
 
 int init = 0;
 zhandle_t *zh;
@@ -71,14 +72,17 @@ void watcher(zhandle_t *zzh,
 	}
 }
 
-void watcher_znode_data(zhandle_t *zzh,
+void ZKWrapper::watcher_znode_data(zhandle_t *zzh,
 						int type,
 						int state,
 						const char *path,
 						void *watcherCtx) {
 	LOG(INFO) << "Watcher triggered on path '" << path << "'";
 
-	ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
+	auto zkWrapper = reinterpret_cast<ZKWrapper *>(watcherCtx);
+	auto src = zkWrapper->removeZKRootAndDirectory(std::string(zkclient::ZkClientCommon::NAMESPACE_PATH),
+									std::string(path));
+	zkWrapper->cache->remove(src);
 
 }
 

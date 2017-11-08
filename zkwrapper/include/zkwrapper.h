@@ -15,9 +15,9 @@
 #include "LRUCache.h"
 
 enum ZK_ERRORS {
-  OK = 0,
-  PATH_NOT_FOUND = -1
-  // TODO(2016): Add more errors as needed
+	OK = 0,
+	PATH_NOT_FOUND = -1
+	// TODO(2016): Add more errors as needed
 };
 
 /**
@@ -25,31 +25,31 @@ enum ZK_ERRORS {
  * data it contains: issues with string.c_str()
  */
 class ZooOp {
- public:
-  ZooOp(const std::string &path_in,
-        const std::vector<std::uint8_t> &data_in) {
-    this->path = new char[path_in.size() + 1];
-    snprintf(this->path, path_in.size() + 1, "%s", path_in.c_str());
-    if (data_in.size() != 0) {  // Only save non-empty data
-      this->num_bytes = data_in.size();
-      this->data = new char[this->num_bytes];
-      memcpy(this->data, data_in.data(), data_in.size());
-    }
-    op = new zoo_op_t();
-  }
+public:
+	ZooOp(const std::string &path_in,
+		  const std::vector<std::uint8_t> &data_in) {
+		this->path = new char[path_in.size() + 1];
+		snprintf(this->path, path_in.size() + 1, "%s", path_in.c_str());
+		if (data_in.size() != 0) {  // Only save non-empty data
+			this->num_bytes = data_in.size();
+			this->data = new char[this->num_bytes];
+			memcpy(this->data, data_in.data(), data_in.size());
+		}
+		op = new zoo_op_t();
+	}
 
-  ~ZooOp() {
-    delete path;
-    if (data) {
-      delete data;
-    }
-    delete op;
-  }
+	~ZooOp() {
+		delete path;
+		if (data) {
+			delete data;
+		}
+		delete op;
+	}
 
-  zoo_op_t *op = nullptr;
-  char *path = nullptr;
-  char *data = nullptr;
-  int num_bytes = 0;
+	zoo_op_t *op = nullptr;
+	char *path = nullptr;
+	char *data = nullptr;
+	int num_bytes = 0;
 };
 
 class ZKWrapper {
@@ -86,6 +86,12 @@ class ZKWrapper {
    */
   static std::string translate_error(int error_code);
 
+  static void ZKWrapper::watcher_znode_data(zhandle_t *zzh,
+                                int type,
+                                int state,
+                                const char *path,
+                                void *watcherCtx);
+
   /**
    * Create a znode in zookeeper
    *
@@ -93,7 +99,7 @@ class ZKWrapper {
    * @param data The data contained in this znode
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool create(const std::string &path,
               const std::vector<std::uint8_t> &data,
@@ -118,7 +124,7 @@ class ZKWrapper {
    * @param ephemeral If true, the created node will ephemeral
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool create_sequential(const std::string &path,
                          const std::vector<std::uint8_t> &data,
@@ -135,7 +141,7 @@ class ZKWrapper {
    * @param data The data to store in the new znode
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool recursive_create(const std::string &path,
                         const std::vector<std::uint8_t> &data,
@@ -150,7 +156,7 @@ class ZKWrapper {
    *              otherwise
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool exists(const std::string &path, bool &exist, int &error_code) const;
 
@@ -166,7 +172,7 @@ class ZKWrapper {
    *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool wexists(const std::string &path,
                bool &exist,
@@ -180,7 +186,7 @@ class ZKWrapper {
    * @param path The path to the znode that should be deleted
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool delete_node(const std::string &path,
                    int &error_code,
@@ -193,7 +199,7 @@ class ZKWrapper {
    * @param path The path the znode (and its children) which will be deleted
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool recursive_delete(const std::string &path, int &error_code) const;
 
@@ -206,7 +212,7 @@ class ZKWrapper {
    *        TODO: How large should this vector be when passed in?
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool get_children(const std::string &path,
                     std::vector<std::string> &children,
@@ -225,7 +231,7 @@ class ZKWrapper {
    *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool wget_children(const std::string &path,
                      std::vector<std::string> &children,
@@ -242,7 +248,7 @@ class ZKWrapper {
    *        this method
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool get(const std::string &path,
            std::vector<std::uint8_t> &data,
@@ -256,7 +262,7 @@ class ZKWrapper {
    * @param stat Reference to a stat struct to be filled with znode info
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   *		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool get_info(const std::string &path,
                 struct Stat &stat,
@@ -275,7 +281,7 @@ class ZKWrapper {
    *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool wget(const std::string &path,
             std::vector<std::uint8_t> &data,
@@ -292,7 +298,7 @@ class ZKWrapper {
    * @param version A version number indicating changes to the data at this node
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool set(const std::string &path,
            const std::vector<std::uint8_t> &data,
@@ -378,7 +384,7 @@ class ZKWrapper {
   static const std::map<int, std::string> error_message;
   static const std::string CLASS_NAME;
 
-  lru::Cache<std::string, std::shared_ptr<std::vector<unsigned char>>> *cache;
+  lru::Cache<std::string, std::vector<std::uint8_t>> *cache;
 };
 
 #endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_
