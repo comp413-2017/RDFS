@@ -141,6 +141,7 @@ class ZkNnClient : public ZkClientCommon {
   const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
   uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
+  ErasureCodingPolicyProto REPLICATION_PROTO;
 
 enum class ListingResponse {
       Ok,                   // 0

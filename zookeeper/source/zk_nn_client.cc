@@ -1142,6 +1142,14 @@ void ZkNnClient::get_block_locations(const std::string &src,
   FileZNode znode_data;
   read_file_znode(znode_data, src);
 
+  ErasureCodingPolicyProto ecpolicy = blocks.mutable_ecpolicy();
+  if (znode_data.isEC) {
+    ecpolicy=RS_SOLOMON_PROTO;
+  } else {
+    ecpolicy=REPLICATION_PROTO;
+  }
+
+  //TODO(jrn3): This is last years code, but seems super fishy
   blocks->set_underconstruction(false);
   blocks->set_islastblockcomplete(true);
   blocks->set_filelength(znode_data.length);
