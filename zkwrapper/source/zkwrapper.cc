@@ -94,6 +94,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
                 << root
                 << " exists "
                 << error_code;
+          return;
       }
       if (!root_exists) {
         if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
