@@ -1925,8 +1925,8 @@ bool ZkNnClient::check_acks() {
   return true;
 }
 
-bool ZkNnClient::recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
-                                  int err) {
+bool ZkNnClient::recover_ec_blocks(
+                      const std::vector<std::string> &to_ec_recover, int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
   std::vector<zoo_op_result> results;
 
