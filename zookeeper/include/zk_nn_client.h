@@ -200,7 +200,7 @@ class ZkNnClient : public ZkClientCommon {
   bool append_file(AppendRequestProto &req, AppendResponseProto &res);
   bool process_request(string client_name, string file_path, AppendRequestProto &req);
   std::string get_primary_block_info(string file_path, AppendRequestProto &req,  AppendResponseProto &res);
-  bool construct_lease(string client_name, string file_path);
+  void construct_lease(string client_name, string file_path);
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles

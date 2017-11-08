@@ -315,13 +315,13 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path, AppendRequ
   FileZNode znode_data;
   if (!file_exists(file_path)) {
     LOG(ERROR) << "Requested file " << file_path << " does not exist";
-    return false;
+    return;
   }
   read_file_znode(znode_data, file_path);
   // Assert that the znode we want to modify is a file
   if (znode_data.filetype != IS_FILE) {
     LOG(ERROR) << "Requested file " << file_path << " is not a file";
-    return false;
+    return;
   }
   uint32_t replication_factor = znode_data.replication;
 
@@ -356,6 +356,7 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path, AppendRequ
     LOG(ERROR) << "File path " << file_path << " not exists when trying to append!";
   } else {
     // WE CANNOT FIGURE OUT HOW TO DO THIS
+      // Anthony -> go look at complete
   }
 
 
@@ -363,7 +364,7 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path, AppendRequ
 
 }
 
-bool ZkNnClient::construct_lease(std::string client_name, std::string file_path) {
+void ZkNnClient::construct_lease(std::string client_name, std::string file_path) {
   int error_code;
   bool exists;
   if (!zk->exists(ZookeeperPath(file_path), exists, error_code)) {
