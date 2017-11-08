@@ -14,6 +14,7 @@
 #include <map>
 #include "LRUCache.h"
 
+
 enum ZK_ERRORS {
 	OK = 0,
 	PATH_NOT_FOUND = -1
@@ -384,7 +385,7 @@ class ZKWrapper {
   static const std::map<int, std::string> error_message;
   static const std::string CLASS_NAME;
 
-  lru::Cache<std::string, std::vector<std::uint8_t>> *cache;
+  lru::Cache<std::string, std::shared_ptr<std::vector<unsigned char>>> *cache;
 };
 
 #endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_

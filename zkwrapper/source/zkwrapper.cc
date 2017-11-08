@@ -4,7 +4,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include <zk_client_common.h>
 
 int init = 0;
 zhandle_t *zh;
@@ -80,7 +79,7 @@ void ZKWrapper::watcher_znode_data(zhandle_t *zzh,
 	LOG(INFO) << "Watcher triggered on path '" << path << "'";
 
 	auto zkWrapper = reinterpret_cast<ZKWrapper *>(watcherCtx);
-	auto src = zkWrapper->removeZKRootAndDirectory(std::string(zkclient::ZkClientCommon::NAMESPACE_PATH),
+	auto src = zkWrapper->removeZKRootAndDirectory("/fileSystem",
 									std::string(path));
 	zkWrapper->cache->remove(src);
 
@@ -319,12 +318,13 @@ bool ZKWrapper::get(const std::string &path,
 		auto cached_data = cache->get(path);
         data.swap(*cached_data.get());
 	} else {
-		error_code = zoo_get(zh,
-							 prepend_zk_root(path).c_str(),
-							 0,
-							 reinterpret_cast<char *>(data.data()),
-							 &len,
-							 &stat);
+		error_code = zoo_wget(zh,
+							  prepend_zk_root(path).c_str(),
+							  watcher_znode_data,
+							  const_cast<ZKWrapper *>(this),
+							  reinterpret_cast<char *>(data.data()),
+							  &len,
+							  &stat);
         std::shared_ptr<std::vector<std::uint8_t>> data_copy =
                 std::make_shared<std::vector<unsigned char>> (data);
         cache->insert(path, data_copy);
