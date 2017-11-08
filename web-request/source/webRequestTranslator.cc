@@ -75,21 +75,21 @@ namespace webRequestTranslator {
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
   std::string getMkdirResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\n{\"boolean\":true}";
+    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
   }
 
   /**
    * Converts the RDFS datanode mv response into the appropriate webRDFS response.
    */
   std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\n{\"boolean\":true}";
+    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
   }
 
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
   std::string getDeleteResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\n{\"boolean\":true}";
+    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
   }
 
   /**
