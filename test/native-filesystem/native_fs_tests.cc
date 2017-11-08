@@ -126,8 +126,9 @@ TEST_F(NativeFSTest, CanCoalesce) {
 TEST_F(NativeFSTest, CanAppend) {
   NativeFS filesystem(backing);
   {
-    // Currently, no matter how big the block is sent to write, the fs allocates MIN_BLOCK_SIZE
-    // This test makes sure that even though block memory might be wasted, reading is still correct.
+    // Currently, no matter how big the block is sent to write, the fs
+    // allocates MIN_BLOCK_SIZE. This test makes sure that even though
+    // block memory might be wasted, reading is still correct.
     std::string  smallerThanMinBlk_a(MIN_BLOCK_SIZE / 2, 'a');
     ASSERT_TRUE(filesystem.writeBlock(0, smallerThanMinBlk_a));
 
@@ -141,11 +142,12 @@ TEST_F(NativeFSTest, CanAppend) {
 TEST_F(NativeFSTest, VerifySpaceWasted) {
   NativeFS filesystem(backing_smaller);
   {
-    // This test verifies that space is purely wasted when the block sent are smaller than MIN_BLOCK_SIZE.
+    // This test verifies that space is purely wasted when the block sent
+    // are smaller than MIN_BLOCK_SIZE.
 
     // Firstly, write mostly big blocks
     std::string fullblk(MAX_BLOCK_SIZE, 'z');
-    long memory_left = DISK_SIZE - RESERVED_SIZE;
+    int64 memory_left = DISK_SIZE - RESERVED_SIZE;
     int i = 0;
     for (; i < (DISK_SIZE - RESERVED_SIZE) / MAX_BLOCK_SIZE - 1; i++) {
       std::string readblk;
@@ -157,9 +159,10 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
     }
 
     // Secondly, write some semi-big blocks.
-    size_t semi_big_block_size = 1 << ((nativefs::MIN_BLOCK_POWER + nativefs::MAX_BLOCK_POWER)/2);
+    size_t semi_big_block_size = 1 << ((nativefs::MIN_BLOCK_POWER
+                                        + nativefs::MAX_BLOCK_POWER)/2);
     std::string semiblk(semi_big_block_size, 'z');
-    long num_blocks = memory_left / semi_big_block_size - 1;
+    int64 num_blocks = memory_left / semi_big_block_size - 1;
     int k;
     for (k = i; k < i + num_blocks; k++) {
       std::string readblk;
@@ -170,7 +173,8 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
       memory_left -= semi_big_block_size;
     }
 
-    // Even though block that is smaller than min is requested, MIN_BLOCK_SIZE is allocated and used.
+    // Even though block that is smaller than min is requested, MIN_BLOCK_SIZE
+    // is allocated and used.
     std::string  smallerThanMinBlk_a(MIN_BLOCK_SIZE / 2, 'a');
     for (int j = k; j < k + memory_left / MIN_BLOCK_SIZE; j++) {
       std::string readblk;
@@ -179,7 +183,9 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
       // Make sure contents are the same.
       ASSERT_EQ(smallerThanMinBlk_a, readblk);
     }
-    ASSERT_FALSE(filesystem.writeBlock((DISK_SIZE - RESERVED_SIZE) / MIN_BLOCK_SIZE, smallerThanMinBlk_a));
+    ASSERT_FALSE(filesystem.writeBlock(
+      (DISK_SIZE - RESERVED_SIZE) / MIN_BLOCK_SIZE,
+                                       smallerThanMinBlk_a));
   }
 }
 
