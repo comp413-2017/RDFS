@@ -89,49 +89,48 @@ std::string ZKWrapper::translate_error(int errorcode) {
 }
 
 ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
-  // TODO(2016): Move these default values to some readable CONSTANT value
-  zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
-  cache = new lru::Cache<std::string, std::vector<std::uint8_t>>(64,10);
+	// TODO(2016): Move these default values to some readable CONSTANT value
+	zh = zookeeper_init(host.c_str(), watcher, 10000, 0, 0, 0);
+	cache = new lru::Cache<std::string, std::shared_ptr<std::vector<unsigned char>>>(512,10);
 
-  if (!zh) {
-    LOG(ERROR) << "zk init failed!";
-    error_code = -999;
-  }
+	if (!zh) {
+		LOG(ERROR) << "zk init failed!";
+		error_code = -999;
+	}
+	init = 1;
+	if (root_path.size() != 0) {
+		bool root_exists = false;
+		while (!root_exists) {
+			if (!exists(root_path, root_exists, error_code)) {
+				LOG(ERROR) << "Failed to check if root directory "
+						   << root
+						   << " exists "
+						   << error_code;
+			}
+			if (!root_exists) {
+				if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
+					LOG(ERROR) << "Failed to create root directory "
+							   << root
+							   << " with error "
+							   << error_code;
+				} else {
+					root_exists = true;
+					break;
+				}
+			}
+		}
 
-  init = 1;
-  if (root_path.size() != 0) {
-    bool root_exists = false;
-    while (!root_exists) {
-      if (!exists(root_path, root_exists, error_code)) {
-        LOG(ERROR) << "Failed to check if root directory "
-                   << root
-                   << " exists "
-                   << error_code;
-      }
-      if (!root_exists) {
-        if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-          LOG(ERROR) << "Failed to create root directory "
-                     << root
-                     << " with error "
-                     << error_code;
-        } else {
-          root_exists = true;
-          break;
-        }
-      }
-    }
-
-    if (!root_exists) {
-      if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
-        LOG(ERROR) << "Failed to create root directory "
-                << root
-                << " with error "
-                << error_code;
-      }
-    }
-  }
-  LOG(INFO) << "SUCCESSFULLY STARTED ZKWRAPPER";
-  root = root_path;
+		if (!root_exists) {
+			if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
+				LOG(ERROR) << "Failed to create root directory "
+						   << root
+						   << " with error "
+						   << error_code;
+			}
+		}
+	}
+	LOG(INFO) << "SUCCESSFULLY STARTED ZKWRAPPER";
+	root = root_path;
 }
 
 std::string ZKWrapper::prepend_zk_root(const std::string &path) const {
@@ -313,8 +312,8 @@ bool ZKWrapper::get(const std::string &path,
 
 	if (cache->contains(path)) {
 		LOG(INFO) << "Found path " << path << " in ZkWrapper cache";
-		auto cached_data = cache->get(src);
-		memcpy(&cached_data, data, sizeof(cached_data));
+		auto cached_data = cache->get(path);
+        data.swap(*cached_data.get());
 	} else {
 		error_code = zoo_get(zh,
 							 prepend_zk_root(path).c_str(),
@@ -323,7 +322,7 @@ bool ZKWrapper::get(const std::string &path,
 							 &len,
 							 &stat);
         std::shared_ptr<std::vector<std::uint8_t>> data_copy =
-                std::make_shared<std::vector<std::uint8_t>> (data);
+                std::make_shared<std::vector<unsigned char>> (data);
         cache->insert(path, data_copy);
 	}
 	if (error_code != ZOK) {

@@ -378,7 +378,7 @@ class ZKWrapper {
   static const std::map<int, std::string> error_message;
   static const std::string CLASS_NAME;
 
-  lru::Cache<std::string, std::vector<std::uint8_t>> *cache;
+  lru::Cache<std::string, std::shared_ptr<std::vector<unsigned char>>> *cache;
 };
 
 #endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_
