@@ -5,6 +5,10 @@ build/
 logs/
 raw_storage.vdi
 clion-build/
+
+# Python virtualenv
+env/
+
 # Doxygen artifacts
 html/
 latex/
