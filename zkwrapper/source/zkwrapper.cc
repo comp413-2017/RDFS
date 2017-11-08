@@ -310,12 +310,22 @@ bool ZKWrapper::get(const std::string &path,
 	int len = length;
 	// TODO(2016): Perhaps we can be smarter about this
 	data.resize(len);
-	error_code = zoo_get(zh,
-						 prepend_zk_root(path).c_str(),
-						 0,
-						 reinterpret_cast<char *>(data.data()),
-						 &len,
-						 &stat);
+
+	if (cache->contains(path)) {
+		LOG(INFO) << "Found path " << path << " in ZkWrapper cache";
+		auto cached_data = cache->get(src);
+		memcpy(&cached_data, data, sizeof(cached_data));
+	} else {
+		error_code = zoo_get(zh,
+							 prepend_zk_root(path).c_str(),
+							 0,
+							 reinterpret_cast<char *>(data.data()),
+							 &len,
+							 &stat);
+        std::shared_ptr<std::vector<std::uint8_t>> data_copy =
+                std::make_shared<std::vector<std::uint8_t>> (data);
+        cache->insert(path, data_copy);
+	}
 	if (error_code != ZOK) {
 		LOG(ERROR) << "get on " << path << " failed";
 		print_error(error_code);
