@@ -58,6 +58,7 @@ using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
+using hadoop::hdfs::StorageTypeProto;
 
 namespace zkclient {
 
@@ -369,18 +370,44 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
+  uint64_t block_group_id;
+  std::vector<char> block_indices;
 
   if (!znode_data.isEC) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
-      // TODO(Nate): generate a block group and each part of a block group.
-      // TODO(Nate): use the hierarchical naming scheme.
+      add_block_group(
+          file_path, block_group_id, data_nodes, block_indices,
+          DEFAULT_PARITY_UNITS + DEFAULT_DATA_UNITS);
   }
 
+  // TODO(nate): this might be seriously wrong.
   block->set_offset(0);  // TODO(2016): Set this
   block->set_corrupt(false);
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
+
+  // Populate optional fields for an EC block.
+  // i.e. block indices and storage IDs.
+  if (znode_data.isEC) {
+    // Add storage IDs for an EC block.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->set_storageids(i, DEFAULT_STORAGE_ID);
+    }
+
+    // Add block indices for an EC block.
+    // Each byte (i.e. char) represents an index into the group.
+    std::string block_index_string;
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block_index_string.push_back(block_indices[i]);
+    }
+    block->set_blockindices(block_index_string);
+
+    // Add storage types for an EC block.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->set_storagetypes(i, StorageTypeProto::DISK);
+    }
+  }
 
   for (auto data_node : data_nodes) {
     buildDatanodeInfoProto(block->add_locs(), data_node);
@@ -1421,27 +1448,65 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
-bool ZkNnClient::add_block_group(const std::string &fileName,
+bool ZkNnClient::add_block_group(const std::string &filePath,
                      u_int64_t &block_group_id,
                      std::vector<std::string> &dataNodes,
-                     std::vector<u_int64_t> &storageBlockIDs,
+                     std::vector<char> &blockIndices,
                      uint32_t total_num_storage_blocks) {
-    FileZNode znode_data;
-    read_file_znode(znode_data, fileName);
+  FileZNode znode_data;
+  read_file_znode(znode_data, filePath);
+  std::vector<u_int64_t> storage_block_ids;
+  // Generate the block group id and storage block ids.
+  block_group_id = generate_block_group_id();
+  for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
+    storage_block_ids.push_back(generate_storage_block_id(
+        block_group_id, i));
+  }
 
-    // Generate the block group id and storage block ids.
-    block_group_id = generate_block_group_id();
-    for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
-        storageBlockIDs.push_back(generate_storage_block_id(block_group_id, i));
-    }
+  // Log them for debugging purposes.
+  LOG(INFO) << "Generated block group id " << block_group_id << "\n";
+  for (auto storageBlockID : blockIndices)
+      LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
 
-    // Log them for debugging purposes.
-    LOG(INFO) << "Generated block group id " << block_group_id << "\n";
-    for (auto storageBlockID : storageBlockIDs)
-        LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
+  // TODO(nate): find_data_node_for_block has some other weird logic
+  // baked into it.
+  // TODO(nate): giving it a block_group_id probably makes no sense.
+  std::vector<std::string> tempDataNodes;
+  for (int i = 0; i < total_num_storage_blocks; i++) {
+    find_datanode_for_block(
+        tempDataNodes, storage_block_ids[i],
+        1, true, znode_data.blocksize);
+    dataNodes.push_back(tempDataNodes[0]);
+    tempDataNodes.clear();
+  }
 
-    // TODO(nate): figure out what exact zookeepr operations must occur.
-    return true;
+  std::vector<std::shared_ptr<ZooOp>> ops;
+  auto block_location_op = zk->build_create_op(
+      get_block_metadata_path(block_group_id),
+      ZKWrapper::EMPTY_VECTOR);
+  ops.push_back(block_location_op);
+
+  for (auto storageBlockID : storage_block_ids) {
+    auto storage_block_op = zk->build_create_op(
+        get_block_metadata_path(
+            storageBlockID) + "/" + std::to_string(storageBlockID),
+        ZKWrapper::EMPTY_VECTOR);
+    ops.push_back(storage_block_op);
+  }
+
+  auto results = std::vector<zoo_op_result>();
+  int err;
+
+  if (!zk->execute_multi(ops, results, err, false)) {
+    LOG(ERROR)
+      << "Failed to write the addBlock multiop, ZK state was not changed"
+      << std::endl;
+    ZKWrapper::print_error(err);
+
+    return false;
+  }
+
+  return true;
 }
 
 
