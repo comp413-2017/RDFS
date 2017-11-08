@@ -14,7 +14,6 @@
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/generated_message_util.h>
-//#include <zkwrapper.h>
 #include "ClientNamenodeProtocol.pb.h"
 #include "hdfs.pb.h"
 
@@ -132,7 +131,6 @@ class WebRDFSServer {
   std::string concat(ConcatRequestProto req);
 
   std::string abandonBlock(AbandonBlockRequestProto req);
-
 };
 
 #endif  // WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_

@@ -4,7 +4,8 @@
 #include <easylogging++.h>
 #include "http_handlers.h"
 
-WebRDFSServer::WebRDFSServer(int16_t port, zkclient::ZkNnClient *zk_arg) : zk(zk_arg) {
+WebRDFSServer::WebRDFSServer(int16_t port,
+                             zkclient::ZkNnClient *zk_arg) : zk(zk_arg) {
   LOG(INFO) << "WebRDFS listening on port " << port;
   server.config.port = port;
 }
@@ -41,38 +42,39 @@ void WebRDFSServer::register_handler(
   server.resource[pattern][verb] = handler;
 }
 
-std::string WebRDFSServer::getFileInfo(GetFileInfoRequestProto req){
-  //logMessage(&req, "GetFileInfo ");
+std::string WebRDFSServer::getFileInfo(GetFileInfoRequestProto req) {
   GetFileInfoResponseProto res;
   zk->get_info(req, res);
   return "";
 }
-std::string WebRDFSServer::mkdir(MkdirsRequestProto req){
-  //logMessage(&req, "Mkdir ");
+
+std::string WebRDFSServer::mkdir(MkdirsRequestProto req) {
   MkdirsResponseProto res;
   zk->mkdir(req, res);
   return "";
 }
-std::string WebRDFSServer::destroy(DeleteRequestProto req){
-  //logMessage(&req, "Delete ");
+
+std::string WebRDFSServer::destroy(DeleteRequestProto req) {
   DeleteResponseProto res;
   zk->destroy(req, res);
   return "";
 }
-std::string WebRDFSServer::create(CreateRequestProto req){
-  //logMessage(&req, "Create ");
+
+std::string WebRDFSServer::create(CreateRequestProto req) {
   CreateResponseProto res;
   zk->create_file(req, res);
   return "";
 }
-std::string WebRDFSServer::getBlockLocations(GetBlockLocationsRequestProto req){
-  //logMessage(&req, "GetBlockLocations ");
+
+std::string WebRDFSServer::getBlockLocations(
+  GetBlockLocationsRequestProto req) {
   GetBlockLocationsResponseProto res;
   zk->get_block_locations(req, res);
   return "";
 }
-std::string WebRDFSServer::getServerDefaults(GetServerDefaultsRequestProto req){
-  //logMessage(&req, "GetServerDefaults");
+
+std::string WebRDFSServer::getServerDefaults(
+  GetServerDefaultsRequestProto req) {
   GetServerDefaultsResponseProto res;
   // FsServerDefaultsProto *def = res.mutable_serverdefaults();
   // // read all this config info
@@ -84,80 +86,87 @@ std::string WebRDFSServer::getServerDefaults(GetServerDefaultsRequestProto req){
   // def->set_encryptdatatransfer(getDefaultInt("dfs.encrypt.data.transfer"));
   return "";
 }
-std::string WebRDFSServer::renewLease(RenewLeaseRequestProto req){
-  //logMessage(&req, "RenewLease ");
+
+std::string WebRDFSServer::renewLease(RenewLeaseRequestProto req) {
   RenewLeaseResponseProto res;
   return "";
 }
-std::string WebRDFSServer::complete(CompleteRequestProto req){
-  //logMessage(&req, "Complete ");
+
+std::string WebRDFSServer::complete(CompleteRequestProto req) {
   CompleteResponseProto res;
   zk->complete(req, res);
   return "";
 }
-std::string WebRDFSServer::setReplication(SetReplicationRequestProto req){
+
+std::string WebRDFSServer::setReplication(SetReplicationRequestProto req) {
   SetReplicationResponseProto res;
   res.set_result(1);
   return "";
 }
-std::string WebRDFSServer::addBlock(AddBlockRequestProto req){
+
+std::string WebRDFSServer::addBlock(AddBlockRequestProto req) {
   AddBlockResponseProto res;
-  //logMessage(&req, "AddBlock ");
   zk->add_block(req, res);
   return "";
 }
-std::string WebRDFSServer::getListing(GetListingRequestProto req){
+
+std::string WebRDFSServer::getListing(GetListingRequestProto req) {
   GetListingResponseProto res;
-  //logMessage(&req, "GetListing ");
   zk->get_listing(req, res);
   return "";
 }
-std::string WebRDFSServer::getEZForPath(GetEZForPathRequestProto req){
+
+std::string WebRDFSServer::getEZForPath(GetEZForPathRequestProto req) {
   GetEZForPathResponseProto res;
   return "";
 }
-std::string WebRDFSServer::setOwner(SetOwnerRequestProto req){
+
+std::string WebRDFSServer::setOwner(SetOwnerRequestProto req) {
   SetOwnerResponseProto res;
   return "";
 }
-std::string WebRDFSServer::getContentSummary(GetContentSummaryRequestProto req){
+
+std::string WebRDFSServer::getContentSummary(
+  GetContentSummaryRequestProto req) {
   GetContentSummaryResponseProto res;
   zk->get_content(req, res);
   return "";
 }
 
-std::string WebRDFSServer::rename(RenameRequestProto req){
+std::string WebRDFSServer::rename(RenameRequestProto req) {
   RenameResponseProto res;
-  //logMessage(&req, "Rename ");
   zk->rename(req, res);
   return "";
 }
-std::string WebRDFSServer::rename2(Rename2RequestProto req){
-  //logMessage(&req, "Rename2 ");
+
+std::string WebRDFSServer::rename2(Rename2RequestProto req) {
   Rename2ResponseProto res;
   return "";
 }
-std::string WebRDFSServer::append(AppendRequestProto req){
+
+std::string WebRDFSServer::append(AppendRequestProto req) {
   return "";
 }
-std::string WebRDFSServer::setPermission(SetPermissionRequestProto req){
+
+std::string WebRDFSServer::setPermission(SetPermissionRequestProto req) {
   SetPermissionResponseProto res;
   return "";
 }
-std::string WebRDFSServer::recoverLease(RecoverLeaseRequestProto req){
-  //logMessage(&req, "RecoverLease ");
+
+std::string WebRDFSServer::recoverLease(RecoverLeaseRequestProto req) {
   RecoverLeaseResponseProto res;
   // just tell the client they could not recover the lease, so they won't try
   // and write
   res.set_result(false);
   return "";
 }
-std::string WebRDFSServer::concat(ConcatRequestProto req){
+
+std::string WebRDFSServer::concat(ConcatRequestProto req) {
   return "";
 }
-std::string WebRDFSServer::abandonBlock(AbandonBlockRequestProto req){
+
+std::string WebRDFSServer::abandonBlock(AbandonBlockRequestProto req) {
   AbandonBlockResponseProto res;
-  //logMessage(&req, "AbandonBlock ");
   zk->abandon_block(req, res);
   return "";
 }
