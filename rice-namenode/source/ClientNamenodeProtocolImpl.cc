@@ -113,7 +113,7 @@ std::string ClientNamenodeTranslator::getFileInfo(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "GetFileInfo ");
   GetFileInfoResponseProto res;
-  std::string client_name = getRPCServer().getUserName();
+  std::string client_name = getRPCServer().getUsername();
   switch (zk->get_info(req, res)) {
     case zkclient::ZkNnClient::GetFileInfoResponse::Ok:
       logMessage(&res, "GetFileInfo response ");
@@ -150,7 +150,7 @@ std::string ClientNamenodeTranslator::destroy(std::string input) {
   const std::string &src = req.src();
   const bool recursive = req.recursive();
   DeleteResponseProto res;
-  std::string client_name = getRPCServer().getUserName();
+  std::string client_name = getRPCServer().getUsername();
   if (zk->destroy(req, res) == zkclient::ZkNnClient::DeleteResponse::Ok) {
     return Serialize(res);
   } else {
@@ -271,7 +271,7 @@ std::string ClientNamenodeTranslator::getListing(std::string input) {
   GetListingResponseProto res;
   req.ParseFromString(input);
   logMessage(&req, "GetListing ");
-  std::string client_name = getRPCServer().getUserName();
+  std::string client_name = getRPCServer().getUsername();
   if (zk->get_listing(req, res) == zkclient::ZkNnClient::ListingResponse::Ok) {
     return Serialize(res);
   } else {

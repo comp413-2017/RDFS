@@ -364,7 +364,7 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   file_znode_struct_to_vec(&znode_data, zk_data);
 
   // Write the modified node back to Zookeeper
-  zk->set(ZookeeperPath(path), zk_data, zk_error);
+  zk->set(ZookeeperFilePath(path), zk_data, zk_error);
 
   if (zk_error != ZK_ERRORS::OK) {
     LOG(ERROR) << "ZK reported error writing modified node back to disk";
@@ -552,9 +552,10 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   return true;
 }
 
-void ZkNnClient::get_info(GetFileInfoRequestProto &req,
-                          GetFileInfoResponseProto &res,
-                          std::string client_name) {
+ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
+    GetFileInfoRequestProto &req,
+    GetFileInfoResponseProto &res,
+    std::string client_name) {
   const std::string &path = req.src();
 
   if (file_exists(path)) {
@@ -566,7 +567,7 @@ void ZkNnClient::get_info(GetFileInfoRequestProto &req,
     // Check access
     if (!checkAccess(client_name, znode_data)) {
       LOG(ERROR) << "Access denied to path " << path;
-      return;
+      return GetFileInfoResponse::FileAccessRestricted;
     }
 
     // set the file status in the get file info response res
@@ -757,7 +758,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     return;
   }
 
-  znode_data.under_construction = FILE_COMPLETE;
+  znode_data.under_construction = FileStatus::FileComplete;
   // set the file length
   uint64_t file_length = 0;
   auto file_blocks = std::vector<std::string>();
@@ -818,9 +819,10 @@ void ZkNnClient::complete(CompleteRequestProto& req,
  * Go down directories recursively. If a child is a file, then put its deletion on a queue.
  * Files delete themselves, but directories are deleted by their parent (so root can't be deleted)
  */
-void ZkNnClient::destroy(DeleteRequestProto &request,
-                         DeleteResponseProto &response,
-                         std::string client_name) {
+ZkNnClient::DeleteResponse ZkNnClient::destroy(
+    DeleteRequestProto &request,
+    DeleteResponseProto &response,
+    std::string client_name) {
   int error_code;
   const std::string &path = request.src();
   bool recursive = request.recursive();
@@ -840,7 +842,7 @@ void ZkNnClient::destroy(DeleteRequestProto &request,
   // Check access
   if (!checkAccess(client_name, znode_data)) {
     LOG(ERROR) << "Access denied to path " << path;
-    return;
+    return DeleteResponse::FileAccessRestricted;
   }
 
   if (znode_data.filetype == IS_FILE
@@ -953,9 +955,9 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 /**
  * Rename a file in the zookeeper filesystem
  */
-void ZkNnClient::rename(RenameRequestProto& req,
-                        RenameResponseProto& res,
-                        std::string client_name) {
+ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
+                                              RenameResponseProto& res,
+                                              std::string client_name) {
   std::string file_path = req.src();
 
   FileZNode znode_data;
@@ -964,7 +966,7 @@ void ZkNnClient::rename(RenameRequestProto& req,
   // Check access
   if (!checkAccess(client_name, znode_data)) {
     LOG(ERROR) << "Access denied to path " << file_path;
-    return;
+    return RenameResponse::FileAccessRestricted;
   }
 
   if (!file_exists(file_path)) {
@@ -1043,7 +1045,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
  * Make a directory in zookeeper
  */
 ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
-                       MkdirsResponseProto &response) {
+                                            MkdirsResponseProto &response) {
   const std::string &path = request.src();
   bool create_parent = request.createparent();
   auto rv = mkdir_helper(path, create_parent);
@@ -1094,9 +1096,10 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
   return MkdirResponse::Ok;
 }
 
-bool ZkNnClient::get_listing(GetListingRequestProto &req,
-                             GetListingResponseProto &res,
-                             std::string client_name) {
+ZkNnClient::ListingResponse ZkNnClient::get_listing(
+    GetListingRequestProto &req,
+    GetListingResponseProto &res,
+    std::string client_name) {
   int error_code;
 
   const std::string &src = req.src();
@@ -1116,7 +1119,7 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
     // Check access
     if (!checkAccess(client_name, znode_data)) {
       LOG(ERROR) << "Access denied to path " << src;
-      return false;
+      return ListingResponse::FileAccessRestricted;
     }
 
     if (znode_data.filetype == IS_FILE) {
@@ -1139,7 +1142,7 @@ bool ZkNnClient::get_listing(GetListingRequestProto &req,
           // Check access
           if (!checkAccess(client_name, child_data)) {
             LOG(ERROR) << "Access denied to path " << child_path;
-            return false;
+            return ListingResponse::FileAccessRestricted;
           }
           HdfsFileStatusProto *status = listing->add_partiallisting();
           set_file_info(status, child_path, child_data);
@@ -1453,7 +1456,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
     file_znode_struct_to_vec(&znode_data, zk_data);
 
     // Write the modified node back to Zookeeper
-    zk->set(ZookeeperPath(path), zk_data, zk_error);
+    zk->set(ZookeeperFilePath(path), zk_data, zk_error);
 
     if (zk_error != ZK_ERRORS::OK) {
       LOG(ERROR) << "ZK reported error writing modified node back to disk";
