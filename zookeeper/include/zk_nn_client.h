@@ -283,7 +283,6 @@ class ZkNnClient : public ZkClientCommon {
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
                                GetFileInfoResponseProto &res,
                                std::string client_name = "default");
-<<<<<<< HEAD
 
   /**
    * Create the file.
@@ -291,8 +290,6 @@ class ZkNnClient : public ZkClientCommon {
    * @param res CreateResponseProto
    * @return CreateResponse
    */
-=======
->>>>>>> merging permissions changes
   CreateResponse create_file(CreateRequestProto &request,
                                          CreateResponseProto &response);
 
