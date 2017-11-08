@@ -14,6 +14,7 @@
 #include <utility>
 #include "hdfs.pb.h"
 #include "ClientNamenodeProtocol.pb.h"
+#include "erasurecoding.pb.h"
 #include <ConfigReader.h>
 #include "util.h"
 
@@ -31,7 +32,7 @@ typedef enum class FileStatus : int {
  */
 typedef struct {
   uint32_t replication;  // the block replication factor.
-//  std::string ecPolicyName;  // the specified EC policy name.
+  bool isEC;  // 1 if EC file. 0 if replication based.
   uint64_t blocksize;
   // 1 for under construction, 0 for complete
   zkclient::FileStatus under_construction;
@@ -105,6 +106,11 @@ using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
 using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::ErasureCodingPolicyProto;
+using hadoop::hdfs::ECSchemaProto;
+using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
+using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
+
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -113,11 +119,16 @@ class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
 
-  const char* EC_REPLICATION = "EC_REPLICATION";
-  const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
+  const char* EC_REPLICATION = "REPLICATION";
+  const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
+  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
-  const char* DEFAULT_EC_CODEC_NAME = "RS64";
+  const uint32_t DEFAULT_DATA_UNITS = 6;
+  const uint32_t DEFAULT_PARITY_UNITS = 3;
+  const char* DEFAULT_EC_CODEC_NAME = "rs";
+  ECSchemaProto DEFAULT_EC_SCHEMA;
+  ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+
 
 enum class ListingResponse {
       Ok,                   // 0
@@ -154,6 +165,16 @@ enum class ListingResponse {
       FailedCreateZnode
   };
 
+  enum class RenameResponse {
+      Ok,
+      FileDoesNotExist,
+      RenameOpsFailed,
+      InvalidType,
+      MultiOpFailed
+  };
+  enum class ErasureCodingPoliciesResponse {
+      Ok
+  };
 
   explicit ZkNnClient(std::string zkIpAndAddress);
 
@@ -180,7 +201,7 @@ enum class ListingResponse {
   DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
   MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
   void complete(CompleteRequestProto &req, CompleteResponseProto &res);
-  void rename(RenameRequestProto &req, RenameResponseProto &res);
+  RenameResponse rename(RenameRequestProto &req, RenameResponseProto &res);
   ListingResponse get_listing(GetListingRequestProto &req,
                               GetListingResponseProto &res);
   void get_content(GetContentSummaryRequestProto &req,
@@ -192,6 +213,14 @@ enum class ListingResponse {
   void set_node_policy(char policy);
 
   char get_node_policy();
+
+  /**
+   * Returns the erasure coding policies loaded in Namenode, excluding REPLICATION
+   * policy.
+   */
+  ErasureCodingPoliciesResponse get_erasure_coding_policies(
+      GetErasureCodingPoliciesRequestProto &req,
+      GetErasureCodingPoliciesResponseProto &res);
   /**
    * Adds a block by making appropriate namespace changes and returns information about
    * the set of DataNodes that the block data should be hosted by.
@@ -239,13 +268,6 @@ enum class ListingResponse {
   uint32_t get_total_num_storage_blocks(
           const std::string &fileName,
           u_int64_t &block_group_id);
-
-  /**
-   * Given the ID of an EC policy, returns the numbers of data blocks and parity blocks within a block group.
-   * @param ecID the ID of an EC policy.
-   * @return a pair denoting (# of data blocks, # of parity blocks);
-   */
-  std::pair<uint32_t, uint32_t> get_num_data_parity_blocks(uint32_t ecID);
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
@@ -345,9 +367,17 @@ enum class ListingResponse {
                      const std::string &path,
                      FileZNode &node);
   /**
-   * Given the filesystem path, get the full zookeeper path
+   * Given the filesystem path, get the full zookeeper path for the blocks
+   * where the data is located
    */
-  std::string ZookeeperPath(const std::string &hadoopPath);
+  std::string ZookeeperBlocksPath(const std::string &hadoopPath);
+
+   /**
+   * Given the filesystem path, get the full zookeeper path for the dir
+   * where the file metadata is written
+   */
+  std::string ZookeeperFilePath(const std::string &hadoopPath);
+
   /**
    * Use to read values from config
    */
@@ -449,21 +479,10 @@ enum class ListingResponse {
   */
   bool blockDeleted(uint64_t uuid, std::string id);
 
-
   /**
-   * Determines what the redundancy form of a file specified by @path should be and returns the corresponding value.
-   *
-   * If the ecPolicyString is empty, it uses the default redundancy form, which is zkclient::DEFAULT_EC_POLICY.
-   * TODO: we may choose to implement what HDFS does, which is to inherit the redundancy form of its parent directory.
-   * TODO: the path parameter is need in that case.
-   * If not empty, simply returns the given ecPolicyString.
-   * @param ecPolicyString the ecPolicyname part of CreateRequestProto.
-   * @param path the file path.
-   * @return zkclient::REPLICATION or zkclinet::EC.
+   * Populates DEFAULT_EC_SCHEMA and RS_SOLOMON_PROTO fields.
    */
-  std::string determineRedundancyForm(
-          const std::string &ecPolicyString,
-          const std::string &path);
+  void populateDefaultECProto();
 
   const int UNDER_CONSTRUCTION = 1;
   const int FILE_COMPLETE = 0;
