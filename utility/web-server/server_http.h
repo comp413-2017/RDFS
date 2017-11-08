@@ -1,7 +1,7 @@
 #ifndef SERVER_HTTP_HPP
 #define SERVER_HTTP_HPP
 
-#include "utility.h"
+#include "utility.hpp"
 #include <functional>
 #include <iostream>
 #include <limits>
