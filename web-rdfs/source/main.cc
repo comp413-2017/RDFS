@@ -63,6 +63,17 @@ int main(int argc, char *argv[]) {
   int16_t port = 8080;
   parse_cmdline_options(argc, argv, &port);
 
-  WebRDFSServer server(port);
+  int error_code = 0;
+  auto zk_shared = std::make_shared<ZKWrapper>(
+      "localhost:2181,localhost:2182,localhost:2183",
+      error_code,
+      "/testing");
+  zkclient::ZkNnClient nncli(zk_shared);
+  nncli.register_watches();
+  char node_policy = MAX_FREE_SPACE;
+  nncli.set_node_policy(node_policy);
+
+
+  WebRDFSServer server(port, &nncli);
   server.start();
 }
