@@ -1468,9 +1468,9 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
   for (auto storageBlockID : blockIndices)
       LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
 
-  // TODO(nate): find_data_node_for_block has some other weird logic
-  // baked into it.
-  // TODO(nate): giving it a block_group_id probably makes no sense.
+  // TODO(nate): find_data_node_for_block may have some other logic
+  // baked into it. also, repeatedly calling it may return the same
+  // data node id.
   std::vector<std::string> tempDataNodes;
   for (int i = 0; i < total_num_storage_blocks; i++) {
     find_datanode_for_block(
@@ -1485,6 +1485,10 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
       get_block_metadata_path(block_group_id),
       ZKWrapper::EMPTY_VECTOR);
   ops.push_back(block_location_op);
+  LOG(INFO)
+      << "Added the ZK operation that creates the block_group_id"
+      << std::endl;
+
 
   for (auto storageBlockID : storage_block_ids) {
     auto storage_block_op = zk->build_create_op(
@@ -1492,6 +1496,10 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
             storageBlockID) + "/" + std::to_string(storageBlockID),
         ZKWrapper::EMPTY_VECTOR);
     ops.push_back(storage_block_op);
+    LOG(INFO)
+        << "Added the ZK operation that creates the storage_block"
+        << " " << storageBlockID
+        << std::endl;
   }
 
   auto results = std::vector<zoo_op_result>();
