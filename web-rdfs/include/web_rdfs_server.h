@@ -3,7 +3,7 @@
 #ifndef WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_
 #define WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_
 
-#include "server_http.hpp"
+#include "server_http.h"
 #include "zk_nn_client.h"
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/generated_enum_reflection.h>

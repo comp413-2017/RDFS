@@ -3,7 +3,7 @@
 #ifndef WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_
 #define WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_
 
-#include "server_http.hpp"
+#include "server_http.h"
 
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
