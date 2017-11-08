@@ -81,6 +81,10 @@ void ZkNnClient::populateDefaultECProto() {
   RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
   RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
+  REPLICATION_PROTO.set_name(EC_REPLICATION);
+  REPLICATION_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  REPLICATION_PROTO.set_id(REPLICATION_EC_ID);
+  REPLICATION_PROTO.set_allocated_schema(&REPLICATION_1_2_SCHEMA);
 }
 
 /*
@@ -1092,11 +1096,11 @@ void ZkNnClient::get_block_locations(const std::string &src,
   FileZNode znode_data;
   read_file_znode(znode_data, src);
 
-  ErasureCodingPolicyProto ecpolicy = blocks.mutable_ecpolicy();
+  ErasureCodingPolicyProto * ecpolicy = blocks->mutable_ecpolicy();
   if (znode_data.isEC) {
-    ecpolicy=RS_SOLOMON_PROTO;
+    ecpolicy->CopyFrom(RS_SOLOMON_PROTO);
   } else {
-    ecpolicy=REPLICATION_PROTO;
+    ecpolicy->CopyFrom(REPLICATION_PROTO);
   }
 
   //TODO(jrn3): This is last years code, but seems super fishy
