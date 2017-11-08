@@ -589,7 +589,7 @@ class ZkNnClient : public ZkClientCommon {
    * Check access to a file
    * @param username client's username
    * @param znode_data reference to the fileZNode being accessed
-   * @return boolean indicating whether the given username has access 
+   * @return boolean indicating whether the given username has access
    *                 to a znode or not
    */
   bool checkAccess(std::string username, FileZNode &znode_data);
