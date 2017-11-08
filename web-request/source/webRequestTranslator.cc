@@ -5,7 +5,7 @@ namespace webRequestTranslator {
      * Converts the RDFS namenode create response into the appropriate webRDFS response.
      */
     std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-      std::string res = std::string("HTTP/1.1 307 TEMPORARY_REDIRECT\n");
+      std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
 
       std::string delimiter = "/webhfs/v1/";
       std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
@@ -41,7 +41,7 @@ namespace webRequestTranslator {
    * Converts the RDFS namenode read response into the appropriate webRDFS response.
    */
   std::string getNamenodeReadResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    std::string res = std::string("HTTP/1.1 307 TEMPORARY_REDIRECT\n");
+    std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
 
     std::string delimiter = "/webhfs/v1/";
     std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
