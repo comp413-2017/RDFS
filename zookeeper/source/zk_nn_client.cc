@@ -288,7 +288,8 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
     znode_data_to_vec(&clientInfo, data);
 
     if (!exists) {
-      if (!zk->create(ClientZookeeperPath(client_name), data, error_code, false)) {
+      if (!zk->create(ClientZookeeperPath(client_name),
+                      data, error_code, false)) {
         LOG(ERROR) << "Failed to create zk path " <<
           ClientZookeeperPath(client_name) << ".";
       }
@@ -379,7 +380,8 @@ void ZkNnClient::file_znode_struct_to_vec(FileZNode *znode_data,
 }
 
 template <class T>
-void ZkNnClient::znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data) {
+void ZkNnClient::znode_data_to_vec(T *znode_data,
+                                   std::vector<std::uint8_t> &data) {
   memcpy(&data[0], znode_data, sizeof(*znode_data));
 }
 
