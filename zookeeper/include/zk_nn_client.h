@@ -49,15 +49,16 @@ typedef struct {
  * Lease info that stores in each lease node.
  */
 typedef struct {
-  std::string clientName; // Same as the clientName passed
-                          // from RenewLeaseRequestProto
+  std::string clientName;   // Same as the
+                            // clientName passed
+                            // from RenewLeaseRequestProto
 } LeaseInfo;
 
 /**
  * Client info that stores in each client node
  */
 typedef struct {
-  uint64_t timestamp; // std::time()
+  uint64_t timestamp;    // std::time()
 } ClientInfo;
 
 struct TargetDN {
@@ -196,8 +197,10 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
-  void renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProto &res);
-  void recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseResponseProto &res);
+  void renew_lease(RenewLeaseRequestProto &req,
+                   RenewLeaseResponseProto &res);
+  void recover_lease(RecoverLeaseRequestProto &req,
+                     RecoverLeaseResponseProto &res);
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
                                GetFileInfoResponseProto &res);
   ZkNnClient::CreateResponse  create_file(CreateRequestProto &request,
@@ -429,7 +432,8 @@ class ZkNnClient : public ZkClientCommon {
   // in millisecons, 10 minute timeout when waiting for
   // replication acknowledgements
   const int ACK_TIMEOUT = 600000;
-  const uint64_t EXPIRATION_TIME = 2 * 60 * 60 * 1000; // 2 hours in milliseconds.
+  const uint64_t EXPIRATION_TIME =
+    2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 };
 
 }  // namespace zkclient

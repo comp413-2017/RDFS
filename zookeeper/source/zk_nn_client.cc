@@ -273,12 +273,14 @@ char ZkNnClient::get_node_policy() {
 
 
 // --------------------------- PROTOCOL CALLS -------------------------------
-void ZkNnClient::renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProto &res) {
+void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
+                             RenewLeaseResponseProto &res) {
   std::string client_name = req.clientname();
   bool exists;
   int error_code;
   if (!zk->exists(ClientZookeeperPath(client_name), exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " << ClientZookeeperPath(client_name) << " exits.";
+    LOG(ERROR) << "Failed to check whether " <<
+      ClientZookeeperPath(client_name) << " exits.";
   } else {
     ClientInfo clientInfo;
     clientInfo.timestamp = current_time_ms();
@@ -286,43 +288,49 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req, RenewLeaseResponseProt
     znode_data_to_vec(&clientInfo, data);
 
     if (!exists) {
-      if(!zk->create(ClientZookeeperPath(client_name), data, error_code, false)) {
-        LOG(ERROR) << "Failed to create zk path " << ClientZookeeperPath(client_name) << ".";
+      if (!zk->create(ClientZookeeperPath(client_name), data, error_code, false)) {
+        LOG(ERROR) << "Failed to create zk path " <<
+          ClientZookeeperPath(client_name) << ".";
       }
     } else {
-      if(!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
-        LOG(ERROR) << "Failed to set data for " << ClientZookeeperPath(client_name) << ".";
+      if (!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
+        LOG(ERROR) << "Failed to set data for " <<
+          ClientZookeeperPath(client_name) << ".";
       }
     }
   }
 }
 
-void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseResponseProto &res) {
+void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
+                               RecoverLeaseResponseProto &res) {
   std::string client_name = req.clientname();
   std::string file_path = req.src();
   int error_code;
   bool exists;
   if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " << ZookeeperFilePath(file_path) << " exists.";
+    LOG(ERROR) << "Failed to check whether " <<
+      ZookeeperFilePath(file_path) << " exists.";
     res.set_result(false);
     return;
   }
   if (!exists) {
-    // TODO: not sure how to throw IOException.
+    // TODO(elfyingying): not sure how to throw IOException.
     res.set_result(false);
     return;
   }
   std::vector<std::string> children;
   if (!zk->get_children(LeaseZookeeperPath(file_path), children, error_code)) {
-    LOG(ERROR) << "Failed to get children of " << LeaseZookeeperPath(file_path) << ".";
+    LOG(ERROR) << "Failed to get children of " <<
+      LeaseZookeeperPath(file_path) << ".";
     res.set_result(false);
     return;
   }
   if (children.size() > 0) {
-    for (std::string child: children) {
+    for (std::string child : children) {
       LOG(ERROR) << "Child: " + child;
     }
-    LOG(ERROR) << "Fatal error: there are more than one leases for " << ZookeeperFilePath(file_path) << ".";
+    LOG(ERROR) << "Fatal error: there are more than one leases for "
+    << ZookeeperFilePath(file_path) << ".";
     res.set_result(false);
     return;
   }
@@ -333,10 +341,13 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseRespon
   }
   std::string lease_holder_client = children[0];
   if (lease_expired(lease_holder_client)) {
-    // TODO: start the lease recovery process that closes the file for the
+    // TODO(elfyingying): start the lease recovery process
+    // that closes the file for the
     // client and make sure the replicas are consistent.
-    if (!zk->delete_node(LeaseZookeeperPath(file_path) + '/' + lease_holder_client, error_code, true)) {
-      LOG(ERROR) << "Failed to delete the dead lease holder client for " + LeaseZookeeperPath(file_path)
+    if (!zk->delete_node(LeaseZookeeperPath(file_path) + '/' +
+                           lease_holder_client, error_code, true)) {
+      LOG(ERROR) << "Failed to delete the dead lease holder client for "
+                    + LeaseZookeeperPath(file_path)
                     + '/' + lease_holder_client + ".";
       res.set_result(false);
       return;
@@ -348,7 +359,6 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req, RecoverLeaseRespon
     res.set_result(false);
     return;
   }
-
 }
 
 void ZkNnClient::read_file_znode(FileZNode &znode_data,
@@ -625,7 +635,8 @@ bool ZkNnClient::create_file_znode(const std::string &path,
         // TODO(2016): handle error
       }
       // create the lease branch
-      if (!zk->create(LeaseZookeeperPath(path), ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+      if (!zk->create(LeaseZookeeperPath(path), ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
         LOG(ERROR) << "Create lease file path failed" << error_code;
         return false;
         // TODO(2016): handle error
@@ -762,13 +773,16 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
 
     // Delete the lease branch
     auto lease_children = std::vector<std::string>();
-    if (!zk->get_children(LeaseZookeeperPath(path), lease_children, error_code)) {
+    if (!zk->get_children(LeaseZookeeperPath(path),
+                          lease_children, error_code)) {
       LOG(FATAL) << "Failed to get children for " << LeaseZookeeperPath(path);
       return DeleteResponse::FailedChildRetrieval;
     }
     for (auto &child : lease_children) {
-      LOG(ERROR) << "pushed delete " << util::concat_path(LeaseZookeeperPath(path), child);
-      ops.push_back(zk->build_delete_op(util::concat_path(LeaseZookeeperPath(path), child)));
+      LOG(ERROR) << "pushed delete " << util::concat_path(
+        LeaseZookeeperPath(path), child);
+      ops.push_back(zk->build_delete_op(util::concat_path(
+        LeaseZookeeperPath(path), child)));
     }
     ops.push_back(zk->build_delete_op(LeaseZookeeperPath(path)));
   }
@@ -843,27 +857,34 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   bool exists;
   std::string client_name = req.clientname();
   if (client_name.size() != 0) {
-    if (!zk->exists(LeaseZookeeperPath(src) + '/' + client_name, exists, error_code)) {
-      LOG(ERROR) << "Failed to check the existence of " << LeaseZookeeperPath(src) + '/' + client_name << ".";
+    if (!zk->exists(LeaseZookeeperPath(src) + '/' +
+                      client_name, exists, error_code)) {
+      LOG(ERROR) << "Failed to check the existence of "
+      << LeaseZookeeperPath(src) + '/' + client_name << ".";
       res.set_result(false);
       return;
     }
     if (exists) {
-      if (!zk->delete_node(LeaseZookeeperPath(src) + '/' + client_name, error_code, true)) {
-        LOG(ERROR) << "Failed to delete node " << LeaseZookeeperPath(src) + '/' + client_name << ".";
+      if (!zk->delete_node(LeaseZookeeperPath(src) + '/'
+                           + client_name, error_code, true)) {
+        LOG(ERROR) << "Failed to delete node " << LeaseZookeeperPath(src)
+                                                  + '/' + client_name << ".";
         res.set_result(false);
         return;
       }
     }
     // Remove the client from the client branch
     if (!zk->exists(ClientZookeeperPath(client_name), exists, error_code)) {
-      LOG(ERROR) << "Failed to check the existence of " << ClientZookeeperPath(client_name) << ".";
+      LOG(ERROR) << "Failed to check the existence of " <<
+        ClientZookeeperPath(client_name) << ".";
       res.set_result(false);
       return;
     }
     if (exists) {
-      if (!zk->delete_node(ClientZookeeperPath(client_name), error_code, true)) {
-        LOG(ERROR) << "Failed to delete node " << ClientZookeeperPath(client_name) << ".";
+      if (!zk->delete_node(ClientZookeeperPath(client_name),
+                           error_code, true)) {
+        LOG(ERROR) << "Failed to delete node " <<
+          ClientZookeeperPath(client_name) << ".";
         res.set_result(false);
         return;
       }
@@ -2050,7 +2071,8 @@ int ZkNnClient::ms_since_creation(std::string &path) {
  * Returns the current timestamp in milliseconds
  */
 uint64_t ZkNnClient::current_time_ms() {
-  // http://stackoverflow.com/questions/19555121/how-to-get-current-timestamp-in-milliseconds-since-1970-just-the-way-java-gets
+  // http://stackoverflow.com/questions/19555121/how-to-get-current-time
+  // stamp-in-milliseconds-since-1970-just-the-way-java-gets
   struct timeval tp;
   // Get current timestamp
   gettimeofday(&tp, NULL);
@@ -2108,8 +2130,10 @@ bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto *eb,
 bool ZkNnClient::lease_expired(std::string lease_holder_client) {
   bool exists;
   int error_code;
-  if (!zk->exists(ClientZookeeperPath(lease_holder_client), exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether the client " + ClientZookeeperPath(lease_holder_client) << " exist.";
+  if (!zk->exists(ClientZookeeperPath(lease_holder_client), exists,
+                  error_code)) {
+    LOG(ERROR) << "Failed to check whether the client " +
+                    ClientZookeeperPath(lease_holder_client) << " exist.";
     return false;
   }
   if (!exists) {
@@ -2120,8 +2144,10 @@ bool ZkNnClient::lease_expired(std::string lease_holder_client) {
   if (timestamp - current_time_ms() < EXPIRATION_TIME) {
     return false;
   } else {
-    if (!zk->delete_node(ClientZookeeperPath(lease_holder_client), error_code)) {
-      LOG(ERROR) << "Failed to delete client " + ClientZookeeperPath(lease_holder_client) << ".";
+    if (!zk->delete_node(ClientZookeeperPath(lease_holder_client),
+                         error_code)) {
+      LOG(ERROR) << "Failed to delete client " +
+                      ClientZookeeperPath(lease_holder_client) << ".";
       return false;
     }
   }
