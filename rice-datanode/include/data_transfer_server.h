@@ -65,12 +65,30 @@ class TransferServer {
   bool replicate(uint64_t len, std::string ip, std::string xferport,
                  ExtendedBlockProto blockToTarget);
 
+  /** 
+   * @param len the length of the block
+   * @param ip the ip of the datanode we are sending the read request to
+   * @param xferport the xfer port of the datandoe we are sending the read
+   *                 request to
+   * @param blockToTarget the block info of the block to replicate
+   * @param data the string to store the read data into
+   * @param read_len the length of data read
+   *
+   * Reads data from a remote block
+   */
   bool remote_read(uint64_t len, std::string ip,
                                    std::string xferport,
                                    ExtendedBlockProto blockToTarget,
                                    std::string data, int &read_len);
 
   bool rmBlock(uint64_t block_id);
+
+  /**
+   * @param block_id the id of the block to write
+   * @param data to write
+   *
+   * writes a block to the local DN
+   */
   bool writeBlock(uint64_t block_id, std::string data);
   bool poll_replicate();
   bool poll_delete();

@@ -509,7 +509,8 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
     dn->blockReceived(block_id, read_len);
   }
 
-  // TODO(ADAM): Make sure this line is unecessary
+  // Pretty confident we don't need this line,
+  // but if we get a bug this is a place to check
   // base_proto->release_block();
   LOG(INFO) << "Replication complete, closing connection.";
   return true;

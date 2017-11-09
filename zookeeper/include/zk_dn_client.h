@@ -102,6 +102,9 @@ class ZkClientDn : public ZkClientCommon {
 
   bool poll_delete_queue();
 
+  /**
+   * Checks the ec_recovery queue for jobs
+   */
   bool poll_reconstruct_queue();
 
   std::string get_datanode_id();
