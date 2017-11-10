@@ -66,7 +66,7 @@ make
 cd /home/vagrant
 
 # Setup Apache zookeeper
-wget --quiet http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+wget --quiet http://kevinlin.web.rice.edu/static/zookeeper-3.4.9.tar.gz
 tar -xf zookeeper-3.4.9.tar.gz
 mv zookeeper-3.4.9 /home/vagrant/zookeeper
 rm zookeeper-3.4.9.tar.gz
