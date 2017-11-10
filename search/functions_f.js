@@ -19,6 +19,7 @@ var searchData=
   ['setverboselevel',['setVerboseLevel',['../classel_1_1_loggers.html#a6526e948f62d7dc77e06b77d355770d6',1,'el::Loggers']]],
   ['setvmodules',['setVModules',['../classel_1_1_loggers.html#a564a41ac785a34c57f00b9d8def2f966',1,'el::Loggers']]],
   ['size',['size',['../classel_1_1base_1_1utils_1_1_command_line_args.html#ab335b66a2ca2dea6c9c7b8d54760e975',1,'el::base::utils::CommandLineArgs::size()'],['../classel_1_1base_1_1utils_1_1_abstract_registry.html#a58a7b8ea964bdf6008701dcfb6609ca5',1,'el::base::utils::AbstractRegistry::size()']]],
+  ['start',['start',['../class_web_r_d_f_s_server.html#a6ec7e81c3bb0462556229e5d73922cf2',1,'WebRDFSServer']]],
   ['startswith',['startsWith',['../classel_1_1base_1_1utils_1_1_str.html#a87b8a192300657c907b0678a8d715da2',1,'el::base::utils::Str']]],
   ['stop',['stop',['../class_simple_web_1_1_client_base.html#a91d43dca4437be30701361c21dcc3947',1,'SimpleWeb::ClientBase::stop()'],['../class_simple_web_1_1_server_base.html#a28549893a041ff45777b621586c32018',1,'SimpleWeb::ServerBase::stop()'],['../class_simple_web_1_1_scope_runner.html#a8bc4106959c7250651c1b6e2c660a640',1,'SimpleWeb::ScopeRunner::stop()']]],
   ['storage',['storage',['../classel_1_1_helpers.html#a13a5365de36b3af27660cf9b358829d3',1,'el::Helpers']]],
