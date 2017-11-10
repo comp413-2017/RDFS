@@ -21,8 +21,7 @@ TEST_F(NamenodeTest, renewLeaseCorrectnessTest) {
                                  exists, error_code));
   ASSERT_TRUE(exists);
   uint64_t ONE_MIN = 1 * 60 * 1000;
-  ASSERT_TRUE(time - client->get_client_lease_timestamp
-    ("test_client") < ONE_MIN);
+  ASSERT_TRUE(time - client->get_client_lease_timestamp("test_client") < ONE_MIN);
 }
 
 TEST_F(NamenodeTest, recoverLeaseCorrectnessTest) {
@@ -45,14 +44,14 @@ TEST_F(NamenodeTest, recoverLeaseCorrectnessTest) {
   ASSERT_EQ(client->create_file(create_req, create_resp),
             zkclient::ZkNnClient::CreateResponse::Ok);
 
-  // RecoverLease should return true given a file that does
-  // not have a lease holder.
+  // RecoverLease should return true given a file that does not have
+  // a lease holder.
   client->recover_lease(recover_lease_req, recover_lease_res);
   ASSERT_TRUE(recover_lease_res.result());
 }
 
-// TODO(elfyingying): After append is implemented (where lease is
-// actually acquired, more tests that check expiration are needed.)
+// TODO: After append is implemented (where lease is actually acquired,
+// more tests that check expiration are needed.)
 
 TEST_F(NamenodeTest, issueLeaseTest) {
   // Open a lease on some file, through an append request
