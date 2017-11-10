@@ -1479,14 +1479,17 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
   std::vector<u_int64_t> storage_block_ids;
   // Generate the block group id and storage block ids.
   block_group_id = generate_block_group_id();
+  char blockIndex = 0;
   for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
     storage_block_ids.push_back(generate_storage_block_id(
         block_group_id, i));
+    blockIndices.push_back(blockIndex);
+    blockIndex++;
   }
 
   // Log them for debugging purposes.
   LOG(INFO) << "Generated block group id " << block_group_id << "\n";
-  for (auto storageBlockID : blockIndices)
+  for (auto storageBlockID : storage_block_ids)
       LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
 
   // TODO(nate): find_data_node_for_block may have some other logic
