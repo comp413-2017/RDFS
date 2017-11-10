@@ -145,6 +145,12 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>setOwner</b> (
 <tr class="memitem:a76d663aaf7671f48250deff17a80faed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76d663aaf7671f48250deff17a80faed"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getContentSummary</b> (std::string input)</td></tr>
 <tr class="separator:a76d663aaf7671f48250deff17a80faed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39fbac2500835bc4970ea1af8804bc31"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a39fbac2500835bc4970ea1af8804bc31"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>modifyAclEntries</b> (std::string input)</td></tr>
+<tr class="separator:a39fbac2500835bc4970ea1af8804bc31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac61a8b84552e5a579ebe8644a14f1640"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac61a8b84552e5a579ebe8644a14f1640"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>setPermission</b> (std::string)</td></tr>
+<tr class="separator:ac61a8b84552e5a579ebe8644a14f1640"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ffbc17cdbb7f8ee5bcc260f923c7a5b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ffbc17cdbb7f8ee5bcc260f923c7a5b"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>rename</b> (std::string)</td></tr>
 <tr class="separator:a6ffbc17cdbb7f8ee5bcc260f923c7a5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -153,9 +159,6 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>rename</b> (st
 <tr class="memitem:a99e0444813666ef5e25c5ddddb1700b4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a99e0444813666ef5e25c5ddddb1700b4"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>append</b> (std::string)</td></tr>
 <tr class="separator:a99e0444813666ef5e25c5ddddb1700b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac61a8b84552e5a579ebe8644a14f1640"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac61a8b84552e5a579ebe8644a14f1640"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><b>setPermission</b> (std::string)</td></tr>
-<tr class="separator:ac61a8b84552e5a579ebe8644a14f1640"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab52cc5e09537eda6b2794eb9b4c2f604"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classclient__namenode__translator_1_1_client_namenode_translator.html#ab52cc5e09537eda6b2794eb9b4c2f604">recoverLease</a> (std::string)</td></tr>
 <tr class="separator:ab52cc5e09537eda6b2794eb9b4c2f604"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1c9639dde0e9197646165dcf3cae737"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1c9639dde0e9197646165dcf3cae737"></a>
@@ -264,8 +267,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>finalizeUpgrad
 <li>setReplication: The actual block replication is not expected to be performed during this method call. The blocks will be populated or removed in the background as the result of the routine block maintenance procedures. Basically, cannot set replication to something new.</li>
 <li>append: Appends are not supported</li>
 <li>concat: Effectively an append, so we don't support it</li>
-<li>recoverLease: While we expect clients to renew their lease, we should never allow a client to "recover" a lease, since we only allow a write-once system As such, we cannot recover leases.</li>
-<li>setPermission: TODO(2016): - might support this later! </li>
+<li>recoverLease: While we expect clients to renew their lease, we should never allow a client to "recover" a lease, since we only allow a write-once system As such, we cannot recover leases. </li>
 </ol>
 
 </div>

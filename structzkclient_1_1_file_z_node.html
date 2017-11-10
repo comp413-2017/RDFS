@@ -121,12 +121,21 @@ std::uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>access_time<
 <tr class="memitem:a7e09cd293aa350686d3bdb789e3ac58a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7e09cd293aa350686d3bdb789e3ac58a"></a>
 std::uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>modification_time</b></td></tr>
 <tr class="separator:a7e09cd293aa350686d3bdb789e3ac58a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74ff64362f72d8a975b1d217fe02ead5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a74ff64362f72d8a975b1d217fe02ead5"></a>
-char&#160;</td><td class="memItemRight" valign="bottom"><b>owner</b> [256]</td></tr>
-<tr class="separator:a74ff64362f72d8a975b1d217fe02ead5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5b7ad2d168eb4a6f92f7e5ba40839d1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5b7ad2d168eb4a6f92f7e5ba40839d1"></a>
-char&#160;</td><td class="memItemRight" valign="bottom"><b>group</b> [256]</td></tr>
-<tr class="separator:aa5b7ad2d168eb4a6f92f7e5ba40839d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0ed32745d258a2e83b87d553fc25fa5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab0ed32745d258a2e83b87d553fc25fa5"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>owner</b> [MAX_USERNAME_LEN]</td></tr>
+<tr class="separator:ab0ed32745d258a2e83b87d553fc25fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a152f3e91c830af51efa37cdc8bbe6ac0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a152f3e91c830af51efa37cdc8bbe6ac0"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>group</b> [MAX_USERNAME_LEN]</td></tr>
+<tr class="separator:a152f3e91c830af51efa37cdc8bbe6ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadce03960b13590997fa4c413b0f1780"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aadce03960b13590997fa4c413b0f1780"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>permissions</b> [20][MAX_USERNAME_LEN]</td></tr>
+<tr class="separator:aadce03960b13590997fa4c413b0f1780"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad773aa4c1ab5ac9f41daf6744d0b5335"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad773aa4c1ab5ac9f41daf6744d0b5335"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>perm_length</b></td></tr>
+<tr class="separator:ad773aa4c1ab5ac9f41daf6744d0b5335"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa600ae4932b09ebbf536b4a64ff2e1e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa600ae4932b09ebbf536b4a64ff2e1e0"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>permission_number</b></td></tr>
+<tr class="separator:aa600ae4932b09ebbf536b4a64ff2e1e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This is the basic znode to describe a file </p>

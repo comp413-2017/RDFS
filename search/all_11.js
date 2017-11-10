@@ -66,7 +66,7 @@ var searchData=
   ['removespanreceiverresponseproto',['RemoveSpanReceiverResponseProto',['../classhadoop_1_1common_1_1_remove_span_receiver_response_proto.html',1,'hadoop::common']]],
   ['removexattrrequestproto',['RemoveXAttrRequestProto',['../classhadoop_1_1hdfs_1_1_remove_x_attr_request_proto.html',1,'hadoop::hdfs']]],
   ['removexattrresponseproto',['RemoveXAttrResponseProto',['../classhadoop_1_1hdfs_1_1_remove_x_attr_response_proto.html',1,'hadoop::hdfs']]],
-  ['rename',['rename',['../classzkclient_1_1_zk_nn_client.html#a3f0042276bdeefefe2e934766c45cc13',1,'zkclient::ZkNnClient']]],
+  ['rename',['rename',['../classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995',1,'zkclient::ZkNnClient']]],
   ['rename2',['rename2',['../classclient__namenode__translator_1_1_client_namenode_translator.html#a6cb2eb48718ab49d5ec5b3e3520bd7ff',1,'client_namenode_translator::ClientNamenodeTranslator']]],
   ['rename2requestproto',['Rename2RequestProto',['../classhadoop_1_1hdfs_1_1_rename2_request_proto.html',1,'hadoop::hdfs']]],
   ['rename2responseproto',['Rename2ResponseProto',['../classhadoop_1_1hdfs_1_1_rename2_response_proto.html',1,'hadoop::hdfs']]],

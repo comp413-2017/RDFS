@@ -26,6 +26,9 @@ var searchData=
   ['session',['Session',['../class_simple_web_1_1_client_base_1_1_session.html',1,'SimpleWeb::ClientBase']]],
   ['session',['Session',['../class_simple_web_1_1_server_base_1_1_session.html',1,'SimpleWeb::ServerBase']]],
   ['set',['set',['../classel_1_1_configurations.html#a332717de96efc851a202b7afcc5e395c',1,'el::Configurations::set(Level level, ConfigurationType configurationType, const std::string &amp;value)'],['../classel_1_1_configurations.html#a0ab07520b9409fe9f2c16a705d6936f1',1,'el::Configurations::set(Configuration *conf)'],['../class_z_k_wrapper.html#ad55907a4c539f391dc576b978f8c82b7',1,'ZKWrapper::set()']]],
+  ['set_5ffile_5finfo_5fcontent',['set_file_info_content',['../classzkclient_1_1_zk_nn_client.html#a451138e886e54f576db5a6da7f3d7cd3',1,'zkclient::ZkNnClient']]],
+  ['set_5fowner',['set_owner',['../classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569',1,'zkclient::ZkNnClient']]],
+  ['set_5fpermission',['set_permission',['../classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8',1,'zkclient::ZkNnClient']]],
   ['setaclrequestproto',['SetAclRequestProto',['../classhadoop_1_1hdfs_1_1_set_acl_request_proto.html',1,'hadoop::hdfs']]],
   ['setaclresponseproto',['SetAclResponseProto',['../classhadoop_1_1hdfs_1_1_set_acl_response_proto.html',1,'hadoop::hdfs']]],
   ['setargs',['setArgs',['../classel_1_1base_1_1utils_1_1_command_line_args.html#a2d59b4184e0a6a314ef1c9a4c6d946e6',1,'el::base::utils::CommandLineArgs::setArgs(int argc, const char **argv)'],['../classel_1_1base_1_1utils_1_1_command_line_args.html#af88a16e6ce7b5d48f9679f304367b27a',1,'el::base::utils::CommandLineArgs::setArgs(int argc, char **argv)'],['../classel_1_1_helpers.html#a68748f618a0c2840b96dc12532b09bf0',1,'el::Helpers::setArgs(int argc, char **argv)'],['../classel_1_1_helpers.html#afac7a023e2c13a62d0295cf0239eb848',1,'el::Helpers::setArgs(int argc, const char **argv)']]],
@@ -86,8 +89,8 @@ var searchData=
   ['start',['start',['../class_web_r_d_f_s_server.html#a6ec7e81c3bb0462556229e5d73922cf2',1,'WebRDFSServer']]],
   ['startcheckpointrequestproto',['StartCheckpointRequestProto',['../classhadoop_1_1hdfs_1_1namenode_1_1_start_checkpoint_request_proto.html',1,'hadoop::hdfs::namenode']]],
   ['startcheckpointresponseproto',['StartCheckpointResponseProto',['../classhadoop_1_1hdfs_1_1namenode_1_1_start_checkpoint_response_proto.html',1,'hadoop::hdfs::namenode']]],
-  ['startlogsegmentrequestproto',['StartLogSegmentRequestProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_start_log_segment_request_proto.html',1,'hadoop::hdfs::qjournal']]],
   ['startlogsegmentrequestproto',['StartLogSegmentRequestProto',['../classhadoop_1_1hdfs_1_1_start_log_segment_request_proto.html',1,'hadoop::hdfs']]],
+  ['startlogsegmentrequestproto',['StartLogSegmentRequestProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_start_log_segment_request_proto.html',1,'hadoop::hdfs::qjournal']]],
   ['startlogsegmentresponseproto',['StartLogSegmentResponseProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_start_log_segment_response_proto.html',1,'hadoop::hdfs::qjournal']]],
   ['startlogsegmentresponseproto',['StartLogSegmentResponseProto',['../classhadoop_1_1hdfs_1_1_start_log_segment_response_proto.html',1,'hadoop::hdfs']]],
   ['startreconfigurationrequestproto',['StartReconfigurationRequestProto',['../classhadoop_1_1hdfs_1_1_start_reconfiguration_request_proto.html',1,'hadoop::hdfs']]],
@@ -142,7 +145,7 @@ var searchData=
   ['stringtablesection',['StringTableSection',['../classhadoop_1_1hdfs_1_1fsimage_1_1_string_table_section.html',1,'hadoop::hdfs::fsimage']]],
   ['stringtablesection_5fentry',['StringTableSection_Entry',['../classhadoop_1_1hdfs_1_1fsimage_1_1_string_table_section___entry.html',1,'hadoop::hdfs::fsimage']]],
   ['stringtolevelitem',['StringToLevelItem',['../structel_1_1_string_to_level_item.html',1,'el']]],
-  ['subsecondprecision',['SubsecondPrecision',['../namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a945b6ef21f66457079a6ab7b6c3459f9',1,'el']]],
   ['subsecondprecision',['SubsecondPrecision',['../classel_1_1base_1_1_subsecond_precision.html',1,'el::base']]],
+  ['subsecondprecision',['SubsecondPrecision',['../namespaceel.html#a281f5db6d6163678bc68a8b23b59e124a945b6ef21f66457079a6ab7b6c3459f9',1,'el']]],
   ['sysloginitializer',['SysLogInitializer',['../classel_1_1_sys_log_initializer.html',1,'el']]]
 ];

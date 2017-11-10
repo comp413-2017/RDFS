@@ -114,7 +114,8 @@ Inheritance diagram for zkclient::ZkNnClient:</div>
 Public Types</h2></td></tr>
 <tr class="memitem:aefc61700181ce6f1c72dc1ca3d85dbdb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>ListingResponse</b> { <b>Ok</b>, 
 <b>FileDoesNotExist</b>, 
-<b>FailedChildRetrieval</b>
+<b>FailedChildRetrieval</b>, 
+<b>FileAccessRestricted</b>
  }</td></tr>
 <tr class="separator:aefc61700181ce6f1c72dc1ca3d85dbdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a941fb7b6f2e86b7e5c4c7250ff4189fb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>DeleteResponse</b> { <br/>
@@ -126,13 +127,16 @@ Public Types</h2></td></tr>
 &#160;&#160;<b>FailedChildRetrieval</b>, 
 <b>FailedBlockRetrieval</b>, 
 <b>FailedDataNodeRetrieval</b>, 
-<b>FailedZookeeperOp</b>
+<b>FailedZookeeperOp</b>, 
+<br/>
+&#160;&#160;<b>FileAccessRestricted</b>
 <br/>
  }</td></tr>
 <tr class="separator:a941fb7b6f2e86b7e5c4c7250ff4189fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a0a1cdce4838417c8c8e23357f73a50"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>GetFileInfoResponse</b> { <b>Ok</b>, 
 <b>FileDoesNotExist</b>, 
-<b>FailedReadZnode</b>
+<b>FailedReadZnode</b>, 
+<b>FileAccessRestricted</b>
  }</td></tr>
 <tr class="separator:a8a0a1cdce4838417c8c8e23357f73a50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fea471ab8672b5d3671343105ba07d3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>MkdirResponse</b> { <b>Ok</b>, 
@@ -151,7 +155,8 @@ Public Types</h2></td></tr>
 <b>RenameOpsFailed</b>, 
 <b>InvalidType</b>, 
 <br/>
-&#160;&#160;<b>MultiOpFailed</b>
+&#160;&#160;<b>MultiOpFailed</b>, 
+<b>FileAccessRestricted</b>
 <br/>
  }</td></tr>
 <tr class="separator:af0bfebd9345cd2fc3be4371991dd854e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -161,35 +166,30 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac80fffab68fde370b153f77b0187d0b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac80fffab68fde370b153f77b0187d0b2"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>ZkNnClient</b> (std::string zkIpAndAddress)</td></tr>
 <tr class="separator:ac80fffab68fde370b153f77b0187d0b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab296198af7bdb9c416d9e3d9074d1804"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ab296198af7bdb9c416d9e3d9074d1804">ZkNnClient</a> (std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt; zk_in)</td></tr>
-<tr class="separator:ab296198af7bdb9c416d9e3d9074d1804"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab748bba0d243ab0da935593a630159c6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">ZkNnClient</a> (std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt; zk_in, bool secureMode=false)</td></tr>
+<tr class="separator:ab748bba0d243ab0da935593a630159c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fd720b040cc4430fa1df2bb55fa5ef9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1fd720b040cc4430fa1df2bb55fa5ef9"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>register_watches</b> ()</td></tr>
 <tr class="separator:a1fd720b040cc4430fa1df2bb55fa5ef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e7650dafb74dc392b524b5b3f0ba9a2"><td class="memItemLeft" align="right" valign="top">GetFileInfoResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a8e7650dafb74dc392b524b5b3f0ba9a2">get_info</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a8e7650dafb74dc392b524b5b3f0ba9a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c006a59991ab12d9d5da5207790ede5"><td class="memItemLeft" align="right" valign="top">ZkNnClient::CreateResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">create_file</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request, <a class="el" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response)</td></tr>
+<tr class="memitem:a17ec72de0d2400af7bac9ba56e7c3bdc"><td class="memItemLeft" align="right" valign="top">GetFileInfoResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc">get_info</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a17ec72de0d2400af7bac9ba56e7c3bdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c006a59991ab12d9d5da5207790ede5"><td class="memItemLeft" align="right" valign="top">CreateResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">create_file</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request, <a class="el" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response)</td></tr>
 <tr class="separator:a8c006a59991ab12d9d5da5207790ede5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3294173992acdba748f1d2ba1bcbddfd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3294173992acdba748f1d2ba1bcbddfd"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">GetBlockLocationsResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a3294173992acdba748f1d2ba1bcbddfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a963fac9b1a5a50c45372167bfa511977"><td class="memItemLeft" align="right" valign="top">DeleteResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a963fac9b1a5a50c45372167bfa511977">destroy</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a963fac9b1a5a50c45372167bfa511977"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab052332ebdec4884a456715a73a6fb15"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">get_block_locations</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">GetBlockLocationsResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:ab052332ebdec4884a456715a73a6fb15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66bd01188b9944806d448876d4ae01aa"><td class="memItemLeft" align="right" valign="top">MkdirResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a66bd01188b9944806d448876d4ae01aa">mkdir</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html">MkdirsResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:a66bd01188b9944806d448876d4ae01aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8286c58163bf8dd3893fb39f2c30db17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8286c58163bf8dd3893fb39f2c30db17"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>complete</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a8286c58163bf8dd3893fb39f2c30db17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f0042276bdeefefe2e934766c45cc13"><td class="memItemLeft" align="right" valign="top">RenameResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a3f0042276bdeefefe2e934766c45cc13">rename</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a3f0042276bdeefefe2e934766c45cc13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3f4a7c99fea44573928d3e75b204091"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac3f4a7c99fea44573928d3e75b204091"></a>
-ListingResponse&#160;</td><td class="memItemRight" valign="bottom"><b>get_listing</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:ac3f4a7c99fea44573928d3e75b204091"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e29ee7caf0ed5094b26365c42c46b1f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e29ee7caf0ed5094b26365c42c46b1f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>get_content</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">GetContentSummaryResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a4e29ee7caf0ed5094b26365c42c46b1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a451138e886e54f576db5a6da7f3d7cd3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a451138e886e54f576db5a6da7f3d7cd3"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>set_file_info_content</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">ContentSummaryProto</a> *status, const std::string &amp;path, <a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data)</td></tr>
+<tr class="memitem:a0dc06e5c87b6c1f81534ae7ba3170f60"><td class="memItemLeft" align="right" valign="top">DeleteResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a0dc06e5c87b6c1f81534ae7ba3170f60">destroy</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a0dc06e5c87b6c1f81534ae7ba3170f60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80e314df5a0a8c5dbb5b08b8f1cdeae4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a80e314df5a0a8c5dbb5b08b8f1cdeae4">complete</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a80e314df5a0a8c5dbb5b08b8f1cdeae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a720695384b3f160c7656d064be154995"><td class="memItemLeft" align="right" valign="top">RenameResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995">rename</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a720695384b3f160c7656d064be154995"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29d04704113e8401d0de4eddd63d9c01"><td class="memItemLeft" align="right" valign="top">ListingResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a29d04704113e8401d0de4eddd63d9c01">get_listing</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a29d04704113e8401d0de4eddd63d9c01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7124eb90fcf8edb23d534a521daa3117"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a7124eb90fcf8edb23d534a521daa3117">get_content</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">GetContentSummaryResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a7124eb90fcf8edb23d534a521daa3117"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a451138e886e54f576db5a6da7f3d7cd3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a451138e886e54f576db5a6da7f3d7cd3">set_file_info_content</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">ContentSummaryProto</a> *status, const std::string &amp;path, <a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data)</td></tr>
 <tr class="separator:a451138e886e54f576db5a6da7f3d7cd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4017bf840300a304e9ebf24a661a732e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4017bf840300a304e9ebf24a661a732e"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_node_policy</b> (char policy)</td></tr>
@@ -197,10 +197,17 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set_node_policy</b> (
 <tr class="memitem:ac8b69576b0cc0cd521fc9f535b89b2ec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8b69576b0cc0cd521fc9f535b89b2ec"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>get_node_policy</b> ()</td></tr>
 <tr class="separator:ac8b69576b0cc0cd521fc9f535b89b2ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4d99f1eec309bcb1bf205e6e9d7e5401"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a4d99f1eec309bcb1bf205e6e9d7e5401">add_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">AddBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">AddBlockResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a4d99f1eec309bcb1bf205e6e9d7e5401"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ee69fa9e2b503347d539f60a9e0848d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a1ee69fa9e2b503347d539f60a9e0848d">abandon_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;res)</td></tr>
-<tr class="separator:a1ee69fa9e2b503347d539f60a9e0848d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf941af735ce29cebd68b3845720b2b8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8">set_permission</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">SetPermissionRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_permission_response_proto.html">SetPermissionResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:abf941af735ce29cebd68b3845720b2b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79174a329fe6447182f16cc1a83e1569"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">set_owner</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a79174a329fe6447182f16cc1a83e1569"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe8703a3f1897ec67bf8253b22b13437"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">add_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">AddBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">AddBlockResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:abe8703a3f1897ec67bf8253b22b13437"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae122e7b1eeaccbdb221285178ff88a3f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae122e7b1eeaccbdb221285178ff88a3f"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>set_owner</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:ae122e7b1eeaccbdb221285178ff88a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e22f5b3c250bbf9cf69b3364f2dfb05"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a2e22f5b3c250bbf9cf69b3364f2dfb05">abandon_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:a2e22f5b3c250bbf9cf69b3364f2dfb05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ccd588b92bf248818519f30b2357fa3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ccd588b92bf248818519f30b2357fa3"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>previousBlockComplete</b> (uint64_t prev_id)</td></tr>
 <tr class="separator:a6ccd588b92bf248818519f30b2357fa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -224,9 +231,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>rename_ops_for_dir</b
 <tr class="separator:ab8b2173bf5be14f8e9199c02ef47416b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31e5a62778562a2b2ea1a8546d31b658"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a31e5a62778562a2b2ea1a8546d31b658">check_acks</a> ()</td></tr>
 <tr class="separator:a31e5a62778562a2b2ea1a8546d31b658"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2cf7c2c3eff1b85551b0f1cb02deca7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa2cf7c2c3eff1b85551b0f1cb02deca7"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</b> (const std::string &amp;src, google::protobuf::uint64 offset, google::protobuf::uint64 length, <a class="el" href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">LocatedBlocksProto</a> *blocks)</td></tr>
-<tr class="separator:aa2cf7c2c3eff1b85551b0f1cb02deca7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af42ce1e1adf1d38a31707426f843f1cd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af42ce1e1adf1d38a31707426f843f1cd"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</b> (const std::string &amp;src, google::protobuf::uint64 offset, google::protobuf::uint64 length, <a class="el" href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">LocatedBlocksProto</a> *blocks, std::string client_name=&quot;default&quot;)</td></tr>
+<tr class="separator:af42ce1e1adf1d38a31707426f843f1cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2b2d82a29053a95d0ed5573d67b6288"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">read_file_znode</a> (<a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data, const std::string &amp;path)</td></tr>
 <tr class="separator:ac2b2d82a29053a95d0ed5573d67b6288"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classzkclient_1_1_zk_client_common"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classzkclient_1_1_zk_client_common')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></td></tr>
@@ -308,7 +315,7 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This is used by ClientNamenodeProtocolImpl to communicate the zookeeper. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="ab296198af7bdb9c416d9e3d9074d1804"></a>
+<a class="anchor" id="ab748bba0d243ab0da935593a630159c6"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -319,8 +326,18 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
           <td class="memname">zkclient::ZkNnClient::ZkNnClient </td>
           <td>(</td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt;&#160;</td>
-          <td class="paramname"><em>zk_in</em></td><td>)</td>
+          <td class="paramname"><em>zk_in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>secureMode</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -333,6 +350,7 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">zk_in</td><td>shared pointer to a <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> </td></tr>
+    <tr><td class="paramname">secureMode</td><td>boolean indicating using secure mode or not </td></tr>
   </table>
   </dd>
 </dl>
@@ -341,7 +359,7 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a1ee69fa9e2b503347d539f60a9e0848d"></a>
+<a class="anchor" id="a2e22f5b3c250bbf9cf69b3364f2dfb05"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -355,7 +373,13 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;&#160;</td>
-          <td class="paramname"><em>res</em>&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -364,14 +388,23 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Abandons the block - basically reverses all of add block's multiops</p>
+<p>Abandons the block - basically reverses all of add block's multiops </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>AbandonBlockRequestProtoProto </td></tr>
+    <tr><td class="paramname">res</td><td>AbandonBlockResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>boolean indicating whether operation succeeded or not</dd></dl>
 <p>Since the names were a bit strange and it was a pain to go back and figure out where these were again, I'm writing what the proto fields are here.</p>
 <p>message has: required ExtendedBlockProto b = 1; required string src = 2; required string holder = 3; optional uint64 fileId = 4 [default = 0]; // default to GRANDFATHER_INODE_ID</p>
 <p>ExtendedBlockProto has: required string poolId = 1; // Block pool id - gloablly unique across clusters required uint64 blockId = 2; // the local id within a pool required uint64 generationStamp = 3; optional uint64 numBytes = 4 [default = 0]; // len does not belong in ebid </p>
 
 </div>
 </div>
-<a class="anchor" id="a4d99f1eec309bcb1bf205e6e9d7e5401"></a>
+<a class="anchor" id="abe8703a3f1897ec67bf8253b22b13437"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -385,7 +418,13 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">AddBlockResponseProto</a> &amp;&#160;</td>
-          <td class="paramname"><em>res</em>&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -395,6 +434,15 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
       </table>
 </div><div class="memdoc">
 <p>Add block. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>AddBlockRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>AddBlockResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>boolean indicating whether operation succeeded or not </dd></dl>
 
 </div>
 </div>
@@ -417,6 +465,48 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 <li>if the block UUID was created more than ACK_TIMEOUT milliseconds ago TODO: Add to header file <dl class="section return"><dt>Returns</dt><dd></dd></dl>
 </li>
 </ol>
+
+</div>
+</div>
+<a class="anchor" id="a80e314df5a0a8c5dbb5b08b8f1cdeae4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zkclient::ZkNnClient::complete </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Complete the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>CompleteRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>CompleteResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -443,11 +533,20 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Create the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>CreateRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>CreateResponseProto </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>CreateResponse</dd></dl>
 <p>Create a file in zookeeper </p>
 
 </div>
 </div>
-<a class="anchor" id="a963fac9b1a5a50c45372167bfa511977"></a>
+<a class="anchor" id="a0dc06e5c87b6c1f81534ae7ba3170f60"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -461,7 +560,13 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;&#160;</td>
-          <td class="paramname"><em>response</em>&#160;</td>
+          <td class="paramname"><em>response</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -470,6 +575,16 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Destroy the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>DeleteRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>DeleteResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>MkdirResponse</dd></dl>
 <p>Go down directories recursively. If a child is a file, then put its deletion on a queue. Files delete themselves, but directories are deleted by their parent (so root can't be deleted) </p>
 
 </div>
@@ -488,6 +603,48 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
       </table>
 </div><div class="memdoc">
 <p>Information that the protocol might need to respond to individual rpc calls </p>
+
+</div>
+</div>
+<a class="anchor" id="ab052332ebdec4884a456715a73a6fb15"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zkclient::ZkNnClient::get_block_locations </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">GetBlockLocationsResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get locations of blocks. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>GetBlockLocationsRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>GetBlockLocationsResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -518,7 +675,49 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
-<a class="anchor" id="a8e7650dafb74dc392b524b5b3f0ba9a2"></a>
+<a class="anchor" id="a7124eb90fcf8edb23d534a521daa3117"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zkclient::ZkNnClient::get_content </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">GetContentSummaryResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get content of the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>GetContentSummaryRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>GetContentSummaryResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a17ec72de0d2400af7bac9ba56e7c3bdc"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -532,7 +731,13 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;&#160;</td>
-          <td class="paramname"><em>res</em>&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -541,7 +746,57 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
-<p>These methods will correspond to proto calls that the client namenode protocol handles </p>
+<p>These methods will correspond to proto calls that the client namenode protocol handles Get info of the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>GetFileInfoRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>GetFileInfoResponseProto </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>GetFileInfoResponse </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a29d04704113e8401d0de4eddd63d9c01"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ZkNnClient::ListingResponse zkclient::ZkNnClient::get_listing </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get listing of the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>GetListingRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>GetListingResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>ListingResponse </dd></dl>
 
 </div>
 </div>
@@ -568,6 +823,15 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Make a directory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>MkdirsRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>MkdirsResponseProto </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>MkdirResponse</dd></dl>
 <p>Make a directory in zookeeper </p>
 
 </div>
@@ -599,7 +863,7 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
-<a class="anchor" id="a3f0042276bdeefefe2e934766c45cc13"></a>
+<a class="anchor" id="a720695384b3f160c7656d064be154995"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -613,7 +877,13 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;&#160;</td>
-          <td class="paramname"><em>res</em>&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -622,6 +892,16 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Rename the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>RenameRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>RenameResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>RenameResponse</dd></dl>
 <p>Rename a file in the zookeeper filesystem </p>
 
 </div>
@@ -665,6 +945,116 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Boolean indicating success or failure of the rename </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a451138e886e54f576db5a6da7f3d7cd3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zkclient::ZkNnClient::set_file_info_content </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">ContentSummaryProto</a> *&#160;</td>
+          <td class="paramname"><em>status</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;&#160;</td>
+          <td class="paramname"><em>znode_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Sets file info content. </p>
+
+</div>
+</div>
+<a class="anchor" id="a79174a329fe6447182f16cc1a83e1569"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zkclient::ZkNnClient::set_owner </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em> = <code>&quot;default&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Sets the owner of the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>SetOwnerRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>SetOwnerResponseProto </td></tr>
+    <tr><td class="paramname">client_name</td><td>client's name as string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>boolean indicating whether operation succeeded or not </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="abf941af735ce29cebd68b3845720b2b8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zkclient::ZkNnClient::set_permission </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">SetPermissionRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_set_permission_response_proto.html">SetPermissionResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Sets the permission of the file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>SetPermissionRequestProto </td></tr>
+    <tr><td class="paramname">res</td><td>SetPermissionResponseProto </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>boolean indicating whether operation succeeded or not </dd></dl>
 
 </div>
 </div>

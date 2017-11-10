@@ -14,7 +14,7 @@ var searchData=
   ['registrywithpred',['RegistryWithPred',['../classel_1_1base_1_1utils_1_1_registry_with_pred.html#a0e75c7daaa5fbf824b29180c7a5fd155',1,'el::base::utils::RegistryWithPred']]],
   ['releasedate',['releaseDate',['../classel_1_1_version_info.html#a9347b5c0f386117f1cf78dae99bb1752',1,'el::VersionInfo']]],
   ['removeflag',['removeFlag',['../classel_1_1_loggers.html#a23fcb4b492f70a34285c45c0b5e2e515',1,'el::Loggers']]],
-  ['rename',['rename',['../classzkclient_1_1_zk_nn_client.html#a3f0042276bdeefefe2e934766c45cc13',1,'zkclient::ZkNnClient']]],
+  ['rename',['rename',['../classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995',1,'zkclient::ZkNnClient']]],
   ['rename2',['rename2',['../classclient__namenode__translator_1_1_client_namenode_translator.html#a6cb2eb48718ab49d5ec5b3e3520bd7ff',1,'client_namenode_translator::ClientNamenodeTranslator']]],
   ['rename_5fops_5ffor_5ffile',['rename_ops_for_file',['../classzkclient_1_1_zk_nn_client.html#a88e442620389be579800e80523ccfcef',1,'zkclient::ZkNnClient']]],
   ['replaceall',['replaceAll',['../classel_1_1base_1_1utils_1_1_str.html#ab24bb11d2b5eb8ede4296d70b510f726',1,'el::base::utils::Str::replaceAll(std::string &amp;str, char replaceWhat, char replaceWith)'],['../classel_1_1base_1_1utils_1_1_str.html#a5f424d54390059c0a6a6f81a74ee846b',1,'el::base::utils::Str::replaceAll(std::string &amp;str, const std::string &amp;replaceWhat, const std::string &amp;replaceWith)']]],
