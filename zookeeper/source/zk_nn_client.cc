@@ -1008,7 +1008,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(DeleteRequestProto &request,
     return DeleteResponse::FailedZookeeperOp;
   }
 
-  return DeleteResponse::Ok;
+  return DeleteResponse::Ok; //
 }
 
 /**
