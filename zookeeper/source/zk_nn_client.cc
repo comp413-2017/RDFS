@@ -1221,26 +1221,52 @@ void ZkNnClient::get_block_locations(const std::string &src,
 
       LOG(INFO) << "Found block locations " << data_nodes.size();
 
-      auto sorted_data_nodes = std::vector<std::string>();
-      if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
-        for (auto data_node = sorted_data_nodes.begin();
-             data_node != sorted_data_nodes.end();
-             ++data_node) {
-          LOG(INFO) << "Block DN Loc: " << *data_node;
-          buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+      if (!znode_data.isEC) {
+        auto sorted_data_nodes = std::vector<std::string>();
+        if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
+          for (auto data_node = sorted_data_nodes.begin();
+               data_node != sorted_data_nodes.end();
+               ++data_node) {
+            LOG(INFO) << "Block DN Loc: " << *data_node;
+            buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+          }
+        } else {
+          LOG(ERROR)
+              << "Unable to sort DNs by # xmits in get_block_locations. "
+                  "Using unsorted instead.";
+          for (auto data_node = data_nodes.begin();
+               data_node != data_nodes.end();
+               ++data_node) {
+            LOG(INFO) << "Block DN Loc: " << *data_node;
+            buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+          }
         }
+
       } else {
-        LOG(ERROR)
-            << "Unable to sort DNs by # xmits in get_block_locations. "
-                "Using unsorted instead.";
-        for (auto data_node = data_nodes.begin();
-             data_node != data_nodes.end();
-             ++data_node) {
-          LOG(INFO) << "Block DN Loc: " << *data_node;
-          buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+        // Add storage IDs for an EC block.
+        for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+          located_block->set_storageids(i, DEFAULT_STORAGE_ID);
+        }
+
+        // Add block indices for an EC block.
+        // Each byte (i.e. char) represents an index into the group.
+        std::string block_index_string;
+        for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+          //TODO(jake): I think this is wrong, we should read this off metadata.
+          block_index_string.push_back(block_indices[i]);
+        }
+        located_block->set_blockindices(block_index_string);
+
+        // Add storage types for an EC block.
+        for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+          located_block->set_storagetypes(i, StorageTypeProto::DISK);
+        }
+
+        // Add datanodes for the EC block
+        for (auto data_node : data_nodes) {
+          buildDatanodeInfoProto(located_block->add_locs(), data_node);
         }
       }
-
       buildTokenProto(located_block->mutable_blocktoken());
     }
     size += block_size;
