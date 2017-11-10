@@ -16,6 +16,8 @@
 #include <ConfigReader.h>
 #include "util.h"
 
+#define MAX_USERNAME_LEN 256
+
 namespace zkclient {
 
 
@@ -41,8 +43,11 @@ typedef struct {
   // java.lang.String)
   std::uint64_t access_time;
   std::uint64_t modification_time;
-  char owner[256];  // the client who created the file
-  char group[256];
+  char owner[MAX_USERNAME_LEN];  // the client who created the file
+  char group[MAX_USERNAME_LEN];
+  char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
+  int perm_length;  // number of slots filled in permissions
+  int permission_number;
 } FileZNode;
 
 struct TargetDN {
@@ -103,6 +108,11 @@ using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
 using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::SetOwnerRequestProto;
+using hadoop::hdfs::SetOwnerResponseProto;
+using hadoop::hdfs::RenameResponseProto;
+using hadoop::hdfs::SetPermissionRequestProto;
+using hadoop::hdfs::SetPermissionResponseProto;
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -112,9 +122,10 @@ class ZkNnClient : public ZkClientCommon {
   char policy;
 
   enum class ListingResponse {
-      Ok,                   // 0
-      FileDoesNotExist,     // 1
-      FailedChildRetrieval  // 2
+      Ok,                    // 0
+      FileDoesNotExist,      // 1
+      FailedChildRetrieval,  // 2
+      FileAccessRestricted   // 3
   };
 
   enum class DeleteResponse {
@@ -125,13 +136,15 @@ class ZkNnClient : public ZkClientCommon {
       FailedChildRetrieval,
       FailedBlockRetrieval,
       FailedDataNodeRetrieval,
-      FailedZookeeperOp
+      FailedZookeeperOp,
+      FileAccessRestricted
   };
 
   enum class GetFileInfoResponse {
     Ok,
     FileDoesNotExist,
-    FailedReadZnode
+    FailedReadZnode,
+    FileAccessRestricted
   };
 
   enum class MkdirResponse {
@@ -151,7 +164,8 @@ class ZkNnClient : public ZkClientCommon {
       FileDoesNotExist,
       RenameOpsFailed,
       InvalidType,
-      MultiOpFailed
+      MultiOpFailed,
+      FileAccessRestricted
   };
 
   explicit ZkNnClient(std::string zkIpAndAddress);
@@ -161,46 +175,169 @@ class ZkNnClient : public ZkClientCommon {
    * Which will allow you to set a root
    * directory for all operations on this client
    * @param zk_in shared pointer to a ZKWrapper
+   * @param secureMode boolean indicating using secure mode or not
    * @return ZkNnClient
    */
-  explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in);
+  explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
+                      bool secureMode = false);
   void register_watches();
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
 
+  /**
+   * Get info of the file.
+   * @param req GetFileInfoRequestProto
+   * @param res GetFileInfoResponseProto
+   * @return GetFileInfoResponse
+   */
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
-                               GetFileInfoResponseProto &res);
-  ZkNnClient::CreateResponse  create_file(CreateRequestProto &request,
-                                          CreateResponseProto &response);
-  void get_block_locations(GetBlockLocationsRequestProto &req,
-                           GetBlockLocationsResponseProto &res);
-  DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
-  MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
-  void complete(CompleteRequestProto &req, CompleteResponseProto &res);
-  RenameResponse rename(RenameRequestProto &req, RenameResponseProto &res);
-  ListingResponse get_listing(GetListingRequestProto &req,
-                              GetListingResponseProto &res);
-  void get_content(GetContentSummaryRequestProto &req,
-                   GetContentSummaryResponseProto &res);
+                               GetFileInfoResponseProto &res,
+                               std::string client_name = "default");
 
+  /**
+   * Create the file.
+   * @param req CreateRequestProto
+   * @param res CreateResponseProto
+   * @return CreateResponse
+   */
+  CreateResponse create_file(CreateRequestProto &request,
+                                         CreateResponseProto &response);
+
+  /**
+   * Get locations of blocks.
+   * @param req GetBlockLocationsRequestProto
+   * @param res GetBlockLocationsResponseProto
+   * @param client_name client's name as string
+   * @return
+   */
+  void get_block_locations(GetBlockLocationsRequestProto &req,
+                           GetBlockLocationsResponseProto &res,
+                           std::string client_name = "default");
+  /**
+   * Make a directory.
+   * @param req MkdirsRequestProto
+   * @param res MkdirsResponseProto
+   * @return MkdirResponse
+   */
+  MkdirResponse mkdir(MkdirsRequestProto &req,
+                      MkdirsResponseProto &res);
+
+  /**
+   * Destroy the file.
+   * @param req DeleteRequestProto
+   * @param res DeleteResponseProto
+   * @param client_name client's name as string
+   * @return MkdirResponse
+   */
+  DeleteResponse destroy(DeleteRequestProto &req,
+                         DeleteResponseProto &res,
+                         std::string client_name = "default");
+
+  /**
+   * Complete the file.
+   * @param req CompleteRequestProto
+   * @param res CompleteResponseProto
+   * @param client_name client's name as string
+   * @return 
+   */
+  void complete(CompleteRequestProto &req,
+                CompleteResponseProto &res,
+                std::string client_name = "default");
+
+  /**
+   * Rename the file.
+   * @param req RenameRequestProto
+   * @param res RenameResponseProto
+   * @param client_name client's name as string
+   * @return RenameResponse
+   */
+  RenameResponse rename(RenameRequestProto &req,
+                        RenameResponseProto &res,
+                        std::string client_name = "default");
+
+  /**
+   * Get listing of the file.
+   * @param req GetListingRequestProto
+   * @param res GetListingResponseProto
+   * @param client_name client's name as string
+   * @return ListingResponse
+   */
+  ListingResponse get_listing(GetListingRequestProto &req,
+                              GetListingResponseProto &res,
+                              std::string client_name = "default");
+  /**
+   * Get content of the file.
+   * @param req GetContentSummaryRequestProto
+   * @param res GetContentSummaryResponseProto
+   * @param client_name client's name as string
+   * @return
+   */
+  void get_content(GetContentSummaryRequestProto &req,
+                   GetContentSummaryResponseProto &res,
+                   std::string client_name = "default");
+
+  /**
+   * Sets file info content.
+   */
   void set_file_info_content(ContentSummaryProto *status,
-                             const std::string &path, FileZNode &znode_data);
+                             const std::string &path,
+                             FileZNode &znode_data);
 
   void set_node_policy(char policy);
 
   char get_node_policy();
+
+//  bool modifyAclEntries(ModifyAclEntriesRequestProto req,
+//                        ModifyAclEntriesResponseProto res);
+  /**
+   * Sets the permission of the file.
+   * @param req SetPermissionRequestProto
+   * @param res SetPermissionResponseProto
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool set_permission(SetPermissionRequestProto &req,
+                      SetPermissionResponseProto &res);
+
+  /**
+   * Sets the owner of the file.
+   * @param req SetOwnerRequestProto
+   * @param res SetOwnerResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool set_owner(SetOwnerRequestProto &req,
+                 SetOwnerResponseProto &res,
+                 std::string client_name = "default");
   /**
    * Add block.
+   * @param req AddBlockRequestProto
+   * @param res AddBlockResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
    */
-  bool add_block(AddBlockRequestProto &req, AddBlockResponseProto &res);
+  bool add_block(AddBlockRequestProto &req,
+                 AddBlockResponseProto &res,
+                 std::string client_name = "default");
+  /*
+   * Sets the owner of the file.
+   * @param req SetOwnerRequestProto
+   * @param res SetOwnerResponseProto
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res);
 
   /**
    * Abandons the block - basically reverses all of add block's multiops
+   * @param req AbandonBlockRequestProtoProto
+   * @param res AbandonBlockResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
    */
   bool abandon_block(AbandonBlockRequestProto &req,
-                     AbandonBlockResponseProto &res);
+                     AbandonBlockResponseProto &res,
+                     std::string client_name = "default");
 
   bool previousBlockComplete(uint64_t prev_id);
   /**
@@ -249,7 +386,8 @@ class ZkNnClient : public ZkClientCommon {
   void get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
-                           LocatedBlocksProto *blocks);
+                           LocatedBlocksProto *blocks,
+                           std::string client_name = "default");
 
   /**
    * Read a znode corresponding to a file into znode_data
@@ -382,12 +520,28 @@ class ZkNnClient : public ZkClientCommon {
   */
   bool blockDeleted(uint64_t uuid, std::string id);
 
+  /**
+   * Check access to a file
+   * @param username client's username
+   * @param znode_data reference to the fileZNode being accessed
+   * @return boolean indicating whether the given username has access to a znode or not 
+   */
+  bool checkAccess(std::string username, FileZNode &znode_data);
+
+
+  const int UNDER_CONSTRUCTION = 1;
+  const int FILE_COMPLETE = 0;
+  const int UNDER_DESTRUCTION = 2;
+
   const int IS_FILE = 2;
   const int IS_DIR = 1;
   // TODO(2016): Should eventually be read from a conf file
   // in millisecons, 10 minute timeout when waiting for
   // replication acknowledgements
   const int ACK_TIMEOUT = 600000;
+
+  // Boolean indicating whether zk_nn is in secure mode
+  bool isSecureMode = false;
 };
 
 }  // namespace zkclient
