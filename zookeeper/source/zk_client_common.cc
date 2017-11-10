@@ -17,6 +17,9 @@ const char ZkClientCommon::
         REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
 const char ZkClientCommon::DELETE_QUEUES[] = "/work_queues/delete/";
 const char ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH[] = "/work_queues/delete";
+const char ZkClientCommon::EC_RECOVER_QUEUES[] = "/work_queues/ec_recover/";
+const char ZkClientCommon::
+        EC_RECOVER_QUEUES_NO_BACKSLASH[] = "/work_queues/ec_recover";
 const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
 const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
 const char ZkClientCommon::REPLICATE_BACKSLASH[] = "replicate/";
@@ -54,6 +57,17 @@ std::string ZkClientCommon::get_block_metadata_path(
     return BLOCK_LOCATIONS + std::to_string(block_or_block_group_id);
 }
 
+u_int64_t ZkClientCommon::get_block_group_id(u_int64_t storage_block_id) {
+    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    return storage_block_id & mask;
+}
+
+u_int64_t ZkClientCommon::get_index_within_block_group(
+                                              u_int64_t storage_block_id) {
+    u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
+    return storage_block_id & mask;
+}
+
 void ZkClientCommon::init() {
   LOG(INFO) << "Initializing ZkClientCommon";
   auto vec = ZKWrapper::get_byte_vector("");
@@ -85,8 +99,8 @@ void ZkClientCommon::init() {
     if (!exists) {
       if (!zk->create(DELETE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
-        // Handle failed to create replicate node
-        LOG(INFO) << "Creation failed for delete ueue";;
+        // Handle failed to create delete node
+        LOG(INFO) << "Creation failed for delete queue";
       }
     }
   }
@@ -95,7 +109,25 @@ void ZkClientCommon::init() {
       if (!zk->create(REPLICATE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
         // Handle failed to create replicate node
-        LOG(INFO) << "Creation failed for repl queue";;
+        LOG(INFO) << "Creation failed for repl queue";
+      }
+    }
+  }
+  if (zk->exists(EC_RECOVER_QUEUES_NO_BACKSLASH, exists, error_code)) {
+    if (!exists) {
+      if (!zk->create(EC_RECOVER_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        // Handle failed to create ec_recover node.
+        LOG(INFO) << "Creation failed for ec_rec queue";
+      }
+    }
+  }
+  if (zk->exists(EC_RECOVER_QUEUES_NO_BACKSLASH, exists, error_code)) {
+    if (!exists) {
+      if (!zk->create(EC_RECOVER_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        // Handle failed to create ec_recover node.
+        LOG(INFO) << "Creation failed for ec_rec queue";;
       }
     }
   }

@@ -413,6 +413,14 @@ enum class ListingResponse {
 
   DeleteResponse destroy_helper(const std::string &path,
                       std::vector<std::shared_ptr<ZooOp>> &ops);
+  /**
+   * Give a vector of block IDs, executes a multiop which creates items in
+   * the ec_recover queue and children nodes indicating which datanote to
+   * read from for those items.
+   */
+  bool recover_ec_blocks(const std::vector<std::string> &to_ec_recover,
+                        int error_code);
+
 
   /**
    * Give a vector of block IDs, executes a multiop which creates items in
