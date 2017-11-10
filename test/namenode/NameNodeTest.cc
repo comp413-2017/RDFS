@@ -34,6 +34,23 @@ TEST_F(NamenodeTest, checkNamespace) {
   // nuffin
 }
 
+
+TEST_F(NamenodeTest, createECFile) {
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("ec_file");
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+    zkclient::ZkNnClient::CreateResponse::Ok);
+  hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
+  ASSERT_EQ(file_status.ecpolicy().id(), 1);
+  ASSERT_EQ(file_status.ecpolicy().name(), "RS-6-3-1024k");
+  ASSERT_EQ(file_status.ecpolicy().schema().parityunits(), 3);
+  ASSERT_EQ(file_status.ecpolicy().schema().dataunits(), 3);
+  ASSERT_EQ(file_status.ecpolicy().schema().codecname(), "rs");
+  ASSERT_TRUE(client->file_exists("ec_file"));
+}
+
 TEST_F(NamenodeTest, findDataNodes) {
   int error;
   zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error, false);

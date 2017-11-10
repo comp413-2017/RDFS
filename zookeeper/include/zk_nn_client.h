@@ -131,7 +131,7 @@ class ZkNnClient : public ZkClientCommon {
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
 
-enum class ListingResponse {
+  enum class ListingResponse {
       Ok,                   // 0
       FileDoesNotExist,     // 1
       FailedChildRetrieval  // 2

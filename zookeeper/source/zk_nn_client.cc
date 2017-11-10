@@ -584,12 +584,10 @@ bool ZkNnClient::create_file_znode(const std::string &path,
   int error_code;
   if (!file_exists(path)) {
     LOG(ERROR) << "Creating file znode at " << path;
-    {
-      LOG(INFO) << znode_data->replication << "\n";
-      LOG(INFO) << znode_data->owner << "\n";
-      LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
-      LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
-    }
+    LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
+    LOG(INFO) << znode_data->replication << "\n";
+    LOG(INFO) << znode_data->owner << "\n";
+    LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     // serialize struct to byte vector
     std::vector<std::uint8_t> data(sizeof(*znode_data));
     file_znode_struct_to_vec(znode_data, data);
@@ -934,7 +932,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
   HdfsFileStatusProto *status = response.mutable_fs();
   set_file_info(status, path, znode_data);
-
   return CreateResponse::Ok;
 }
 
@@ -1397,21 +1394,18 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   // If a block is an EC block, optionally set the ecPolicy field.
   if (znode_data.isEC) {
+      LOG(ERROR) << "Setting EC related proto fields";
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
       ecPolicyProto->set_name(DEFAULT_EC_POLICY);
-      // TODO(nate): check to see if the unit is expected to be in kb.
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
-
       ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
       ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
       ecSchema->set_dataunits(DEFAULT_DATA_UNITS);
       ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
-      ecPolicyProto->set_allocated_schema(ecSchema);
-      status->set_allocated_ecpolicy(ecPolicyProto);
   }
 
-  LOG(INFO) << "Successfully set the file info ";
+  LOG(ERROR) << "Successfully set the file info ";
 }
 
 bool ZkNnClient::add_block(const std::string &file_path,
