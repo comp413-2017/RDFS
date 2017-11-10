@@ -27,6 +27,7 @@ add_subdirectory(native-filesystem)
 add_subdirectory(test)
 add_subdirectory(storage)
 add_subdirectory(web-request)
+add_subdirectory(web-rdfs)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
 	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utility/config-reader/)
