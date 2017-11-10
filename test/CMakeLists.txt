@@ -102,6 +102,12 @@ target_link_libraries(StorageTest zk_client_nn rpcserver)
 target_link_libraries(StorageTest namenode_protos)
 target_link_libraries(StorageTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
 
+add_executable(UsernameTest permissions/UsernameTest.cc)
+target_link_libraries(UsernameTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(UsernameTest namenode_protos)
+target_link_libraries(UsernameTest ${GTEST})
+target_link_libraries(UsernameTest zk_client_nn rpcserver)
+
 add_executable(WebRequestTranslatorTest webRDFS/WebRequestTranslatorTest.cc)
 target_link_libraries(WebRequestTranslatorTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(WebRequestTranslatorTest ${GTEST})
@@ -109,3 +115,4 @@ target_link_libraries(WebRequestTranslatorTest namenode_protos)
 target_link_libraries(WebRequestTranslatorTest zk_client_nn zk_client_dn rpcserver)
 target_link_libraries(WebRequestTranslatorTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
 target_link_libraries(WebRequestTranslatorTest web-request)
+

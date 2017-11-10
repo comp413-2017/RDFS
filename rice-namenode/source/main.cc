@@ -137,4 +137,14 @@ int main(int argc, char *argv[]) {
       &nncli,
       port);
   server.serve(io_service);
+
+  const std::string zk_admin_path = "/security/metadata/admin";
+  const char * c = zk_admin_path.c_str();
+  if (access(c, F_OK) == -1) {
+    zk_shared.get()->create(zk_admin_path,
+                            ZKWrapper::get_byte_vector(server.getUsername()),
+                            error_code,
+                            false,
+                            true);
+  }
 }
