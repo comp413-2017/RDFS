@@ -469,6 +469,7 @@ bool TransferServer::remote_read(uint64_t len, std::string ip,
   }
   xmits--;
   cv.notify_one();
+  base_proto->release_block();
   return true;
 }
 
@@ -492,12 +493,14 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
     LOG(INFO) << "Block not found on this DN, replicating...";
   }
 
+  uint64_t block_id = blockToTarget.blockid();
+
   std::string data(len, 0);
   int read_len = 0;
   if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
     return false;
   }
-  uint64_t block_id = blockToTarget.blockid();
+  
 
   // TODO(anyone): send ClientReadStatusProto (delimited)
   if (!fs->writeBlock(block_id, data)) {
@@ -511,7 +514,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
 
   // Pretty confident we don't need this line,
   // but if we get a bug this is a place to check
-  // base_proto->release_block();
+  // 
   LOG(INFO) << "Replication complete, closing connection.";
   return true;
 }
