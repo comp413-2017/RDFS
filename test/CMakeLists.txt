@@ -25,6 +25,7 @@ include_directories(../rpcserver/include)
 include_directories(../storage/include)
 include_directories(../isal/include)
 include_directories(util/include)
+include_directories(../web-request/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
@@ -93,6 +94,14 @@ target_link_libraries(StorageTest storage)
 target_link_libraries(StorageTest zk_client_nn rpcserver)
 target_link_libraries(StorageTest namenode_protos)
 target_link_libraries(StorageTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+
+add_executable(WebRequestTranslatorTest webRDFS/WebRequestTranslatorTest.cc)
+target_link_libraries(WebRequestTranslatorTest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(WebRequestTranslatorTest ${GTEST})
+target_link_libraries(WebRequestTranslatorTest namenode_protos)
+target_link_libraries(WebRequestTranslatorTest zk_client_nn zk_client_dn rpcserver)
+target_link_libraries(WebRequestTranslatorTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
+target_link_libraries(WebRequestTranslatorTest web-request)
 
 add_executable(ErasureCodeTest isal/ErasureCodeTest.cc)
 target_link_libraries(ErasureCodeTest ${GTEST_LIBRARIES} pthread)

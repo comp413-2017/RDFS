@@ -22,35 +22,69 @@ class NativeFSTest : public ::testing::Test {
   std::string backing;
 };
 
-// TODO(2016): Test writing and getting multiple blocks
-
 TEST_F(NativeFSTest, CanWriteBlock) {
   NativeFS filesystem(backing);
-  ASSERT_EQ(true, filesystem.writeBlock(1, blk));
+  ASSERT_TRUE(filesystem.writeBlock(1, blk));
 }
 
-TEST_F(NativeFSTest, CanGetBlock) {
+TEST_F(NativeFSTest, WriteExistingBlock) {
+  NativeFS filesystem(backing);
+  filesystem.writeBlock(1, blk);
+  ASSERT_FALSE(filesystem.writeBlock(1, blk));
+}
+
+TEST_F(NativeFSTest, CanWriteAndGetBlock) {
   NativeFS filesystem(backing);
   bool write_success = filesystem.writeBlock(2, blk);
-  ASSERT_EQ(true, write_success);
+  ASSERT_TRUE(write_success);
   std::string newBlock;
-  ASSERT_EQ(true, filesystem.hasBlock(2));
+  ASSERT_TRUE(filesystem.hasBlock(2));
   bool success = filesystem.getBlock(2, newBlock);
-  ASSERT_EQ(true, success);
-  ASSERT_EQ(blk[0], newBlock[0]);
+  ASSERT_TRUE(success);
+  ASSERT_EQ(0, blk.compare(0, blk.length(), newBlock));
+}
+
+TEST_F(NativeFSTest, CanWriteAndGetMultipleBlocks) {
+  NativeFS filesystem(backing);
+  bool write_success_1 = filesystem.writeBlock(10, blk);
+  bool write_success_2 = filesystem.writeBlock(11, blk);
+  bool write_success_3 = filesystem.writeBlock(12, blk);
+  ASSERT_TRUE(write_success_1);
+  ASSERT_TRUE(write_success_2);
+  ASSERT_TRUE(write_success_3);
+
+  std::string getBlock1;
+  std::string getBlock2;
+  std::string getBlock3;
+
+  ASSERT_TRUE(filesystem.hasBlock(10));
+  ASSERT_TRUE(filesystem.hasBlock(11));
+  ASSERT_TRUE(filesystem.hasBlock(12));
+
+  filesystem.getBlock(10, getBlock1);
+  filesystem.getBlock(11, getBlock2);
+  filesystem.getBlock(12, getBlock3);
+
+  ASSERT_EQ(0, blk.compare(0, blk.length(), getBlock1));
+  ASSERT_EQ(0, blk.compare(0, blk.length(), getBlock2));
+  ASSERT_EQ(0, blk.compare(0, blk.length(), getBlock3));
 }
 
 TEST_F(NativeFSTest, CanRemoveBlock) {
   NativeFS filesystem(backing);
-  ASSERT_EQ(true, filesystem.rmBlock(1));
-  ASSERT_EQ(false, filesystem.hasBlock(1));
-  ASSERT_EQ(true, filesystem.rmBlock(2));
-  ASSERT_EQ(false, filesystem.hasBlock(2));
+  ASSERT_TRUE(filesystem.rmBlock(1));
+  ASSERT_FALSE(filesystem.hasBlock(1));
+  ASSERT_TRUE(filesystem.rmBlock(2));
+  ASSERT_FALSE(filesystem.hasBlock(2));
+
+  ASSERT_TRUE(filesystem.rmBlock(10));
+  ASSERT_TRUE(filesystem.rmBlock(11));
+  ASSERT_TRUE(filesystem.rmBlock(12));
 }
 
 TEST_F(NativeFSTest, RemoveNonExistBlockReturnsError) {
   NativeFS filesystem(backing);
-  ASSERT_EQ(false, filesystem.rmBlock(3));
+  ASSERT_FALSE(filesystem.rmBlock(3));
 }
 
 TEST_F(NativeFSTest, CanCoalesce) {

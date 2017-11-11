@@ -22,7 +22,7 @@ hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
 ) {
     hadoop::hdfs::CreateRequestProto create_req;
     create_req.set_src(path);
-    create_req.set_clientname("asdf");
+    create_req.set_clientname("unittest");
     create_req.set_createparent(false);
     create_req.set_blocksize(1);
     create_req.set_replication(1);
@@ -46,9 +46,27 @@ TEST_F(NamenodeTest, createECFile) {
   ASSERT_EQ(file_status.ecpolicy().id(), 1);
   ASSERT_EQ(file_status.ecpolicy().name(), "RS-6-3-1024k");
   ASSERT_EQ(file_status.ecpolicy().schema().parityunits(), 3);
-  ASSERT_EQ(file_status.ecpolicy().schema().dataunits(), 3);
+  ASSERT_EQ(file_status.ecpolicy().schema().dataunits(), 6);
   ASSERT_EQ(file_status.ecpolicy().schema().codecname(), "rs");
   ASSERT_TRUE(client->file_exists("ec_file"));
+}
+
+TEST_F(NamenodeTest, addECBlock) {
+
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("ec_file2");
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  hadoop::hdfs::CreateResponseProto create_res;
+  ASSERT_EQ(client->create_file(create_req, create_res),
+  zkclient::ZkNnClient::CreateResponse::Ok);
+
+  hadoop::hdfs::AddBlockRequestProto addblock_req;
+  hadoop::hdfs::AddBlockResponseProto addblock_res;
+
+  addblock_req.set_clientname("unittest");
+  addblock_req.set_src("ec_file2");
+
+//  ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
 }
 
 TEST_F(NamenodeTest, findDataNodes) {

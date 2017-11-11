@@ -24,7 +24,7 @@ class ZkClientCommon {
    * @param block_id the id of a block (or a block group)
    * @return true or false.
    */
-  bool is_ec_block(u_int64_t block_id);
+  static bool is_ec_block(u_int64_t block_id);
 
   /**
    * Given a block or block group id, returns the path to the corresponding metadata.
@@ -34,6 +34,21 @@ class ZkClientCommon {
    * @return the path to the corresponding metadata.
    */
   std::string get_block_metadata_path(u_int64_t block_or_block_group_id);
+
+    /**
+   * Gets the block group id from the storage block id.
+   * i.e. bit 2 ~ bit 48.
+   * @param storage_block_id the given storage block id.
+   * @return the block group id.
+   */
+  u_int64_t get_block_group_id(u_int64_t storage_block_id);
+
+  /**
+   * Gets the index within the block group.
+   * @param storage_block_id the given storage block id.
+   * @return the index within the block group.
+   */
+  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
 
   std::shared_ptr<ZKWrapper> zk;
 
@@ -55,6 +70,8 @@ class ZkClientCommon {
   static const char BLOCK_LOCATIONS[];
   static const char BLOCK_GROUP_LOCATIONS[];
   static const char BLOCKS[];
+  static const char EC_RECOVER_QUEUES[];
+  static const char EC_RECOVER_QUEUES_NO_BACKSLASH[];
 
  private:
   static const std::string CLASS_NAME;
