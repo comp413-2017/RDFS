@@ -2007,7 +2007,9 @@ bool ZkNnClient::recover_ec_blocks(
                  << block_id;
       return false;
     }
-    if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
+    auto excluded = std::vector<std::string>();
+    
+    if (!find_datanode_for_block(target_dn, excluded, block_id, 1, blocksize)
         || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << rec;
       return false;
