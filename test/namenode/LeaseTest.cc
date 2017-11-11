@@ -20,7 +20,8 @@ TEST_F(NamenodeTest, renewLeaseCorrectnessTest) {
                                  exists, error_code));
   ASSERT_TRUE(exists);
   uint64_t ONE_MIN = 1 * 60 * 1000;
-  ASSERT_TRUE(time - client->get_client_lease_timestamp("test_client") < ONE_MIN);
+  ASSERT_TRUE(time - client->
+    get_client_lease_timestamp("test_client") < ONE_MIN);
 }
 
 TEST_F(NamenodeTest, recoverLeaseCorrectnessTest) {
@@ -49,8 +50,8 @@ TEST_F(NamenodeTest, recoverLeaseCorrectnessTest) {
   ASSERT_TRUE(recover_lease_res.result());
 }
 
-// TODO: After append is implemented (where lease is actually acquired,
-// more tests that check expiration are needed.)
+// TODO(Jessica Yu): After append is implemented (where lease is
+// actually acquired, more tests that check expiration are needed.)
 
 TEST_F(NamenodeTest, issueLeaseTest) {
   // Open a lease on some file, through an append request
