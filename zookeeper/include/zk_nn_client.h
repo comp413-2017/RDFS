@@ -129,6 +129,10 @@ using hadoop::hdfs::SetOwnerResponseProto;
 using hadoop::hdfs::RenameResponseProto;
 using hadoop::hdfs::SetPermissionRequestProto;
 using hadoop::hdfs::SetPermissionResponseProto;
+using hadoop::hdfs::RenewLeaseRequestProto;
+using hadoop::hdfs::RenewLeaseResponseProto;
+using hadoop::hdfs::RecoverLeaseRequestProto;
+using hadoop::hdfs::RecoverLeaseResponseProto;
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -579,6 +583,8 @@ class ZkNnClient : public ZkClientCommon {
 
   // Boolean indicating whether zk_nn is in secure mode
   bool isSecureMode = false;
+  const uint64_t EXPIRATION_TIME =
+    2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 };
 
 }  // namespace zkclient
