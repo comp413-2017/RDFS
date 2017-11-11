@@ -81,6 +81,7 @@ TEST_F(NamenodeTest, findDataNodes) {
                          stats_vec, error, true));
 
   auto datanodes = std::vector<std::string>();
+  auto excluded = std::vector<std::string>();
   u_int64_t block_id;
         util::generate_block_id(block_id);
 
@@ -94,10 +95,11 @@ TEST_F(NamenodeTest, findDataNodes) {
 
   LOG(INFO) << "Finding dn's for block " << block_id;
   int rep_factor = 1;
-  client->find_datanode_for_block(datanodes,
+  int err;
+  client->find_all_datanodes_with_block(block_id, excluded, err);
+  client->find_datanode_for_block(datanodes, excluded, 
                                   block_id,
                                   rep_factor,
-                                  true,
                                   block_data.block_size);
 
   for (auto datanode : datanodes) {

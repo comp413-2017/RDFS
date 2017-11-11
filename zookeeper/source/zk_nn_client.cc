@@ -1398,9 +1398,9 @@ bool ZkNnClient::add_block(const std::string &file_path,
   util::generate_block_id(block_id);
   block_id_str = std::to_string(block_id);
   LOG(INFO) << "Generated block id " << block_id_str;
-
-  if (!find_datanode_for_block(data_nodes, block_id, replicationFactor,
-                               true, znode_data.blocksize)) {
+  auto excluded_dns = std::vector<std::string>();
+  if (!find_datanode_for_block(data_nodes, excluded_dns, block_id, 
+       replicationFactor, znode_data.blocksize)) {
     return false;
   }
 
@@ -1468,8 +1468,8 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
   std::vector<std::string> tempDataNodes;
   for (int i = 0; i < total_num_storage_blocks; i++) {
     find_datanode_for_block(
-        tempDataNodes, storage_block_ids[i],
-        1, true, znode_data.blocksize);
+        tempDataNodes, dataNodes,
+        storage_block_ids[i], 1, znode_data.blocksize);
     dataNodes.push_back(tempDataNodes[0]);
     tempDataNodes.clear();
   }
@@ -1540,33 +1540,28 @@ u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
     return storage_block_id & mask;
 }
 
+bool ZkNnClient::find_live_datanodes(const uint64_t blockId, int error_code,
+                                    std::vector<std::string> &live_data_nodes) {
+  std::string block_metadata_path = get_block_metadata_path(blockId);
+  return zk->get_children(HEALTH, live_data_nodes, error_code);
+}
+
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
+                                        std::vector<std::string> &excluded_dns,
                                          const u_int64_t blockId,
                                          uint32_t replication_factor,
-                                         bool newBlock,
                                          uint64_t blocksize) {
   // TODO(2016): Actually perform this action
   // TODO(2016): Perhaps we should keep a cached list of nodes
 
   std::vector<std::string> live_data_nodes = std::vector<std::string>();
   int error_code;
-  std::string block_metadata_path = get_block_metadata_path(blockId);
   // Get all of the live datanodes
-  if (zk->get_children(HEALTH, live_data_nodes, error_code)) {
+  if (find_live_datanodes(blockId, error_code, live_data_nodes)) {
     // LOG(INFO) << "Found live DNs: " << live_data_nodes;
-    auto excluded_datanodes = std::vector<std::string>();
-    if (!newBlock) {
-      // Get the list of datanodes which already have a replica
-      if (!zk->get_children(block_metadata_path,
-                            excluded_datanodes, error_code)) {
-        LOG(ERROR) << "Error getting children of: "
-                   << block_metadata_path;
-        return false;
-      }
-    }
 
     std::priority_queue<TargetDN> targets;
     /* for each child, check if the ephemeral node exists */
@@ -1580,14 +1575,14 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
       }
       if (isAlive) {
         bool exclude = false;
-        if (excluded_datanodes.size() > 0) {
+        if (excluded_dns.size() > 0) {
           // Remove the excluded datanodes from the live list
           std::vector<std::string>::iterator it = std::find(
-              excluded_datanodes.begin(),
-              excluded_datanodes.end(),
+              excluded_dns.begin(),
+              excluded_dns.end(),
               datanode);
 
-          if (it == excluded_datanodes.end()) {
+          if (it == excluded_dns.end()) {
             // This datanode was not in the excluded list, so keep it
             exclude = false;
           } else {
@@ -1968,8 +1963,11 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
                  << block_id;
       return false;
     }
-    if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
-        || target_dn.size() == 0) {
+    int err;
+    auto existing_dn_replicas = std::vector<std::string>();
+    find_all_datanodes_with_block(block_id, existing_dn_replicas, err);
+    if (!find_datanode_for_block(target_dn, existing_dn_replicas, block_id, 
+                                 1, blocksize) || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << repl;
       return false;
     }

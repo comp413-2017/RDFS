@@ -320,11 +320,14 @@ class ZkNnClient : public ZkClientCommon {
   // this is public because we have not member functions in this file
   static const std::string CLASS_NAME;
 
+  bool find_live_datanodes(const uint64_t blockId, int error_code,
+                           std::vector<std::string> &live_data_nodes);
+
   bool find_datanode_for_block(std::vector<std::string> &datanodes,
-                               const std::uint64_t blockId,
-                               uint32_t replication_factor,
-                               bool newBlock,
-                               uint64_t blocksize);
+                                        std::vector<std::string> &excluded_dns,
+                                         const u_int64_t blockId,
+                                         uint32_t replication_factor,
+                                         uint64_t blocksize);
 
   bool find_all_datanodes_with_block(const uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,
