@@ -948,36 +948,36 @@ void ZkNnClient::complete(CompleteRequestProto& req,
 
   // Remove this client from the leases branch.
   bool exists;
-  std::string client_name = req.clientname();
-  if (client_name.size() != 0) {
+  std::string req_client_name = req.clientname();
+  if (req_client_name.size() != 0) {
     if (!zk->exists(LeaseZookeeperPath(src) + '/' +
-                      client_name, exists, error_code)) {
+                      req_client_name, exists, error_code)) {
       LOG(ERROR) << "Failed to check the existence of "
-      << LeaseZookeeperPath(src) + '/' + client_name << ".";
+      << LeaseZookeeperPath(src) + '/' + req_client_name << ".";
       res.set_result(false);
       return;
     }
     if (exists) {
       if (!zk->delete_node(LeaseZookeeperPath(src) + '/'
-                           + client_name, error_code, true)) {
+                           + req_client_name, error_code, true)) {
         LOG(ERROR) << "Failed to delete node " << LeaseZookeeperPath(src)
-                                                  + '/' + client_name << ".";
+                                                  + '/' + req_client_name << ".";
         res.set_result(false);
         return;
       }
     }
     // Remove the client from the client branch
-    if (!zk->exists(ClientZookeeperPath(client_name), exists, error_code)) {
+    if (!zk->exists(ClientZookeeperPath(req_client_name), exists, error_code)) {
       LOG(ERROR) << "Failed to check the existence of " <<
-        ClientZookeeperPath(client_name) << ".";
+        ClientZookeeperPath(req_client_name) << ".";
       res.set_result(false);
       return;
     }
     if (exists) {
-      if (!zk->delete_node(ClientZookeeperPath(client_name),
+      if (!zk->delete_node(ClientZookeeperPath(req_client_name),
                            error_code, true)) {
         LOG(ERROR) << "Failed to delete node " <<
-          ClientZookeeperPath(client_name) << ".";
+          ClientZookeeperPath(req_client_name) << ".";
         res.set_result(false);
         return;
       }
