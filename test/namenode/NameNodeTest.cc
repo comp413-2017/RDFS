@@ -52,7 +52,6 @@ TEST_F(NamenodeTest, createECFile) {
 }
 
 TEST_F(NamenodeTest, addECBlock) {
-
   hadoop::hdfs::CreateRequestProto create_req =
       getCreateRequestProto("ec_file2");
   create_req.set_ecpolicyname("RS-6-3-1024k");
@@ -115,7 +114,7 @@ TEST_F(NamenodeTest, findDataNodes) {
   int rep_factor = 1;
   int err;
   client->find_all_datanodes_with_block(block_id, excluded, err);
-  client->find_datanode_for_block(datanodes, excluded, 
+  client->find_datanode_for_block(datanodes, excluded,
                                   block_id,
                                   rep_factor,
                                   block_data.block_size);

@@ -1426,7 +1426,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
   block_id_str = std::to_string(block_id);
   LOG(INFO) << "Generated block id " << block_id_str;
   auto excluded_dns = std::vector<std::string>();
-  if (!find_datanode_for_block(data_nodes, excluded_dns, block_id, 
+  if (!find_datanode_for_block(data_nodes, excluded_dns, block_id,
        replicationFactor, znode_data.blocksize)) {
     return false;
   }
@@ -2008,7 +2008,6 @@ bool ZkNnClient::recover_ec_blocks(
       return false;
     }
     auto excluded = std::vector<std::string>();
-    
     if (!find_datanode_for_block(target_dn, excluded, block_id, 1, blocksize)
         || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << rec;
@@ -2047,7 +2046,7 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
     int err;
     auto existing_dn_replicas = std::vector<std::string>();
     find_all_datanodes_with_block(block_id, existing_dn_replicas, err);
-    if (!find_datanode_for_block(target_dn, existing_dn_replicas, block_id, 
+    if (!find_datanode_for_block(target_dn, existing_dn_replicas, block_id,
                                  1, blocksize) || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << repl;
       return false;
