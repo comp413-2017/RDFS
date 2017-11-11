@@ -213,7 +213,10 @@ class ZkNnClient : public ZkClientCommon {
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
-
+  void renew_lease(RenewLeaseRequestProto &req,
+                   RenewLeaseResponseProto &res);
+  void recover_lease(RecoverLeaseRequestProto &req,
+                     RecoverLeaseResponseProto &res);
   /**
    * Get info of the file.
    * @param req GetFileInfoRequestProto
