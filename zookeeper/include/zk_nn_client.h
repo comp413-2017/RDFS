@@ -94,6 +94,8 @@ using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
 using hadoop::hdfs::AbandonBlockRequestProto;
 using hadoop::hdfs::AbandonBlockResponseProto;
+    using hadoop::hdfs::AppendRequestProto;
+    using hadoop::hdfs::AppendResponseProto;
 using hadoop::hdfs::ExtendedBlockProto;
 using hadoop::hdfs::GetFileInfoRequestProto;
 using hadoop::hdfs::GetFileInfoResponseProto;
@@ -198,9 +200,9 @@ class ZkNnClient : public ZkClientCommon {
    * Main append file mechanism and associated helpers.
    */
   bool append_file(AppendRequestProto &req, AppendResponseProto &res);
-  bool process_request(string client_name, string file_path, AppendRequestProto &req);
-  std::string get_primary_block_info(string file_path, AppendRequestProto &req,  AppendResponseProto &res);
-  void construct_lease(string client_name, string file_path);
+  bool process_request(std::string client_name, std::string file_path, AppendRequestProto &req);
+  std::string get_primary_block_info(std::string file_path, AppendRequestProto &req,  AppendResponseProto &res);
+  void construct_lease(std::string client_name, std::string file_path);
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles

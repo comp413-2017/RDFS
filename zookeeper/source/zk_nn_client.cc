@@ -638,10 +638,10 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   // Find the last block
   int error_code;
   std::vector<std::string> sorted_fs_znodes;
-  if (!zk->get_children(ZookeeperPath(file_path),
+  if (!zk->get_children(ZookeeperFilePath(file_path),
                         sorted_fs_znodes, error_code)) {
     LOG(ERROR) << "Failed getting children of "
-               << ZookeeperPath(file_path)
+               << ZookeeperFilePath(file_path)
                << " with error: "
                << error_code;
   }
@@ -650,7 +650,7 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   // Build the multi op - it's a reverse of the one's in add_block.
   // Note that it was due to the ZOO_SEQUENCE flag that this first
   // znode's path has the 9 digit number on the end.
-  auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperPath(file_path +
+  auto undo_seq_file_block_op = zk->build_delete_op(ZookeeperFilePath(file_path +
                                                                   "/" + sorted_fs_znodes.back()));
   auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/"
                                          + block_id_str);
@@ -731,7 +731,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     std::vector<std::uint8_t> data(sizeof(*znode_data));
     file_znode_struct_to_vec(znode_data, data);
     // create the node in zookeeper
-    if (!zk->create(ZookeeperPath(path), data, error_code)) {
+    if (!zk->create(ZookeeperFilePath(path), data, error_code)) {
       LOG(ERROR) << "Create failed with error code " << error_code;
       return false;
       // TODO(2016): handle error
@@ -809,7 +809,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
   FileZNode znode_data;
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
-  if (!zk->get_children(ZookeeperPath(path), children, error_code)) {
+  if (!zk->get_children(ZookeeperFilePath(path), children, error_code)) {
     LOG(FATAL) << "Failed to get children for " << path;
     return DeleteResponse::FailedChildRetrieval;
   }
@@ -828,7 +828,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
     }
     for (auto &child : children) {
       auto child_path = util::concat_path(path, child);
-      child_path = ZookeeperPath(child_path);
+      child_path = ZookeeperFilePath(child_path);
       ops.push_back(zk->build_delete_op(child_path));
       std::vector<std::uint8_t> block_vec;
       std::uint64_t block;
@@ -857,7 +857,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       }
     }
   }
-  ops.push_back(zk->build_delete_op(ZookeeperPath(path)));
+  ops.push_back(zk->build_delete_op(ZookeeperFilePath(path)));
   return DeleteResponse::Ok;
 }
 
@@ -873,25 +873,25 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   // set the file length
   uint64_t file_length = 0;
   auto file_blocks = std::vector<std::string>();
-  if (!zk->get_children(ZookeeperPath(src), file_blocks, error_code)) {
+  if (!zk->get_children(ZookeeperFilePath(src), file_blocks, error_code)) {
     LOG(ERROR) << "Failed getting children of "
-               << ZookeeperPath(src)
+               << ZookeeperFilePath(src)
                << " with error: "
                << error_code;
     res.set_result(false);
     return;
   }
   if (file_blocks.size() == 0) {
-    LOG(ERROR) << "No blocks found for file " << ZookeeperPath(src);
+    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
     res.set_result(true);
   }
   // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
     auto data = std::vector<std::uint8_t>();
-    if (!zk->get(ZookeeperPath(src) + "/" + file_block, data,
+    if (!zk->get(ZookeeperFilePath(src) + "/" + file_block, data,
                  error_code, sizeof(uint64_t))) {
       LOG(ERROR) << "Failed to get "
-                 << ZookeeperPath(src)
+                 << ZookeeperFilePath(src)
                  << "/"
                  << file_block
                  << " with error: "
@@ -917,7 +917,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   file_znode_struct_to_vec(&znode_data, data);
-  if (!zk->set(ZookeeperPath(src), data, error_code)) {
+  if (!zk->set(ZookeeperFilePath(src), data, error_code)) {
     LOG(ERROR)
       << " complete could not change the construction bit and file length";
     res.set_result(false);
