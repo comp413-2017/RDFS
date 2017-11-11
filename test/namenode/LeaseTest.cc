@@ -1,6 +1,5 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
-#include <ClientNamenodeProtocol.pb.h>
 #include "NameNodeTest.h"
 
 // Ensure that a lease is created successfully and that it does its job,
