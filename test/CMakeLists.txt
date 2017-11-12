@@ -24,7 +24,7 @@ include_directories(../native-filesystem/include)
 include_directories(../rpcserver/include)
 include_directories(../storage/include)
 include_directories(util/include)
-include_directories(../web-request/include)
+include_directories(../web-rdfs/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
 
@@ -106,5 +106,6 @@ target_link_libraries(WebRequestTranslatorTest ${GTEST})
 target_link_libraries(WebRequestTranslatorTest namenode_protos)
 target_link_libraries(WebRequestTranslatorTest zk_client_nn zk_client_dn rpcserver)
 target_link_libraries(WebRequestTranslatorTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
-target_link_libraries(WebRequestTranslatorTest web-request)
+target_link_libraries(WebRequestTranslatorTest web_request_translator)
+
 
