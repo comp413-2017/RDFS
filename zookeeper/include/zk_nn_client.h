@@ -125,6 +125,8 @@ using hadoop::hdfs::SetPermissionResponseProto;
 // -------- MJP Header ---------
       using hadoop::hdfs::AppendRequestProto;
       using hadoop::hdfs::AppendResponseProto;
+
+      class ZkNnClient;
 // -------- MJP Footer ---------
 
 /**
@@ -219,14 +221,11 @@ class ZkNnClient : public ZkClientCommon {
                                          CreateResponseProto &response);
 
 
-//-----------MJP Header---------------
-template <class T>
-void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
-template <class T>
-//------------ MJP Footer ------------
 
 
 
+
+// -------- MJP Header ---------
 
   /**
    * Get locations of blocks.
@@ -236,8 +235,11 @@ template <class T>
    * @return
    */
   void get_block_locations(GetBlockLocationsRequestProto &req,
-                           GetBlockLocationsResponseProto &res,
-                           std::string client_name = "default");
+                           GetBlockLocationsResponseProto &res
+
+//   ,  std::string client_name = "default");
+  );
+          // -------- MJP Footer ---------
   /**
    * Make a directory.
    * @param req MkdirsRequestProto
@@ -405,16 +407,18 @@ template <class T>
    */
   bool check_acks();
 
+          // -------- MJP Header ---------
+          
   // get locations given src, offset, and length
   void get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
-                           LocatedBlocksProto *blocks,
-                           std::string client_name = "default");
+                           LocatedBlocksProto *blocks
+                         //  std::string client_name = "default");
+  );
 
 
 
-          // -------- MJP Header ---------
 
           /**
 * Main append file mechanism and associated helpers.
@@ -485,6 +489,12 @@ template <class T>
    */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
+
+          //-----------MJP Header---------------
+          template <class T>
+          void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+          template <class T>
+//------------ MJP Footer ------------
 
   /**
    * Try to delete a node and log error if we couldnt and set response to false
