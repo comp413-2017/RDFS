@@ -1281,11 +1281,18 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
           // set up the value for LocatedBlocksProto
           // LocatedBlocksProto *blocklocation = status->set_location();
           // GetBlockLocationsRequestProto location_req;
+
+
+            //  -------- MJP Header ---------
+
           if (need_location) {
               LocatedBlocksProto *blocks = status->mutable_locations();
               get_block_locations(child_path, 0, child_data.length, blocks);
                                   //,client_name);
           }
+
+            // ---------- MJP Footer ---------
+
         }
       }
     }
