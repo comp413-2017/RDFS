@@ -43,26 +43,22 @@ void WebRDFSServer::register_handler(
 
 std::string WebRDFSServer::getFileInfo(GetFileInfoRequestProto req) {
   GetFileInfoResponseProto res;
-//  zk->get_info(req, res);
   return "";
 }
 
 std::string WebRDFSServer::mkdir(MkdirsRequestProto req) {
   MkdirsResponseProto res;
-//  zk->mkdir(req, res);
   return "";
 }
 
 std::string WebRDFSServer::create(CreateRequestProto req) {
   CreateResponseProto res;
-//  zk->create_file(req, res);
   return "";
 }
 
 std::string WebRDFSServer::getBlockLocations(
   GetBlockLocationsRequestProto req) {
   GetBlockLocationsResponseProto res;
-//  zk->get_block_locations(req, res);
   return "";
 }
 
@@ -87,7 +83,6 @@ std::string WebRDFSServer::renewLease(RenewLeaseRequestProto req) {
 
 std::string WebRDFSServer::complete(CompleteRequestProto req) {
   CompleteResponseProto res;
-//  zk->complete(req, res);
   return "";
 }
 
@@ -99,13 +94,11 @@ std::string WebRDFSServer::setReplication(SetReplicationRequestProto req) {
 
 std::string WebRDFSServer::addBlock(AddBlockRequestProto req) {
   AddBlockResponseProto res;
-//  zk->add_block(req, res);
   return "";
 }
 
 std::string WebRDFSServer::getListing(GetListingRequestProto req) {
   GetListingResponseProto res;
-//  zk->get_listing(req, res);
   return "";
 }
 
@@ -122,13 +115,11 @@ std::string WebRDFSServer::setOwner(SetOwnerRequestProto req) {
 std::string WebRDFSServer::getContentSummary(
   GetContentSummaryRequestProto req) {
   GetContentSummaryResponseProto res;
-//  zk->get_content(req, res);
   return "";
 }
 
 std::string WebRDFSServer::rename(RenameRequestProto req) {
   RenameResponseProto res;
-//  zk->rename(req, res);
   return "";
 }
 
@@ -160,6 +151,5 @@ std::string WebRDFSServer::concat(ConcatRequestProto req) {
 
 std::string WebRDFSServer::abandonBlock(AbandonBlockRequestProto req) {
   AbandonBlockResponseProto res;
-//  zk->abandon_block(req, res);
   return "";
 }
