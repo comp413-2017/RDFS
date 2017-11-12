@@ -23,6 +23,10 @@
 #define HTTP_PUT "PUT"
 #define HTTP_DELETE "DELETE"
 
+// Fully qualified path to certificate and private key used for SSL.
+#define SERVER_CERTIFICATE_PATH "/home/vagrant/rdfs/config/keys/server.crt"
+#define SERVER_KEY_PATH "/home/vagrant/rdfs/config/keys/server.key"
+
 using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
 
 // the .proto file implementation's namespace, used for messages
@@ -75,8 +79,8 @@ class WebRDFSServer {
    *
    * @param port Port number on which to listen for HTTP requests.
    */
-  explicit WebRDFSServer(int16_t port, zkclient::ZkNnClient *zk_arg) :
-    server("config/keys/server.crt", "config/keys/server.crt") {
+  explicit WebRDFSServer(int16_t port) :
+    server(SERVER_CERTIFICATE_PATH, SERVER_KEY_PATH) {
     server.config.port = port;
   };
 
