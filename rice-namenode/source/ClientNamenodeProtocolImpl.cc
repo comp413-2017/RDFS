@@ -176,7 +176,11 @@ std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
   logMessage(&req, "GetBlockLocations ");
   GetBlockLocationsResponseProto res;
   std::string client_name = getRPCServer().getUsername();
-  zk->get_block_locations(req, res, client_name);
+
+
+  // --------- MJP Header ---------
+  zk->get_block_locations(req, res);//, client_name);
+  // --------- MJP Footer ---------
   return Serialize(res);
 }
 
