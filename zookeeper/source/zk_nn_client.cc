@@ -1220,8 +1220,47 @@ ZkNnClient::get_erasure_coding_policies(
 
   auto ec_policies = res.mutable_ecpolicies();
   ErasureCodingPolicyProto *ec_policy_to_add = ec_policies->Add();
-  ec_policy_to_add = &RS_SOLOMON_PROTO;
+  // TODO(nate): will have to change if we support multiple EC policies.
+  ec_policy_to_add->set_id(DEFAULT_EC_ID);
+  ec_policy_to_add->set_name(DEFAULT_EC_POLICY);
+  ec_policy_to_add->set_cellsize(DEFAULT_EC_CELLCIZE);
+  ECSchemaProto* ecSchemaProto = ec_policy_to_add->mutable_schema();
+  ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
+  ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
+  ecSchemaProto->set_parityunits(DEFAULT_PARITY_UNITS);
+
   return ErasureCodingPoliciesResponse::Ok;
+}
+
+ZkNnClient::ErasureCodingPolicyResponse
+ZkNnClient::get_erasure_coding_policy_of_path(
+    GetErasureCodingPolicyRequestProto &req,
+    GetErasureCodingPolicyResponseProto &res) {
+  std::string file_src = req.src();
+  if (!file_exists(file_src)) {
+    return ErasureCodingPolicyResponse::FileDoesNotExist;
+  }
+
+  FileZNode znode_data;
+  read_file_znode(znode_data, file_src);
+
+  // Set the EC policy proto.
+  // In the case of Replication, the client expects null.
+  // In the case of EC, populate it with values.
+
+  if (znode_data.isEC) {
+    // TODO(nate): will have to change if we support multiple EC policies.
+    ErasureCodingPolicyProto* ecPolicyProto = res.mutable_ecpolicy();
+    ecPolicyProto->set_id(DEFAULT_EC_ID);
+    ecPolicyProto->set_name(DEFAULT_EC_POLICY);
+    ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+    ECSchemaProto* ecSchemaProto = ecPolicyProto->mutable_schema();
+    ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
+    ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
+    ecSchemaProto->set_parityunits(DEFAULT_PARITY_UNITS);
+  }
+
+  return ErasureCodingPolicyResponse::Ok;
 }
 
 

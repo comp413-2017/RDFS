@@ -110,6 +110,8 @@ using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
+using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 
 
 /**
@@ -176,6 +178,11 @@ enum class ListingResponse {
       Ok
   };
 
+  enum class ErasureCodingPolicyResponse {
+      Ok,
+      FileDoesNotExist
+  };
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -221,6 +228,14 @@ enum class ListingResponse {
   ErasureCodingPoliciesResponse get_erasure_coding_policies(
       GetErasureCodingPoliciesRequestProto &req,
       GetErasureCodingPoliciesResponseProto &res);
+
+  /**
+   * Returns the erasure coding policy of a file or a directory specified by the path.
+   */
+  ErasureCodingPolicyResponse get_erasure_coding_policy_of_path(
+      GetErasureCodingPolicyRequestProto &req,
+      GetErasureCodingPolicyResponseProto &res);
+
   /**
    * Adds a block by making appropriate namespace changes and returns information about
    * the set of DataNodes that the block data should be hosted by.

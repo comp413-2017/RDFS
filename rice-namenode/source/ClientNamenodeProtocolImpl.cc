@@ -79,6 +79,8 @@ using hadoop::hdfs::Rename2RequestProto;
 using hadoop::hdfs::Rename2ResponseProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
+using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -315,6 +317,17 @@ std::string ClientNamenodeTranslator::getErasureCodingPolicies(
 }
 
 
+std::string ClientNamenodeTranslator::getErasureCodingPolicy(
+    std::string input) {
+  GetErasureCodingPolicyRequestProto req;
+  GetErasureCodingPolicyResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&req, "GetErasureCodingPolicy ");
+  zk->get_erasure_coding_policy_of_path(req, res);
+  return Serialize(res);
+}
+
+
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
  * When asked to do an unsupported command, we'll be returning a
@@ -528,6 +541,11 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
       "getErasureCodingPolicies",
       std::bind(
           &ClientNamenodeTranslator::getErasureCodingPolicies, this, _1));
+
+  server.register_handler(
+      "getErasureCodingPolicy",
+      std::bind(
+          &ClientNamenodeTranslator::getErasureCodingPolicy, this, _1));
 }
 
 /**

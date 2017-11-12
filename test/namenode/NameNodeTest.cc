@@ -34,6 +34,56 @@ TEST_F(NamenodeTest, checkNamespace) {
   // nuffin
 }
 
+TEST_F(NamenodeTest, getErasureCodingPolicies) {
+  hadoop::hdfs::GetErasureCodingPoliciesRequestProto req;
+  hadoop::hdfs::GetErasureCodingPoliciesResponseProto res;
+  ASSERT_EQ(
+      zkclient::ZkNnClient::ErasureCodingPoliciesResponse::Ok,
+      client->get_erasure_coding_policies(req, res));
+
+  ASSERT_EQ(
+  1,
+  res.ecpolicies_size());
+
+  auto default_ecpolicy = res.ecpolicies(0);
+  ASSERT_EQ(
+  1024*1024,
+  default_ecpolicy.cellsize());
+
+  ASSERT_EQ(
+  1,
+  default_ecpolicy.id());
+
+  ASSERT_EQ(
+  "RS-6-3-1024k",
+  default_ecpolicy.name());
+}
+
+TEST_F(NamenodeTest, getErasureCodingPolicyPathNonExistentFile) {
+  hadoop::hdfs::GetErasureCodingPolicyRequestProto req;
+  hadoop::hdfs::GetErasureCodingPolicyResponseProto res;
+  req.set_src("non_existent_file");
+  ASSERT_EQ(
+    zkclient::ZkNnClient::ErasureCodingPolicyResponse::FileDoesNotExist,
+    client->get_erasure_coding_policy_of_path(req, res));
+}
+
+TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
+  hadoop::hdfs::GetErasureCodingPolicyRequestProto req;
+  hadoop::hdfs::GetErasureCodingPolicyResponseProto res;
+  auto create_req = getCreateRequestProto("file_that_exists");
+  hadoop::hdfs::CreateResponseProto create_res;
+
+  client->create_file(create_req, create_res);
+
+  ASSERT_EQ(
+      zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
+      client->get_erasure_coding_policy_of_path(req, res));
+
+  // TODO(nate): check that the ecpolicy is null
+  // TODO(nate): add another test by creating an ec based file.
+}
+
 TEST_F(NamenodeTest, findDataNodes) {
   int error;
   zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error, false);
