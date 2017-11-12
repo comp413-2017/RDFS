@@ -35,7 +35,6 @@ run_test ./DeleteTest
 run_test "./NameNodeTest --gtest_filter=-*Performance*"
 run_test ./NativeFsTest
 run_test "./StorageTest --gtest_filter=-*Time"
-run_test ./WebServerTest
 run_test ./ZKDNClientTest
 run_test ./ZKLockTest
 run_test ./ZKWrapperTest

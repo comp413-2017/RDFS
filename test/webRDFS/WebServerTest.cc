@@ -20,14 +20,15 @@ TEST(WebServerTest, testDelete) {
 
   ASSERT_EQ(0,
             system(
-                "python /home/vagrant/rdfs/test/webRDFS/generate_successful_delete.py > "
-                "expectedResultDelete"));
+            "python /home/vagrant/rdfs/test/webRDFS/"
+            "generate_successful_delete.py > expectedResultDelete"));
   system(
       "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
       "-copyFromLocal toDelete /fileToDelete");
 
   ASSERT_EQ(0,
-            system("curl localhost:8080/webhdfs/v1/delete/fileToDelete > actualResultDelete"));
+            system("curl localhost:8080/webhdfs/v1/delete/fileToDelete "
+            "> actualResultDelete"));
 
   // Check that results match
   ASSERT_EQ(0, system("diff expectedResultDelete actualResultDelete"));
@@ -36,18 +37,22 @@ TEST(WebServerTest, testDelete) {
 }
 
 TEST(WebServerTest, testRead) {
-  ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/webRDFS/generate_read_file.py > toRead"));
+  ASSERT_EQ(0,
+            system("python /home/vagrant/rdfs/test/webRDFS"
+            "/generate_read_file.py > toRead"));
 
   ASSERT_EQ(0,
             system(
-                "python /home/vagrant/rdfs/test/webRDFS/generate_successful_read.py > "
-                "expectedResultRead"));
+                "python /home/vagrant/rdfs/test/webRDFS"
+                "/generate_successful_read.py > expectedResultRead"));
 
   system(
         "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
         "-copyFromLocal toRead /fileToRead");
 
-  ASSERT_EQ(0, system("curl localhost:8080/webhdfs/v1/read/fileToRead > actualResultRead"));
+  ASSERT_EQ(0,
+            system("curl localhost:8080/webhdfs/v1/read/fileToRead > "
+                  "actualResultRead"));
 
   // Check that results match
   ASSERT_EQ(0, system("diff expectedResultRead actualResultRead"));
