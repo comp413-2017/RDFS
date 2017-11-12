@@ -7,7 +7,11 @@
 #include "web_rdfs_server.h"
 #include "webRequestTranslator.h"
 
-using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
+#include <string>
+#include <fstream>
+#include <streambuf>
+
+using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 void setZk(zkclient::ZkNnClient *zk_arg);
 
