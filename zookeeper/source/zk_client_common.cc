@@ -29,6 +29,11 @@ const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
 
+    // -------- MJP Header ----------
+    const char ZkClientCommon::CLIENTS[] = "/clients";
+    const char ZkClientCommon::LEASES[] = "/leases";
+    // -------- MJP Footer ----------
+
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
   int error_code;
   zk = std::make_shared<ZKWrapper>(hostAndIp, error_code, "/testing");

@@ -50,7 +50,15 @@ typedef struct {
   int permission_number;
 } FileZNode;
 
-struct TargetDN {
+//------------- MJP Header-----------------
+    typedef struct {
+        uint64_t timestamp;    // std::time()
+    } ClientInfo;
+//------------- MJP Footer-----------------
+
+
+
+    struct TargetDN {
   char policy;
   std::string dn_id;
   uint64_t free_bytes;    // free space on disk
@@ -113,6 +121,11 @@ using hadoop::hdfs::SetOwnerResponseProto;
 using hadoop::hdfs::RenameResponseProto;
 using hadoop::hdfs::SetPermissionRequestProto;
 using hadoop::hdfs::SetPermissionResponseProto;
+
+// -------- MJP Header ---------
+      using hadoop::hdfs::AppendRequestProto;
+      using hadoop::hdfs::AppendResponseProto;
+// -------- MJP Footer ---------
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -204,6 +217,16 @@ class ZkNnClient : public ZkClientCommon {
    */
   CreateResponse create_file(CreateRequestProto &request,
                                          CreateResponseProto &response);
+
+
+//-----------MJP Header---------------
+template <class T>
+void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+template <class T>
+//------------ MJP Footer ------------
+
+
+
 
   /**
    * Get locations of blocks.
@@ -388,6 +411,22 @@ class ZkNnClient : public ZkClientCommon {
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
                            std::string client_name = "default");
+
+
+
+          // -------- MJP Header ---------
+
+          /**
+* Main append file mechanism and associated helpers.
+*/
+          bool append_file(AppendRequestProto &req, AppendResponseProto &res);
+          bool process_request(std::string client_name, std::string file_path, AppendRequestProto &req);
+          std::string get_primary_block_info(std::string file_path, AppendRequestProto &req,  AppendResponseProto &res);
+          void construct_lease(std::string client_name, std::string file_path);
+
+
+          // -------- MJP Footer ---------
+
 
   /**
    * Read a znode corresponding to a file into znode_data

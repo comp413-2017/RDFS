@@ -37,6 +37,11 @@ class ZkClientCommon {
   static const char BLOCK_LOCATIONS[];
   static const char BLOCKS[];
 
+    // ---------- MJP Header -----------
+    static const char CLIENTS[];
+    static const char LEASES[];
+    // ---------- MJP Footer -----------
+
  private:
   static const std::string CLASS_NAME;
 };
