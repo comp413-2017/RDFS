@@ -25,7 +25,7 @@ add_library(http_handlers source/http_handlers.cc)
 target_link_libraries(http_handlers easylogging++)
 target_link_libraries(http_handlers web-request)
 
-add_library(web_request_translator source/webRequestTranslator.cc)
+add_library(web_request_translator source/web_request_translator.cc)
 target_link_libraries(web_request_translator easylogging++)
 target_link_libraries(web_request_translator protobuf)
 
