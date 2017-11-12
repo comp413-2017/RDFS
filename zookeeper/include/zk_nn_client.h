@@ -130,7 +130,7 @@ using hadoop::hdfs::AppendResponseProto;
 * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
 */
 class ZkNnClient : public ZkClientCommon {
-public:
+  public:
   char policy;
 
   enum class ListingResponse {
@@ -420,7 +420,7 @@ public:
  */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
-private:
+  private:
 /**
  * Given a vector of DN IDs, sorts them from fewest to most number of transmits
  */
@@ -475,7 +475,7 @@ private:
                                 std::vector<std::uint8_t> &data);
 
 
-  //-----------MJP Header---------------
+  // -----------MJP Header---------------
   template <class T>
   void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
   template <class T>

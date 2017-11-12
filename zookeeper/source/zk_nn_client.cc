@@ -289,11 +289,11 @@ bool ZkNnClient::append_file(AppendRequestProto &req,
   std::string file_path = req.src();
   std::string client_name = req.clientname();
   bool isValid = process_request(client_name, file_path, req);
-  //The append request is valid.
+  // The append request is valid.
   std::string block_id = get_primary_block_info(file_path, req, res);
-  //Check if a lease for the file already exists (if so, log a message saying lease exists and is in use)
+  /* Check if a lease for the file already exists
+   * (if so, log a message saying lease exists and is in use) */
   construct_lease(client_name, file_path);
-
 }
 
 bool ZkNnClient::process_request(std::string client_name,
@@ -301,13 +301,12 @@ bool ZkNnClient::process_request(std::string client_name,
                  AppendRequestProto &req) {
   bool exists;
   int error_code;
-  //Check if valid file path.
+  // Check if valid file path.
   if (!file_exists(file_path)) {
     LOG(ERROR) << "Requested file " << file_path << " does not exist";
     return false;
-  }
-    //Check if valid client.
-  else if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
+		// Check if valid client
+  } else if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
            CLIENTS << client_name
            << " exists.";
