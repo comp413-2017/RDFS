@@ -39,11 +39,22 @@ void delete_file_handler(std::shared_ptr<HttpServer::Response> response,
 }
 
 void read_file_handler(std::shared_ptr<HttpServer::Response> response,
-                         std::shared_ptr<HttpServer::Request> request) {
+                         std::string path) {
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
-  // TODO(security): implement
-  response->write("read_file_handler");
+  std::string storedFile = "tempStore" + path;
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat /" + path + " > " + storedFile;
+
+  system(input.c_str());
+  std::ifstream file(storedFile);
+  std::string content((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
+
+  LOG(DEBUG) << content;
+
+  response->write(webRequestTranslator::getReadResponse(content));
+
+  system(("rm " + storedFile).c_str()); // Clean up temp file
 }
 
 void get_handler(std::shared_ptr<HttpServer::Response> response,
@@ -62,6 +73,8 @@ void get_handler(std::shared_ptr<HttpServer::Response> response,
 
   if (typeOfRequest == "delete") {
     delete_file_handler(response, path);
+  } else if (typeOfRequest == "read") {
+    read_file_handler(response, path);
   } else {
     create_file_handler(response, request);
   }

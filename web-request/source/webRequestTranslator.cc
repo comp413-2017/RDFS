@@ -37,32 +37,11 @@ namespace webRequestTranslator {
 
       return res;
     }
-  /**
-   * Converts the RDFS namenode read response into the appropriate webRDFS response.
-   */
-  std::string getNamenodeReadResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
-
-    std::string delimiter = "/webhfs/v1/";
-    std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
-
-    hadoop::hdfs::DatanodeIDProto id = dataProto.id();
-    res += "Location: http://";
-    res += id.hostname();
-    res += ":";
-    res += std::to_string(id.infoport());
-
-    res += delimiter;
-    res += restOfRequest;
-
-    res += "\nContent-Length: 0";
-    return res;
-  }
 
   /**
-   * Converts the RDFS datanode read response into the appropriate webRDFS response.
+   * Converts the read response into the appropriate webRDFS response.
    */
-  std::string getDatanodeReadResponse(std::string contentOfFile) {
+  std::string getReadResponse(std::string contentOfFile) {
     std::string res = std::string("HTTP/1.1 200 OK\nContent-Type: application/octet-stream\nContent-Length: ");
 
     res += std::to_string(contentOfFile.length());
