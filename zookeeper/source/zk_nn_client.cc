@@ -1297,9 +1297,10 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
   return ListingResponse::Ok;
 }
 
+    // --------- MJP Header -------
 void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
                                      GetBlockLocationsResponseProto &res,
-                                     std::string client_name) {
+                                     std::string client_name = "default") {
   const std::string &src = req.src();
   google::protobuf::uint64 offset = req.offset();
   google::protobuf::uint64 length = req.length();
@@ -1307,11 +1308,15 @@ void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
   get_block_locations(src, offset, length, blocks, client_name);
 }
 
+    
+
 void ZkNnClient::get_block_locations(const std::string &src,
                                      google::protobuf::uint64 offset,
                                      google::protobuf::uint64 length,
                                      LocatedBlocksProto *blocks,
-                                     std::string client_name) {
+                                     std::string client_name = "default") {
+
+    // --------- MJP Footer -------
   int error_code;
   const std::string zk_path = ZookeeperBlocksPath(src);
 
