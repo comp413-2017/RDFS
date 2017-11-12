@@ -1283,8 +1283,8 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
           // GetBlockLocationsRequestProto location_req;
           if (need_location) {
               LocatedBlocksProto *blocks = status->mutable_locations();
-              get_block_locations(child_path, 0, child_data.length, blocks,
-                                  client_name);
+              get_block_locations(child_path, 0, child_data.length, blocks);
+                                  //,client_name);
           }
         }
       }
@@ -1306,7 +1306,7 @@ void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
   google::protobuf::uint64 offset = req.offset();
   google::protobuf::uint64 length = req.length();
   LocatedBlocksProto *blocks = res.mutable_locations();
-  get_block_locations(src, offset, length, blocks, client_name);
+  get_block_locations(src, offset, length, blocks); //,client_name);
 }
 
 
