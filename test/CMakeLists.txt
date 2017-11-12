@@ -25,7 +25,6 @@ include_directories(../rpcserver/include)
 include_directories(../storage/include)
 include_directories(../isal/include)
 include_directories(util/include)
-include_directories(../web-request/include)
 include_directories(../web-rdfs/include)
 
 link_directories(/home/vagrant/rdfs/build/zkwrapper)
