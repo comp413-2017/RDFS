@@ -960,8 +960,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     if (exists) {
       if (!zk->delete_node(LeaseZookeeperPath(src) + '/'
                            + req_client_name, error_code, true)) {
-        LOG(ERROR) << "Failed to delete node " << LeaseZookeeperPath(src)
-                                                  + '/' + req_client_name << ".";
+        LOG(ERROR) << "Failed to delete node "
+        << LeaseZookeeperPath(src)
+           + '/' + req_client_name << ".";
         res.set_result(false);
         return;
       }
