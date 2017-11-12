@@ -88,8 +88,12 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
-  std::string getDeleteResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
+  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &resProto) {
+    if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
+      return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
+    } else {
+      return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":false}\n";
+    }
   }
 
   /**

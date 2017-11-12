@@ -1,7 +1,6 @@
 #include <google/protobuf/message.h>
 #include "hdfs.pb.h"
 
-#include "zk_nn_client.h"
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "zk_dn_client.h"
@@ -47,7 +46,7 @@ namespace webRequestTranslator {
   /**
   * Converts the RDFS datanode delete response into the appropriate webRDFS response.
   */
-  std::string getDeleteResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &resProto);
 
   /**
    * Gets all the file info from the status and converts it to a string.
