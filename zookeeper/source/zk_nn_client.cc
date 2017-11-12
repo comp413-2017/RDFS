@@ -278,8 +278,131 @@ namespace zkclient {
         return ZkNnClient::policy;
     }
 
+    // ------- MJP Header --------
+
+    bool ZkNnClient::append_file(AppendRequestProto &req,
+                                 AppendResponseProto &res) {
+        std::string file_path = req.src();
+        std::string client_name = req.clientname();
+        bool isValid = process_request(client_name, file_path, req);
+        //The append request is valid.
+        std::string block_id = get_primary_block_info(file_path, req, res);
+        //Check if a lease for the file already exists (if so, log a message saying lease exists and is in use)
+        construct_lease(client_name, file_path);
+
+    }
+
+    bool ZkNnClient::process_request(std::string client_name, std::string file_path, AppendRequestProto &req) {
+        bool exists;
+        int error_code;
+        //Check if valid file path.
+        if (!file_exists(file_path)) {
+            LOG(ERROR) << "Requested file " << file_path << " does not exist";
+            return false;
+        }
+            //Check if valid client.
+        else if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
+            LOG(ERROR) << "Failed to check whether " << CLIENTS << client_name << " exists.";
+            return false;
+        }
+        return true;
+    }
+
+    std::string ZkNnClient::get_primary_block_info(std::string file_path, AppendRequestProto &req,  AppendResponseProto &res) {
+        int error_code;
+        std::uint64_t block_id;
+        std::vector<std::string> data_nodes;
+
+        // Trying to get replication_factor
+        FileZNode znode_data;
+        if (!file_exists(file_path)) {
+            LOG(ERROR) << "Requested file " << file_path << " does not exist";
+            return nullptr;
+        }
+        read_file_znode(znode_data, file_path);
+        // Assert that the znode we want to modify is a file
+        if (znode_data.filetype != IS_FILE) {
+            LOG(ERROR) << "Requested file " << file_path << " is not a file";
+            return nullptr;
+        }
+        uint32_t replication_factor = znode_data.replication;
 
 
+        // Getting new block and dn "reservations"
+        ZkNnClient::add_block(file_path, block_id, data_nodes, replication_factor);
+        std::string block_id_str = std::to_string(block_id);
+
+        // Store results in metadata part 1 - dn ids under block_locations
+        bool exists;
+        if (!zk->exists(BLOCKS + '/' + block_id_str, exists, error_code)) {
+            LOG(ERROR) << "Failed to check whether " << BLOCKS + '/' + block_id_str << " exists.";
+            return nullptr;
+        }
+        if (!exists) {
+            for (int i = 0; i < data_nodes.size(); i++) {
+                if(!zk->create(BLOCKS + '/' + block_id_str + '/' + data_nodes[i], ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+                    LOG(ERROR) << "Failed to put dn_id " << data_nodes[i] << " at block_id " << block_id_str;
+                }
+            }
+
+        } else {
+            LOG(ERROR) << "Block id " << block_id_str << "already exists"; // shouldn't be there since just created
+        }
+
+        // Store results in metadata part 2 - filename->blocks
+        if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
+            LOG(ERROR) << "Failed to check whether " << ZookeeperFilePath(file_path) << " exists.";
+            return nullptr;
+        }
+        if (!exists) {
+            LOG(ERROR) << "File path " << file_path << " not exists when trying to append!";
+        } else {
+            // WE CANNOT FIGURE OUT HOW TO DO THIS
+            // Anthony -> go look at complete
+        }
+
+
+
+
+    }
+
+    void ZkNnClient::construct_lease(std::string client_name, std::string file_path) {
+        int error_code;
+        bool exists;
+        if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
+            LOG(ERROR) << "Failed to check whether " << ZookeeperFilePath(file_path) << " exists.";
+            return;
+        }
+        //In the case below no client exists
+        if (!exists) {
+            // TODO: not sure how to throw IOException.
+            return;
+        }
+        std::vector<std::string> children;
+        if (!zk->get_children(ZookeeperFilePath(file_path), children, error_code)) {
+            LOG(ERROR) << "Failed to get children of " << ZookeeperFilePath(file_path) << ".";
+            return;
+        }
+        if (children.size() != 0) {
+            LOG(ERROR) << "Fatal error: there already exist leases for " << ZookeeperFilePath(file_path) << ".";
+            return;
+        }
+        else {
+            // Currently there is no client holding a lease for this file.
+            ClientInfo clientInfo;
+            clientInfo.timestamp = current_time_ms();
+            std::vector<std::uint8_t> data(sizeof(clientInfo));
+            znode_data_to_vec(&clientInfo, data);
+            if(!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' + client_name, data, error_code, false)) {
+                LOG(ERROR) << "Failed to create the lease holder client for " + ZookeeperFilePath(file_path) + ".";
+            }
+            return;
+        }
+    }
+
+
+
+// ------- MJP Footer --------
 
 
 // --------------------------- PROTOCOL CALLS -------------------------------

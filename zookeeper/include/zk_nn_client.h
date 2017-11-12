@@ -401,7 +401,17 @@ namespace zkclient {
                                  LocatedBlocksProto *blocks,
                                  std::string client_name = "default");
 
+// -------- MJP Header ---------
+/**
+* Main append file mechanism and associated helpers.
+*/
+        bool append_file(AppendRequestProto &req, AppendResponseProto &res);
+        bool process_request(std::string client_name, std::string file_path, AppendRequestProto &req);
+        std::string get_primary_block_info(std::string file_path, AppendRequestProto &req,  AppendResponseProto &res);
+        void construct_lease(std::string client_name, std::string file_path);
 
+
+        // -------- MJP Footer ---------
 /**
  * Read a znode corresponding to a file into znode_data
  */
