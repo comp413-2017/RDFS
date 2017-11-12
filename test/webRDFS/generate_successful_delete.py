@@ -1,0 +1,1 @@
+print("HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}")
