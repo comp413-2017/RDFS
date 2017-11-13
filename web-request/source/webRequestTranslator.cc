@@ -1,55 +1,50 @@
 #include "webRequestTranslator.h"
 
 namespace webRequestTranslator {
-    /**
-     * Converts the RDFS namenode create response into the appropriate webRDFS response.
-     */
-    std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-      std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
+  /**
+   * Converts the RDFS namenode create response into the appropriate webRDFS response.
+   */
+  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
+    std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
 
-      std::string delimiter = "/webhfs/v1/";
-      std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
+    std::string delimiter = "/webhfs/v1/";
+    std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
 
-      hadoop::hdfs::DatanodeIDProto id = dataProto.id();
-      res += "Location: http://";
-      res += id.hostname();
-      res += ":";
-      res += std::to_string(id.infoport());
+    hadoop::hdfs::DatanodeIDProto id = dataProto.id();
+    res += "Location: http://";
+    res += id.hostname();
+    res += ":";
+    res += std::to_string(id.infoport());
 
-      res += delimiter;
-      res += restOfRequest;
+    res += delimiter;
+    res += restOfRequest;
 
-      res += "\nContent-Length: 0";
-      return res;
-    }
+    res += "\nContent-Length: 0";
+    return res;
+  }
 
-    /**
-     * Converts the RDFS datanode create response into the appropriate webRDFS response.
-     */
-    std::string getDatanodeCreateResponse(std::string location, std::string contentOfFile) {
-      std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
+  /**
+   * Converts the RDFS datanode create response into the appropriate webRDFS response.
+   */
+  std::string getDatanodeCreateResponse(std::string location, std::string contentOfFile) {
+    std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
 
-      res += location;
-      res += "\n";
-      res += "Content-Length: ";
-      res += std::to_string(contentOfFile.length());
-      res += "\n\n";
+    res += location;
+    res += "\n";
+    res += "Content-Length: ";
+    res += std::to_string(contentOfFile.length());
+    res += "\n\n";
 
-      return res;
-    }
+    return res;
+  }
 
   /**
    * Converts the read response into the appropriate webRDFS response.
    */
   std::string getReadResponse(std::string contentOfFile) {
-    std::string res = std::string("HTTP/1.1 200 OK\nContent-Type: application/octet-stream\nContent-Length: ");
-
-    res += std::to_string(contentOfFile.length());
-    res += "\n\n";
-    res += contentOfFile;
-
-    return res;
+    return contentOfFile + "\n";
   }
+
   /**
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
@@ -69,9 +64,9 @@ namespace webRequestTranslator {
    */
   std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &resProto) {
     if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
-      return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
+      return "{\"boolean\":true}\n";
     } else {
-      return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":false}\n";
+      return "{\"boolean\":false}\n";
     }
   }
 
@@ -114,13 +109,17 @@ namespace webRequestTranslator {
 
     if (resResp == zkclient::ZkNnClient::ListingResponse::Ok) {
       res += "HTTP/1.1 200 OK\nContent-Type: application/json\nContent-Length: ";
-    } else if (resResp == zkclient::ZkNnClient::ListingResponse::FileDoesNotExist) {
-      res += "HTTP/1.1 404 Not Found\nContent-Type: application/json\nContent-Length: 19\n\n"
-        "File does not exist";
+    } else if (resResp ==
+              zkclient::ZkNnClient::ListingResponse::FileDoesNotExist) {
+      res += "HTTP/1.1 404 Not Found\nContent-Type: application/json"
+              "\nContent-Length: 19\n\n"
+              "File does not exist";
       return res;
-    } else if (resResp == zkclient::ZkNnClient::ListingResponse::FailedChildRetrieval){
-      res += "HTTP/1.1 500 Internal Server Error\nContent-Type: application/json\nContent-Length: 20\n\n"
-        "Failed to find child";
+    } else if (resResp ==
+              zkclient::ZkNnClient::ListingResponse::FailedChildRetrieval) {
+      res += "HTTP/1.1 500 Internal Server Error\nContent-Type: "
+              "application/json\nContent-Length: 20\n\n"
+              "Failed to find child";
       return res;
     }
     temp += "{\n\"FileStatuses\":\n\"FileStatus\":\n[";
