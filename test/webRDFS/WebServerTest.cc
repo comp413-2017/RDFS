@@ -51,8 +51,8 @@ TEST(WebServerTest, testRead) {
         "-copyFromLocal toRead /fileToRead");
 
   ASSERT_EQ(0,
-            system("curl --insecure https://localhost:8080/webhdfs/v1/fileToRead"
-                  "?op=OPEN > actualResultRead"));
+            system("curl --insecure https://localhost:8080/webhdfs/v1/"
+                  "fileToRead?op=OPEN > actualResultRead"));
 
   // Check that results match
   ASSERT_EQ(0, system("diff expectedResultRead actualResultRead"));
