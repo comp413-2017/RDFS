@@ -130,11 +130,12 @@ class ZkNnClient : public ZkClientCommon {
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
+  std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
 
-enum class ListingResponse {
+  enum class ListingResponse {
       Ok,                   // 0
       FileDoesNotExist,     // 1
       FailedChildRetrieval  // 2
@@ -276,17 +277,17 @@ enum class ListingResponse {
   /**
    * Makes metadata changes required to add a new block group.
    * This helper method is called for an EC file.
-   * @param fileName the file name.
+   * @param filePath the file specified by its path.
    * @param block_group_id the block group id to be generated.
    * @param dataNodes the set of data nodes on which to allocate each storage block.
-   * @param storageBlockIDs the set of storage block ids to be generated.
+   * @param blockIndices the set of block indices within a block gorup.
    * @param total_num_storage_blocks the number of data + parity storage blocks.
    * @return true if successful. false otherwise.
    */
-  bool add_block_group(const std::string &fileName,
+  bool add_block_group(const std::string &filePath,
                        u_int64_t &block_group_id,
                        std::vector<std::string> &dataNodes,
-                       std::vector<u_int64_t> &storageBlockIDs,
+                       std::vector<char> &blockIndices,
                        uint32_t total_num_storage_blocks);
 
   /**
@@ -349,11 +350,14 @@ enum class ListingResponse {
   // this is public because we have not member functions in this file
   static const std::string CLASS_NAME;
 
+  bool find_live_datanodes(const uint64_t blockId, int error_code,
+                           std::vector<std::string> &live_data_nodes);
+
   bool find_datanode_for_block(std::vector<std::string> &datanodes,
-                               const std::uint64_t blockId,
-                               uint32_t replication_factor,
-                               bool newBlock,
-                               uint64_t blocksize);
+                                        std::vector<std::string> &excluded_dns,
+                                         const u_int64_t blockId,
+                                         uint32_t replication_factor,
+                                         uint64_t blocksize);
 
   bool find_all_datanodes_with_block(const uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,

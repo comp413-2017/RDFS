@@ -127,9 +127,11 @@ TEST_F(StorageTest, testIDGeneration) {
   uint64_t block_group_id;
   uint64_t block_id;
   std::vector<uint64_t> storage_blocks = {};
-  nncli->add_block_group(filename, block_group_id, dataNodes,
-                        storage_blocks, num_storage_blocks);
+  std::vector<char> blockIndices;
+//  nncli->add_block_group(filename, block_group_id, dataNodes,
+//    blockIndices, num_storage_blocks);
   util::generate_block_id(block_id);
+  block_group_id = nncli->generate_block_group_id();
 
   // Make sure block ids are valid: 1st bit signifies EC/block_group(1)
   // or Replication/contiguous(0)
@@ -145,6 +147,11 @@ TEST_F(StorageTest, testIDGeneration) {
 
 
   // Make sure we can generate block group id and index from storage block id
+  for (uint64_t i = 0; i < 9; i++) {
+    storage_blocks.push_back(nncli->generate_storage_block_id(
+      block_group_id, i));
+  }
+
   int i;
   for (i = 0; i < num_storage_blocks; i++) {
     ASSERT_EQ(block_group_id, nncli->get_block_group_id(storage_blocks[i]));

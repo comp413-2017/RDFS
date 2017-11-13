@@ -22,7 +22,7 @@ hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
 ) {
     hadoop::hdfs::CreateRequestProto create_req;
     create_req.set_src(path);
-    create_req.set_clientname("asdf");
+    create_req.set_clientname("unittest");
     create_req.set_createparent(false);
     create_req.set_blocksize(1);
     create_req.set_replication(1);
@@ -89,6 +89,39 @@ TEST_F(NamenodeTest, setErasureCodingPolicies) {
 
 }
 
+TEST_F(NamenodeTest, createECFile) {
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("ec_file");
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+    zkclient::ZkNnClient::CreateResponse::Ok);
+  hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
+  ASSERT_EQ(file_status.ecpolicy().id(), 1);
+  ASSERT_EQ(file_status.ecpolicy().name(), "RS-6-3-1024k");
+  ASSERT_EQ(file_status.ecpolicy().schema().parityunits(), 3);
+  ASSERT_EQ(file_status.ecpolicy().schema().dataunits(), 6);
+  ASSERT_EQ(file_status.ecpolicy().schema().codecname(), "rs");
+  ASSERT_TRUE(client->file_exists("ec_file"));
+}
+
+TEST_F(NamenodeTest, addECBlock) {
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("ec_file2");
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  hadoop::hdfs::CreateResponseProto create_res;
+  ASSERT_EQ(client->create_file(create_req, create_res),
+  zkclient::ZkNnClient::CreateResponse::Ok);
+
+  hadoop::hdfs::AddBlockRequestProto addblock_req;
+  hadoop::hdfs::AddBlockResponseProto addblock_res;
+
+  addblock_req.set_clientname("unittest");
+  addblock_req.set_src("ec_file2");
+
+//  ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
+}
+
 TEST_F(NamenodeTest, findDataNodes) {
   int error;
   zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error, false);
@@ -119,6 +152,7 @@ TEST_F(NamenodeTest, findDataNodes) {
                          stats_vec, error, true));
 
   auto datanodes = std::vector<std::string>();
+  auto excluded = std::vector<std::string>();
   u_int64_t block_id;
         util::generate_block_id(block_id);
 
@@ -132,10 +166,11 @@ TEST_F(NamenodeTest, findDataNodes) {
 
   LOG(INFO) << "Finding dn's for block " << block_id;
   int rep_factor = 1;
-  client->find_datanode_for_block(datanodes,
+  int err;
+  client->find_all_datanodes_with_block(block_id, excluded, err);
+  client->find_datanode_for_block(datanodes, excluded,
                                   block_id,
                                   rep_factor,
-                                  true,
                                   block_data.block_size);
 
   for (auto datanode : datanodes) {
