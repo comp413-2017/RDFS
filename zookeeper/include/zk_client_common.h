@@ -12,7 +12,7 @@
 namespace zkclient {
 
 class ZkClientCommon {
-public:
+ public:
   explicit ZkClientCommon(std::string hostAndIp);
   explicit ZkClientCommon(std::shared_ptr<ZKWrapper> zk);
 
@@ -42,7 +42,7 @@ public:
   static const char LEASES[];
   // ---------- MJP Footer -----------
 
-private:
+ private:
   static const std::string CLASS_NAME;
 };
 }  // namespace zkclient

@@ -351,7 +351,7 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path,
   }
   if (!exists) {
     for (int i = 0; i < data_nodes.size(); i++) {
-      if(!zk->create(BLOCKS + '/' + block_id_str + '/' +
+      if (!zk->create(BLOCKS + '/' + block_id_str + '/' +
                data_nodes[i], ZKWrapper::EMPTY_VECTOR,
                error_code, false)) {
         LOG(ERROR) << "Failed to put dn_id " <<
@@ -360,7 +360,8 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path,
     }
 
   } else {
-    LOG(ERROR) << "Block id " << block_id_str << "already exists"; // shouldn't be there since just created
+		// shouldn't be there since just created
+    LOG(ERROR) << "Block id " << block_id_str << "already exists";
   }
 
   // Store results in metadata part 2 - filename->blocks
@@ -376,10 +377,6 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path,
     // WE CANNOT FIGURE OUT HOW TO DO THIS
     // Anthony -> go look at complete
   }
-
-
-
-
 }
 
 void ZkNnClient::construct_lease(std::string client_name,
@@ -391,9 +388,9 @@ void ZkNnClient::construct_lease(std::string client_name,
            ZookeeperFilePath(file_path) << " exists.";
     return;
   }
-  //In the case below no client exists
+  // In the case below no client exists
   if (!exists) {
-    // TODO: not sure how to throw IOException.
+    // TODO(MJP): not sure how to throw IOException.
     return;
   }
   std::vector<std::string> children;
@@ -406,14 +403,13 @@ void ZkNnClient::construct_lease(std::string client_name,
     LOG(ERROR) << "Fatal error: there already exist leases for "
            << ZookeeperFilePath(file_path) << ".";
     return;
-  }
-  else {
+  } else {
     // Currently there is no client holding a lease for this file.
     ClientInfo clientInfo;
     clientInfo.timestamp = current_time_ms();
     std::vector<std::uint8_t> data(sizeof(clientInfo));
     znode_data_to_vec(&clientInfo, data);
-    if(!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
+    if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
              client_name, data, error_code, false)) {
       LOG(ERROR) << "Failed to create the lease holder client for " +
               ZookeeperFilePath(file_path) + ".";

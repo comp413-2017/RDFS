@@ -130,7 +130,7 @@ using hadoop::hdfs::AppendResponseProto;
 * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
 */
 class ZkNnClient : public ZkClientCommon {
-  public:
+ public:
   char policy;
 
   enum class ListingResponse {
@@ -420,12 +420,12 @@ class ZkNnClient : public ZkClientCommon {
  */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
-  private:
-/**
- * Given a vector of DN IDs, sorts them from fewest to most number of transmits
- */
+ private:
+  /**
+   * Given a vector of DN IDs, sorts them from fewest to most number of transmits
+   */
   bool sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
-                     std::vector<std::string> &sorted_dn_ids);
+                       std::vector<std::string> &sorted_dn_ids);
 
 /**
  * Set the file status proto with information from the znode struct and the path
@@ -433,10 +433,10 @@ class ZkNnClient : public ZkClientCommon {
   void set_file_info(HdfsFileStatusProto *fs,
                      const std::string &path,
                      FileZNode &node);
-/**
- * Given the filesystem path, get the full zookeeper path for the blocks
- * where the data is located
- */
+    /**
+     * Given the filesystem path, get the full zookeeper path for the blocks
+     * where the data is located
+     */
   std::string ZookeeperBlocksPath(const std::string &hadoopPath);
 
   /**
