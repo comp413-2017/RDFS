@@ -94,24 +94,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#ifndef WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor"></span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;server_http.h&quot;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;server_https.h&quot;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="keyword">using</span> <a class="code" href="class_simple_web_1_1_server.html">HttpServer</a> = <a class="code" href="class_simple_web_1_1_server.html">SimpleWeb::Server&lt;SimpleWeb::HTTP&gt;</a>;</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="keyword">using</span> <a class="code" href="class_simple_web_1_1_server.html">HttpsServer</a> = <a class="code" href="class_simple_web_1_1_server.html">SimpleWeb::Server&lt;SimpleWeb::HTTPS&gt;</a>;</div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keywordtype">void</span> get_handler(std::shared_ptr&lt;HttpServer::Response&gt; response,</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;                 std::shared_ptr&lt;HttpServer::Request&gt; request);</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keywordtype">void</span> get_handler(std::shared_ptr&lt;HttpsServer::Response&gt; response,</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;                 std::shared_ptr&lt;HttpsServer::Request&gt; request);</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keywordtype">void</span> post_handler(std::shared_ptr&lt;HttpServer::Response&gt; response,</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;                  std::shared_ptr&lt;HttpServer::Request&gt; request);</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keywordtype">void</span> post_handler(std::shared_ptr&lt;HttpsServer::Response&gt; response,</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;                  std::shared_ptr&lt;HttpsServer::Request&gt; request);</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="keywordtype">void</span> put_handler(std::shared_ptr&lt;HttpServer::Response&gt; response,</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;                 std::shared_ptr&lt;HttpServer::Request&gt; request);</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="keywordtype">void</span> put_handler(std::shared_ptr&lt;HttpsServer::Response&gt; response,</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;                 std::shared_ptr&lt;HttpsServer::Request&gt; request);</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="keywordtype">void</span> delete_handler(std::shared_ptr&lt;HttpServer::Response&gt; response,</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;                    std::shared_ptr&lt;HttpServer::Request&gt; request);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="keywordtype">void</span> delete_handler(std::shared_ptr&lt;HttpsServer::Response&gt; response,</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;                    std::shared_ptr&lt;HttpsServer::Request&gt; request);</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="preprocessor">#endif  // WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_</span></div>
-<div class="ttc" id="class_simple_web_1_1_server_html"><div class="ttname"><a href="class_simple_web_1_1_server.html">SimpleWeb::Server&lt; SimpleWeb::HTTP &gt;</a></div></div>
+<div class="ttc" id="class_simple_web_1_1_server_html"><div class="ttname"><a href="class_simple_web_1_1_server.html">SimpleWeb::Server&lt; SimpleWeb::HTTPS &gt;</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
