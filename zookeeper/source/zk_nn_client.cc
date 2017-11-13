@@ -58,6 +58,7 @@ using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
+using hadoop::hdfs::StorageTypeProto;
 
 namespace zkclient {
 
@@ -396,18 +397,44 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
+  uint64_t block_group_id;
+  std::vector<char> block_indices;
 
   if (!znode_data.isEC) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
-      // TODO(Nate): generate a block group and each part of a block group.
-      // TODO(Nate): use the hierarchical naming scheme.
+      add_block_group(
+          file_path, block_group_id, data_nodes, block_indices,
+          DEFAULT_PARITY_UNITS + DEFAULT_DATA_UNITS);
   }
 
+  // TODO(nate): this might be seriously wrong.
   block->set_offset(0);  // TODO(2016): Set this
   block->set_corrupt(false);
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
+
+  // Populate optional fields for an EC block.
+  // i.e. block indices and storage IDs.
+  if (znode_data.isEC) {
+    // Add storage IDs for an EC block.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->set_storageids(i, DEFAULT_STORAGE_ID);
+    }
+
+    // Add block indices for an EC block.
+    // Each byte (i.e. char) represents an index into the group.
+    std::string block_index_string;
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block_index_string.push_back(block_indices[i]);
+    }
+    block->set_blockindices(block_index_string);
+
+    // Add storage types for an EC block.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->set_storagetypes(i, StorageTypeProto::DISK);
+    }
+  }
 
   for (auto data_node : data_nodes) {
     buildDatanodeInfoProto(block->add_locs(), data_node);
@@ -557,12 +584,10 @@ bool ZkNnClient::create_file_znode(const std::string &path,
   int error_code;
   if (!file_exists(path)) {
     LOG(ERROR) << "Creating file znode at " << path;
-    {
-      LOG(INFO) << znode_data->replication << "\n";
-      LOG(INFO) << znode_data->owner << "\n";
-      LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
-      LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
-    }
+    LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
+    LOG(INFO) << znode_data->replication << "\n";
+    LOG(INFO) << znode_data->owner << "\n";
+    LOG(INFO) << "size of znode is " << sizeof(*znode_data) << "\n";
     // serialize struct to byte vector
     std::vector<std::uint8_t> data(sizeof(*znode_data));
     file_znode_struct_to_vec(znode_data, data);
@@ -907,7 +932,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
   HdfsFileStatusProto *status = response.mutable_fs();
   set_file_info(status, path, znode_data);
-
   return CreateResponse::Ok;
 }
 
@@ -1370,21 +1394,18 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   // If a block is an EC block, optionally set the ecPolicy field.
   if (znode_data.isEC) {
+      LOG(ERROR) << "Setting EC related proto fields";
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
       ecPolicyProto->set_name(DEFAULT_EC_POLICY);
-      // TODO(nate): check to see if the unit is expected to be in kb.
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
-
       ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
       ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
       ecSchema->set_dataunits(DEFAULT_DATA_UNITS);
       ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
-      ecPolicyProto->set_allocated_schema(ecSchema);
-      status->set_allocated_ecpolicy(ecPolicyProto);
   }
 
-  LOG(INFO) << "Successfully set the file info ";
+  LOG(ERROR) << "Successfully set the file info ";
 }
 
 bool ZkNnClient::add_block(const std::string &file_path,
@@ -1404,9 +1425,9 @@ bool ZkNnClient::add_block(const std::string &file_path,
   util::generate_block_id(block_id);
   block_id_str = std::to_string(block_id);
   LOG(INFO) << "Generated block id " << block_id_str;
-
-  if (!find_datanode_for_block(data_nodes, block_id, replicationFactor,
-                               true, znode_data.blocksize)) {
+  auto excluded_dns = std::vector<std::string>();
+  if (!find_datanode_for_block(data_nodes, excluded_dns, block_id,
+       replicationFactor, znode_data.blocksize)) {
     return false;
   }
 
@@ -1448,27 +1469,76 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
-bool ZkNnClient::add_block_group(const std::string &fileName,
+bool ZkNnClient::add_block_group(const std::string &filePath,
                      u_int64_t &block_group_id,
                      std::vector<std::string> &dataNodes,
-                     std::vector<u_int64_t> &storageBlockIDs,
+                     std::vector<char> &blockIndices,
                      uint32_t total_num_storage_blocks) {
-    FileZNode znode_data;
-    read_file_znode(znode_data, fileName);
+  FileZNode znode_data;
+  read_file_znode(znode_data, filePath);
+  std::vector<u_int64_t> storage_block_ids;
+  // Generate the block group id and storage block ids.
+  block_group_id = generate_block_group_id();
+  char blockIndex = 0;
+  for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
+    storage_block_ids.push_back(generate_storage_block_id(
+        block_group_id, i));
+    blockIndices.push_back(blockIndex);
+    blockIndex++;
+  }
 
-    // Generate the block group id and storage block ids.
-    block_group_id = generate_block_group_id();
-    for (u_int64_t i = 0; i < total_num_storage_blocks; i++) {
-        storageBlockIDs.push_back(generate_storage_block_id(block_group_id, i));
-    }
+  // Log them for debugging purposes.
+  LOG(INFO) << "Generated block group id " << block_group_id << "\n";
+  for (auto storageBlockID : storage_block_ids)
+      LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
 
-    // Log them for debugging purposes.
-    LOG(INFO) << "Generated block group id " << block_group_id << "\n";
-    for (auto storageBlockID : storageBlockIDs)
-        LOG(INFO) << "Generated storage block id " << storageBlockID << "\n";
+  // TODO(nate): find_data_node_for_block may have some other logic
+  // baked into it. also, repeatedly calling it may return the same
+  // data node id.
+  std::vector<std::string> tempDataNodes;
+  for (int i = 0; i < total_num_storage_blocks; i++) {
+    find_datanode_for_block(
+        tempDataNodes, dataNodes,
+        storage_block_ids[i], 1, znode_data.blocksize);
+    dataNodes.push_back(tempDataNodes[0]);
+    tempDataNodes.clear();
+  }
 
-    // TODO(nate): figure out what exact zookeepr operations must occur.
-    return true;
+  std::vector<std::shared_ptr<ZooOp>> ops;
+  auto block_location_op = zk->build_create_op(
+      get_block_metadata_path(block_group_id),
+      ZKWrapper::EMPTY_VECTOR);
+  ops.push_back(block_location_op);
+  LOG(INFO)
+      << "Added the ZK operation that creates the block_group_id"
+      << std::endl;
+
+
+  for (auto storageBlockID : storage_block_ids) {
+    auto storage_block_op = zk->build_create_op(
+        get_block_metadata_path(
+            storageBlockID) + "/" + std::to_string(storageBlockID),
+        ZKWrapper::EMPTY_VECTOR);
+    ops.push_back(storage_block_op);
+    LOG(INFO)
+        << "Added the ZK operation that creates the storage_block"
+        << " " << storageBlockID
+        << std::endl;
+  }
+
+  auto results = std::vector<zoo_op_result>();
+  int err;
+
+  if (!zk->execute_multi(ops, results, err, false)) {
+    LOG(ERROR)
+      << "Failed to write the addBlock multiop, ZK state was not changed"
+      << std::endl;
+    ZKWrapper::print_error(err);
+
+    return false;
+  }
+
+  return true;
 }
 
 
@@ -1500,33 +1570,28 @@ u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
     return storage_block_id & mask;
 }
 
+bool ZkNnClient::find_live_datanodes(const uint64_t blockId, int error_code,
+                                    std::vector<std::string> &live_data_nodes) {
+  std::string block_metadata_path = get_block_metadata_path(blockId);
+  return zk->get_children(HEALTH, live_data_nodes, error_code);
+}
+
 
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
+                                        std::vector<std::string> &excluded_dns,
                                          const u_int64_t blockId,
                                          uint32_t replication_factor,
-                                         bool newBlock,
                                          uint64_t blocksize) {
   // TODO(2016): Actually perform this action
   // TODO(2016): Perhaps we should keep a cached list of nodes
 
   std::vector<std::string> live_data_nodes = std::vector<std::string>();
   int error_code;
-  std::string block_metadata_path = get_block_metadata_path(blockId);
   // Get all of the live datanodes
-  if (zk->get_children(HEALTH, live_data_nodes, error_code)) {
+  if (find_live_datanodes(blockId, error_code, live_data_nodes)) {
     // LOG(INFO) << "Found live DNs: " << live_data_nodes;
-    auto excluded_datanodes = std::vector<std::string>();
-    if (!newBlock) {
-      // Get the list of datanodes which already have a replica
-      if (!zk->get_children(block_metadata_path,
-                            excluded_datanodes, error_code)) {
-        LOG(ERROR) << "Error getting children of: "
-                   << block_metadata_path;
-        return false;
-      }
-    }
 
     std::priority_queue<TargetDN> targets;
     /* for each child, check if the ephemeral node exists */
@@ -1540,14 +1605,14 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
       }
       if (isAlive) {
         bool exclude = false;
-        if (excluded_datanodes.size() > 0) {
+        if (excluded_dns.size() > 0) {
           // Remove the excluded datanodes from the live list
           std::vector<std::string>::iterator it = std::find(
-              excluded_datanodes.begin(),
-              excluded_datanodes.end(),
+              excluded_dns.begin(),
+              excluded_dns.end(),
               datanode);
 
-          if (it == excluded_datanodes.end()) {
+          if (it == excluded_dns.end()) {
             // This datanode was not in the excluded list, so keep it
             exclude = false;
           } else {
@@ -1942,7 +2007,8 @@ bool ZkNnClient::recover_ec_blocks(
                  << block_id;
       return false;
     }
-    if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
+    auto excluded = std::vector<std::string>();
+    if (!find_datanode_for_block(target_dn, excluded, block_id, 1, blocksize)
         || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << rec;
       return false;
@@ -1977,8 +2043,11 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
                  << block_id;
       return false;
     }
-    if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
-        || target_dn.size() == 0) {
+    int err;
+    auto existing_dn_replicas = std::vector<std::string>();
+    find_all_datanodes_with_block(block_id, existing_dn_replicas, err);
+    if (!find_datanode_for_block(target_dn, existing_dn_replicas, block_id,
+                                 1, blocksize) || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << repl;
       return false;
     }
