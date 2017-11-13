@@ -384,7 +384,6 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
 
 void ZkNnClient::read_file_znode(FileZNode &znode_data,
                                  const std::string &path) {
-  LOG(INFO) << "reading file znode";
   int error_code;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   if (!zk->get(ZookeeperFilePath(path), data, error_code)) {
@@ -393,12 +392,6 @@ void ZkNnClient::read_file_znode(FileZNode &znode_data,
   }
   std::uint8_t *buffer = &data[0];
   memcpy(&znode_data, buffer, sizeof(znode_data));
-    if (znode_data.filetype == IS_DIR) {
-        LOG(INFO) << "read file znode, is dir";
-    }
-    if (znode_data.filetype == IS_FILE) {
-        LOG(INFO) << "read file znode, is file";
-    }
 }
 
 void ZkNnClient::file_znode_struct_to_vec(FileZNode *znode_data,
@@ -872,7 +865,6 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
         blockDeleted(block, dn);
       }
     }
-    LOG(INFO) << "adding to op block path: " << path;
     ops.push_back(zk->build_delete_op(ZookeeperBlocksPath(path)));
 
     // Delete the lease branch
@@ -890,7 +882,6 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
     }
     ops.push_back(zk->build_delete_op(LeaseZookeeperPath(path)));
   }
-    LOG(INFO) << "adding to op file path: " << path;
   ops.push_back(zk->build_delete_op(ZookeeperFilePath(path)));
   return DeleteResponse::Ok;
 }

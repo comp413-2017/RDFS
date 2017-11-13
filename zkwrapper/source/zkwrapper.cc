@@ -79,8 +79,8 @@ void ZKWrapper::watcher_znode_data(zhandle_t *zzh,
 	LOG(INFO) << "Watcher triggered on path '" << path << "'";
 
 	auto zkWrapper = reinterpret_cast<ZKWrapper *>(watcherCtx);
-	auto src = zkWrapper->removeZKRootAndDir("/fileSystem",
-									std::string(path));
+	auto src = zkWrapper->removeZKRootAndDir(zkWrapper->root + "/fileSystem",
+											 std::string(path));
 	zkWrapper->cache->remove(src);
 
 }
@@ -317,10 +317,7 @@ bool ZKWrapper::get(const std::string &path,
 	if (cache->contains(path)) {
 		LOG(INFO) << "Found path " << path << " in ZkWrapper cache";
 		auto cached_data = cache->get(path);
-//        data.swap(*cached_data.get());
         std::vector<std::uint8_t> *cached = cached_data.get();
-//        std::uint8_t *buffer = &cached;
-//        memcpy(&data, cached, sizeof(data));
         data = *cached;
 
 	} else {
@@ -354,6 +351,8 @@ bool ZKWrapper::set(const std::string &path,
 						 reinterpret_cast<const char *>(data.data()),
 						 data.size(),
 						 version);
+    cache->remove(path);
+
 	if (error_code != ZOK) {
 		LOG(ERROR) << "set on " << path << " failed";
 		print_error(error_code);
