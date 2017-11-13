@@ -305,7 +305,7 @@ bool ZkNnClient::process_request(std::string client_name,
   if (!file_exists(file_path)) {
     LOG(ERROR) << "Requested file " << file_path << " does not exist";
     return false;
-		// Check if valid client
+    // Check if valid client
   } else if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
            CLIENTS << client_name
