@@ -82,7 +82,7 @@ class WebRDFSServer {
   explicit WebRDFSServer(int16_t port, zkclient::ZkNnClient *zk_arg) :
     server(SERVER_CERTIFICATE_PATH, SERVER_KEY_PATH) {
     server.config.port = port;
-  };
+  }
 
   /**
    * Start the WebRDFS server.
