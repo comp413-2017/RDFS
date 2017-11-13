@@ -71,11 +71,11 @@ TEST_F(NamenodeTest, getErasureCodingPolicyPathNonExistentFile) {
 TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
   hadoop::hdfs::GetErasureCodingPolicyRequestProto req;
   hadoop::hdfs::GetErasureCodingPolicyResponseProto res;
-  auto create_req = getCreateRequestProto("file_that_exists");
+  auto create_req = getCreateRequestProto("filethatexists");
+  req.set_src("filethatexists");
   hadoop::hdfs::CreateResponseProto create_res;
 
   client->create_file(create_req, create_res);
-
   ASSERT_EQ(
       zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
       client->get_erasure_coding_policy_of_path(req, res));
