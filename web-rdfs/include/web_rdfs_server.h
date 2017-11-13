@@ -3,7 +3,7 @@
 #ifndef WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_
 #define WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_
 
-#include "server_http.h"
+#include "server_https.h"
 #include "zk_nn_client.h"
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/generated_enum_reflection.h>
@@ -23,7 +23,11 @@
 #define HTTP_PUT "PUT"
 #define HTTP_DELETE "DELETE"
 
-using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+// Fully qualified path to certificate and private key used for SSL.
+#define SERVER_CERTIFICATE_PATH "/home/vagrant/rdfs/config/keys/server.crt"
+#define SERVER_KEY_PATH "/home/vagrant/rdfs/config/keys/server.key"
+
+using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
 
 // the .proto file implementation's namespace, used for messages
 using hadoop::hdfs::GetFileInfoRequestProto;
@@ -75,7 +79,10 @@ class WebRDFSServer {
    *
    * @param port Port number on which to listen for HTTP requests.
    */
-  explicit WebRDFSServer(int16_t port, zkclient::ZkNnClient *zk_arg);
+  explicit WebRDFSServer(int16_t port, zkclient::ZkNnClient *zk_arg) :
+    server(SERVER_CERTIFICATE_PATH, SERVER_KEY_PATH) {
+    server.config.port = port;
+  }
 
   /**
    * Start the WebRDFS server.
@@ -84,9 +91,9 @@ class WebRDFSServer {
 
  private:
   /**
-   * Simple-Web-Server HTTP server instance.
+   * Simple-Web-Server HTTPS server instance.
    */
-  HttpServer server;
+  HttpsServer server;
 
   /**
    * client to communicate with zookeeper
@@ -104,8 +111,8 @@ class WebRDFSServer {
     std::string pattern,
     const char verb[],
     std::function<void(
-      std::shared_ptr<HttpServer::Response> response,
-      std::shared_ptr<HttpServer::Request> request)> handler);
+      std::shared_ptr<HttpsServer::Response> response,
+      std::shared_ptr<HttpsServer::Request> request)> handler);
 
 
   std::string getFileInfo(GetFileInfoRequestProto req);
