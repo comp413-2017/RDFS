@@ -103,8 +103,8 @@ class WebRDFSServer {
     std::string pattern,
     const char verb[],
     std::function<void(
-      std::shared_ptr<HttpServer::Response> response,
-      std::shared_ptr<HttpServer::Request> request)> handler);
+      std::shared_ptr<HttpsServer::Response> response,
+      std::shared_ptr<HttpsServer::Request> request)> handler);
 
   std::string getFileInfo(GetFileInfoRequestProto req);
   std::string mkdir(MkdirsRequestProto req);
