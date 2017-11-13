@@ -60,7 +60,8 @@ TEST(WebServerTest, testRead) {
   system("rm expectedResultRead");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
 }
-}
+
+}  // namespace
 
 int main(int argc, char **argv) {
   // Start up zookeeper
