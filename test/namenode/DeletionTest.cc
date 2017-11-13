@@ -10,7 +10,7 @@ TEST_F(NamenodeTest, deleteBasicFile) {
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp),
               zkclient::ZkNnClient::CreateResponse::Ok);
-
+    LOG(ERROR) << "CREATED";
     // Try and delete before completing
     hadoop::hdfs::DeleteRequestProto delete_req;
     hadoop::hdfs::DeleteResponseProto delete_resp;
@@ -19,11 +19,15 @@ TEST_F(NamenodeTest, deleteBasicFile) {
     ASSERT_EQ(client->destroy(delete_req, delete_resp),
               zkclient::ZkNnClient::DeleteResponse::FileUnderConstruction);
     ASSERT_TRUE(client->file_exists(src));
+    LOG(ERROR) << "ATTEMPTED DELETE";
 
     hadoop::hdfs::CompleteRequestProto complete_req;
     hadoop::hdfs::CompleteResponseProto complete_resp;
     complete_req.set_src(src);
     client->complete(complete_req, complete_resp);
+    LOG(ERROR) << "COMPLETED";
+    sleep(10);
+    LOG(INFO) << "sleeping";
 
     // Delete the file
     hadoop::hdfs::DeleteRequestProto delete_req2;

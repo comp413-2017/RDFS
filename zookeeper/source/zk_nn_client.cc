@@ -383,7 +383,8 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
 }
 
 void ZkNnClient::read_file_znode(FileZNode &znode_data,
-                 const std::string &path) {
+                                 const std::string &path) {
+  LOG(INFO) << "reading file znode";
   int error_code;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   if (!zk->get(ZookeeperFilePath(path), data, error_code)) {
@@ -392,7 +393,12 @@ void ZkNnClient::read_file_znode(FileZNode &znode_data,
   }
   std::uint8_t *buffer = &data[0];
   memcpy(&znode_data, buffer, sizeof(znode_data));
-
+    if (znode_data.filetype == IS_DIR) {
+        LOG(INFO) << "read file znode, is dir";
+    }
+    if (znode_data.filetype == IS_FILE) {
+        LOG(INFO) << "read file znode, is file";
+    }
 }
 
 void ZkNnClient::file_znode_struct_to_vec(FileZNode *znode_data,
@@ -866,11 +872,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
         blockDeleted(block, dn);
       }
     }
-<<<<<<< HEAD
-    LOG(ERROR) << "pushed delete " << ZookeeperBlocksPath(path);
-=======
-      LOG(INFO) << "adding to op block path: " << path;
->>>>>>> fixed some tests and added more logging
+    LOG(INFO) << "adding to op block path: " << path;
     ops.push_back(zk->build_delete_op(ZookeeperBlocksPath(path)));
 
     // Delete the lease branch
@@ -922,10 +924,10 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     return;
   }
   if (file_blocks.size() == 0) {
-    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
     res.set_result(true);
-  }
-  // TODO(2016): This loop could be two multi-ops instead
+  }    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
+
+    // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
     auto data = std::vector<std::uint8_t>();
     if (!zk->get(ZookeeperBlocksPath(src) + "/" + file_block, data,

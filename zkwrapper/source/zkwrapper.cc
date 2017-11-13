@@ -320,7 +320,8 @@ bool ZKWrapper::get(const std::string &path,
 //        data.swap(*cached_data.get());
         std::vector<std::uint8_t> *cached = cached_data.get();
 //        std::uint8_t *buffer = &cached;
-        memcpy(&data, cached, sizeof(data));
+//        memcpy(&data, cached, sizeof(data));
+        data = *cached;
 
 	} else {
 		error_code = zoo_wget(zh,
