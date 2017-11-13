@@ -79,6 +79,10 @@ using hadoop::hdfs::Rename2RequestProto;
 using hadoop::hdfs::Rename2ResponseProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
+using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
+using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -315,6 +319,34 @@ std::string ClientNamenodeTranslator::getErasureCodingPolicies(
 }
 
 
+std::string ClientNamenodeTranslator::getErasureCodingPolicy(
+    std::string input) {
+  GetErasureCodingPolicyRequestProto req;
+  GetErasureCodingPolicyResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&req, "GetErasureCodingPolicy ");
+  zk->get_erasure_coding_policy_of_path(req, res);
+  return Serialize(res);
+}
+
+std::string ClientNamenodeTranslator::setErasureCodingPolicy(
+    std::string input) {
+  SetErasureCodingPolicyRequestProto req;
+  SetErasureCodingPolicyResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&req, "SetErasureCodingPolicy ");
+
+  if (zk->set_erasure_coding_policy_of_path(
+      req, res) == zkclient::ZkNnClient::SetErasureCodingPolicyResponse::Ok) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not set ec policy ", "");
+  }
+  return Serialize(res);
+}
+
+
+
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
  * When asked to do an unsupported command, we'll be returning a
@@ -528,6 +560,16 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
       "getErasureCodingPolicies",
       std::bind(
           &ClientNamenodeTranslator::getErasureCodingPolicies, this, _1));
+
+  server.register_handler(
+      "getErasureCodingPolicy",
+      std::bind(
+          &ClientNamenodeTranslator::getErasureCodingPolicy, this, _1));
+
+  server.register_handler(
+      "setErasureCodingPolicy",
+      std::bind(
+          &ClientNamenodeTranslator::setErasureCodingPolicy, this, _1));
 }
 
 /**
