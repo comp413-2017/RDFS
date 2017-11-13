@@ -20,6 +20,8 @@ void NamenodeTest::SetUp() {
 
 void NamenodeTest::TearDown() {
   system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
+  client->zk->close();
+  zk->close();
 }
 
 hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
