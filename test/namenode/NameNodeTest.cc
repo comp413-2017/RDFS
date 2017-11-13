@@ -1,5 +1,6 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <ClientNamenodeProtocol.pb.h>
 #include "NameNodeTest.h"
 
 #define ELPP_THREAD_SAFE

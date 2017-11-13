@@ -28,6 +28,8 @@ const char ZkClientCommon::STATS[] = "/stats";
 const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
+const char ZkClientCommon::LEASES[] = "/leases";
+const char ZkClientCommon::CLIENTS[] = "/clients";
 
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
   int error_code;
@@ -56,6 +58,14 @@ void ZkClientCommon::init() {
   if (zk->exists("/fileSystem", exists, error_code)) {
     if (!exists) {
       zk->create("/fileSystem", vec, error_code, false);
+    } else {
+    }
+  } else {
+    // TODO(2016): Handle error
+  }
+  if (zk->exists(std::string(CLIENTS), exists, error_code)) {
+    if (!exists) {
+      zk->create(std::string(CLIENTS), vec, error_code, false);
     } else {
     }
   } else {
