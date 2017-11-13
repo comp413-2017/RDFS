@@ -110,7 +110,7 @@ service mysql start
 sysv-rc-conf mysql on
 
 # Setup Apache Hue
-if [! -d /home/vagrant/hue ]; then
+if [ ! -d /home/vagrant/hue ]; then
     apt-get --assume-yes install maven libkrb5-dev libmysqlclient-dev libssl-dev libsasl2-dev libsasl2-modules-gssapi-mit libsqlite3-dev libtidy-0.99-0 libxml2-dev libxslt-dev libldap2-dev maven python-setuptools libgmp3-dev libffi-dev
     rm -rf /home/vagrant/hue
     git clone https://github.com/cloudera/hue.git
@@ -159,7 +159,7 @@ cd ../..
 rm -r valgrindtemp
 
 # Download demo tables.
-if [! -d /home/vagrant/demo_script ]; then
+if [ ! -d /home/vagrant/demo_script ]; then
     mkdir /home/vagrant/demo_script
     cd /home/vagrant/demo_script
     wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/country.csv
