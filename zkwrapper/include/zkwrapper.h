@@ -21,6 +21,8 @@ enum ZK_ERRORS {
 	// TODO(2016): Add more errors as needed
 };
 
+class ZkNnClient;
+
 /**
  * Class representing a ZooKeeper op. Performs manual memory management on the
  * data it contains: issues with string.c_str()
