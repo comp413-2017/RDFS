@@ -92,7 +92,7 @@ TEST_F(NamenodeTest, deleteDirectory) {
 
 TEST_F(NamenodeTest, deleteNonexistantFile) {
     // Make up filename
-    std::string src = "delete_file";
+    std::string src = "delete_file2";
     ASSERT_FALSE(client->file_exists(src));
 
     // Try and delete it
@@ -130,7 +130,7 @@ TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
 
 TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
     int error;
-    std::string src = "delete_file";
+    std::string src = "delete_file3";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp),
@@ -138,7 +138,7 @@ TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
     std::uint64_t block_id = 1234;
     std::vector<std::uint8_t> block_vec(sizeof(std::uint64_t));
     memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
-    ASSERT_TRUE(zk->create("/fileSystem/delete_file/blocks/block-0000000000",
+    ASSERT_TRUE(zk->create("/fileSystem/delete_file3/blocks/block-0000000000",
                            block_vec,
                            error, false));
     ASSERT_TRUE(zk->create("/block_locations/1234",

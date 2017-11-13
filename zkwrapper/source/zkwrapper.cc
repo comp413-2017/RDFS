@@ -79,7 +79,7 @@ void ZKWrapper::watcher_znode_data(zhandle_t *zzh,
 	LOG(INFO) << "Watcher triggered on path '" << path << "'";
 
 	auto zkWrapper = reinterpret_cast<ZKWrapper *>(watcherCtx);
-	auto src = zkWrapper->removeZKRootAndDirectory("/fileSystem",
+	auto src = zkWrapper->removeZKRootAndDir("/fileSystem",
 									std::string(path));
 	zkWrapper->cache->remove(src);
 
@@ -312,11 +312,16 @@ bool ZKWrapper::get(const std::string &path,
 	int len = length;
 	// TODO(2016): Perhaps we can be smarter about this
 	data.resize(len);
+    LOG(INFO) << "Get on path " << path << " in ZkWrapper";
 
 	if (cache->contains(path)) {
 		LOG(INFO) << "Found path " << path << " in ZkWrapper cache";
 		auto cached_data = cache->get(path);
-        data.swap(*cached_data.get());
+//        data.swap(*cached_data.get());
+        std::vector<std::uint8_t> *cached = cached_data.get();
+//        std::uint8_t *buffer = &cached;
+        memcpy(&data, cached, sizeof(data));
+
 	} else {
 		error_code = zoo_wget(zh,
 							  prepend_zk_root(path).c_str(),
@@ -328,11 +333,11 @@ bool ZKWrapper::get(const std::string &path,
         std::shared_ptr<std::vector<std::uint8_t>> data_copy =
                 std::make_shared<std::vector<unsigned char>> (data);
         cache->insert(path, data_copy);
-	}
-	if (error_code != ZOK) {
-		LOG(ERROR) << "get on " << path << " failed";
-		print_error(error_code);
-		return false;
+        if (error_code != ZOK) {
+            LOG(ERROR) << "get on " << path << " failed";
+            print_error(error_code);
+            return false;
+        }
 	}
 	data.resize(len);
 	return true;

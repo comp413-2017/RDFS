@@ -392,6 +392,7 @@ void ZkNnClient::read_file_znode(FileZNode &znode_data,
   }
   std::uint8_t *buffer = &data[0];
   memcpy(&znode_data, buffer, sizeof(znode_data));
+
 }
 
 void ZkNnClient::file_znode_struct_to_vec(FileZNode *znode_data,
@@ -840,6 +841,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       std::vector<std::uint8_t> block_vec;
       std::uint64_t block;
       if (!zk->get(child_path, block_vec, error_code, sizeof(block))) {
+        LOG(ERROR) << "failed block retrieval in destroy helper";
         return DeleteResponse::FailedBlockRetrieval;
       }
       block = *reinterpret_cast<std::uint64_t *>(block_vec.data());
@@ -864,7 +866,11 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
         blockDeleted(block, dn);
       }
     }
+<<<<<<< HEAD
     LOG(ERROR) << "pushed delete " << ZookeeperBlocksPath(path);
+=======
+      LOG(INFO) << "adding to op block path: " << path;
+>>>>>>> fixed some tests and added more logging
     ops.push_back(zk->build_delete_op(ZookeeperBlocksPath(path)));
 
     // Delete the lease branch
@@ -882,6 +888,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
     }
     ops.push_back(zk->build_delete_op(LeaseZookeeperPath(path)));
   }
+    LOG(INFO) << "adding to op file path: " << path;
   ops.push_back(zk->build_delete_op(ZookeeperFilePath(path)));
   return DeleteResponse::Ok;
 }
