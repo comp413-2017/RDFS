@@ -360,7 +360,7 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path,
     }
 
   } else {
-		// shouldn't be there since just created
+    // shouldn't be there since just created
     LOG(ERROR) << "Block id " << block_id_str << "already exists";
   }
 
