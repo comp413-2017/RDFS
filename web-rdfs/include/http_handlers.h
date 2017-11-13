@@ -11,7 +11,7 @@
 #include <fstream>
 #include <streambuf>
 
-using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
 
 void setZk(zkclient::ZkNnClient *zk_arg);
 

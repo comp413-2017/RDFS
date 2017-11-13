@@ -10,8 +10,8 @@ void setZk(zkclient::ZkNnClient *zk_arg) {
   zk = zk_arg;
 }
 
-void create_file_handler(std::shared_ptr<HttpServer::Response> response,
-                         std::shared_ptr<HttpServer::Request> request) {
+void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
+                         std::shared_ptr<HttpsServer::Request> request) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
   // TODO(security): implement
@@ -26,7 +26,7 @@ void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
   response->write("append_file_handler");
 }
 
-void delete_file_handler(std::shared_ptr<HttpServer::Response> response,
+void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::string path) {
   LOG(DEBUG) << "HTTP request: delete_file_handler";
 
@@ -40,7 +40,7 @@ void delete_file_handler(std::shared_ptr<HttpServer::Response> response,
   response->write(webRequestTranslator::getDeleteResponse(zkResp));
 }
 
-void read_file_handler(std::shared_ptr<HttpServer::Response> response,
+void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::string path) {
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
