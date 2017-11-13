@@ -4,11 +4,6 @@
 #include <easylogging++.h>
 #include "http_handlers.h"
 
-WebRDFSServer::WebRDFSServer(int16_t port) {
-  LOG(INFO) << "WebRDFS listening on port " << port;
-  server.config.port = port;
-}
-
 void WebRDFSServer::start() {
   LOG(INFO) << "WebRDFS listening on port " << server.config.port;
 

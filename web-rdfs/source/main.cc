@@ -75,7 +75,6 @@ int main(int argc, char *argv[]) {
   nncli.set_node_policy(node_policy);
 
   setZk(&nncli);
-//  WebRDFSServer server(port, &nncli);
   WebRDFSServer server(port);
 
   server.start();

@@ -27,8 +27,8 @@ TEST(WebServerTest, testDelete) {
       "-copyFromLocal toDelete /fileToDelete");
 
   ASSERT_EQ(0,
-            system("curl localhost:8080/webhdfs/v1/fileToDelete?op=DELETE "
-            "> actualResultDelete"));
+            system("curl --insecure https://localhost:8080/webhdfs/v1/"
+                  "fileToDelete?op=DELETE > actualResultDelete"));
 
   // Check that results match
   ASSERT_EQ(0, system("diff expectedResultDelete actualResultDelete"));
@@ -51,8 +51,8 @@ TEST(WebServerTest, testRead) {
         "-copyFromLocal toRead /fileToRead");
 
   ASSERT_EQ(0,
-            system("curl localhost:8080/webhdfs/v1/fileToRead?op=OPEN > "
-                  "actualResultRead"));
+            system("curl --insecure https://localhost:8080/webhdfs/v1/fileToRead"
+                  "?op=OPEN > actualResultRead"));
 
   // Check that results match
   ASSERT_EQ(0, system("diff expectedResultRead actualResultRead"));

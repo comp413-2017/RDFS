@@ -79,7 +79,10 @@ class WebRDFSServer {
    *
    * @param port Port number on which to listen for HTTP requests.
    */
-    explicit WebRDFSServer(int16_t port);
+  explicit WebRDFSServer(int16_t port) :
+    server(SERVER_CERTIFICATE_PATH, SERVER_KEY_PATH) {
+    server.config.port = port;
+  }
 
   /**
    * Start the WebRDFS server.
