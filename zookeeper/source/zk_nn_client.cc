@@ -1263,6 +1263,38 @@ ZkNnClient::get_erasure_coding_policy_of_path(
   return ErasureCodingPolicyResponse::Ok;
 }
 
+ZkNnClient::SetErasureCodingPolicyResponse
+ZkNnClient::set_erasure_coding_policy_of_path(
+    SetErasureCodingPolicyRequestProto &req,
+    SetErasureCodingPolicyResponseProto &res) {
+
+  std::string file_src = req.src();
+  std::string ecpolicy_name = req.ecpolicyname();
+
+  if (!file_exists(file_src)) {
+    return SetErasureCodingPolicyResponse::FileDoesNotExist;
+  }
+
+  FileZNode znode_data;
+  read_file_znode(znode_data, file_src);
+
+  // TODO(nate): this boolean flag must change if
+  // we support multiple ec policies.
+  if (file_src.empty()) {
+    znode_data.isEC = 0;
+  } else {
+    znode_data.isEC = 1;
+  }
+  int error_code;
+  std::vector<std::uint8_t> data(sizeof(znode_data));
+  file_znode_struct_to_vec(&znode_data, data);
+  if (!zk->set(ZookeeperFilePath(file_src), data, error_code)) {
+    LOG(ERROR)
+        << " complete could not change the construction bit and file length";
+    return SetErasureCodingPolicyResponse::FailedZookeeperOp;
+  }
+  return SetErasureCodingPolicyResponse::Ok;
+}
 
 // ------------------------------ HELPERS ---------------------------
 

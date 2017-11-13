@@ -112,6 +112,8 @@ using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
+using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
+using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
 
 
 /**
@@ -183,6 +185,12 @@ enum class ListingResponse {
       FileDoesNotExist
   };
 
+  enum class SetErasureCodingPolicyResponse {
+      Ok,
+      FileDoesNotExist,
+      FailedZookeeperOp
+  };
+
   explicit ZkNnClient(std::string zkIpAndAddress);
 
   /**
@@ -235,6 +243,13 @@ enum class ListingResponse {
   ErasureCodingPolicyResponse get_erasure_coding_policy_of_path(
       GetErasureCodingPolicyRequestProto &req,
       GetErasureCodingPolicyResponseProto &res);
+
+  /**
+   * Sets the erasure coding policy of a path by the given erasure coding policy name.
+   */
+  SetErasureCodingPolicyResponse set_erasure_coding_policy_of_path(
+      SetErasureCodingPolicyRequestProto &req,
+      SetErasureCodingPolicyResponseProto &res);
 
   /**
    * Adds a block by making appropriate namespace changes and returns information about

@@ -84,6 +84,11 @@ TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
   // TODO(nate): add another test by creating an ec based file.
 }
 
+TEST_F(NamenodeTest, setErasureCodingPolicies) {
+  // TODO(nate): implement this unit test.
+
+}
+
 TEST_F(NamenodeTest, findDataNodes) {
   int error;
   zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error, false);

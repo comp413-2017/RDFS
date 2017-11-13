@@ -81,6 +81,8 @@ using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
+using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -327,6 +329,23 @@ std::string ClientNamenodeTranslator::getErasureCodingPolicy(
   return Serialize(res);
 }
 
+std::string ClientNamenodeTranslator::setErasureCodingPolicy(
+    std::string input) {
+  SetErasureCodingPolicyRequestProto req;
+  SetErasureCodingPolicyResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&req, "SetErasureCodingPolicy ");
+
+  if (zk->set_erasure_coding_policy_of_path(
+      req, res) == zkclient::ZkNnClient::SetErasureCodingPolicyResponse::Ok) {
+    return Serialize(res);
+  } else {
+    throw GetErrorRPCHeader("Could not set ec policy ", "");
+  }
+  return Serialize(res);
+}
+
+
 
 // ----------------------- COMMANDS WE DO NOT SUPPORT ------------------
 /**
@@ -546,6 +565,11 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
       "getErasureCodingPolicy",
       std::bind(
           &ClientNamenodeTranslator::getErasureCodingPolicy, this, _1));
+
+  server.register_handler(
+      "setErasureCodingPolicy",
+      std::bind(
+          &ClientNamenodeTranslator::setErasureCodingPolicy, this, _1));
 }
 
 /**
