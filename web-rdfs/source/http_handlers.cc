@@ -33,8 +33,10 @@ void delete_file_handler(std::shared_ptr<HttpServer::Response> response,
   // TODO(security): implement
   hadoop::hdfs::DeleteResponseProto res;
   hadoop::hdfs::DeleteRequestProto req;
+
   req.set_src(path);
   zkclient::ZkNnClient::DeleteResponse zkResp = zk->destroy(req, res);
+
   response->write(webRequestTranslator::getDeleteResponse(zkResp));
 }
 
@@ -43,7 +45,8 @@ void read_file_handler(std::shared_ptr<HttpServer::Response> response,
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
   std::string storedFile = "tempStore" + path;
-  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat /" + path + " > " + storedFile;
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat /" + path +
+                      " > " + storedFile;
 
   system(input.c_str());
   std::ifstream file(storedFile);
@@ -54,26 +57,26 @@ void read_file_handler(std::shared_ptr<HttpServer::Response> response,
 
   response->write(webRequestTranslator::getReadResponse(content));
 
-  system(("rm " + storedFile).c_str()); // Clean up temp file
+  system(("rm " + storedFile).c_str());  // Clean up temp file
 }
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
   std::string baseUrl = "/webhdfs/v1/";
+
   int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
-  std::string rest = (request->path).substr(idxOfSplit);
+  std::string path = (request->path).substr(idxOfSplit);
 
-  int idxOfPath = rest.rfind('/');
-  std::string typeOfRequest = rest.substr(0, idxOfPath);
-  std::string path = rest.substr(idxOfPath + 1);
+  // Remove op= from query string
+  std::string typeOfRequest = request->query_string.substr(3);
 
-  LOG(DEBUG) << typeOfRequest;
-  LOG(DEBUG) << path;
+  LOG(DEBUG) << "Type of Request " << typeOfRequest;
+  LOG(DEBUG) << "Path " << path;
 
-  if (typeOfRequest == "delete") {
+  if (!typeOfRequest.compare("DELETE")) {
     delete_file_handler(response, path);
-  } else if (typeOfRequest == "read") {
+  } else if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
   } else {
     create_file_handler(response, request);

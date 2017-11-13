@@ -15,8 +15,8 @@ namespace {
 TEST(WebServerTest, testDelete) {
   ASSERT_EQ(0,
             system(
-                "python /home/vagrant/rdfs/test/integration/generate_file.py > "
-                "toDelete"));
+                "python /home/vagrant/rdfs/test/integration/generate_file.py "
+                "> toDelete"));
 
   ASSERT_EQ(0,
             system(
@@ -27,7 +27,7 @@ TEST(WebServerTest, testDelete) {
       "-copyFromLocal toDelete /fileToDelete");
 
   ASSERT_EQ(0,
-            system("curl localhost:8080/webhdfs/v1/delete/fileToDelete "
+            system("curl localhost:8080/webhdfs/v1/fileToDelete?op=DELETE "
             "> actualResultDelete"));
 
   // Check that results match
@@ -51,7 +51,7 @@ TEST(WebServerTest, testRead) {
         "-copyFromLocal toRead /fileToRead");
 
   ASSERT_EQ(0,
-            system("curl localhost:8080/webhdfs/v1/read/fileToRead > "
+            system("curl localhost:8080/webhdfs/v1/fileToRead?op=OPEN > "
                   "actualResultRead"));
 
   // Check that results match
