@@ -4,6 +4,7 @@ var searchData=
   ['get_5fblock_5flocations',['get_block_locations',['../classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15',1,'zkclient::ZkNnClient']]],
   ['get_5fblock_5fsize',['get_block_size',['../classzkclient_1_1_zk_nn_client.html#af24e553e280ac12fc2772019a45379e0',1,'zkclient::ZkNnClient']]],
   ['get_5fchildren',['get_children',['../class_z_k_wrapper.html#aae428b88e1f1d0a213b299e20fb5e3bd',1,'ZKWrapper']]],
+  ['get_5fclient_5flease_5ftimestamp',['get_client_lease_timestamp',['../classzkclient_1_1_zk_nn_client.html#a8b9de71cb289ada93bfdf000ed4c7363',1,'zkclient::ZkNnClient']]],
   ['get_5fcontent',['get_content',['../classzkclient_1_1_zk_nn_client.html#a7124eb90fcf8edb23d534a521daa3117',1,'zkclient::ZkNnClient']]],
   ['get_5finfo',['get_info',['../class_z_k_wrapper.html#a97463e55b810738ee39199711d52c934',1,'ZKWrapper::get_info()'],['../classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc',1,'zkclient::ZkNnClient::get_info()']]],
   ['get_5flisting',['get_listing',['../classzkclient_1_1_zk_nn_client.html#a29d04704113e8401d0de4eddd63d9c01',1,'zkclient::ZkNnClient']]],

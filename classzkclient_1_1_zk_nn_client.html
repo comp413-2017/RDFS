@@ -171,6 +171,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1fd720b040cc4430fa1df2bb55fa5ef9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1fd720b040cc4430fa1df2bb55fa5ef9"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>register_watches</b> ()</td></tr>
 <tr class="separator:a1fd720b040cc4430fa1df2bb55fa5ef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a8dccaa1132724035ab9b35aef62ba2"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a0a8dccaa1132724035ab9b35aef62ba2">current_time_ms</a> ()</td></tr>
+<tr class="separator:a0a8dccaa1132724035ab9b35aef62ba2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b9de71cb289ada93bfdf000ed4c7363"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a8b9de71cb289ada93bfdf000ed4c7363">get_client_lease_timestamp</a> (std::string client_name)</td></tr>
+<tr class="separator:a8b9de71cb289ada93bfdf000ed4c7363"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf852df8449c9b2a010e5956dc2ad5fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#adf852df8449c9b2a010e5956dc2ad5fd">renew_lease</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_renew_lease_request_proto.html">RenewLeaseRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_renew_lease_response_proto.html">RenewLeaseResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:adf852df8449c9b2a010e5956dc2ad5fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd984219133516c4c35a758dded7501d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abd984219133516c4c35a758dded7501d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>recover_lease</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_recover_lease_request_proto.html">RecoverLeaseRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_recover_lease_response_proto.html">RecoverLeaseResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:abd984219133516c4c35a758dded7501d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17ec72de0d2400af7bac9ba56e7c3bdc"><td class="memItemLeft" align="right" valign="top">GetFileInfoResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc">get_info</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
 <tr class="separator:a17ec72de0d2400af7bac9ba56e7c3bdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c006a59991ab12d9d5da5207790ede5"><td class="memItemLeft" align="right" valign="top">CreateResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">create_file</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request, <a class="el" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response)</td></tr>
@@ -311,6 +320,12 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCK_LO
 <tr class="memitem:ab2a68ae8979092f0aa45cb626afb9cb7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2a68ae8979092f0aa45cb626afb9cb7"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</b> [] = &quot;/blocks&quot;</td></tr>
 <tr class="separator:ab2a68ae8979092f0aa45cb626afb9cb7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a198f84c6c1200d3591ccf4e53dcff2ab inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a198f84c6c1200d3591ccf4e53dcff2ab"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>LEASES</b> [] = &quot;/leases&quot;</td></tr>
+<tr class="separator:a198f84c6c1200d3591ccf4e53dcff2ab inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad74a3d1891dd80b1b3b3469dea24b44a inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad74a3d1891dd80b1b3b3469dea24b44a"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS</b> [] = &quot;/clients&quot;</td></tr>
+<tr class="separator:ad74a3d1891dd80b1b3b3469dea24b44a inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This is used by ClientNamenodeProtocolImpl to communicate the zookeeper. </p>
@@ -546,6 +561,22 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
+<a class="anchor" id="a0a8dccaa1132724035ab9b35aef62ba2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t zkclient::ZkNnClient::current_time_ms </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the current timestamp in milliseconds </p>
+
+</div>
+</div>
 <a class="anchor" id="a0dc06e5c87b6c1f81534ae7ba3170f60"></a>
 <div class="memitem">
 <div class="memproto">
@@ -675,6 +706,23 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
 
 </div>
 </div>
+<a class="anchor" id="a8b9de71cb289ada93bfdf000ed4c7363"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t zkclient::ZkNnClient::get_client_lease_timestamp </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>client_name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the latest timestamp by the client </p>
+
+</div>
+</div>
 <a class="anchor" id="a7124eb90fcf8edb23d534a521daa3117"></a>
 <div class="memitem">
 <div class="memproto">
@@ -746,7 +794,7 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
         </tr>
       </table>
 </div><div class="memdoc">
-<p>These methods will correspond to proto calls that the client namenode protocol handles Get info of the file. </p>
+<p>Get info of the file. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">req</td><td>GetFileInfoRequestProto </td></tr>
@@ -945,6 +993,33 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Boolean indicating success or failure of the rename </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="adf852df8449c9b2a010e5956dc2ad5fd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zkclient::ZkNnClient::renew_lease </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_renew_lease_request_proto.html">RenewLeaseRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_renew_lease_response_proto.html">RenewLeaseResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>These methods will correspond to proto calls that the client namenode protocol handles </p>
 
 </div>
 </div>
