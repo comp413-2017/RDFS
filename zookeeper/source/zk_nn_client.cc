@@ -394,7 +394,9 @@ bool ZkNnClient::get_primary_block_info(std::string file_path,
 
   ZkNnClient::add_block(add_block_req, add_block_res, req.clientname());
 
-  res.set_allocated_block(&add_block_res.block());
+  LocatedBlockProto non_const_block_proto = add_block_res.block();
+
+  res.set_allocated_block(&non_const_block_proto);
   // QUESTION: Do we need to fill in the stat field of res?
 
   // look at AppendResponseProto has field for LocatedBlockProto field  -
