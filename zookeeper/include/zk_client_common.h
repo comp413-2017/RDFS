@@ -21,6 +21,7 @@ class ZkClientCommon {
 
   // constants used by the clients
   static const char NAMESPACE_PATH[];
+  static const char BLOCKS_TREE[];
   static const char HEALTH[];
   static const char HEALTH_BACKSLASH[];
   static const char STATS[];
@@ -35,6 +36,8 @@ class ZkClientCommon {
   static const char REPLICATE_BACKSLASH[];
   static const char BLOCK_LOCATIONS[];
   static const char BLOCKS[];
+  static const char LEASES[];
+  static const char CLIENTS[];
 
  private:
   static const std::string CLASS_NAME;

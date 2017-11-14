@@ -196,6 +196,8 @@ TEST_F(ReplicationTest, testReplicationOnFailure) {
 
   initializeDatanodes(3);
 
+  sleep(5);
+
   StorageMetrics metrics(zk);
   float usedBefore = metrics.usedSpace();
 
@@ -204,7 +206,7 @@ TEST_F(ReplicationTest, testReplicationOnFailure) {
   for (; i < 3; i++) {
     system(("pkill -f ReplicationTestServer" + std::to_string(minDatanodeId++))
                .c_str());
-    sleep(10);
+    sleep(20);
   }
 
   // The data should now be replicated on the new servers.

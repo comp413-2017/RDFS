@@ -106,7 +106,8 @@ TEST_F(ZKWrapperTest, exists) {
   int error = 0;
   bool exist = false;
 
-  bool result = zk->create("/testcreate", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->create("/testcreate", ZKWrapper::EMPTY_VECTOR,
+                           error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -131,7 +132,7 @@ TEST_F(ZKWrapperTest, wexists) {
   ASSERT_EQ(false, exist);
   ASSERT_EQ("ZNONODE", zk->translate_error(error));
 
-  result = zk->create("/testwexists", ZKWrapper::EMPTY_VECTOR, error);
+  result = zk->create("/testwexists", ZKWrapper::EMPTY_VECTOR, error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -158,7 +159,7 @@ TEST_F(ZKWrapperTest, wget_children) {
   bool result = zk->create(
       "/testwgetchildren1",
       ZKWrapper::EMPTY_VECTOR,
-      error);
+      error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -176,7 +177,7 @@ TEST_F(ZKWrapperTest, wget_children) {
   result = zk->create(
       "/testwgetchildren1/test",
       ZKWrapper::EMPTY_VECTOR,
-      error);
+      error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -191,7 +192,7 @@ TEST_F(ZKWrapperTest, wget_children) {
 }
 TEST_F(ZKWrapperTest, get) {
   int error = 0;
-  bool result = zk->create("/testget", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->create("/testget", ZKWrapper::EMPTY_VECTOR, error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -203,7 +204,7 @@ TEST_F(ZKWrapperTest, get) {
 
   auto data_1 = ZKWrapper::get_byte_vector("hello");
 
-  result = zk->create("/testget_withdata", data_1, error);
+  result = zk->create("/testget_withdata", data_1, error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -216,7 +217,7 @@ TEST_F(ZKWrapperTest, get) {
 
 TEST_F(ZKWrapperTest, wget) {
   int error = 0;
-  bool result = zk->create("/testwget1", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->create("/testwget1", ZKWrapper::EMPTY_VECTOR, error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -246,7 +247,7 @@ TEST_F(ZKWrapperTest, set) {
   int error = 0;
   auto data = ZKWrapper::get_byte_vector("hello");
 
-  bool result = zk->create("/testget1", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->create("/testget1", ZKWrapper::EMPTY_VECTOR, error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -264,7 +265,8 @@ TEST_F(ZKWrapperTest, set) {
 TEST_F(ZKWrapperTest, delete_node) {
   int error = 0;
 
-  bool result = zk->create("/testcreate2", ZKWrapper::EMPTY_VECTOR, error);
+  bool result = zk->create("/testcreate2", ZKWrapper::EMPTY_VECTOR,
+                           error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
@@ -280,10 +282,10 @@ TEST_F(ZKWrapperTest, delete_node) {
 TEST_F(ZKWrapperTest, RecursiveDelete) {
   int error_code;
 
-  zk->create("/child1", ZKWrapper::EMPTY_VECTOR, error_code);
-  zk->create("/child2", ZKWrapper::EMPTY_VECTOR, error_code);
-  zk->create("/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code);
-  zk->create("/child1/child3", ZKWrapper::EMPTY_VECTOR, error_code);
+  zk->create("/child1", ZKWrapper::EMPTY_VECTOR, error_code, false);
+  zk->create("/child2", ZKWrapper::EMPTY_VECTOR, error_code, false);
+  zk->create("/child1/child2", ZKWrapper::EMPTY_VECTOR, error_code, false);
+  zk->create("/child1/child3", ZKWrapper::EMPTY_VECTOR, error_code, false);
 
   ASSERT_TRUE(zk->recursive_delete("/child1", error_code));
 
