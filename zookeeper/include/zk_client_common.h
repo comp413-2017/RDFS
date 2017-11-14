@@ -36,6 +36,8 @@ class ZkClientCommon {
   static const char REPLICATE_BACKSLASH[];
   static const char BLOCK_LOCATIONS[];
   static const char BLOCKS[];
+  static const char LEASES[];
+  static const char CLIENTS[];
 
   // ---------- MJP Header -----------
   static const char CLIENTS[];

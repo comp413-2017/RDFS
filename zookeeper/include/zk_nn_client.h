@@ -50,11 +50,21 @@ typedef struct {
   int permission_number;
 } FileZNode;
 
-//------------- MJP Header-----------------
+/**
+ * Lease info that stores in each lease node.
+ */
+typedef struct {
+  std::string clientName;   // Same as the
+                            // clientName passed
+                            // from RenewLeaseRequestProto
+} LeaseInfo;
+
+/**
+ * Client info that stores in each client node
+ */
 typedef struct {
   uint64_t timestamp;    // std::time()
 } ClientInfo;
-//------------- MJP Footer-----------------
 
 struct TargetDN {
   char policy;
@@ -119,12 +129,12 @@ using hadoop::hdfs::SetOwnerResponseProto;
 using hadoop::hdfs::RenameResponseProto;
 using hadoop::hdfs::SetPermissionRequestProto;
 using hadoop::hdfs::SetPermissionResponseProto;
-// -------- MJP Header ---------
 using hadoop::hdfs::AppendRequestProto;
 using hadoop::hdfs::AppendResponseProto;
-
-
-// -------- MJP Footer ---------
+using hadoop::hdfs::RenewLeaseRequestProto;
+using hadoop::hdfs::RenewLeaseResponseProto;
+using hadoop::hdfs::RecoverLeaseRequestProto;
+using hadoop::hdfs::RecoverLeaseResponseProto;
 
 /**
 * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -193,11 +203,22 @@ class ZkNnClient : public ZkClientCommon {
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
                       bool secureMode = false);
   void register_watches();
+  /**
+   * Returns the current timestamp in milliseconds
+   */
+  uint64_t current_time_ms();
+  /**
+   * Returns the latest timestamp by the client
+   */
+  uint64_t get_client_lease_timestamp(std::string client_name);
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
-
+  void renew_lease(RenewLeaseRequestProto &req,
+                   RenewLeaseResponseProto &res);
+  void recover_lease(RecoverLeaseRequestProto &req,
+                     RecoverLeaseResponseProto &res);
   /**
    * Get info of the file.
    * @param req GetFileInfoRequestProto
@@ -433,10 +454,19 @@ class ZkNnClient : public ZkClientCommon {
   void set_file_info(HdfsFileStatusProto *fs,
                      const std::string &path,
                      FileZNode &node);
-    /**
-     * Given the filesystem path, get the full zookeeper path for the blocks
-     * where the data is located
-     */
+  /**
+   * Given the client name, get the client path.
+   */
+  std::string ClientZookeeperPath(const std::string & clientname);
+  /**
+    * Given the filesystem path, get the full zookeeper path for leases
+    */
+  std::string LeaseZookeeperPath(const std::string & hadoopPath);
+
+  /**
+   * Given the filesystem path, get the full zookeeper path for the blocks
+   * where the data is located
+   */
   std::string ZookeeperBlocksPath(const std::string &hadoopPath);
 
   /**
@@ -473,6 +503,10 @@ class ZkNnClient : public ZkClientCommon {
  */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
+  template <class T>
+  void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+  template <class T>
+  void read_znode_data(T &znode_data, const std::string &path);
 
 
   // -----------MJP Header---------------
@@ -546,6 +580,10 @@ class ZkNnClient : public ZkClientCommon {
  * Returns the current timestamp in milliseconds
  */
   uint64_t current_time_ms();
+  /**
+   * Returns whether the input client is still alive.
+   */
+  bool lease_expired(std::string lease_holder_client);
 
 /**
 * Informs Zookeeper when the DataNode has deleted a block.
@@ -578,6 +616,8 @@ class ZkNnClient : public ZkClientCommon {
 
 // Boolean indicating whether zk_nn is in secure mode
   bool isSecureMode = false;
+  const uint64_t EXPIRATION_TIME =
+    2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 };
 
 }  // namespace zkclient

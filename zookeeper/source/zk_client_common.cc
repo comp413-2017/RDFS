@@ -11,29 +11,21 @@
 
 namespace zkclient {
 
-  const char ZkClientCommon::WORK_QUEUES[] = "/work_queues/";
-  const char ZkClientCommon::REPLICATE_QUEUES[] = "/work_queues/replicate/";
-  const char ZkClientCommon::
-      REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
-  const char ZkClientCommon::DELETE_QUEUES[] = "/work_queues/delete/";
-  const char ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH[] =
-      "/work_queues/delete";
-  const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
-  const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
-  const char ZkClientCommon::REPLICATE_BACKSLASH[] = "replicate/";
-  const char ZkClientCommon::NAMESPACE_PATH[] = "/fileSystem";
-  const char ZkClientCommon::BLOCKS_TREE[] = "/blocks";
-  const char ZkClientCommon::HEALTH[] = "/health";
-  const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
-  const char ZkClientCommon::STATS[] = "/stats";
-  const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
-  const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
-  const char ZkClientCommon::BLOCKS[] = "/blocks";
+const char ZkClientCommon::WORK_QUEUES[] = "/work_queues/";
+const char ZkClientCommon::REPLICATE_QUEUES[] = "/work_queues/replicate/";
+const char ZkClientCommon::
+        REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
+const char ZkClientCommon::DELETE_QUEUES[] = "/work_queues/delete/";
+const char ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH[] = "/work_queues/delete";
+const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
+const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
+const char ZkClientCommon::REPLICATE_BACKSLASH[] = "replicate/";
+const char ZkClientCommon::NAMESPACE_PATH[] = "/fileSystem";
+const char ZkClientCommon::BLOCKS_TREE[] = "/blocks";
+const char ZkClientCommon::HEALTH[] = "/health";
+const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
+const char ZkClientCommon::STATS[] = "/stats";
 
-  // -------- MJP Header ----------
-  const char ZkClientCommon::CLIENTS[] = "/clients";
-  const char ZkClientCommon::LEASES[] = "/leases";
-  // -------- MJP Footer ----------
 
   ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
     int error_code;
@@ -68,19 +60,29 @@ namespace zkclient {
     } else {
       // TODO(2016): Handle error
     }
-    if (!zk->recursive_create("/work_queues/wait_for_acks",
-                  ZKWrapper::EMPTY_VECTOR, error_code)) {
-      LOG(ERROR) << "Failed creating "
-          "/work_queues/wait_for_acks: " << error_code;
+  } else {
+    // TODO(2016): Handle error
+  }
+  if (zk->exists(std::string(CLIENTS), exists, error_code)) {
+    if (!exists) {
+      zk->create(std::string(CLIENTS), vec, error_code, false);
+    } else {
     }
-    // Ensure work_queues exist
-    if (zk->exists(DELETE_QUEUES_NO_BACKSLASH, exists, error_code)) {
-      if (!exists) {
-        if (!zk->create(DELETE_QUEUES_NO_BACKSLASH,
-                ZKWrapper::EMPTY_VECTOR, error_code, false)) {
-          // Handle failed to create replicate node
-          LOG(INFO) << "Creation failed for delete ueue";;
-        }
+  } else {
+    // TODO(2016): Handle error
+  }
+  if (!zk->recursive_create("/work_queues/wait_for_acks",
+                            ZKWrapper::EMPTY_VECTOR, error_code)) {
+    LOG(ERROR) << "Failed creating /work_queues/wait_for_acks: " << error_code;
+  }
+  // Ensure work_queues exist
+  if (zk->exists(DELETE_QUEUES_NO_BACKSLASH, exists, error_code)) {
+    if (!exists) {
+      if (!zk->create(DELETE_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        // Handle failed to create replicate node
+        LOG(INFO) << "Creation failed for delete ueue";;
+      }
       }
     }
     if (zk->exists(REPLICATE_QUEUES_NO_BACKSLASH, exists, error_code)) {
