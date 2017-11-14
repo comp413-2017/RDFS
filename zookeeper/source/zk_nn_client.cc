@@ -312,6 +312,10 @@ bool ZkNnClient::process_request(std::string client_name,
            << " exists.";
     return false;
   }
+
+    // check if the lease is there for the client and if it's not then construct it, if it is there's no need to construct the lease
+    // remember to take care of lease stuff before getting blocks
+
   return true;
 }
 
@@ -374,8 +378,9 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path,
     LOG(ERROR) << "File path " << file_path
            << " not exists when trying to append!";
   } else {
-    // WE CANNOT FIGURE OUT HOW TO DO THIS
-    // Anthony -> go look at complete
+      // look at AppendResponseProto has field for LocatedBlockProto field  - fill it up (look at create_file for ideas)
+      // just fill it up, and lket client call add_block (so don't call add_block)
+      // Summary: basically in all validate correct append request (constructing lease if necessary) and fill out the proto
   }
 }
 
