@@ -539,13 +539,7 @@ void ZkNnClient::file_znode_struct_to_vec(FileZNode *znode_data,
   memcpy(&data[0], znode_data, sizeof(*znode_data));
 }
 
-// -------- MJP Header ---------
-template <class T>
-void ZkNnClient::znode_data_to_vec(T *znode_data,
-                   std::vector<std::uint8_t> &data) {
-  memcpy(&data[0], znode_data, sizeof(*znode_data));
-}
-// -------- MJP Footer ---------
+
 
 template <class T>
 void ZkNnClient::znode_data_to_vec(T *znode_data,
