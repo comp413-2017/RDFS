@@ -209,7 +209,7 @@ class ZkNnClient : public ZkClientCommon {
    * Returns the current timestamp in milliseconds
    */
   uint64_t current_time_ms();
-  
+
   /**
    * Returns the latest timestamp by the client
    */
