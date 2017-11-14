@@ -81,7 +81,14 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
       created_correctly = false;
   }
   */
-  std::string block_metadata_path = get_block_metadata_path(uuid);
+  std::string block_metadata_path;
+  if (is_ec_block(uuid)) {
+    uint64_t block_group_id = get_block_group_id(uuid);
+    util::concat_path(get_block_metadata_path(block_group_id), std::to_string(uuid));
+  }
+  else {
+    block_metadata_path = get_block_metadata_path(uuid);
+  }
   if (zk->exists(block_metadata_path, exists, error_code)) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
