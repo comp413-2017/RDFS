@@ -30,7 +30,6 @@ void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::string path) {
   LOG(DEBUG) << "HTTP request: delete_file_handler";
 
-  // TODO(security): implement
   hadoop::hdfs::DeleteResponseProto res;
   hadoop::hdfs::DeleteRequestProto req;
 
