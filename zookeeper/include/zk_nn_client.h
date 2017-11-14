@@ -26,11 +26,6 @@ typedef enum class FileStatus : int {
     UnderDestruction
 } FileStatus;
 
-const char EC_REPLICATION[15] = {"EC_REPLICATION"};
-const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
-uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
-uint32_t DEFAULT_EC_ID = 1;
-const char* DEFAULT_EC_CODEC_NAME = "RS64";
 /**
  * This is the basic znode to describe a file
  */
@@ -138,10 +133,6 @@ class ZkNnClient : public ZkClientCommon {
   std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
-  const char* EC_REPLICATION = "EC_REPLICATION";
-  const char* DEFAULT_EC_POLICY = EC_REPLICATION;  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 64;  // the default cell size is 64kb.
-  uint32_t DEFAULT_EC_ID = 1;
   ErasureCodingPolicyProto REPLICATION_PROTO;
   ECSchemaProto REPLICATION_1_2_SCHEMA;
 
@@ -331,21 +322,6 @@ enum class ListingResponse {
    * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
    */
   u_int64_t generate_block_group_id();
-
-  /**
-   * Gets the block group id from the storage block id.
-   * i.e. bit 2 ~ bit 48.
-   * @param storage_block_id the given storage block id.
-   * @return the block group id.
-   */
-  u_int64_t get_block_group_id(u_int64_t storage_block_id);
-
-  /**
-   * Gets the index within the block group.
-   * @param storage_block_id the given storage block id.
-   * @return the index within the block group.
-   */
-  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
 
   /**
    * Gets the block group id from the storage block id.

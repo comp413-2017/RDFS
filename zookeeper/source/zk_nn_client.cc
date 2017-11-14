@@ -1146,7 +1146,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
   FileZNode znode_data;
   read_file_znode(znode_data, src);
 
-  ErasureCodingPolicyProto * ecpolicy = blocks->mutable_ecpolicy();
+  ErasureCodingPolicyProto *ecpolicy = blocks->mutable_ecpolicy();
   if (znode_data.isEC) {
     ecpolicy->CopyFrom(RS_SOLOMON_PROTO);
   } else {
@@ -1204,8 +1204,10 @@ void ZkNnClient::get_block_locations(const std::string &src,
       // TODO(2016): This offset may be incorrect
       located_block->set_offset(size);
 
-      buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
+      buildExtendedBlockProto(located_block->mutable_b(), block_id,
+                              block_size);
 
+      //Datanodes are block groups in the EC format
       auto data_nodes = std::vector<std::string>();
       std::string block_metadata_path = get_block_metadata_path(block_id);
       LOG(INFO) << "Getting datanode locations for block: "
@@ -1243,29 +1245,23 @@ void ZkNnClient::get_block_locations(const std::string &src,
         }
 
       } else {
-        // Add storage IDs for an EC block.
-        for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-          located_block->set_storageids(i, DEFAULT_STORAGE_ID);
-        }
-
         // Add block indices for an EC block.
         // Each byte (i.e. char) represents an index into the group.
         std::string block_index_string;
-        for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-          //TODO(jake): I think this is wrong, we should read this off metadata.
-          block_index_string.push_back(block_indices[i]);
-        }
-        located_block->set_blockindices(block_index_string);
-
-        // Add storage types for an EC block.
-        for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-          located_block->set_storagetypes(i, StorageTypeProto::DISK);
-        }
-
+        int i = 0;
         // Add datanodes for the EC block
         for (auto data_node : data_nodes) {
+          auto data = std::vector<uint8_t>();
+          if(!zk->get(BLOCK_GROUP_LOCATIONS + data_node, data,
+                      error_code, sizeof(uint64_t))) {
+            //ERROR
+          }
+          located_block->set_storageids(i, DEFAULT_STORAGE_ID);
+          located_block->set_storagetypes(i++, StorageTypeProto::DISK);
           buildDatanodeInfoProto(located_block->add_locs(), data_node);
+          block_index_string.push_back((char) data[0]);
         }
+        located_block->set_blockindices(block_index_string);
       }
       buildTokenProto(located_block->mutable_blocktoken());
     }
@@ -1577,7 +1573,6 @@ bool ZkNnClient::add_block(const std::string &file_path,
   return true;
 }
 
-<<<<<<< 083d086e9036805937a35660e26303f464243013
 bool ZkNnClient::add_block_group(const std::string &filePath,
                      u_int64_t &block_group_id,
                      std::vector<std::string> &dataNodes,
