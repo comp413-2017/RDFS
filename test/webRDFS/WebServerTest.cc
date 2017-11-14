@@ -13,14 +13,7 @@ INITIALIZE_EASYLOGGINGPP
 
 namespace {
 TEST(WebServerTest, testDelete) {
-  ASSERT_EQ(0,
-            system(
-                "python /home/vagrant/rdfs/test/integration/generate_file.py "
-                "> toDelete"));
-
-  system(
-        "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal "
-        "toDelete /fileToDelete");
+  system("hdfs dfs -fs hdfs://localhost:5351 -touchz /fileToDelete");
 
   ASSERT_EQ(0,
             system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
@@ -30,17 +23,14 @@ TEST(WebServerTest, testDelete) {
   ASSERT_EQ(0,
             system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultDelete"
                   " actualResultDelete"));
+
   system("rm actualResultDelete");
 }
 
 TEST(WebServerTest, testRead) {
-  ASSERT_EQ(0,
-            system("python /home/vagrant/rdfs/test/webRDFS"
-            "/generate_read_file.py > toRead"));
-
   system(
         "hdfs dfs -fs hdfs://localhost:5351 "
-        "-copyFromLocal toRead /fileToRead");
+        "-copyFromLocal fileForTesting /fileToRead");
 
   ASSERT_EQ(0,
             system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
@@ -77,8 +67,6 @@ int main(int argc, char **argv) {
   system("pkill -f namenode");
   system("pkill -f datanode");
   system("pkill -f webrdfs");
-  system("rm toRead");
-  system("rm toDelete");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
 }

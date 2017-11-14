@@ -44,7 +44,7 @@ void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
   std::string storedFile = "tempStore" + path;
-  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat /" + path +
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat " + path +
                       " > " + storedFile;
 
   system(input.c_str());
@@ -62,7 +62,7 @@ void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-  std::string baseUrl = "/webhdfs/v1/";
+  std::string baseUrl = "/webhdfs/v1";
 
   int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
   std::string path = (request->path).substr(idxOfSplit);
