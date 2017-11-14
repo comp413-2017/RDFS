@@ -63,12 +63,12 @@ using hadoop::hdfs::ModifyAclEntriesResponseProto;
 namespace zkclient {
 
 ZkNnClient::ZkNnClient(std::string zkIpAndAddress) :
-  ZkClientCommon(zkIpAndAddress) {
+    ZkClientCommon(zkIpAndAddress) {
   mkdir_helper("/", false);
 }
 
 ZkNnClient::ZkNnClient(std::shared_ptr<ZKWrapper> zk_in, bool secureMode) :
-  ZkClientCommon(zk_in) {
+    ZkClientCommon(zk_in) {
   mkdir_helper("/", false);
   isSecureMode = secureMode;
 }
@@ -91,11 +91,11 @@ void ZkNnClient::register_watches() {
 
   for (int i = 0; i < children.size(); i++) {
     LOG(INFO) << "[In register_watches] Attaching child to "
-          << children[i]
-          << ", ";
+              << children[i]
+              << ", ";
     std::vector<std::string> ephem = std::vector<std::string>();
     if (!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem,
-                watcher_health_child, this, err))) {
+                            watcher_health_child, this, err))) {
       // TODO(2016): Handle error
       LOG(ERROR) << "[In register_watchers], wget failed " << err;
     }
@@ -106,7 +106,7 @@ void ZkNnClient::register_watches() {
  * Static
  */
 void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
-                const char *path, void *watcherCtx) {
+                                const char *path, void *watcherCtx) {
   LOG(INFO) << "Health watcher triggered on " << path;
 
   ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
@@ -115,21 +115,21 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
   int err;
   std::vector<std::string> children = std::vector<std::string>();
   if (!(zk->wget_children(HEALTH, children, ZkNnClient::watcher_health,
-              watcherCtx, err))) {
+                          watcherCtx, err))) {
     // TODO(2016): Handle error
     LOG(ERROR) << "[In register_watchers], wget failed " << err;
   }
 
   for (int i = 0; i < children.size(); i++) {
     LOG(INFO) << "[In register_watches] Attaching child to "
-          << children[i]
-          << ", ";
+              << children[i]
+              << ", ";
     std::vector<std::string> ephem = std::vector<std::string>();
     if (!(zk->wget_children(HEALTH_BACKSLASH + children[i],
-                ephem,
-                ZkNnClient::watcher_health_child,
-                watcherCtx,
-                err))) {
+                            ephem,
+                            ZkNnClient::watcher_health_child,
+                            watcherCtx,
+                            err))) {
       // TODO(2016): Handle error
       LOG(ERROR) << "[In register_watchers], wget failed " << err;
     }
@@ -140,8 +140,8 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
  * Static
  */
 void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
-                    const char *raw_path,
-                    void *watcherCtx) {
+                                      const char *raw_path,
+                                      void *watcherCtx) {
   LOG(INFO) << "Health child watcher triggered on " << raw_path;
 
   ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
@@ -157,14 +157,14 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
   boost::split(split_path, path, boost::is_any_of("/"));
   auto dn_id = split_path[split_path.size() - 1];
   const std::string &repl_q_path =
-    zkclient::ZkClientCommon::REPLICATE_QUEUES
-    + dn_id;
+      zkclient::ZkClientCommon::REPLICATE_QUEUES
+      + dn_id;
   const std::string &delete_q_path =
-    zkclient::ZkClientCommon::DELETE_QUEUES
-    + dn_id;
+      zkclient::ZkClientCommon::DELETE_QUEUES
+      + dn_id;
   const std::string &block_path = util::concat_path(
-    path,
-    zkclient::ZkClientCommon::BLOCKS);
+      path,
+      zkclient::ZkClientCommon::BLOCKS);
   std::vector<std::uint8_t> bytes;
   std::vector<std::string> to_replicate;
   /* Lock the znode */
@@ -256,7 +256,7 @@ bool ZkNnClient::file_exists(const std::string &path) {
 }
 
 bool ZkNnClient::get_block_size(const u_int64_t &block_id,
-                uint64_t &blocksize) {
+                                uint64_t &blocksize) {
   int error_code;
   std::string block_path = BLOCK_LOCATIONS + std::to_string(block_id);
 
@@ -282,23 +282,27 @@ char ZkNnClient::get_node_policy() {
   return ZkNnClient::policy;
 }
 
-// ------- MJP Header --------
 
 bool ZkNnClient::append_file(AppendRequestProto &req,
-               AppendResponseProto &res) {
+                             AppendResponseProto &res) {
   std::string file_path = req.src();
   std::string client_name = req.clientname();
   bool isValid = process_request(client_name, file_path, req);
+
+  if (!isValid) return false;
+
   // The append request is valid.
-  std::string block_id = get_primary_block_info(file_path, req, res);
-  /* Check if a lease for the file already exists
-   * (if so, log a message saying lease exists and is in use) */
-  construct_lease(client_name, file_path);
+
+
+  bool done = get_primary_block_info(file_path, req, res);
+
+  return done;
+
 }
 
 bool ZkNnClient::process_request(std::string client_name,
-                 std::string file_path,
-                 AppendRequestProto &req) {
+                                 std::string file_path,
+                                 AppendRequestProto &req) {
   bool exists;
   int error_code;
   // Check if valid file path.
@@ -306,23 +310,64 @@ bool ZkNnClient::process_request(std::string client_name,
     LOG(ERROR) << "Requested file " << file_path << " does not exist";
     return false;
     // Check if valid client
-  } else if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
+  }
+
+  if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
-           CLIENTS << client_name
-           << " exists.";
+               CLIENTS << client_name
+               << " exists.";
     return false;
   }
 
-    // check if the lease is there for the client and if it's not then
-    // construct it, if it is there's no need to construct the lease
-    // remember to take care of lease stuff before getting blocks
+  if (!exists) return false;
 
-  return true;
+  bool lease_ok = check_lease(client_name, file_path);
+
+  return lease_ok;
 }
 
-std::string ZkNnClient::get_primary_block_info(std::string file_path,
-                         AppendRequestProto &req,
-                         AppendResponseProto &res) {
+bool ZkNnClient::check_lease(std::string client_name,
+                             std::string file_path) {
+  int error_code;
+  bool exists;
+
+  std::vector<std::string> children;
+  if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children, error_code)) {
+    LOG(ERROR) << "Failed to get children of "
+               << ZookeeperFilePath(file_path) << ".";
+    return false;
+  }
+  if (children.size() > 0) {
+    return true;
+  } else {
+    // Currently there is no client holding a lease for this file.
+    ClientInfo clientInfo;
+    clientInfo.timestamp = current_time_ms();
+    std::vector<std::uint8_t> data(sizeof(clientInfo));
+    znode_data_to_vec(&clientInfo, data);
+
+    // QUESTION: Do we need to add to client -> timestamp or not?
+    if (!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
+      LOG(ERROR) << "Failed to set data for " <<
+                 ClientZookeeperPath(client_name) << ".";
+      return false;
+    }
+
+    // Add to filename -> leases
+    if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
+                    client_name, data, error_code, false)) {
+      LOG(ERROR) << "Failed to put lease into file_name->timestamp for " <<
+                 ZookeeperFilePath(file_path)  << LEASES << '/' <<
+                 client_name << ".";
+      return false;
+    }
+    return true;
+  }
+}
+
+bool ZkNnClient::get_primary_block_info(std::string file_path,
+                                        AppendRequestProto &req,
+                                        AppendResponseProto &res) {
   int error_code;
   std::uint64_t block_id;
   std::vector<std::string> data_nodes;
@@ -331,105 +376,40 @@ std::string ZkNnClient::get_primary_block_info(std::string file_path,
   FileZNode znode_data;
   if (!file_exists(file_path)) {
     LOG(ERROR) << "Requested file " << file_path << " does not exist";
-    return nullptr;
+    return false;
   }
   read_file_znode(znode_data, file_path);
   // Assert that the znode we want to modify is a file
   if (znode_data.filetype != IS_FILE) {
     LOG(ERROR) << "Requested file " << file_path << " is not a file";
-    return nullptr;
+    return false;
   }
   uint32_t replication_factor = znode_data.replication;
 
+  AddBlockRequestProto add_block_req;
+  AddBlockResponseProto add_block_res;
+  add_block_req.set_src(req.src());
+  add_block_req.set_clientName(req.clientName());
 
-  // Getting new block and dn "reservations"
-  ZkNnClient::add_block(file_path, block_id, data_nodes,
-              replication_factor);
-  std::string block_id_str = std::to_string(block_id);
 
-  // Store results in metadata part 1 - dn ids under block_locations
-  bool exists;
-  if (!zk->exists(BLOCKS + '/' + block_id_str, exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " << BLOCKS + '/' +
-                          block_id_str << " exists.";
-    return nullptr;
-  }
-  if (!exists) {
-    for (int i = 0; i < data_nodes.size(); i++) {
-      if (!zk->create(BLOCKS + '/' + block_id_str + '/' +
-               data_nodes[i], ZKWrapper::EMPTY_VECTOR,
-               error_code, false)) {
-        LOG(ERROR) << "Failed to put dn_id " <<
-               data_nodes[i] << " at block_id " << block_id_str;
-      }
-    }
+  ZkNnClient::add_block(add_block_req, add_block_res, req.clientName());
 
-  } else {
-    // shouldn't be there since just created
-    LOG(ERROR) << "Block id " << block_id_str << "already exists";
-  }
+  res.set_block(add_block_res.block());
+  // QUESTION: Do we need to fill in the stat field of res?
 
-  // Store results in metadata part 2 - filename->blocks
-  if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " <<
-           ZookeeperFilePath(file_path) << " exists.";
-    return nullptr;
-  }
-  if (!exists) {
-    LOG(ERROR) << "File path " << file_path
-           << " not exists when trying to append!";
-  } else {
-      // look at AppendResponseProto has field for LocatedBlockProto field  -
-      // fill it up (look at create_file for ideas)
-      // just fill it up, and lket client call add_block (so don't call
-      // add_block)
-      // Summary: basically in all validate correct append request
-      // (constructing lease if necessary) and fill out the proto
-  }
-}
+  // look at AppendResponseProto has field for LocatedBlockProto field  -
+  // fill it up (look at create_file for ideas)
+  // just fill it up, and lket client call add_block (so don't call
+  // add_block)
+  // Summary: basically in all validate correct append request
+  // (constructing lease if necessary) and fill out the proto
 
-void ZkNnClient::construct_lease(std::string client_name,
-                 std::string file_path) {
-  int error_code;
-  bool exists;
-  if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " <<
-           ZookeeperFilePath(file_path) << " exists.";
-    return;
-  }
-  // In the case below no client exists
-  if (!exists) {
-    // TODO(MJP): not sure how to throw IOException.
-    return;
-  }
-  std::vector<std::string> children;
-  if (!zk->get_children(ZookeeperFilePath(file_path), children, error_code)) {
-    LOG(ERROR) << "Failed to get children of "
-           << ZookeeperFilePath(file_path) << ".";
-    return;
-  }
-  if (children.size() != 0) {
-    LOG(ERROR) << "Fatal error: there already exist leases for "
-           << ZookeeperFilePath(file_path) << ".";
-    return;
-  } else {
-    // Currently there is no client holding a lease for this file.
-    ClientInfo clientInfo;
-    clientInfo.timestamp = current_time_ms();
-    std::vector<std::uint8_t> data(sizeof(clientInfo));
-    znode_data_to_vec(&clientInfo, data);
-    if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
-             client_name, data, error_code, false)) {
-      LOG(ERROR) << "Failed to create the lease holder client for " +
-              ZookeeperFilePath(file_path) + ".";
-    }
-    return;
-  }
+  return true;
+
 }
 
 
 
-// ------- MJP Footer --------
 
 
 // --------------------------- PROTOCOL CALLS -------------------------------
@@ -440,7 +420,7 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
   int error_code;
   if (!zk->exists(ClientZookeeperPath(client_name), exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
-      ClientZookeeperPath(client_name) << " exits.";
+               ClientZookeeperPath(client_name) << " exits.";
   } else {
     ClientInfo clientInfo;
     clientInfo.timestamp = current_time_ms();
@@ -451,12 +431,12 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
       if (!zk->create(ClientZookeeperPath(client_name),
                       data, error_code, false)) {
         LOG(ERROR) << "Failed to create zk path " <<
-          ClientZookeeperPath(client_name) << ".";
+                   ClientZookeeperPath(client_name) << ".";
       }
     } else {
       if (!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
         LOG(ERROR) << "Failed to set data for " <<
-          ClientZookeeperPath(client_name) << ".";
+                   ClientZookeeperPath(client_name) << ".";
       }
     }
   }
@@ -470,7 +450,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
   bool exists;
   if (!zk->exists(ZookeeperFilePath(file_path), exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
-      ZookeeperFilePath(file_path) << " exists.";
+               ZookeeperFilePath(file_path) << " exists.";
     res.set_result(false);
     return;
   }
@@ -482,7 +462,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
   std::vector<std::string> children;
   if (!zk->get_children(LeaseZookeeperPath(file_path), children, error_code)) {
     LOG(ERROR) << "Failed to get children of " <<
-      LeaseZookeeperPath(file_path) << ".";
+               LeaseZookeeperPath(file_path) << ".";
     res.set_result(false);
     return;
   }
@@ -491,7 +471,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
       LOG(ERROR) << "Child: " + child;
     }
     LOG(ERROR) << "Fatal error: there are more than one leases for "
-    << ZookeeperFilePath(file_path) << ".";
+               << ZookeeperFilePath(file_path) << ".";
     res.set_result(false);
     return;
   }
@@ -506,7 +486,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
     // that closes the file for the
     // client and make sure the replicas are consistent.
     if (!zk->delete_node(LeaseZookeeperPath(file_path) + '/' +
-                           lease_holder_client, error_code, true)) {
+                         lease_holder_client, error_code, true)) {
       LOG(ERROR) << "Failed to delete the dead lease holder client for "
                     + LeaseZookeeperPath(file_path)
                     + '/' + lease_holder_client + ".";
@@ -523,7 +503,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
 }
 
 void ZkNnClient::read_file_znode(FileZNode &znode_data,
-                 const std::string &path) {
+                                 const std::string &path) {
   int error_code;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   if (!zk->get(ZookeeperFilePath(path), data, error_code)) {
@@ -535,7 +515,7 @@ void ZkNnClient::read_file_znode(FileZNode &znode_data,
 }
 
 void ZkNnClient::file_znode_struct_to_vec(FileZNode *znode_data,
-                      std::vector<std::uint8_t> &data) {
+                                          std::vector<std::uint8_t> &data) {
   memcpy(&data[0], znode_data, sizeof(*znode_data));
 }
 
@@ -569,16 +549,16 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
   std::vector<std::string> children;
   std::string block_id_str = std::to_string(prev_id);
   if (zk->get_children(BLOCK_LOCATIONS + block_id_str, children,
-             error_code)) {
+                       error_code)) {
     if (children.size() >= MIN_REPLICATION) {
       return true;
     } else {
       LOG(INFO) << "Had to sync: previous block failed";
       // If we failed initially attempt to sync the changes, then check again
       zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + block_id_str),
-            true);
+                true);
       if (zk->get_children(BLOCK_LOCATIONS + block_id_str,
-                 children, error_code)) {
+                           children, error_code)) {
         return children.size() >= MIN_REPLICATION;
       }
     }
@@ -599,8 +579,8 @@ bool ZkNnClient::checkAccess(std::string username, FileZNode &znode_data) {
 }
 
 bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
-               SetOwnerResponseProto &res,
-               std::string client_name) {
+                           SetOwnerResponseProto &res,
+                           std::string client_name) {
   int zk_error;
   FileZNode znode_data;
   const std::string &path = req.src();
@@ -638,8 +618,8 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
 }
 
 bool ZkNnClient::add_block(AddBlockRequestProto &req,
-               AddBlockResponseProto &res,
-               std::string client_name) {
+                           AddBlockResponseProto &res,
+                           std::string client_name) {
   // make sure previous addBlock operation has completed
   auto prev_id = req.previous().blockid();
   if (!previousBlockComplete(prev_id)) {
@@ -715,8 +695,8 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
  * optional uint64 numBytes = 4 [default = 0];  // len does not belong in ebid
 */
 bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
-                 AbandonBlockResponseProto &res,
-                 std::string client_name) {
+                               AbandonBlockResponseProto &res,
+                               std::string client_name) {
   const std::string &file_path = req.src();
   // I believe this is the lease holder?
   const std::string &holder = req.holder();
@@ -761,11 +741,11 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   int error_code;
   std::vector<std::string> sorted_fs_znodes;
   if (!zk->get_children(ZookeeperBlocksPath(file_path),
-              sorted_fs_znodes, error_code)) {
+                        sorted_fs_znodes, error_code)) {
     LOG(ERROR) << "Failed getting children of "
-           << ZookeeperBlocksPath(file_path)
-           << " with error: "
-           << error_code;
+               << ZookeeperBlocksPath(file_path)
+               << " with error: "
+               << error_code;
   }
   std::sort(sorted_fs_znodes.begin(), sorted_fs_znodes.end());
 
@@ -773,10 +753,10 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   // Note that it was due to the ZOO_SEQUENCE flag that this first
   // znode's path has the 9 digit number on the end.
   auto undo_seq_file_block_op = zk->
-    build_delete_op(ZookeeperBlocksPath(file_path +
-                      "/" + sorted_fs_znodes.back()));
+      build_delete_op(ZookeeperBlocksPath(file_path +
+                                          "/" + sorted_fs_znodes.back()));
   auto undo_ack_op = zk->build_delete_op("/work_queues/wait_for_acks/"
-                       + block_id_str);
+                                         + block_id_str);
 
   std::vector<std::string> datanodes;
   if (!find_all_datanodes_with_block(block_id_str, datanodes, error_code)) {
@@ -795,7 +775,7 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
     auto delete_queue = util::concat_path(DELETE_QUEUES, dn);
     auto delete_item = util::concat_path(delete_queue, "block-");
     ops.push_back(zk->build_create_op(delete_item, block_vec,
-                      ZOO_SEQUENCE));
+                                      ZOO_SEQUENCE));
     blockDeleted(blockId, dn);
   }
 
@@ -803,14 +783,14 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   int err;
 
   LOG(INFO) << "Built multi op. Executing multi op to abandon block... "
-        << file_path;
+            << file_path;
   if (!zk->execute_multi(ops, results, err)) {
     LOG(ERROR) << "Failed to write the abandon_block multiop, "
-      "ZK state was not changed";
+        "ZK state was not changed";
     ZKWrapper::print_error(err);
     for (int i = 0; i < results.size(); i++) {
       LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: "
-             << results[i].err;
+                 << results[i].err;
     }
     return false;
   }
@@ -818,9 +798,9 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
 }
 
 ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
-  GetFileInfoRequestProto &req,
-  GetFileInfoResponseProto &res,
-  std::string client_name) {
+    GetFileInfoRequestProto &req,
+    GetFileInfoResponseProto &res,
+    std::string client_name) {
   const std::string &path = req.src();
 
   if (file_exists(path)) {
@@ -851,7 +831,7 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
  * Create a node in zookeeper corresponding to a file
  */
 bool ZkNnClient::create_file_znode(const std::string &path,
-                   FileZNode *znode_data) {
+                                   FileZNode *znode_data) {
   int error_code;
   if (!file_exists(path)) {
     LOG(ERROR) << "Creating file znode at " << path;
@@ -901,41 +881,41 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
 
   // Delete block locations
   if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid) +
-           "/" + id, exists, error_code)) {
+                 "/" + id, exists, error_code)) {
     if (exists) {
       ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS +
-                        std::to_string(uuid) +
-                        "/" + id));
+                                        std::to_string(uuid) +
+                                        "/" + id));
       std::vector<std::string> children = std::vector<std::string>();
       if (!zk->get_children(BLOCK_LOCATIONS + std::to_string(uuid),
-                  children, error_code)) {
+                            children, error_code)) {
         LOG(ERROR) << "getting children failed";
       }
       // If deleting last child of block locations,
       // delete block locations at this block uuid
       if (children.size() == 1) {
         ops.push_back(zk->build_delete_op(BLOCK_LOCATIONS
-                          + std::to_string(uuid)));
+                                          + std::to_string(uuid)));
       }
     }
   }
 
   // Delete blocks
   if (zk->exists(HEALTH_BACKSLASH + id + BLOCKS +
-           "/" + std::to_string(uuid), exists, error_code)) {
+                 "/" + std::to_string(uuid), exists, error_code)) {
     if (exists) {
       ops.push_back(zk->build_delete_op(HEALTH_BACKSLASH + id + BLOCKS +
-                        "/" + std::to_string(uuid)));
+                                        "/" + std::to_string(uuid)));
     }
   }
 
   std::vector<zoo_op_result> results = std::vector<zoo_op_result>();
   if (!zk->execute_multi(ops, results, error_code)) {
     LOG(ERROR) << "Failed multiop when deleting block"
-           << std::to_string(uuid);
+               << std::to_string(uuid);
     for (int i = 0; i < results.size(); i++) {
       LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: "
-             << results[i].err;
+                 << results[i].err;
     }
     return false;
   }
@@ -944,7 +924,7 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
 
 
 ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(
-  const std::string &path, std::vector<std::shared_ptr<ZooOp>> &ops) {
+    const std::string &path, std::vector<std::shared_ptr<ZooOp>> &ops) {
   LOG(INFO) << "Destroying " << path;
 
   if (!file_exists(path)) {
@@ -983,7 +963,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(
     for (auto &child : children) {
       auto child_path = util::concat_path(ZookeeperBlocksPath(path), child);
       LOG(INFO) << "  path: " <<
-            ZookeeperBlocksPath(path) << " child: " << child;
+                ZookeeperBlocksPath(path) << " child: " << child;
       child_path = child_path;
       LOG(ERROR) << " child path: " << child_path;
       LOG(ERROR) << "pushed delete " << child_path;
@@ -997,12 +977,12 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(
       std::vector<std::string> datanodes;
 
       if (!zk->get_children(util::concat_path(BLOCK_LOCATIONS,
-                          std::to_string(block)),
-                  datanodes, error_code)) {
+                                              std::to_string(block)),
+                            datanodes, error_code)) {
         LOG(ERROR) << "Failed getting datanode locations for block: "
-               << block
-               << " with error: "
-               << error_code;
+                   << block
+                   << " with error: "
+                   << error_code;
         return DeleteResponse::FailedDataNodeRetrieval;
       }
       // push delete commands onto ops
@@ -1011,7 +991,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(
         auto delete_item = util::concat_path(delete_queue, "block-");
         LOG(ERROR) << "pushed create " << delete_item;
         ops.push_back(zk->build_create_op(delete_item, block_vec,
-                          ZOO_SEQUENCE));
+                                          ZOO_SEQUENCE));
         blockDeleted(block, dn);
       }
     }
@@ -1027,9 +1007,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(
     }
     for (auto &child : lease_children) {
       LOG(ERROR) << "pushed delete " << util::concat_path(
-        LeaseZookeeperPath(path), child);
+          LeaseZookeeperPath(path), child);
       ops.push_back(zk->build_delete_op(util::concat_path(
-        LeaseZookeeperPath(path), child)));
+          LeaseZookeeperPath(path), child)));
     }
     ops.push_back(zk->build_delete_op(LeaseZookeeperPath(path)));
   }
@@ -1038,8 +1018,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(
 }
 
 void ZkNnClient::complete(CompleteRequestProto& req,
-              CompleteResponseProto& res,
-              std::string client_name) {
+                          CompleteResponseProto& res,
+                          std::string client_name) {
   // TODO(2016): Completion makes a few guarantees that we should handle
   int error_code;
   // change the under construction bit
@@ -1059,9 +1039,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   auto file_blocks = std::vector<std::string>();
   if (!zk->get_children(ZookeeperBlocksPath(src), file_blocks, error_code)) {
     LOG(ERROR) << "Failed getting children of "
-           << ZookeeperBlocksPath(src)
-           << " with error: "
-           << error_code;
+               << ZookeeperBlocksPath(src)
+               << " with error: "
+               << error_code;
     res.set_result(false);
     return;
   }
@@ -1073,25 +1053,25 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   for (auto file_block : file_blocks) {
     auto data = std::vector<std::uint8_t>();
     if (!zk->get(ZookeeperBlocksPath(src) + "/" + file_block, data,
-           error_code, sizeof(uint64_t))) {
+                 error_code, sizeof(uint64_t))) {
       LOG(ERROR) << "Failed to get "
-             << ZookeeperBlocksPath(src)
-             << "/"
-             << file_block
-             << " with error: "
-             << error_code;
+                 << ZookeeperBlocksPath(src)
+                 << "/"
+                 << file_block
+                 << " with error: "
+                 << error_code;
       res.set_result(false);
       return;
     }
     uint64_t block_uuid = *reinterpret_cast<uint64_t *>(&data[0]);
     auto block_data = std::vector<std::uint8_t>();
     if (!zk->get(BLOCK_LOCATIONS + std::to_string(block_uuid),
-           block_data, error_code, sizeof(uint64_t))) {
+                 block_data, error_code, sizeof(uint64_t))) {
       LOG(ERROR) << "Failed to get "
-             << BLOCK_LOCATIONS
-             << std::to_string(block_uuid)
-             << " with error: "
-             << error_code;
+                 << BLOCK_LOCATIONS
+                 << std::to_string(block_uuid)
+                 << " with error: "
+                 << error_code;
       res.set_result(false);
       return;
     }
@@ -1103,7 +1083,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   file_znode_struct_to_vec(&znode_data, data);
   if (!zk->set(ZookeeperFilePath(src), data, error_code)) {
     LOG(ERROR)
-      << " complete could not change the construction bit and file length";
+        << " complete could not change the construction bit and file length";
     res.set_result(false);
     return;
   }
@@ -1113,9 +1093,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   std::string req_client_name = req.clientname();
   if (req_client_name.size() != 0) {
     if (!zk->exists(LeaseZookeeperPath(src) + '/' +
-                      req_client_name, exists, error_code)) {
+                    req_client_name, exists, error_code)) {
       LOG(ERROR) << "Failed to check the existence of "
-      << LeaseZookeeperPath(src) + '/' + req_client_name << ".";
+                 << LeaseZookeeperPath(src) + '/' + req_client_name << ".";
       res.set_result(false);
       return;
     }
@@ -1123,8 +1103,8 @@ void ZkNnClient::complete(CompleteRequestProto& req,
       if (!zk->delete_node(LeaseZookeeperPath(src) + '/'
                            + req_client_name, error_code, true)) {
         LOG(ERROR) << "Failed to delete node "
-        << LeaseZookeeperPath(src)
-           + '/' + req_client_name << ".";
+                   << LeaseZookeeperPath(src)
+                      + '/' + req_client_name << ".";
         res.set_result(false);
         return;
       }
@@ -1132,7 +1112,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     // Remove the client from the client branch
     if (!zk->exists(ClientZookeeperPath(req_client_name), exists, error_code)) {
       LOG(ERROR) << "Failed to check the existence of " <<
-        ClientZookeeperPath(req_client_name) << ".";
+                 ClientZookeeperPath(req_client_name) << ".";
       res.set_result(false);
       return;
     }
@@ -1140,7 +1120,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
       if (!zk->delete_node(ClientZookeeperPath(req_client_name),
                            error_code, true)) {
         LOG(ERROR) << "Failed to delete node " <<
-          ClientZookeeperPath(req_client_name) << ".";
+                   ClientZookeeperPath(req_client_name) << ".";
         res.set_result(false);
         return;
       }
@@ -1154,9 +1134,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
  * Files delete themselves, but directories are deleted by their parent (so root can't be deleted)
  */
 ZkNnClient::DeleteResponse ZkNnClient::destroy(
-  DeleteRequestProto &request,
-  DeleteResponseProto &response,
-  std::string client_name) {
+    DeleteRequestProto &request,
+    DeleteResponseProto &response,
+    std::string client_name) {
   int error_code;
   const std::string &path = request.src();
   bool recursive = request.recursive();
@@ -1164,8 +1144,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
 
   if (!file_exists(path)) {
     LOG(ERROR) << "Cannot delete "
-           << path
-           << " because it doesn't exist.";
+               << path
+               << " because it doesn't exist.";
     response.set_result(false);
     return DeleteResponse::FileDoesNotExist;
   }
@@ -1180,18 +1160,18 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
   }
 
   if (znode_data.filetype == IS_FILE
-    && znode_data.under_construction == FileStatus::UnderConstruction) {
+      && znode_data.under_construction == FileStatus::UnderConstruction) {
     LOG(ERROR) << "Cannot delete "
-           << path
-           << " because it is under construction.";
+               << path
+               << " because it is under construction.";
     response.set_result(false);
     return DeleteResponse::FileUnderConstruction;
   }
 
   if (znode_data.filetype == IS_DIR && !recursive) {
     LOG(ERROR) << "Cannot delete "
-           << path
-           << " because it is a directory. Use recursive = true.";
+               << path
+               << " because it is a directory. Use recursive = true.";
     response.set_result(false);
     return DeleteResponse::FileIsDirectoryMismatch;
   }
@@ -1204,13 +1184,13 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
   }
 
   LOG(INFO) << "Deleting multiop has "
-        << ops.size()
-        << " operations. Executing...";
+            << ops.size()
+            << " operations. Executing...";
   std::vector<zoo_op_result> results;
   if (!zk->execute_multi(ops, results, error_code)) {
     LOG(ERROR) <<
-           "Failed to execute multi op to delete " <<
-           path << " Co: " << error_code;
+               "Failed to execute multi op to delete " <<
+               path << " Co: " << error_code;
     response.set_result(false);
 
     for (int i = 0; i < results.size(); i++) {
@@ -1226,8 +1206,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
  * Create a file in zookeeper
  */
 ZkNnClient::CreateResponse ZkNnClient::create_file(
-  CreateRequestProto &request,
-  CreateResponseProto &response) {
+    CreateRequestProto &request,
+    CreateResponseProto &response) {
   const std::string &path = request.src();
   LOG(ERROR) << "Trying to create file " << path;
   const std::string &owner = request.clientname();
@@ -1254,7 +1234,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
     }
     // try and make all the parents
     if (mkdir_helper(directory_paths, true) !=
-      ZkNnClient::MkdirResponse::Ok) {
+        ZkNnClient::MkdirResponse::Ok) {
       LOG(ERROR) << "Failed to Mkdir for " << directory_paths;
       return CreateResponse::FailedMkdir;
     }
@@ -1290,8 +1270,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
  * Rename a file in the zookeeper filesystem
  */
 ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
-                        RenameResponseProto& res,
-                        std::string client_name) {
+                                              RenameResponseProto& res,
+                                              std::string client_name) {
   std::string file_path = req.src();
 
   FileZNode znode_data;
@@ -1326,33 +1306,33 @@ ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
 
   } else {
     LOG(ERROR) << "Requested rename source: "
-           << file_path
-           << " is not a file or dir";
+               << file_path
+               << " is not a file or dir";
     res.set_result(false);
     return RenameResponse::InvalidType;
   }
 
   LOG(INFO) << "Renameing multiop has "
-        << ops.size()
-        << " operations. Executing...";
+            << ops.size()
+            << " operations. Executing...";
 
   int error_code;
   std::vector<zoo_op_result> results;
   if (!zk->execute_multi(ops, results, error_code)) {
     LOG(ERROR) << "Failed multiop when renaming: '"
-           << req.src()
-           << "' to '"
-           << req.dst()
-           << "'";
+               << req.src()
+               << "' to '"
+               << req.dst()
+               << "'";
     for (int i = 0; i < results.size(); i++) {
       LOG(ERROR) << "\t MULTIOP #" << i << " ERROR CODE: " << results[i].err;
     }
     res.set_result(false);
   } else {
     LOG(INFO) << "Successfully exec'd multiop to rename "
-          << req.src()
-          << " to "
-          << req.dst();
+              << req.src()
+              << " to "
+              << req.dst();
     res.set_result(true);
     return RenameResponse::Ok;
   }
@@ -1379,7 +1359,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
  * Make a directory in zookeeper
  */
 ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
-                      MkdirsResponseProto &response) {
+                                            MkdirsResponseProto &response) {
   const std::string &path = request.src();
   bool create_parent = request.createparent();
   auto rv = mkdir_helper(path, create_parent);
@@ -1392,7 +1372,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
  * them if necessary.
  */
 ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
-                           bool create_parent) {
+                                                   bool create_parent) {
   LOG(ERROR) << "mkdir_helper called with input " << path;
   if (create_parent) {
     std::vector<std::string> split_path;
@@ -1425,15 +1405,15 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
     FileZNode znode_data;
     set_mkdir_znode(&znode_data);
     return create_file_znode(path, &znode_data) ?
-         MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
+           MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
   }
   return MkdirResponse::Ok;
 }
 
 ZkNnClient::ListingResponse ZkNnClient::get_listing(
-  GetListingRequestProto &req,
-  GetListingResponseProto &res,
-  std::string client_name) {
+    GetListingRequestProto &req,
+    GetListingResponseProto &res,
+    std::string client_name) {
   int error_code;
 
   const std::string &src = req.src();
@@ -1486,7 +1466,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
           if (need_location) {
             LocatedBlocksProto *blocks = status->mutable_locations();
             get_block_locations(child_path, 0, child_data.length, blocks,
-                      client_name);
+                                client_name);
           }
         }
       }
@@ -1500,8 +1480,8 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 }
 
 void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
-                   GetBlockLocationsResponseProto &res,
-                   std::string client_name) {
+                                     GetBlockLocationsResponseProto &res,
+                                     std::string client_name) {
   const std::string &src = req.src();
   google::protobuf::uint64 offset = req.offset();
   google::protobuf::uint64 length = req.length();
@@ -1510,10 +1490,10 @@ void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
 }
 
 void ZkNnClient::get_block_locations(const std::string &src,
-                   google::protobuf::uint64 offset,
-                   google::protobuf::uint64 length,
-                   LocatedBlocksProto *blocks,
-                   std::string client_name) {
+                                     google::protobuf::uint64 offset,
+                                     google::protobuf::uint64 length,
+                                     LocatedBlocksProto *blocks,
+                                     std::string client_name) {
   int error_code;
   const std::string zk_path = ZookeeperBlocksPath(src);
 
@@ -1539,9 +1519,9 @@ void ZkNnClient::get_block_locations(const std::string &src,
   // TODO(2016): Make more efficient
   if (!zk->get_children(zk_path, sorted_blocks, error_code)) {
     LOG(ERROR) << "Failed getting children of "
-           << zk_path
-           << " with error: "
-           << error_code;
+               << zk_path
+               << " with error: "
+               << error_code;
   }
 
   std::sort(sorted_blocks.begin(), sorted_blocks.end());
@@ -1558,12 +1538,12 @@ void ZkNnClient::get_block_locations(const std::string &src,
     if (size + block_size >= offset) {
       auto data = std::vector<uint8_t>();
       if (!zk->get(zk_path + "/" + sorted_block, data,
-             error_code, sizeof(uint64_t))) {
+                   error_code, sizeof(uint64_t))) {
         LOG(ERROR) << "Failed to get "
-               << zk_path << "/"
-               << sorted_block
-               << " info: "
-               << error_code;
+                   << zk_path << "/"
+                   << sorted_block
+                   << " info: "
+                   << error_code;
         return;  // TODO(2016): Signal error
       }
       uint64_t block_id = *reinterpret_cast<uint64_t *>(&data[0]);
@@ -1581,14 +1561,14 @@ void ZkNnClient::get_block_locations(const std::string &src,
       auto data_nodes = std::vector<std::string>();
 
       LOG(INFO) << "Getting datanode locations for block: "
-            << "/block_locations/" + std::to_string(block_id);
+                << "/block_locations/" + std::to_string(block_id);
 
       if (!zk->get_children("/block_locations/" + std::to_string(block_id),
-                  data_nodes, error_code)) {
+                            data_nodes, error_code)) {
         LOG(ERROR) << "Failed getting datanode locations for block: "
-               << "/block_locations/" + std::to_string(block_id)
-               << " with error: "
-               << error_code;
+                   << "/block_locations/" + std::to_string(block_id)
+                   << " with error: "
+                   << error_code;
       }
 
       LOG(INFO) << "Found block locations " << data_nodes.size();
@@ -1596,18 +1576,18 @@ void ZkNnClient::get_block_locations(const std::string &src,
       auto sorted_data_nodes = std::vector<std::string>();
       if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
         for (auto data_node = sorted_data_nodes.begin();
-           data_node != sorted_data_nodes.end();
-           ++data_node) {
+             data_node != sorted_data_nodes.end();
+             ++data_node) {
           LOG(INFO) << "Block DN Loc: " << *data_node;
           buildDatanodeInfoProto(located_block->add_locs(), *data_node);
         }
       } else {
         LOG(ERROR)
-          << "Unable to sort DNs by # xmits in get_block_locations. "
-            "Using unsorted instead.";
+            << "Unable to sort DNs by # xmits in get_block_locations. "
+                "Using unsorted instead.";
         for (auto data_node = data_nodes.begin();
-           data_node != data_nodes.end();
-           ++data_node) {
+             data_node != data_nodes.end();
+             ++data_node) {
           LOG(INFO) << "Block DN Loc: " << *data_node;
           buildDatanodeInfoProto(located_block->add_locs(), *data_node);
         }
@@ -1623,7 +1603,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
 // ------------------------------ HELPERS ---------------------------
 
 bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
-                 std::vector<std::string> &sorted_dn_ids) {
+                               std::vector<std::string> &sorted_dn_ids) {
   int error_code;
   std::priority_queue<TargetDN> targets;
 
@@ -1632,7 +1612,7 @@ bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
     std::vector<uint8_t> stats_payload;
     stats_payload.resize(sizeof(DataNodePayload));
     if (!zk->get(dn_stats_path, stats_payload,
-           error_code, sizeof(DataNodePayload))) {
+                 error_code, sizeof(DataNodePayload))) {
       LOG(ERROR) << "Failed to get " << dn_stats_path;
       return false;
     }
@@ -1680,8 +1660,8 @@ std::string ZkNnClient::ZookeeperBlocksPath(const std::string &hadoopPath) {
 }
 
 void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
-               GetContentSummaryResponseProto &res,
-               std::string client_name) {
+                             GetContentSummaryResponseProto &res,
+                             std::string client_name) {
   const std::string &path = req.path();
 
   if (file_exists(path)) {
@@ -1708,8 +1688,8 @@ void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
 }
 
 void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
-                     const std::string &path,
-                     FileZNode &znode_data) {
+                                       const std::string &path,
+                                       FileZNode &znode_data) {
   // get the filetype, since we do not want to serialize an enum
   int error_code = 0;
   if (znode_data.filetype == IS_DIR) {
@@ -1750,16 +1730,16 @@ void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
 }
 
 void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
-                 const std::string &path, FileZNode &znode_data) {
+                               const std::string &path, FileZNode &znode_data) {
   HdfsFileStatusProto_FileType filetype;
   // get the filetype, since we do not want to serialize an enum
   switch (znode_data.filetype) {
     case (0):filetype = HdfsFileStatusProto::IS_DIR;
-    break;
+      break;
     case (1):filetype = HdfsFileStatusProto::IS_DIR;
-    break;
+      break;
     case (2):filetype = HdfsFileStatusProto::IS_FILE;
-    break;
+      break;
     default:break;
   }
 
@@ -1782,7 +1762,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   LOG(INFO) << "Successfully set the file info ";
 }
 bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
-                SetPermissionResponseProto &res) {
+                                SetPermissionResponseProto &res) {
   int zk_error;
   const std::string path = req.src();
   FileZNode znode_data;
@@ -1809,9 +1789,9 @@ bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
 }
 
 bool ZkNnClient::add_block(const std::string &file_path,
-               std::uint64_t &block_id,
-               std::vector<std::string> &data_nodes,
-               uint32_t replicationFactor) {
+                           std::uint64_t &block_id,
+                           std::vector<std::string> &data_nodes,
+                           uint32_t replicationFactor) {
   if (!file_exists(file_path)) {
     LOG(ERROR) << "Cannot add block to non-existent file" << file_path;
     return false;
@@ -1822,8 +1802,8 @@ bool ZkNnClient::add_block(const std::string &file_path,
   // TODO(2016): This is a faulty check
   if (znode_data.under_construction == FileStatus::UnderConstruction) {
     LOG(WARNING) << "Last block for "
-           << file_path
-           << " still under construction";
+                 << file_path
+                 << " still under construction";
   }
   // TODO(2016): Check the replication factor
 
@@ -1834,7 +1814,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
   LOG(INFO) << "Generated block id " << block_id_str;
 
   if (!find_datanode_for_block(data_nodes, block_id, replicationFactor,
-                 true, znode_data.blocksize)) {
+                               true, znode_data.blocksize)) {
     return false;
   }
 
@@ -1850,26 +1830,26 @@ bool ZkNnClient::add_block(const std::string &file_path,
   // (Note the actual path of the znode the first create op makes will have a 9
   // digit number appended onto the end because of the ZOO_SEQUENCE flag)
   auto seq_file_block_op = zk->build_create_op(
-    ZookeeperBlocksPath(file_path) + "/block_",
-    data,
-    ZOO_SEQUENCE);
+      ZookeeperBlocksPath(file_path) + "/block_",
+      data,
+      ZOO_SEQUENCE);
   auto ack_op = zk->build_create_op(
-    "/work_queues/wait_for_acks/" + block_id_str,
-    ZKWrapper::EMPTY_VECTOR);
+      "/work_queues/wait_for_acks/" + block_id_str,
+      ZKWrapper::EMPTY_VECTOR);
   auto block_location_op = zk->build_create_op(
-    "/block_locations/" + block_id_str,
-    ZKWrapper::EMPTY_VECTOR);
+      "/block_locations/" + block_id_str,
+      ZKWrapper::EMPTY_VECTOR);
 
   std::vector<std::shared_ptr<ZooOp>> ops = {seq_file_block_op,
-                         ack_op,
-                         block_location_op};
+                                             ack_op,
+                                             block_location_op};
 
   auto results = std::vector<zoo_op_result>();
   int err;
   // We do not need to sync this multi-op immediately
   if (!zk->execute_multi(ops, results, err, false)) {
     LOG(ERROR)
-      << "Failed to write the addBlock multiop, ZK state was not changed";
+        << "Failed to write the addBlock multiop, ZK state was not changed";
     ZKWrapper::print_error(err);
     return false;
   }
@@ -1879,10 +1859,10 @@ bool ZkNnClient::add_block(const std::string &file_path,
 // TODO(2016): To simplify signature, could just get rid of the newBlock param
 // and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
-                     const u_int64_t blockId,
-                     uint32_t replication_factor,
-                     bool newBlock,
-                     uint64_t blocksize) {
+                                         const u_int64_t blockId,
+                                         uint32_t replication_factor,
+                                         bool newBlock,
+                                         uint64_t blocksize) {
   // TODO(2016): Actually perform this action
   // TODO(2016): Perhaps we should keep a cached list of nodes
 
@@ -1896,9 +1876,9 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
     if (!newBlock) {
       // Get the list of datanodes which already have a replica
       if (!zk->get_children(BLOCK_LOCATIONS + std::to_string(blockId),
-                  excluded_datanodes, error_code)) {
+                            excluded_datanodes, error_code)) {
         LOG(ERROR) << "Error getting children of: "
-               << BLOCK_LOCATIONS + std::to_string(blockId);
+                   << BLOCK_LOCATIONS + std::to_string(blockId);
         return false;
       }
     }
@@ -1908,19 +1888,19 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
     for (auto datanode : live_data_nodes) {
       bool isAlive;
       if (!zk->exists(HEALTH_BACKSLASH + datanode + HEARTBEAT,
-              isAlive, error_code)) {
+                      isAlive, error_code)) {
         LOG(ERROR) << "Failed to check if datanode: " + datanode
-               << " is alive: "
-               << error_code;
+                   << " is alive: "
+                   << error_code;
       }
       if (isAlive) {
         bool exclude = false;
         if (excluded_datanodes.size() > 0) {
           // Remove the excluded datanodes from the live list
           std::vector<std::string>::iterator it = std::find(
-            excluded_datanodes.begin(),
-            excluded_datanodes.end(),
-            datanode);
+              excluded_datanodes.begin(),
+              excluded_datanodes.end(),
+              datanode);
 
           if (it == excluded_datanodes.end()) {
             // This datanode was not in the excluded list, so keep it
@@ -1935,14 +1915,14 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
           std::vector<uint8_t> stats_payload;
           stats_payload.resize(sizeof(DataNodePayload));
           if (!zk->get(dn_stats_path, stats_payload,
-                 error_code, sizeof(DataNodePayload))) {
+                       error_code, sizeof(DataNodePayload))) {
             LOG(ERROR) << "Failed to get " << dn_stats_path;
             return false;
           }
           DataNodePayload stats = DataNodePayload();
           memcpy(&stats, &stats_payload[0], sizeof(DataNodePayload));
           LOG(INFO) << "\t DN stats - free_bytes: "
-                << unsigned(stats.free_bytes);
+                    << unsigned(stats.free_bytes);
           if (stats.free_bytes > blocksize) {
             auto queue = REPLICATE_QUEUES + datanode;
             auto repl_item = util::concat_path(queue, std::to_string(blockId));
@@ -1955,26 +1935,26 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
               }
             }
             LOG(INFO) << "Pushed target: "
-                  << datanode
-                  << " with "
-                  << stats.xmits
-                  << " xmits";
+                      << datanode
+                      << " with "
+                      << stats.xmits
+                      << " xmits";
             targets.push(TargetDN(datanode, stats.free_bytes, stats.xmits,
-                        ZkNnClient::policy));
+                                  ZkNnClient::policy));
           }
         }
       }
     }
 
     LOG(INFO) << "There are "
-          << targets.size()
-          << " viable DNs. Requested: "
-          << replication_factor;
+              << targets.size()
+              << " viable DNs. Requested: "
+              << replication_factor;
     if (targets.size() < replication_factor) {
       LOG(ERROR) << "Not enough available DNs! Available: "
-             << targets.size()
-             << " Requested: "
-             << replication_factor;
+                 << targets.size()
+                 << " Requested: "
+                 << replication_factor;
       // no return because we still want the client to write to some datanodes
     }
 
@@ -1983,19 +1963,19 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
       TargetDN target = targets.top();
       datanodes.push_back(target.dn_id);
       LOG(INFO) << "Selecting target DN "
-            << target.dn_id
-            << " with "
-            << target.num_xmits
-            << " xmits and "
-            << target.free_bytes
-            << " free bytes";
+                << target.dn_id
+                << " with "
+                << target.num_xmits
+                << " xmits and "
+                << target.free_bytes
+                << " free bytes";
       targets.pop();
     }
 
   } else {
     LOG(ERROR) << "Failed to get list of datanodes at "
-           << std::string(HEALTH) + " "
-           << error_code;
+               << std::string(HEALTH) + " "
+               << error_code;
     return false;
   }
 
@@ -2014,8 +1994,8 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
 
   if (datanodes.size() < replication_factor) {
     LOG(ERROR) << "Failed to find at least "
-           << replication_factor
-           << " datanodes at " + std::string(HEALTH);
+               << replication_factor
+               << " datanodes at " + std::string(HEALTH);
     // no return because we still want the client to write to some datanodes
   }
 
@@ -2030,8 +2010,8 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
  * @return Boolean indicating success or failure of the rename
  */
 bool ZkNnClient::rename_ops_for_file(const std::string &src,
-                   const std::string &dst,
-                   std::vector<std::shared_ptr<ZooOp>> &ops) {
+                                     const std::string &dst,
+                                     std::vector<std::shared_ptr<ZooOp>> &ops) {
   int error_code = 0;
   auto data = std::vector<std::uint8_t>();
   std::string src_znode = ZookeeperFilePath(src);
@@ -2045,8 +2025,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   zk->get(src_znode, data, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get data from '"
-           << src_znode
-           << "' when renaming.";
+               << src_znode
+               << "' when renaming.";
     return false;
   }
 
@@ -2057,8 +2037,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   zk->get(src_znode_blocks, data, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get data from '"
-           << src_znode
-           << "' when renaming.";
+               << src_znode
+               << "' when renaming.";
     return false;
   }
 
@@ -2071,8 +2051,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   zk->get(src_znode_leases, lease_data, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get data from '"
-    << src_znode_leases
-    << "' when renaming.";
+               << src_znode_leases
+               << "' when renaming.";
     return false;
   }
   ops.push_back(zk->build_create_op(dst_znode_leases, lease_data));
@@ -2081,8 +2061,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   zk->get_children(src_znode_leases, lease_children, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get children of znode '"
-    << src_znode_leases
-    << "' when renaming.";
+               << src_znode_leases
+               << "' when renaming.";
     return false;
   }
   for (auto child : lease_children) {
@@ -2096,17 +2076,17 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
 
     // Create new child of dst_znode with this data
     LOG(INFO) << "Added op#"
-    << ops.size()
-    << ": create "
-    << dst_znode_leases + "/" + child;
+              << ops.size()
+              << ": create "
+              << dst_znode_leases + "/" + child;
     ops.push_back(zk->build_create_op(dst_znode_leases + "/" + child,
                                       child_data));
 
     // Delete src_znode's child
     LOG(INFO) << "Added op#"
-    << ops.size()
-    << ": delete "
-    << src_znode_leases + "/" + child;
+              << ops.size()
+              << ": delete "
+              << src_znode_leases + "/" + child;
     ops.push_back(zk->build_delete_op(src_znode_leases + "/" + child));
   }
 
@@ -2116,8 +2096,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   zk->get_children(src_znode_blocks, children, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get children of znode '"
-           << src_znode
-           << "' when renaming.";
+               << src_znode
+               << "' when renaming.";
     return false;
   }
 
@@ -2132,17 +2112,17 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
 
     // Create new child of dst_znode with this data
     LOG(INFO) << "Added op#"
-          << ops.size()
-          << ": create "
-          << dst_znode + "/" + child;
+              << ops.size()
+              << ": create "
+              << dst_znode + "/" + child;
     ops.push_back(zk->build_create_op(dst_znode_blocks + "/" + child,
-                      child_data));
+                                      child_data));
 
     // Delete src_znode's child
     LOG(INFO) << "Added op#"
-          << ops.size()
-          << ": delete "
-          << src_znode + "/" + child;
+              << ops.size()
+              << ": delete "
+              << src_znode + "/" + child;
     ops.push_back(zk->build_delete_op(src_znode_blocks + "/" + child));
   }
 
@@ -2159,8 +2139,8 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
 }
 
 bool ZkNnClient::rename_ops_for_dir(const std::string &src,
-                  const std::string &dst,
-                  std::vector<std::shared_ptr<ZooOp>> &ops) {
+                                    const std::string &dst,
+                                    std::vector<std::shared_ptr<ZooOp>> &ops) {
   // Create a znode for the dst dir
   int error_code = 0;
   auto data = std::vector<std::uint8_t>();
@@ -2171,24 +2151,24 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
   zk->get(src_znode, data, error_code);
   if (error_code != ZOK) {
     LOG(ERROR) << "Failed to get data from '"
-           << src_znode
-           << "' when renaming.";
+               << src_znode
+               << "' when renaming.";
     return false;
   }
 
   // Create a new znode in the filesystem for the dst
   LOG(INFO) << "rename_ops_for_dir - Added op#"
-        << ops.size()
-        << ": create "
-        << dst_znode;
+            << ops.size()
+            << ": create "
+            << dst_znode;
   ops.push_back(zk->build_create_op(dst_znode, data));
 
   // Iterate through the items in this dir
   auto children = std::vector<std::string>();
   if (!zk->get_children(src_znode, children, error_code)) {
     LOG(ERROR) << "Failed to get children of znode '"
-           << src_znode
-           << "' when renaming.";
+               << src_znode
+               << "' when renaming.";
     return false;
   }
 
@@ -2209,8 +2189,8 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
       }
     } else {
       LOG(ERROR) << "Requested rename source: "
-             << child_path
-             << " is not a file or dir";
+                 << child_path
+                 << " is not a file or dir";
       return false;
     }
   }
@@ -2245,11 +2225,11 @@ bool ZkNnClient::check_acks() {
   auto block_uuids = std::vector<std::string>();
   // TODO(2016): Change all path constants in zk_client_common to NOT end in /
   if (!zk->get_children(WORK_QUEUES + std::string(WAIT_FOR_ACK),
-              block_uuids, error_code)) {
+                        block_uuids, error_code)) {
     LOG(ERROR) << "ERROR CODE: "
-           << error_code
-           << " occurred in check_acks when getting children for "
-           << WORK_QUEUES + std::string(WAIT_FOR_ACK);
+               << error_code
+               << " occurred in check_acks when getting children for "
+               << WORK_QUEUES + std::string(WAIT_FOR_ACK);
     return false;  // TODO(2016): Is this the right return val?
   }
   LOG(INFO) << "Checking acks for: " << block_uuids.size() << " blocks";
@@ -2257,7 +2237,7 @@ bool ZkNnClient::check_acks() {
   for (auto block_uuid : block_uuids) {
     LOG(INFO) << "Considering block: " << block_uuid;
     std::string block_path = WORK_QUEUES + std::string(WAIT_FOR_ACK_BACKSLASH)
-                 + block_uuid;
+                             + block_uuid;
 
     auto data = std::vector<std::uint8_t>();
     if (!zk->get(block_path, data, error_code)) {
@@ -2266,23 +2246,23 @@ bool ZkNnClient::check_acks() {
     }
     int replication_factor = unsigned(data[0]);
     LOG(INFO) << "Replication factor for "
-          << block_uuid
-          << " is "
-          << replication_factor;
+              << block_uuid
+              << " is "
+              << replication_factor;
 
     // Get the datanodes with have replicated this block
     auto existing_dn_replicas = std::vector<std::string>();
     if (!zk->get_children(block_path, existing_dn_replicas, error_code)) {
       LOG(ERROR) << "ERROR CODE: "
-             << error_code
-             << " occurred in check_acks when getting children for "
-             << block_path;
+                 << error_code
+                 << " occurred in check_acks when getting children for "
+                 << block_path;
       return false;
     }
     LOG(INFO) << "Found "
-          << existing_dn_replicas.size()
-          << " replicas of "
-          << block_uuid;
+              << existing_dn_replicas.size()
+              << " replicas of "
+              << block_uuid;
 
     int elapsed_time = ms_since_creation(block_path);
     if (elapsed_time < 0) {
@@ -2300,7 +2280,7 @@ bool ZkNnClient::check_acks() {
       return false;
 
     } else if (existing_dn_replicas.size() < replication_factor
-           && elapsed_time > ACK_TIMEOUT) {
+               && elapsed_time > ACK_TIMEOUT) {
       LOG(INFO) << "Not yet enough replicas after time out for " << block_uuid;
       // Block hasn't been replicated enough, request remaining replicas
       int replicas_needed = replication_factor - existing_dn_replicas.size();
@@ -2315,12 +2295,12 @@ bool ZkNnClient::check_acks() {
         return false;
       }
       LOG(INFO) << "Created "
-            << to_replicate.size()
-            << " items in the replication queue.";
+                << to_replicate.size()
+                << " items in the replication queue.";
 
     } else if (existing_dn_replicas.size() == replication_factor) {
       LOG(INFO) << "Enough replicas have been made, no longer need to wait on "
-            << block_path;
+                << block_path;
       if (!zk->recursive_delete(block_path, error_code)) {
         LOG(ERROR) << "Failed to delete: " << block_path;
         return false;
@@ -2334,7 +2314,7 @@ bool ZkNnClient::check_acks() {
 }
 
 bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
-                  int err) {
+                                  int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
   std::vector<zoo_op_result> results;
 
@@ -2347,11 +2327,11 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
     uint64_t blocksize;
     if (!get_block_size(block_id, blocksize)) {
       LOG(ERROR) << "Replicate could not read the block size for block: "
-             << block_id;
+                 << block_id;
       return false;
     }
     if (!find_datanode_for_block(target_dn, block_id, 1, false, blocksize)
-      || target_dn.size() == 0) {
+        || target_dn.size() == 0) {
       LOG(ERROR) << " Failed to find datanode for this block! " << repl;
       return false;
     }
@@ -2370,8 +2350,8 @@ bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
 }
 
 bool ZkNnClient::find_all_datanodes_with_block(
-  const std::string &block_uuid_str,
-  std::vector<std::string> &rdatanodes, int &error_code) {
+    const std::string &block_uuid_str,
+    std::vector<std::string> &rdatanodes, int &error_code) {
   std::string block_loc_path = BLOCK_LOCATIONS + block_uuid_str;
 
   if (!zk->get_children(block_loc_path, rdatanodes, error_code)) {
@@ -2380,7 +2360,7 @@ bool ZkNnClient::find_all_datanodes_with_block(
   }
   if (rdatanodes.size() < 1) {
     LOG(ERROR) << "There are no datanodes with a replica of block "
-           << block_uuid_str;
+               << block_uuid_str;
     return false;
   }
   return true;
@@ -2394,7 +2374,7 @@ int ZkNnClient::ms_since_creation(std::string &path) {
     return -1;
   }
   LOG(INFO) << "Creation time of " << path << " was: "
-        << stat.ctime << " ms ago";
+            << stat.ctime << " ms ago";
   uint64_t current_time = current_time_ms();
   LOG(INFO) << "Current time is: " << current_time << "ms";
   int elapsed = current_time - stat.ctime;
@@ -2416,7 +2396,7 @@ uint64_t ZkNnClient::current_time_ms() {
 }
 
 bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
-                    const std::string &data_node) {
+                                        const std::string &data_node) {
   int error_code;
 
   std::vector<std::string> split_address;
@@ -2425,7 +2405,7 @@ bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
 
   auto data = std::vector<std::uint8_t>();
   if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
-        error_code, sizeof(zkclient::DataNodePayload))) {
+              error_code, sizeof(zkclient::DataNodePayload))) {
     LOG(ERROR) << "Getting data node stats failed with " << error_code;
   }
 
@@ -2453,8 +2433,8 @@ bool ZkNnClient::buildTokenProto(hadoop::common::TokenProto *token) {
 }
 
 bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto *eb,
-                     const std::uint64_t &block_id,
-                     const uint64_t &block_size) {
+                                         const std::uint64_t &block_id,
+                                         const uint64_t &block_size) {
   eb->set_poolid("0");
   eb->set_blockid(block_id);
   eb->set_generationstamp(1);
@@ -2468,7 +2448,7 @@ bool ZkNnClient::lease_expired(std::string lease_holder_client) {
   if (!zk->exists(ClientZookeeperPath(lease_holder_client), exists,
                   error_code)) {
     LOG(ERROR) << "Failed to check whether the client " +
-                    ClientZookeeperPath(lease_holder_client) << " exist.";
+                  ClientZookeeperPath(lease_holder_client) << " exist.";
     return false;
   }
   if (!exists) {
@@ -2482,7 +2462,7 @@ bool ZkNnClient::lease_expired(std::string lease_holder_client) {
     if (!zk->delete_node(ClientZookeeperPath(lease_holder_client),
                          error_code)) {
       LOG(ERROR) << "Failed to delete client " +
-                      ClientZookeeperPath(lease_holder_client) << ".";
+                    ClientZookeeperPath(lease_holder_client) << ".";
       return false;
     }
   }
