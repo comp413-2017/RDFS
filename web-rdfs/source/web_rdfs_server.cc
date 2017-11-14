@@ -4,14 +4,8 @@
 #include <easylogging++.h>
 #include "http_handlers.h"
 
-WebRDFSServer::WebRDFSServer(int16_t port,
-                             zkclient::ZkNnClient *zk_arg) : zk(zk_arg) {
-  LOG(INFO) << "WebRDFS listening on port " << port;
-  server.config.port = port;
-}
-
 void WebRDFSServer::start() {
-  LOG(INFO) << "WebRDFS starting...";
+  LOG(INFO) << "WebRDFS listening on port " << server.config.port;
 
   // Register all handlers.
   WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
@@ -33,8 +27,8 @@ void WebRDFSServer::start() {
 void WebRDFSServer::register_handler(
   const std::string pattern,
   const char verb[],
-  std::function<void(std::shared_ptr<HttpServer::Response> response,
-                     std::shared_ptr<HttpServer::Request> request)> handler) {
+  std::function<void(std::shared_ptr<HttpsServer::Response> response,
+                     std::shared_ptr<HttpsServer::Request> request)> handler) {
   LOG(DEBUG) << "WebRDFS registering handler: "
              << verb
              << ", "
