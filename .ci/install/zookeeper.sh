@@ -14,6 +14,7 @@ cat > zookeeper/conf/zoo.cfg <<EOF
 tickTime=2000
 dataDir=/var/zookeeper
 clientPort=2181
+maxClientCnxns=200
 EOF
 
 # Client libraries
