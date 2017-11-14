@@ -92,43 +92,40 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#include &lt;google/protobuf/message.h&gt;</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#include &quot;hdfs.pb.h&quot;</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;</div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;zk_nn_client.h&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;zkwrapper.h&quot;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;zk_nn_client.h&quot;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;zk_dn_client.h&quot;</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;chrono&gt;</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor"></span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">namespace </span>webRequestTranslator {</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  std::string getNamenodeCreateResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  std::string getDatanodeCreateResponse(std::string contentOfFile);</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  std::string getNamenodeReadResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  std::string getDatanodeReadResponse(std::string contentOfFile);</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  std::string getMkdirResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  std::string getMvResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  std::string getDeleteResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  std::string getFileInfoHelper(<span class="keyword">const</span> <a class="code" href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">hadoop::hdfs::HdfsFileStatusProto</a> *file_status);</div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;zkwrapper.h&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;zk_nn_client.h&quot;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;zk_dn_client.h&quot;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;chrono&gt;</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#pragma once</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">namespace </span>webRequestTranslator {</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  std::string getNamenodeCreateResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  std::string getDatanodeCreateResponse(std::string contentOfFile);</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  std::string getReadResponse(std::string contentOfFile);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  std::string getMkdirResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  std::string getMvResponse(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a> &amp;dataProto, std::string requestLink);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &amp;resProto);</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  std::string getFileInfoHelper(<span class="keyword">const</span> <a class="code" href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">hadoop::hdfs::HdfsFileStatusProto</a> *file_status);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  std::string getFileInfoResponse(zkclient::ZkNnClient::GetFileInfoResponse &amp;resResp,</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;                                <a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">hadoop::hdfs::GetFileInfoResponseProto</a> &amp;resProto);</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  std::string getFileInfoResponse(zkclient::ZkNnClient::GetFileInfoResponse &amp;resResp,</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;                                <a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">hadoop::hdfs::GetFileInfoResponseProto</a> &amp;resProto);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  std::string getListingResponse(zkclient::ZkNnClient::ListingResponse &amp;resResp,</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;                                <a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">hadoop::hdfs::GetListingResponseProto</a> &amp;resProto);</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  std::string getListingResponse(zkclient::ZkNnClient::ListingResponse &amp;resResp,</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;                                <a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">hadoop::hdfs::GetListingResponseProto</a> &amp;resProto);</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  std::string getFileInfoHelper(<span class="keyword">const</span> <a class="code" href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">hadoop::hdfs::HdfsFileStatusProto</a> *file_status);</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;}; <span class="comment">// namespace</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  std::string getFileInfoHelper(<span class="keyword">const</span> <a class="code" href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">hadoop::hdfs::HdfsFileStatusProto</a> *file_status);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;}; <span class="comment">// namespace</span></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_listing_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">hadoop::hdfs::GetListingResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4740</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_file_info_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">hadoop::hdfs::GetFileInfoResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:8409</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">hadoop::hdfs::HdfsFileStatusProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3351</div></div>
