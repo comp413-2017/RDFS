@@ -203,10 +203,7 @@ class ZkNnClient : public ZkClientCommon {
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
                       bool secureMode = false);
   void register_watches();
-  /**
-   * Returns the current timestamp in milliseconds
-   */
-  uint64_t current_time_ms();
+
   /**
    * Returns the latest timestamp by the client
    */
@@ -508,12 +505,6 @@ class ZkNnClient : public ZkClientCommon {
   template <class T>
   void read_znode_data(T &znode_data, const std::string &path);
 
-
-  // -----------MJP Header---------------
-  template <class T>
-  void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
-  template <class T>
-//------------ MJP Footer ------------
 /**
  * Try to delete a node and log error if we couldnt and set response to false
  */
