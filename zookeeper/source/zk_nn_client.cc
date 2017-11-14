@@ -297,7 +297,6 @@ bool ZkNnClient::append_file(AppendRequestProto &req,
   bool done = get_primary_block_info(file_path, req, res);
 
   return done;
-
 }
 
 bool ZkNnClient::process_request(std::string client_name,
@@ -332,7 +331,8 @@ bool ZkNnClient::check_lease(std::string client_name,
   bool exists;
 
   std::vector<std::string> children;
-  if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children, error_code)) {
+  if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children,
+                        error_code)) {
     LOG(ERROR) << "Failed to get children of "
                << ZookeeperFilePath(file_path) << ".";
     return false;
@@ -407,11 +407,7 @@ bool ZkNnClient::get_primary_block_info(std::string file_path,
   // (constructing lease if necessary) and fill out the proto
 
   return true;
-
 }
-
-
-
 
 
 // --------------------------- PROTOCOL CALLS -------------------------------
