@@ -13,6 +13,8 @@ apt-get install -y language-pack-en zip unzip curl
 
 apt-get install -y git build-essential cmake automake autoconf libtool libboost-all-dev libasio-dev
 
+apt-get install -y yasm
+
 wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
 tar -xf protobuf-cpp-3.0.0.tar.gz
 rm protobuf-cpp-3.0.0.tar.gz
@@ -26,6 +28,9 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Setup Apache hadoop for pseudo-distributed usage
+if [ -d /home/vagrant/hadoop3 ]; then
+    rm -rf /home/vagrant/hadoop3
+fi
 wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1.tar.gz
 tar -xf hadoop-3.0.0-beta1.tar.gz
 mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
@@ -44,18 +49,31 @@ echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
 # add hadoop to classpath
 echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/hadoop/share/hadoop/common/*' >> /home/vagrant/.bashrc
 
-
 # Download hadoop 2.7.4 as well, but do not set as default.
-wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
-tar -xf hadoop-2.7.4.tar.gz
-mv hadoop-2.7.4 /home/vagrant/hadoop2
-rm hadoop-2.7.4.tar.gz
-cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
-cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
+if [ ! -d /home/vagrant/hadoop2 ]; then
+    wget --quiet http://mirror.cc.columbia.edu/pub/software/apache/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
+    tar -xf hadoop-2.7.4.tar.gz
+    mv hadoop-2.7.4 /home/vagrant/hadoop2
+    rm hadoop-2.7.4.tar.gz
+    cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
+    cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
+fi
 
-
+# Setup Intel Storage Acceleration Library (ISA-L)
+if [ ! -d /home/vagrant/isal ]; then
+    wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
+    tar -xf isal.tar.gz
+    mv isa-l_open_src_2.13 /home/vagrant/isal
+    rm isal.tar.gz
+    cd /home/vagrant/isal
+    make
+    cd /home/vagrant
+fi
 
 # Setup Apache zookeeper
+if [ -d /home/vagrant/zookeeper ]; then
+    rm -rf /home/vagrant/zookeeper
+fi
 wget --quiet http://kevinlin.web.rice.edu/static/zookeeper-3.4.9.tar.gz
 tar -xf zookeeper-3.4.9.tar.gz
 mv zookeeper-3.4.9 /home/vagrant/zookeeper
@@ -67,12 +85,14 @@ clientPort=2181
 EOF
 
 # Setup Apache Hive
-wget --quiet http://apache.claz.org/hive/hive-2.1.1/apache-hive-2.1.1-bin.tar.gz
-tar -xf apache-hive-2.1.1-bin.tar.gz
-mv apache-hive-2.1.1-bin /home/vagrant/hive
-rm apache-hive-2.1.1-bin.tar.gz
-echo 'export HIVE_HOME=/home/vagrant/hive' >> /home/vagrant/.bashrc
-echo 'export PATH=$HIVE_HOME/bin:$PATH' >> /home/vagrant/.bashrc
+if [ ! -d /home/vagrant/hive ]; then
+    wget --quiet http://apache.claz.org/hive/hive-2.1.1/apache-hive-2.1.1-bin.tar.gz
+    tar -xf apache-hive-2.1.1-bin.tar.gz
+    mv apache-hive-2.1.1-bin /home/vagrant/hive
+    rm apache-hive-2.1.1-bin.tar.gz
+    echo 'export HIVE_HOME=/home/vagrant/hive' >> /home/vagrant/.bashrc
+    echo 'export PATH=$HIVE_HOME/bin:$PATH' >> /home/vagrant/.bashrc
+fi
 
 # Setup mysql.
 export DEBIAN_FRONTEND=noninteractive
@@ -90,12 +110,15 @@ service mysql start
 sysv-rc-conf mysql on
 
 # Setup Apache Hue
-apt-get --assume-yes install maven libkrb5-dev libmysqlclient-dev libssl-dev libsasl2-dev libsasl2-modules-gssapi-mit libsqlite3-dev libtidy-0.99-0 libxml2-dev libxslt-dev libldap2-dev maven python-setuptools libgmp3-dev libffi-dev
-git clone https://github.com/cloudera/hue.git
-cd /home/vagrant/hue
-make apps
-cd /home/vagrant
-echo 'export PATH=/home/vagrant/hue/build/env/bin:$PATH' >> /home/vagrant/.bashrc
+if [ ! -d /home/vagrant/hue ]; then
+    apt-get --assume-yes install maven libkrb5-dev libmysqlclient-dev libssl-dev libsasl2-dev libsasl2-modules-gssapi-mit libsqlite3-dev libtidy-0.99-0 libxml2-dev libxslt-dev libldap2-dev maven python-setuptools libgmp3-dev libffi-dev
+    rm -rf /home/vagrant/hue
+    git clone https://github.com/cloudera/hue.git
+    cd /home/vagrant/hue
+    make apps
+    cd /home/vagrant
+    echo 'export PATH=/home/vagrant/hue/build/env/bin:$PATH' >> /home/vagrant/.bashrc
+fi
 
 # Set up the ZooKeeper client libraries
 apt-get --assume-yes install ant
@@ -136,14 +159,15 @@ cd ../..
 rm -r valgrindtemp
 
 # Download demo tables.
-mkdir /home/vagrant/demo_script
-cd /home/vagrant/demo_script
-wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/country.csv
-wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/population.csv
-wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/student.csv
-wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/csv_generator.py
-cd /home/vagrant
-
+if [ ! -d /home/vagrant/demo_script ]; then
+    mkdir /home/vagrant/demo_script
+    cd /home/vagrant/demo_script
+    wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/country.csv
+    wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/population.csv
+    wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/student.csv
+    wget --quiet https://github.com/Rice-Comp413-2016/RDFS/raw/demo-setup/demo_script/csv_generator.py
+    cd /home/vagrant
+fi
 
 # Put everything under /home/vagrant and /home/vagrant/.ssh.
 chown -R vagrant:vagrant /home/vagrant/*
