@@ -2,7 +2,7 @@
 
 set -ex
 
-ZOOKEEPER_MIRROR=http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+ZOOKEEPER_MIRROR=http://kevinlin.web.rice.edu/static/zookeeper-3.4.9.tar.gz
 
 cd $HOME
 if [ ! -f /tmp/cache/zookeeper.tar.gz ]; then

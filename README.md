@@ -6,7 +6,7 @@ All documentation exists in the [repository wiki](https://github.com/comp413-201
 
 ## Contributing
 
-Please see [`CONTIRBUTING.md`](https://github.com/comp413-2017/RDFS/blob/develop/CONTRIBUTING.md) for instructions on how to contribute code to this repository.
+Please see [`CONTRIBUTING.md`](https://github.com/comp413-2017/RDFS/blob/develop/CONTRIBUTING.md) for instructions on how to contribute code to this repository.
 
 ## Workflow
 

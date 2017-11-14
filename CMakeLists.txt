@@ -1,6 +1,7 @@
 project(rdfs)
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
+set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl -lssl -lcrypto")
 
 set(CMAKE_CXX_FLAGS "-Wall -DELPP_FEATURE_PERFORMANCE_TRACKING" )
 set(CMAKE_CXX_STANDARD 11)
@@ -25,6 +26,8 @@ add_subdirectory(rice-datanode)
 add_subdirectory(native-filesystem)
 add_subdirectory(test)
 add_subdirectory(storage)
+add_subdirectory(web-request)
+add_subdirectory(web-rdfs)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config/hdfs-default.xml
 	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utility/config-reader/)

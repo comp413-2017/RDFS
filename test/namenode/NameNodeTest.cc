@@ -1,7 +1,11 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <ClientNamenodeProtocol.pb.h>
 #include "NameNodeTest.h"
 
+#define ELPP_THREAD_SAFE
+
+#define ELPP_THREAD_SAFE
 INITIALIZE_EASYLOGGINGPP
 
 void NamenodeTest::SetUp() {
@@ -33,14 +37,14 @@ TEST_F(NamenodeTest, checkNamespace) {
 
 TEST_F(NamenodeTest, findDataNodes) {
   int error;
-  zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error);
+  zk->create("/health/localhost:2181", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/health/localhost:2181/heartbeat",
              ZKWrapper::EMPTY_VECTOR,
-             error);
-  zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error);
+             error, true);
+  zk->create("/health/localhost:2182", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/health/localhost:2182/heartbeat",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, true);
 
   zkclient::DataNodePayload data_node_payload = zkclient::DataNodePayload();
   data_node_payload.ipcPort = 1;
@@ -52,11 +56,13 @@ TEST_F(NamenodeTest, findDataNodes) {
   std::vector<uint8_t> stats_vec;
   stats_vec.resize(sizeof(zkclient::DataNodePayload));
   memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-  ASSERT_TRUE(zk->create("/health/localhost:2181/stats", stats_vec, error));
+  ASSERT_TRUE(zk->create("/health/localhost:2181/stats",
+                         stats_vec, error, true));
 
   data_node_payload.xmits = 3;
   memcpy(&stats_vec[0], &data_node_payload, sizeof(zkclient::DataNodePayload));
-  ASSERT_TRUE(zk->create("/health/localhost:2182/stats", stats_vec, error));
+  ASSERT_TRUE(zk->create("/health/localhost:2182/stats",
+                         stats_vec, error, true));
 
   auto datanodes = std::vector<std::string>();
   u_int64_t block_id;
@@ -68,7 +74,7 @@ TEST_F(NamenodeTest, findDataNodes) {
   memcpy(&data_vect[0], &block_data, sizeof(block_data));
   ASSERT_TRUE(zk->create("/block_locations/" + std::to_string(block_id),
                          data_vect,
-                         error));
+                         error, false));
 
   LOG(INFO) << "Finding dn's for block " << block_id;
   int rep_factor = 1;
@@ -106,7 +112,7 @@ TEST_F(NamenodeTest, basicCheckAcks) {
 
   zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-1",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(0, error);
 
   // Only one DN acknowledged, but not timed out, so should succeed
@@ -114,14 +120,14 @@ TEST_F(NamenodeTest, basicCheckAcks) {
 
   zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-2",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(0, error);
   // Only two DNs acknowledged, but not timed out, so should succeed
   ASSERT_EQ(true, client->check_acks());
 
   zk->create("/work_queues/wait_for_acks/block_uuid_1/dn-id-3",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(0, error);
   // All three DNs acknowledged, so should succeed
   ASSERT_EQ(true, client->check_acks());
@@ -143,15 +149,15 @@ TEST_F(NamenodeTest, previousBlockComplete) {
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
   util::generate_uuid(block_id);
   /* mock the directory */
-  zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error);
+  zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/block_locations/" + std::to_string(block_id),
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(false, client->previousBlockComplete(block_id));
   /* mock the child directory */
   zk->create("/block_locations/" + std::to_string(block_id) + "/child1",
              ZKWrapper::EMPTY_VECTOR,
-             error);
+             error, false);
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
 }
 
@@ -172,13 +178,13 @@ TEST_F(NamenodeTest, testRenameFile) {
 
   // Create a child of the old file with a fake block
   std::string new_path;
-  zk->create_sequential("/fileSystem/old_name/block-",
+  zk->create_sequential("/fileSystem/old_name/blocks/block-",
                         zk->get_byte_vector("Block uuid"),
                         new_path,
                         false,
                         error_code);
   ASSERT_EQ(0, error_code);
-  ASSERT_EQ("/fileSystem/old_name/block-0000000000", new_path);
+  ASSERT_EQ("/fileSystem/old_name/blocks/block-0000000000", new_path);
 
   // Rename
   hadoop::hdfs::RenameRequestProto rename_req;
@@ -200,7 +206,8 @@ TEST_F(NamenodeTest, testRenameFile) {
 
   // Ensure that the file's child indicating block_id was renamed as well
   auto new_block_data = std::vector<std::uint8_t>();
-  zk->get("/fileSystem/new_name/block-0000000000", new_block_data, error_code);
+  zk->get("/fileSystem/new_name/blocks/block-0000000000",
+          new_block_data, error_code);
   ASSERT_EQ(0, error_code);
   ASSERT_EQ("Block uuid",
             std::string(new_block_data.begin(), new_block_data.end()));

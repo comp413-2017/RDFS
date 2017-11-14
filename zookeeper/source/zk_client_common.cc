@@ -21,12 +21,15 @@ const char ZkClientCommon::WAIT_FOR_ACK[] = "wait_for_acks";
 const char ZkClientCommon::WAIT_FOR_ACK_BACKSLASH[] = "wait_for_acks/";
 const char ZkClientCommon::REPLICATE_BACKSLASH[] = "replicate/";
 const char ZkClientCommon::NAMESPACE_PATH[] = "/fileSystem";
+const char ZkClientCommon::BLOCKS_TREE[] = "/blocks";
 const char ZkClientCommon::HEALTH[] = "/health";
 const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
 const char ZkClientCommon::STATS[] = "/stats";
 const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
+const char ZkClientCommon::LEASES[] = "/leases";
+const char ZkClientCommon::CLIENTS[] = "/clients";
 
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
   int error_code;
@@ -47,14 +50,22 @@ void ZkClientCommon::init() {
   // TODO(2016): Add in error handling for failures
   if (zk->exists("/health", exists, error_code)) {
     if (!exists) {
-      zk->create("/health", vec, error_code);
+      zk->create("/health", vec, error_code, false);
     }
   } else {
     // TODO(2016): Handle error
   }
   if (zk->exists("/fileSystem", exists, error_code)) {
     if (!exists) {
-      zk->create("/fileSystem", vec, error_code);
+      zk->create("/fileSystem", vec, error_code, false);
+    } else {
+    }
+  } else {
+    // TODO(2016): Handle error
+  }
+  if (zk->exists(std::string(CLIENTS), exists, error_code)) {
+    if (!exists) {
+      zk->create(std::string(CLIENTS), vec, error_code, false);
     } else {
     }
   } else {
@@ -85,7 +96,7 @@ void ZkClientCommon::init() {
   }
   if (zk->exists("/block_locations", exists, error_code)) {
     if (!exists) {
-      zk->create("/block_locations", vec, error_code);
+      zk->create("/block_locations", vec, error_code, false);
     }
   } else {
     // TODO(2016): Handle error

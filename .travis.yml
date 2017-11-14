@@ -36,6 +36,7 @@ before_install:
   - ./.ci/install/protobuf.sh
   - ./.ci/install/hadoop.sh
   - ./.ci/install/zookeeper.sh
+  - ./.ci/install/openssl.sh
   - ./.ci/install/google-test.sh
   - ./.ci/install/google-mock.sh
   - export PATH=$HOME/hadoop/bin:$PATH

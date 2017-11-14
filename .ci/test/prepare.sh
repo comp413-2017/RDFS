@@ -17,5 +17,5 @@ sudo pip install cpplint==1.3.0
 # Create build folders and compile
 mkdir build
 cd build
-cmake ..
+cmake -DOPENSSL_ROOT_DIR=/usr/local/ssl -DOPENSSL_LIBRARIES=/usr/local/ssl/lib ..
 make

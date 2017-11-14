@@ -7,7 +7,7 @@
 #define ELPP_FEATURE_PERFORMANCE_TRACKING
 
 StorageMetrics::StorageMetrics(std::shared_ptr<ZKWrapper> zkWrapper_):
-    zkWrapper(zkWrapper_) {
+    zkWrapper(zkWrapper_), timeInProgress() {
   int error;
   std::vector<std::string> datanodeIds;
   if (!zkWrapper->get_children("/health", datanodeIds, error)) {
@@ -86,18 +86,62 @@ float StorageMetrics::blocksPerDataNodeSD() {
   return stDev(dataNodeBlockCounts);
 }
 
-float StorageMetrics::recoverySpeed() {
-  // TODO(ejd6): implement
-  return 0.0;
+int StorageMetrics::replicationRecoverySpeed() {
+  if (timeInProgress) {
+    LOG(ERROR) << "StorageMetrics: recovery timing already in progress";
+    return -1;
+  }
+  timeInProgress = true;
+  tempClock = clock();
+
+  int error;
+  std::vector<std::string> datanode_ids;
+  if (!zkWrapper->wget_children(
+      "/work_queues/replicate",
+      datanode_ids,
+      watcher_replicate,
+      this,
+      error)) {
+    LOG(ERROR) << "Storage metrics failed to set watcher.";
+    return -1;
+  }
+  LOG(INFO) << "STORAGE METRICS WATCHER set";
+  return 0;
+}
+
+void StorageMetrics::watcher_replicate(zhandle_t *zzh,
+                                       int type,
+                                       int state,
+                                       const char *path,
+                                       void *watcherCtx) {
+  LOG(INFO) << "STORAGE METRICS WATCHER TRIGGERED";
+  StorageMetrics *metrics = reinterpret_cast<StorageMetrics *>(watcherCtx);
+  std::shared_ptr<ZKWrapper> zkWrapper = metrics->zkWrapper;
+  int error;
+  std::vector<std::string> datanode_ids;
+  if (!zkWrapper->get_children("/work_queues/replicate", datanode_ids, error)) {
+    LOG(ERROR) << "watcher_replicate failed to get children 1.";
+  }
+  if (datanode_ids.size() == 0) {
+    metrics->timeInProgress = false;
+    metrics->tempClock = clock() - metrics->tempClock;
+    LOG(INFO) << "STORAGE METRICS Recovery Time: " <<
+                    static_cast<double>(metrics->tempClock) / CLOCKS_PER_SEC;
+  } else {
+    if (!zkWrapper->wget_children("/work_queues/replicate",
+                                  datanode_ids,
+                                  StorageMetrics::watcher_replicate,
+                                  watcherCtx,
+                                  error)) {
+      LOG(ERROR) << "watcher_replicate failed to set watcher 2.";
+    }
+  }
 }
 
 float StorageMetrics::degenerateRead(
     std::string file,
     std::string destination,
     std::vector<std::pair<std::string, std::string>> targetDatanodes) {
-  // Timing should be done on verbosity level 9.
-  el::Loggers::setVerboseLevel(9);
-
   // Kill the datanodes.
   for (std::pair<std::string, std::string> datanode : targetDatanodes) {
     system(("pkill -f " + datanode.first).c_str());
@@ -107,7 +151,7 @@ float StorageMetrics::degenerateRead(
   // Do the read.
   int status;
   {
-    TIMED_SCOPE(timerBlkObj, "degenerate-read");
+    TIMED_SCOPE_IF(timerBlkObj, "degenerate-read", VLOG_IS_ON(9));
     status = system(("hdfs dfs -fs hdfs://localhost:5351 -cat "
         + file
         + " > "
