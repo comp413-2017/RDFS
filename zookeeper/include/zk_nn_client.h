@@ -204,6 +204,12 @@ class ZkNnClient : public ZkClientCommon {
                       bool secureMode = false);
   void register_watches();
 
+
+  /**
+   * Returns the current timestamp in milliseconds
+   */
+  uint64_t current_time_ms();
+  
   /**
    * Returns the latest timestamp by the client
    */
@@ -567,10 +573,6 @@ class ZkNnClient : public ZkClientCommon {
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
-/**
- * Returns the current timestamp in milliseconds
- */
-  uint64_t current_time_ms();
   /**
    * Returns whether the input client is still alive.
    */
