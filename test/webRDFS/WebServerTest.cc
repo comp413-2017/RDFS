@@ -45,6 +45,41 @@ TEST(WebServerTest, testRead) {
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
 }
 
+TEST(WebServerTest, testCreate) {
+  system(
+        "hdfs dfs -fs hdfs://localhost:5351 "
+        "-copyFromLocal fileForTesting /fileToRead");
+
+      ASSERT_EQ(0,
+                system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
+                               "fileToRead?op=OPEN > actualResultRead"));
+
+      // Check that results match
+      ASSERT_EQ(0,
+                system("diff /home/vagrant/rdfs/test/webRDFS/"
+                               "expectedResultRead actualResultRead"));
+
+      system("rm actualResultRead");
+      system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
+}
+
+TEST(WebServerTest, testListing) {
+  system(
+        "hdfs dfs -fs hdfs://localhost:5351 "
+        "-copyFromLocal fileForTesting /fileToRead");
+
+      ASSERT_EQ(0,
+                system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
+                               "fileToRead?op=OPEN > actualResultRead"));
+
+      // Check that results match
+      ASSERT_EQ(0,
+                system("diff /home/vagrant/rdfs/test/webRDFS/"
+                               "expectedResultRead actualResultRead"));
+
+      system("rm actualResultRead");
+      system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
+    }
 }  // namespace
 
 int main(int argc, char **argv) {
