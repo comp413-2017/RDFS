@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.6"/>
-<title>RDFS: Member List</title>
+<title>RDFS: lru::NullLock Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -82,21 +82,57 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>lru</b></li><li class="navelem"><a class="el" href="classlru_1_1_null_lock.html">NullLock</a></li>  </ul>
+</div>
 </div><!-- top -->
 <div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classlru_1_1_null_lock-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">NamenodeTest Member List</div>  </div>
+<div class="title">lru::NullLock Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="class_namenode_test.html">NamenodeTest</a>, including all inherited members.</p>
-<table class="directory">
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>client</b> (defined in <a class="el" href="class_namenode_test.html">NamenodeTest</a>)</td><td class="entry"><a class="el" href="class_namenode_test.html">NamenodeTest</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>getCreateRequestProto</b>(const std::string &amp;path) (defined in <a class="el" href="class_namenode_test.html">NamenodeTest</a>)</td><td class="entry"><a class="el" href="class_namenode_test.html">NamenodeTest</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>SetUp</b>() (defined in <a class="el" href="class_namenode_test.html">NamenodeTest</a>)</td><td class="entry"><a class="el" href="class_namenode_test.html">NamenodeTest</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>TearDown</b>() (defined in <a class="el" href="class_namenode_test.html">NamenodeTest</a>)</td><td class="entry"><a class="el" href="class_namenode_test.html">NamenodeTest</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>zk</b> (defined in <a class="el" href="class_namenode_test.html">NamenodeTest</a>)</td><td class="entry"><a class="el" href="class_namenode_test.html">NamenodeTest</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-</table></div><!-- contents -->
+<p><code>#include &lt;<a class="el" href="_l_r_u_cache_8h_source.html">LRUCache.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for lru::NullLock:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classlru_1_1_null_lock.png" usemap="#lru::NullLock_map" alt=""/>
+  <map id="lru::NullLock_map" name="lru::NullLock_map">
+<area href="classlru_1_1_lock.html" alt="lru::Lock" shape="rect" coords="0,0,82,24"/>
+</map>
+ </div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ab2cda63aba1a8679a86f9626e3a1e618"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2cda63aba1a8679a86f9626e3a1e618"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>lock</b> ()</td></tr>
+<tr class="separator:ab2cda63aba1a8679a86f9626e3a1e618"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad77772b08ef1a6a72978db3664e2f18a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad77772b08ef1a6a72978db3664e2f18a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>unlock</b> ()</td></tr>
+<tr class="separator:ad77772b08ef1a6a72978db3664e2f18a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Null or noop lock class that is the default synchronization used in lru cache.</p>
+<p>a simple pthread based lock would look like this: </p>
+<pre>
+        class MutexLock : public <a class="el" href="classlru_1_1_lock.html">Lock</a> {
+public:
+MutexLock() { ::pthread_mutex_init(&amp;m_lock, 0); }
+virtual ~MutexLock() { ::pthread_mutex_destroy(&amp;m_lock); }
+void lock() { ::pthread_mutex_lock(&amp;m_lock); }
+void unlock() { ::pthread_mutex_unlock(&amp;m_lock); }
+private:
+pthread_mutex_t m_lock;
+}
+    </pre> </div><hr/>The documentation for this class was generated from the following file:<ul>
+<li>utility/include/<a class="el" href="_l_r_u_cache_8h_source.html">LRUCache.h</a></li>
+</ul>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
