@@ -336,7 +336,7 @@ enum class ListingResponse {
    * @param storage_block_id the given storage block id.
    * @return the index within the block group.
    */
-  u_int64_t get_index_within_block_group(u_int64_t storage_block_id);
+  u_int16_t get_index_within_block_group(u_int64_t storage_block_id);
 
     /**
    * Abandons the block - basically reverses all of add block's multiops

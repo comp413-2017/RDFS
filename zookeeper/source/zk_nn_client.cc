@@ -1208,24 +1208,24 @@ void ZkNnClient::get_block_locations(const std::string &src,
                               block_size);
 
       //Datanodes are block groups in the EC format
-      auto data_nodes = std::vector<std::string>();
+      auto block_meta_children = std::vector<std::string>();
       std::string block_metadata_path = get_block_metadata_path(block_id);
       LOG(INFO) << "Getting datanode locations for block: "
                 << block_metadata_path;
 
       if (!zk->get_children(block_metadata_path,
-                            data_nodes, error_code)) {
+                            block_meta_children, error_code)) {
         LOG(ERROR) << "Failed getting datanode locations for block: "
                    << block_metadata_path
                    << " with error: "
                    << error_code;
       }
 
-      LOG(INFO) << "Found block locations " << data_nodes.size();
+      LOG(INFO) << "Found block locations " << block_meta_children.size();
 
       if (!znode_data.isEC) {
         auto sorted_data_nodes = std::vector<std::string>();
-        if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
+        if (sort_by_xmits(block_meta_children, sorted_data_nodes)) {
           for (auto data_node = sorted_data_nodes.begin();
                data_node != sorted_data_nodes.end();
                ++data_node) {
@@ -1236,8 +1236,8 @@ void ZkNnClient::get_block_locations(const std::string &src,
           LOG(ERROR)
               << "Unable to sort DNs by # xmits in get_block_locations. "
                   "Using unsorted instead.";
-          for (auto data_node = data_nodes.begin();
-               data_node != data_nodes.end();
+          for (auto data_node = block_meta_children.begin();
+               data_node != block_meta_children.end();
                ++data_node) {
             LOG(INFO) << "Block DN Loc: " << *data_node;
             buildDatanodeInfoProto(located_block->add_locs(), *data_node);
@@ -1250,16 +1250,20 @@ void ZkNnClient::get_block_locations(const std::string &src,
         std::string block_index_string;
         int i = 0;
         // Add datanodes for the EC block
-        for (auto data_node : data_nodes) {
-          auto data = std::vector<uint8_t>();
-          if(!zk->get(BLOCK_GROUP_LOCATIONS + data_node, data,
-                      error_code, sizeof(uint64_t))) {
-            //ERROR
+        for (auto storage_block : block_meta_children) {
+          auto datanodes = std::vector<std::string>();
+          if(!zk->get_children(BLOCK_GROUP_LOCATIONS + '/' + storage_block, datanodes,
+                      error_code)) {
+            //
+          }
+          if (datanodes.size() > 1) {
+            LOG(ERROR) << "More than one datanode found for an EC storage block,"
+                "using the first datanode found. Blockid: " << storage_block;
           }
           located_block->set_storageids(i, DEFAULT_STORAGE_ID);
           located_block->set_storagetypes(i++, StorageTypeProto::DISK);
-          buildDatanodeInfoProto(located_block->add_locs(), data_node);
-          block_index_string.push_back((char) data[0]);
+          buildDatanodeInfoProto(located_block->add_locs(), datanodes[0]);
+          block_index_string.push_back((char) get_index_within_block_group((u_int64_t)std::stol(storage_block)));
         }
         located_block->set_blockindices(block_index_string);
       }
@@ -1669,9 +1673,9 @@ u_int64_t ZkNnClient::get_block_group_id(u_int64_t storage_block_id) {
     return storage_block_id & mask;
 }
 
-u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
+u_int16_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
     u_int64_t mask = 0xffff;  // 48 zeroes and 16 ones.
-    return storage_block_id & mask;
+    return (u_int16_t) storage_block_id & mask;
 }
 
 bool ZkNnClient::find_live_datanodes(const uint64_t blockId, int error_code,
