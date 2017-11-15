@@ -74,7 +74,8 @@ class ZKWrapper {
 
   std::string removeZKRoot(const std::string &path) const;
 
-  std::string removeZKRootAndDirectory(const std::string &prefix, const std::string &path) const;
+  std::string removeZKRootAndDir(const std::string &prefix, 
+                                 const std::string &path) const;
 
   /**
    * Translate numerical error code to zookeeper error string
@@ -109,7 +110,8 @@ class ZKWrapper {
    *
    * @param path The path to the new sequential znode. The last component must
    *        end in "-" like: '/foo/bar-'. When the node is created, a 10 digit
-   *        sequential ID unique to the parent node will be appended to the name.
+   *        sequential ID unique to the parent node will be appended to the 
+   *        name.
    * @param data The data contained in this znode
    * @param new_path Will contain the value of the newly created path
    * @param ephemeral If true, the created node will ephemeral
@@ -143,7 +145,8 @@ class ZKWrapper {
    * Checks if a znode exists or not.
    *
    * @param path The path to the node
-   * @param exist Set to true if a znode exists at the given path, false otherwise
+   * @param exist Set to true if a znode exists at the given path, false 
+   *              otherwise
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
    * 		   False otherwise (caller should check 'error_code' value)
@@ -155,9 +158,11 @@ class ZKWrapper {
    * specify a watcher object rather than a boolean watch flag.
    *
    * @param path The path to the znode that needs to be checked
-   * @param exist Set to true if a znode exists at the given path, false otherwise
+   * @param exist Set to true if a znode exists at the given path, false 
+   *              otherwise
    * @param watch A watcher function
-   * @param watcherCtx User specific data, will be passed to the watcher callback.
+   * @param watcherCtx User specific data, will be passed to the watcher 
+   *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
    * 		   False otherwise (caller should check 'error_code' value)
@@ -181,7 +186,8 @@ class ZKWrapper {
                    bool sync = true) const;
 
   /**
-   * Recursively deletes the znode specified in the path and any children of that path
+   * Recursively deletes the znode specified in the path and any children of
+   * that path
    *
    * @param path The path the znode (and its children) which will be deleted
    * @param error_code Int reference, set to a value in ZK_ERRORS
@@ -214,7 +220,8 @@ class ZKWrapper {
    *        names of the children znodes of the given path
    *        TODO: How large should this vector be when passed in?
    * @param watch A watcher function
-   * @param watcherCtx User specific data, will be passed to the watcher callback.
+   * @param watcherCtx User specific data, will be passed to the watcher 
+   *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
    * 		   False otherwise (caller should check 'error_code' value)
@@ -230,7 +237,8 @@ class ZKWrapper {
    *
    * @param path The path to the node
    * @param data Reference to a vector which will be filled with the znode data
-   *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
+   *        Should be of size MAX_PAYLOAD when passed in, will be resized in
+   *        this method
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
    * 		   False otherwise (caller should check 'error_code' value)
@@ -259,9 +267,11 @@ class ZKWrapper {
    *
    * @param path The path to the node
    * @param data Reference to a vector which will be filled with the znode data
-   *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
+   *        Should be of size MAX_PAYLOAD when passed in, will be resized in 
+   *        this method
    * @param watch A watcher function
-   * @param watcherCtx User specific data, will be passed to the watcher callback.
+   * @param watcherCtx User specific data, will be passed to the watcher 
+   *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
    * 		   False otherwise (caller should check 'error_code' value)

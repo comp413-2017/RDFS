@@ -81,8 +81,8 @@ void ZkNnClient::register_watches() {
 
 	for (int i = 0; i < children.size(); i++) {
 		LOG(INFO) << "[In register_watches] Attaching child to "
-				  << children[i]
-				  << ", ";
+				  		<< children[i]
+				  		<< ", ";
 		std::vector<std::string> ephem = std::vector<std::string>();
 		if (!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem,
 								watcher_health_child, this, err))) {
@@ -669,9 +669,9 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
 }
 
 ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
-    GetFileInfoRequestProto &req,
-    GetFileInfoResponseProto &res,
-    std::string client_name) {
+	GetFileInfoRequestProto &req,
+	GetFileInfoResponseProto &res,
+	std::string client_name) {
   const std::string &path = req.src();
 
   if (file_exists(path)) {

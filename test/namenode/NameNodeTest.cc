@@ -19,7 +19,6 @@ void NamenodeTest::SetUp() {
 }
 
 void NamenodeTest::TearDown() {
-  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   client->zk->close();
   zk->close();
 }
@@ -291,7 +290,7 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 int main(int argc, char **argv) {
     el::Configurations conf(LOG_CONFIG_FILE);
     conf.set(el::Level::Info, el::ConfigurationType::Enabled, "false");
-	conf.set(el::Level::Error, el::ConfigurationType::Enabled, "false");
+    // conf.set(el::Level::Error, el::ConfigurationType::Enabled, "false");
     el::Loggers::reconfigureAllLoggers(conf);
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
