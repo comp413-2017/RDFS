@@ -23,9 +23,9 @@ namespace zkclient {
 
 
 typedef enum class FileStatus : int {
-	UnderConstruction,
-	FileComplete,
-	UnderDestruction
+  UnderConstruction,
+  FileComplete,
+  UnderDestruction
 } FileStatus;
 
 /**
@@ -68,33 +68,33 @@ typedef struct {
 } ClientInfo;
 
 struct TargetDN {
-	char policy;
-	std::string dn_id;
-	uint64_t free_bytes;    // free space on disk
-	uint32_t num_xmits;        // current number of xmits
+  char policy;
+  std::string dn_id;
+  uint64_t free_bytes;    // free space on disk
+  uint32_t num_xmits;        // current number of xmits
 
-	TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
-																  dn_id(id),
-																  free_bytes(bytes),
-																  num_xmits(xmits) {
-	}
+  TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
+                                  dn_id(id),
+                                  free_bytes(bytes),
+                                  num_xmits(xmits) {
+  }
 
-	bool operator<(const struct TargetDN &other) const {
-	  // If storage policy is 'x' for xmits, choose the min xmits node
-	  if (policy == MIN_XMITS) {
-		if (num_xmits == other.num_xmits) {
-		  return free_bytes < other.free_bytes;
-		}
-		return num_xmits > other.num_xmits;
+  bool operator<(const struct TargetDN &other) const {
+    // If storage policy is 'x' for xmits, choose the min xmits node
+    if (policy == MIN_XMITS) {
+    if (num_xmits == other.num_xmits) {
+      return free_bytes < other.free_bytes;
+    }
+    return num_xmits > other.num_xmits;
 
-		// Default policy is choose the node with the most free space
-	  } else {
-		if (free_bytes == other.free_bytes) {
-		  return num_xmits > other.num_xmits;
-		}
-		return free_bytes < other.free_bytes;
-	  }
-	}
+    // Default policy is choose the node with the most free space
+    } else {
+    if (free_bytes == other.free_bytes) {
+      return num_xmits > other.num_xmits;
+    }
+    return free_bytes < other.free_bytes;
+    }
+  }
 };
 
 using hadoop::hdfs::AddBlockRequestProto;
@@ -189,12 +189,12 @@ class ZkNnClient : public ZkClientCommon {
       FileAccessRestricted
   };
 
-  explicit ZkNnClient(std::string zkIpAndAddress) 
-    : ZkClientCommon(zkIpAndAddress),
-      cache(new lru::Cache<std::string, 
-      std::shared_ptr<hadoop::hdfs::GetListingResponseProto>>(64, 10)) {
+  explicit ZkNnClient(std::string zkIpAndAddress)
+                        : ZkClientCommon(zkIpAndAddress),
+                          cache(new lru::Cache<std::string,
+                          std::shared_ptr<GetListingResponseProto>>(64, 10)) {
     mkdir_helper("/", false);
-  };
+  }
 
   /**
    * Use this constructor to build ZkNnClient with a custom ZKWrapper.
@@ -205,10 +205,10 @@ class ZkNnClient : public ZkClientCommon {
    * @return ZkNnClient
    */
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
-        bool secureMode = false) 
-          : ZkClientCommon(zk_in),
-            cache(new lru::Cache<std::string, 
-            std::shared_ptr<hadoop::hdfs::GetListingResponseProto>>(64, 10)) {
+                      bool secureMode = false)
+                        : ZkClientCommon(zk_in),
+                          cache(new lru::Cache<std::string,
+                          std::shared_ptr<GetListingResponseProto>>(64, 10)) {
     mkdir_helper("/", false);
     isSecureMode = secureMode;
   }
@@ -438,8 +438,9 @@ class ZkNnClient : public ZkClientCommon {
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
   bool cache_contains(const std::string &path);
-  
+
   int cache_size();
+
  private:
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
@@ -586,7 +587,8 @@ class ZkNnClient : public ZkClientCommon {
    * Check access to a file
    * @param username client's username
    * @param znode_data reference to the fileZNode being accessed
-   * @return boolean indicating whether the given username has access to a znode or not 
+   * @return boolean indicating whether the given username has access 
+   *                 to a znode or not
    */
   bool checkAccess(std::string username, FileZNode &znode_data);
 
@@ -607,7 +609,7 @@ class ZkNnClient : public ZkClientCommon {
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
-  lru::Cache<std::string, std::shared_ptr<hadoop::hdfs::GetListingResponseProto>> *cache;
+  lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 
 }  // namespace zkclient

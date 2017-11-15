@@ -74,7 +74,7 @@ class ZKWrapper {
 
   std::string removeZKRoot(const std::string &path) const;
 
-  std::string removeZKRootAndDir(const std::string &prefix, 
+  std::string removeZKRootAndDir(const std::string &prefix,
                                  const std::string &path) const;
 
   /**
