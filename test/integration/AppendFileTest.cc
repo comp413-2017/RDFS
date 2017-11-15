@@ -2,6 +2,39 @@
 #include <gtest/gtest.h>
 #include "../util/RDFSTestUtils.h"
 
+namespace {
+
+TEST(AppendFileTest, testFileAppend) {
+  // Make a file.
+  ASSERT_EQ(0,
+            system(
+              "python /home/vagrant/rdfs/test/integration/generate_file.py > "
+                "testfile1234"));
+
+  // Put it into rdfs.
+  system(
+        "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
+          "-copyFromLocal testfile1234 /f");
+
+  // Append the file.
+  system(
+        "hdfs dfs -fs hdfs://localhost:5351 "
+          "-appendToFile testfile1234 /f");
+
+  // Read it from rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+
+  // Create the expected test file by appending the test file twice
+  system("cat testfile1234 >> expected_testfile1234");
+  system("cat testfile1234 >> expected_testfile1234");
+
+  // Check that its contents match.
+  ASSERT_EQ(0,
+            system("diff expected_testfile1234 actual_testfile1234 > "
+            "/dev/null"));
+}
+}
+
 int main(int argc, char **argv) {
   // Start up zookeeper
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
