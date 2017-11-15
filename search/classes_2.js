@@ -2,6 +2,7 @@ var searchData=
 [
   ['cache',['Cache',['../classlru_1_1_cache.html',1,'lru']]],
   ['cache_3c_20std_3a_3astring_2c_20std_3a_3ashared_5fptr_3c_20hadoop_3a_3ahdfs_3a_3agetlistingresponseproto_20_3e_20_3e',['Cache&lt; std::string, std::shared_ptr&lt; hadoop::hdfs::GetListingResponseProto &gt; &gt;',['../classlru_1_1_cache.html',1,'lru']]],
+  ['cache_3c_20std_3a_3astring_2c_20std_3a_3ashared_5fptr_3c_20std_3a_3avector_3c_20unsigned_20char_20_3e_20_3e_20_3e',['Cache&lt; std::string, std::shared_ptr&lt; std::vector&lt; unsigned char &gt; &gt; &gt;',['../classlru_1_1_cache.html',1,'lru']]],
   ['cachedirectiveentryproto',['CacheDirectiveEntryProto',['../classhadoop_1_1hdfs_1_1_cache_directive_entry_proto.html',1,'hadoop::hdfs']]],
   ['cachedirectiveinfoexpirationproto',['CacheDirectiveInfoExpirationProto',['../classhadoop_1_1hdfs_1_1_cache_directive_info_expiration_proto.html',1,'hadoop::hdfs']]],
   ['cachedirectiveinfoproto',['CacheDirectiveInfoProto',['../classhadoop_1_1hdfs_1_1_cache_directive_info_proto.html',1,'hadoop::hdfs']]],
