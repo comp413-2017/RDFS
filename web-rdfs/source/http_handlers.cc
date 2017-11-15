@@ -3,6 +3,8 @@
 #include "http_handlers.h"
 #include <cstdlib>
 #include <easylogging++.h>
+#include <sstream>
+#include <iostream>
 
 zkclient::ZkNnClient *zk;
 
@@ -59,6 +61,34 @@ void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
   system(("rm " + storedFile).c_str());  // Clean up temp file
 }
 
+void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
+                         std::string path) {
+  LOG(DEBUG) << "HTTP request: mkdir_handler";
+
+  hadoop::hdfs::MkdirResponseProto res;
+  hadoop::hdfs::MkdirRequestProto req;
+
+  req.set_src(path);
+  zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
+
+  response->write(webRequestTranslator::getMkdirResponse(zkResp));
+}
+
+void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
+                         std::string oldPath,
+                         std::string newPath) {
+  LOG(DEBUG) << "HTTP request: rename_file_handler";
+
+  hadoop::hdfs::RenameResponseProto res;
+  hadoop::hdfs::RenameRequestProto req;
+
+  req.set_src(oldPath);
+  req.set_dst(newPath);
+  zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
+
+  response->write(webRequestTranslator::getRenameResponse(zkResp));
+}
+
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
@@ -67,8 +97,18 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
   std::string path = (request->path).substr(idxOfSplit);
 
+  std::vector<string> tokens;
+  stringstream ss(request->query_string);
+  std::string item;
+  std::string pathForRename;
+  while (getline(ss, item, '?')) {
+    tokens.push_back(item);
+  }
   // Remove op= from query string
-  std::string typeOfRequest = request->query_string.substr(3);
+  std::string typeOfRequest = tokens[0].substr(3);
+  if (sizeof(tokens) > 1) {
+    pathForRename = tokens[1].substr(8);
+  }
 
   LOG(DEBUG) << "Type of Request " << typeOfRequest;
   LOG(DEBUG) << "Path " << path;
@@ -77,6 +117,10 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
     delete_file_handler(response, path);
   } else if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
+  } else if (!typeOfRequest.compare("MKDIR")) {
+    mkdir_handler(response, path);
+  } else if (!typeOfRequest.compare("RENAME")) {
+    rename_file_handler(response, path, pathForRename);
   } else {
     create_file_handler(response, request);
   }
