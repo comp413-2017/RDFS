@@ -16,9 +16,9 @@
 
 
 enum ZK_ERRORS {
-	OK = 0,
-	PATH_NOT_FOUND = -1
-	// TODO(2016): Add more errors as needed
+  OK = 0,
+  PATH_NOT_FOUND = -1
+  // TODO(2016): Add more errors as needed
 };
 
 class ZkNnClient;
@@ -28,31 +28,31 @@ class ZkNnClient;
  * data it contains: issues with string.c_str()
  */
 class ZooOp {
-public:
-	ZooOp(const std::string &path_in,
-		  const std::vector<std::uint8_t> &data_in) {
-		this->path = new char[path_in.size() + 1];
-		snprintf(this->path, path_in.size() + 1, "%s", path_in.c_str());
-		if (data_in.size() != 0) {  // Only save non-empty data
-			this->num_bytes = data_in.size();
-			this->data = new char[this->num_bytes];
-			memcpy(this->data, data_in.data(), data_in.size());
-		}
-		op = new zoo_op_t();
-	}
+ public:
+  ZooOp(const std::string &path_in,
+      const std::vector<std::uint8_t> &data_in) {
+    this->path = new char[path_in.size() + 1];
+    snprintf(this->path, path_in.size() + 1, "%s", path_in.c_str());
+    if (data_in.size() != 0) {  // Only save non-empty data
+      this->num_bytes = data_in.size();
+      this->data = new char[this->num_bytes];
+      memcpy(this->data, data_in.data(), data_in.size());
+    }
+    op = new zoo_op_t();
+  }
 
-	~ZooOp() {
-		delete path;
-		if (data) {
-			delete data;
-		}
-		delete op;
-	}
+  ~ZooOp() {
+    delete path;
+    if (data) {
+      delete data;
+    }
+    delete op;
+  }
 
-	zoo_op_t *op = nullptr;
-	char *path = nullptr;
-	char *data = nullptr;
-	int num_bytes = 0;
+  zoo_op_t *op = nullptr;
+  char *path = nullptr;
+  char *data = nullptr;
+  int num_bytes = 0;
 };
 
 class ZKWrapper {
@@ -89,11 +89,11 @@ class ZKWrapper {
    */
   static std::string translate_error(int error_code);
 
-  static void ZKWrapper::watcher_znode_data(zhandle_t *zzh,
-                                int type,
-                                int state,
-                                const char *path,
-                                void *watcherCtx);
+  static void watcher_znode_data(zhandle_t *zzh,
+                                 int type,
+                                 int state,
+                                 const char *path,
+                                 void *watcherCtx);
 
   /**
    * Create a znode in zookeeper
