@@ -22,7 +22,6 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
   zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
 
   response->write(webRequestTranslator::getCreateResponse(path));
-
 }
 
 void ls_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -32,7 +31,7 @@ void ls_handler(std::shared_ptr<HttpsServer::Response> response,
   GetListingRequestProto req;
   GetListingResponseProto res;
 
-  zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req,res);
+  zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req, res);
 
   response->write(webRequestTranslator::getListingResponse(zkResp, res));
 }
@@ -104,17 +103,14 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-
 }
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-
 }
 
 void delete_handler(std::shared_ptr<HttpsServer::Response> response,
                     std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-
 }
