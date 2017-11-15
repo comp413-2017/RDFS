@@ -39,6 +39,13 @@ namespace webRequestTranslator {
   }
 
   /**
+   * Converts the create response into the appropriate webRDFS response.
+   */
+   std::string getCreateResponse(std::string path) {
+      return path;
+   }
+
+  /**
    * Converts the read response into the appropriate webRDFS response.
    */
   std::string getReadResponse(std::string contentOfFile) {

@@ -11,11 +11,30 @@ void setZk(zkclient::ZkNnClient *zk_arg) {
 }
 
 void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::shared_ptr<HttpsServer::Request> request) {
+                         std::string path) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
-  // TODO(security): implement
-  response->write("create_file_handler");
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -put " + path;
+
+  hadoop::hdfs::CreateResponseProto res;
+  hadoop::hdfs::CreateRequestProto req;
+
+  zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
+
+  response->write(webRequestTranslator::getCreateResponse(path));
+
+}
+
+void ls_handler(std::shared_ptr<HttpsServer::Response> response,
+                std::shared_ptr<HttpsServer::Request> request) {
+  LOG(DEBUG) << "HTTP request: listing_directory_handler";
+
+  GetListingRequestProto req;
+  GetListingResponseProto res;
+
+  zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req,res);
+
+  response->write(webRequestTranslator::getListingResponse(zkResp, res));
 }
 
 void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -78,24 +97,24 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   } else if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
   } else {
-    create_file_handler(response, request);
+    create_file_handler(response, path);
   }
 }
 
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-  create_file_handler(response, request);
+
 }
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-  create_file_handler(response, request);
+
 }
 
 void delete_handler(std::shared_ptr<HttpsServer::Response> response,
                     std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
-  create_file_handler(response, request);
+
 }
