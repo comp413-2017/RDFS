@@ -52,7 +52,7 @@ TEST(WebServerTest, testCreate) {
 
       ASSERT_EQ(0,
                 system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                               "fileToRead?op=OPEN > actualResultRead"));
+                               "fileToRead?op=CREATE > actualResultRead"));
 
       // Check that results match
       ASSERT_EQ(0,
@@ -70,7 +70,7 @@ TEST(WebServerTest, testListing) {
 
       ASSERT_EQ(0,
                 system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                               "fileToRead?op=OPEN > actualResultRead"));
+                               "fileToRead?op=LISTSTATUS > actualResultRead"));
 
       // Check that results match
       ASSERT_EQ(0,

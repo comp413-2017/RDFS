@@ -95,8 +95,11 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
     delete_file_handler(response, path);
   } else if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
-  } else {
+  } else if (!typeOfRequest.compare("CREATE")){
     create_file_handler(response, path);
+  }
+  else {
+    ls_handler(response, request);
   }
 }
 
