@@ -20,6 +20,7 @@
 class NamenodeTest : public ::testing::Test {
  protected:
     void SetUp();
+    void TearDown();
 
     hadoop::hdfs::CreateRequestProto getCreateRequestProto(
             const std::string &path);

@@ -94,6 +94,7 @@ ZKWrapper::ZKWrapper(std::string host, int &error_code, std::string root_path) {
                 << root
                 << " exists "
                 << error_code;
+          return;
       }
       if (!root_exists) {
         if (!recursive_create(root_path, EMPTY_VECTOR, error_code)) {
@@ -134,6 +135,18 @@ std::string ZKWrapper::prepend_zk_root(const std::string &path) const {
 std::string ZKWrapper::removeZKRoot(const std::string &path) const {
   if (path.substr(0, root.size()) == root) {
     return path.substr(root.size());
+  }
+  return path;
+}
+
+std::string ZKWrapper::removeZKRootAndDir(const std::string &prefix,
+                                          const std::string &path) const {
+  if (path.substr(0, root.size()) == root) {
+    auto temp = path.substr(root.size());
+    if (temp.substr(0, prefix.size()) == prefix) {
+      return temp.substr(prefix.size());
+    }
+    return temp;
   }
   return path;
 }

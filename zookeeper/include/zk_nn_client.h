@@ -1,4 +1,4 @@
-  // Copyright 2017 Rice University, COMP 413 2017
+// Copyright 2017 Rice University, COMP 413 2017
 
 #ifndef ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 #define ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
@@ -15,6 +15,7 @@
 #include "ClientNamenodeProtocol.pb.h"
 #include <ConfigReader.h>
 #include "util.h"
+#include "LRUCache.h"
 
 #define MAX_USERNAME_LEN 256
 
@@ -22,14 +23,14 @@ namespace zkclient {
 
 
 typedef enum class FileStatus : int {
-    UnderConstruction,
-    FileComplete,
-    UnderDestruction
+  UnderConstruction,
+  FileComplete,
+  UnderDestruction
 } FileStatus;
 
 /**
- * This is the basic znode to describe a file
- */
+* This is the basic znode to describe a file
+*/
 typedef struct {
   uint32_t replication;
   uint64_t blocksize;
@@ -72,26 +73,26 @@ struct TargetDN {
   uint64_t free_bytes;    // free space on disk
   uint32_t num_xmits;        // current number of xmits
 
-  TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
-                                                   free_bytes(bytes),
-                                                   policy(policy),
-                                                   num_xmits(xmits) {
+  TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
+                                  dn_id(id),
+                                  free_bytes(bytes),
+                                  num_xmits(xmits) {
   }
 
   bool operator<(const struct TargetDN &other) const {
     // If storage policy is 'x' for xmits, choose the min xmits node
     if (policy == MIN_XMITS) {
-        if (num_xmits == other.num_xmits) {
-            return free_bytes < other.free_bytes;
-        }
-        return num_xmits > other.num_xmits;
+    if (num_xmits == other.num_xmits) {
+      return free_bytes < other.free_bytes;
+    }
+    return num_xmits > other.num_xmits;
 
     // Default policy is choose the node with the most free space
     } else {
-        if (free_bytes == other.free_bytes) {
-            return num_xmits > other.num_xmits;
-        }
-        return free_bytes < other.free_bytes;
+    if (free_bytes == other.free_bytes) {
+      return num_xmits > other.num_xmits;
+    }
+    return free_bytes < other.free_bytes;
     }
   }
 };
@@ -188,7 +189,12 @@ class ZkNnClient : public ZkClientCommon {
       FileAccessRestricted
   };
 
-  explicit ZkNnClient(std::string zkIpAndAddress);
+  explicit ZkNnClient(std::string zkIpAndAddress)
+                        : ZkClientCommon(zkIpAndAddress),
+                          cache(new lru::Cache<std::string,
+                          std::shared_ptr<GetListingResponseProto>>(64, 10)) {
+    mkdir_helper("/", false);
+  }
 
   /**
    * Use this constructor to build ZkNnClient with a custom ZKWrapper.
@@ -199,7 +205,13 @@ class ZkNnClient : public ZkClientCommon {
    * @return ZkNnClient
    */
   explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
-                      bool secureMode = false);
+                      bool secureMode = false)
+                        : ZkClientCommon(zk_in),
+                          cache(new lru::Cache<std::string,
+                          std::shared_ptr<GetListingResponseProto>>(64, 10)) {
+    mkdir_helper("/", false);
+    isSecureMode = secureMode;
+  }
   void register_watches();
   /**
    * Returns the current timestamp in milliseconds
@@ -425,6 +437,10 @@ class ZkNnClient : public ZkClientCommon {
    */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
+  bool cache_contains(const std::string &path);
+
+  int cache_size();
+
  private:
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
@@ -551,6 +567,9 @@ class ZkNnClient : public ZkClientCommon {
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
+  static void watcher_listing(zhandle_t *zzh, int type, int state,
+                              const char *path, void *watcherCtx);
+
   /**
    * Returns whether the input client is still alive.
    */
@@ -568,7 +587,8 @@ class ZkNnClient : public ZkClientCommon {
    * Check access to a file
    * @param username client's username
    * @param znode_data reference to the fileZNode being accessed
-   * @return boolean indicating whether the given username has access to a znode or not 
+   * @return boolean indicating whether the given username has access 
+   *                 to a znode or not
    */
   bool checkAccess(std::string username, FileZNode &znode_data);
 
@@ -588,6 +608,8 @@ class ZkNnClient : public ZkClientCommon {
   bool isSecureMode = false;
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
+
+  lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 
 }  // namespace zkclient

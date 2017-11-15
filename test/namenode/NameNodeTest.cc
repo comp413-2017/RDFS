@@ -18,6 +18,11 @@ void NamenodeTest::SetUp() {
     zk = new ZKWrapper("localhost:2181", error_code, "/testing");
 }
 
+void NamenodeTest::TearDown() {
+  client->zk->close();
+  zk->close();
+}
+
 hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
         const std::string &path
 ) {
@@ -285,6 +290,7 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 int main(int argc, char **argv) {
     el::Configurations conf(LOG_CONFIG_FILE);
     conf.set(el::Level::Info, el::ConfigurationType::Enabled, "false");
+    // conf.set(el::Level::Error, el::ConfigurationType::Enabled, "false");
     el::Loggers::reconfigureAllLoggers(conf);
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
