@@ -406,6 +406,13 @@ bool ZkNnClient::get_primary_block_info(std::string file_path,
   // Summary: basically in all validate correct append request
   // (constructing lease if necessary) and fill out the proto
 
+  CompleteRequestProto complete_req;
+  CompleteResponseProto complete_resp;
+  complete_req.set_src(req.src());
+  complete_req.set_clientname(req.clientname());
+
+  complete(complete_req, complete_resp, req.clientname());
+
   return true;
 }
 
