@@ -5,6 +5,7 @@
 
 #define MIN_XMITS 'x'
 #define MAX_FREE_SPACE 'f'
+#define STABLE_TTM -10  // Choose an invalid TTM that won't occur during a race
 
 #include "zk_client_common.h"
 #include <google/protobuf/message.h>
@@ -51,6 +52,8 @@ typedef struct {
   char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
   int perm_length;  // number of slots filled in permissions
   int permission_number;
+  uint32_t ref_count;  // Number of Open clients (for a file)
+  int tt_migrate;  // Remaining time til migration between hot/cold
 } FileZNode;
 
 /**
