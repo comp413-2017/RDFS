@@ -500,7 +500,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
   if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
     return false;
   }
-  
+
 
   // TODO(anyone): send ClientReadStatusProto (delimited)
   if (!fs->writeBlock(block_id, data)) {
@@ -514,7 +514,6 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
 
   // Pretty confident we don't need this line,
   // but if we get a bug this is a place to check
-  // 
   LOG(INFO) << "Replication complete, closing connection.";
   return true;
 }

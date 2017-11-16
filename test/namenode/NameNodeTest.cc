@@ -92,7 +92,6 @@ TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
 
 TEST_F(NamenodeTest, setErasureCodingPolicies) {
   // TODO(nate): implement this unit test.
-
 }
 
 TEST_F(NamenodeTest, createECFile) {
