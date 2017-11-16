@@ -2049,13 +2049,10 @@ bool ZkNnClient::find_live_datanodes(const uint64_t blockId, int error_code,
 }
 
 
-// TODO(2016): To simplify signature, could just get rid of the newBlock param
-// and always check for preexisting replicas
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
                                         std::vector<std::string> &excluded_dns,
                                          const u_int64_t blockId,
                                          uint32_t replication_factor,
-                                         bool newBlock,
                                          uint64_t blocksize) {
   // TODO(2016): Actually perform this action
   // TODO(2016): Perhaps we should keep a cached list of nodes
