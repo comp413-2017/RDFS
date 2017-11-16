@@ -192,6 +192,7 @@ TEST_F(NamenodeTest, listingPerformance) {
                     EXPECT_TRUE(listing_resp.has_dirlist());
                     dir_listing = listing_resp.dirlist();
                     EXPECT_EQ(dir_listing.partiallisting_size(), dir_num);
+                    listing_resp.clear_dirlist();
                 }
             }
         }
