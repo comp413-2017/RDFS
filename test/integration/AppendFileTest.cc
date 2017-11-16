@@ -71,7 +71,7 @@ TEST(AppendFileTest, testFileAppend) {
             system("diff expected_testfile1234 actual_testfile1234 > "
             "/dev/null"));
 }
-} // namespace
+}  // namespace
 
 int main(int argc, char **argv) {
   // Start up zookeeper
