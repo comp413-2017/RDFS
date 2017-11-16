@@ -15,7 +15,7 @@ TEST_F(NamenodeTest, renewLeaseCorrectnessTest) {
   uint64_t time = client->current_time_ms();
   bool exists;
   int error_code;
-  ASSERT_FALSE(client->zk->exists(client->CLIENTS
+  ASSERT_TRUE(client->zk->exists(client->CLIENTS
                                  + std::string("/test_client"),
                                  exists, error_code));
   ASSERT_TRUE(exists);
