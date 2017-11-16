@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/zookeeper/include ${CMAKE_SOURCE_DIR}/utility/logging)
+include_directories(${CMAKE_SOURCE_DIR}/zookeeper/include ${CMAKE_SOURCE_DIR}/utility/logging ${CMAKE_SOURCE_DIR}/utility/include)
 include_directories(${CMAKE_SOURCE_DIR}/zkwrapper/include)
 
 add_library(zkwrapper source/zkwrapper.cc)

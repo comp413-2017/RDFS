@@ -1,46 +1,10 @@
 #include "webRequestTranslator.h"
 
 namespace webRequestTranslator {
-    /**
-     * Converts the RDFS namenode create response into the appropriate webRDFS response.
-     */
-    std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-      std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
-
-      std::string delimiter = "/webhfs/v1/";
-      std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
-
-      hadoop::hdfs::DatanodeIDProto id = dataProto.id();
-      res += "Location: http://";
-      res += id.hostname();
-      res += ":";
-      res += std::to_string(id.infoport());
-
-      res += delimiter;
-      res += restOfRequest;
-
-      res += "\nContent-Length: 0";
-      return res;
-    }
-
-    /**
-     * Converts the RDFS datanode create response into the appropriate webRDFS response.
-     */
-    std::string getDatanodeCreateResponse(std::string location, std::string contentOfFile) {
-      std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
-
-      res += location;
-      res += "\n";
-      res += "Content-Length: ";
-      res += std::to_string(contentOfFile.length());
-      res += "\n\n";
-
-      return res;
-    }
   /**
-   * Converts the RDFS namenode read response into the appropriate webRDFS response.
+   * Converts the RDFS namenode create response into the appropriate webRDFS response.
    */
-  std::string getNamenodeReadResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
+  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
     std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
 
     std::string delimiter = "/webhfs/v1/";
@@ -60,36 +24,50 @@ namespace webRequestTranslator {
   }
 
   /**
-   * Converts the RDFS datanode read response into the appropriate webRDFS response.
+   * Converts the RDFS datanode create response into the appropriate webRDFS response.
    */
-  std::string getDatanodeReadResponse(std::string contentOfFile) {
-    std::string res = std::string("HTTP/1.1 200 OK\nContent-Type: application/octet-stream\nContent-Length: ");
+  std::string getDatanodeCreateResponse(std::string location, std::string contentOfFile) {
+    std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
 
+    res += location;
+    res += "\n";
+    res += "Content-Length: ";
     res += std::to_string(contentOfFile.length());
     res += "\n\n";
-    res += contentOfFile;
 
-    return res;
+    return "";
   }
+
+  /**
+   * Converts the read response into the appropriate webRDFS response.
+   */
+  std::string getReadResponse(std::string contentOfFile) {
+    return contentOfFile;
+  }
+
   /**
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
   std::string getMkdirResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
+    return "{\"boolean\":true}\n";
   }
 
   /**
    * Converts the RDFS datanode mv response into the appropriate webRDFS response.
    */
   std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
+    return "{\"boolean\":true}\n";
   }
 
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
-  std::string getDeleteResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
-    return "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n{\"boolean\":true}\n";
+  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &resProto) {
+    if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
+      return "{\"boolean\":true}\n";
+    } else {
+      return "{\"boolean\":false}\n";
+    }
   }
 
   /**
@@ -99,16 +77,10 @@ namespace webRequestTranslator {
                                 hadoop::hdfs::GetFileInfoResponseProto &resProto) {
     std::string res = std::string("");
 
-    if (resResp == zkclient::ZkNnClient::GetFileInfoResponse::Ok) {
-      res += "HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n";
-    } else if (resResp == zkclient::ZkNnClient::GetFileInfoResponse::FileDoesNotExist) {
-      res += "HTTP/1.1 404 Not Found\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n"
-             "File does not exist";
-      return res;
+    if (resResp == zkclient::ZkNnClient::GetFileInfoResponse::FileDoesNotExist) {
+      return "File does not exist\n";
     } else if (resResp == zkclient::ZkNnClient::GetFileInfoResponse::FailedReadZnode){
-      res += "HTTP/1.1 500 Internal Server Error\nContent-Type: application/json\nTransfer-Encoding: chunked\n\n"
-             "Failed to read znode";
-      return res;
+      return "Failed to read znode\n";
     }
     res += "{\n\"FileStatus\":\n\n";
 
@@ -127,36 +99,28 @@ namespace webRequestTranslator {
   std::string getListingResponse(zkclient::ZkNnClient::ListingResponse &resResp,
                                  hadoop::hdfs::GetListingResponseProto &resProto) {
     std::string res = std::string("");
-    std::string temp = std::string("");
 
-    if (resResp == zkclient::ZkNnClient::ListingResponse::Ok) {
-      res += "HTTP/1.1 200 OK\nContent-Type: application/json\nContent-Length: ";
-    } else if (resResp == zkclient::ZkNnClient::ListingResponse::FileDoesNotExist) {
-      res += "HTTP/1.1 404 Not Found\nContent-Type: application/json\nContent-Length: 19\n\n"
-        "File does not exist";
-      return res;
-    } else if (resResp == zkclient::ZkNnClient::ListingResponse::FailedChildRetrieval){
-      res += "HTTP/1.1 500 Internal Server Error\nContent-Type: application/json\nContent-Length: 20\n\n"
-        "Failed to find child";
-      return res;
+    if (resResp ==
+        zkclient::ZkNnClient::ListingResponse::FileDoesNotExist) {
+      return "File does not exist\n";
+    } else if (resResp ==
+              zkclient::ZkNnClient::ListingResponse::FailedChildRetrieval) {
+      return "Failed to find child\n";
     }
-    temp += "{\n\"FileStatuses\":\n\"FileStatus\":\n[";
+
+    res += "{\n\"FileStatuses\":\n\"FileStatus\":\n[";
 
     hadoop::hdfs::DirectoryListingProto dir_listing = resProto.dirlist();
     int i;
     int num_files = dir_listing.partiallisting_size();
 
     for (i = 0; i < num_files; i++) {
-      temp += "{\n";
-      temp += getFileInfoHelper(&dir_listing.partiallisting(i));
-      temp += "}\n";
+      res += "{\n";
+      res += getFileInfoHelper(&dir_listing.partiallisting(i));
+      res += "}\n";
     }
 
-    temp += "]\n}\n}\n";
-
-    res += std::to_string(temp.length());
-    res += "\n\n";
-    res += temp;
+    res += "]\n}\n}\n";
 
     return res;
   }

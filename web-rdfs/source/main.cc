@@ -1,6 +1,7 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
 #include "web_rdfs_server.h"
+#include "http_handlers.h"
 #include <cstdlib>
 #include <easylogging++.h>
 
@@ -73,7 +74,8 @@ int main(int argc, char *argv[]) {
   char node_policy = MAX_FREE_SPACE;
   nncli.set_node_policy(node_policy);
 
+  setZk(&nncli);
+  WebRDFSServer server(port);
 
-  WebRDFSServer server(port, &nncli);
   server.start();
 }

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "zkwrapper.h"
+#include "LRUCache.h"
 
 using std::clock;
 
