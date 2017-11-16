@@ -90,7 +90,7 @@ void ZkClientCommon::init() {
   if (zk->exists("/leadership", exists, error_code)) {
     if (!exists) {
       if (!zk->create("/leadership", vec, error_code, false))
-        LOG(ERROR << "Failed creating /leadership: " << error_code);
+        LOG(ERROR) << "Failed creating /leadership: " << error_code;
     }
   }
 

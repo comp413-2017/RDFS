@@ -131,8 +131,8 @@ int main(int argc, char *argv[]) {
 
   daemon_thread::DaemonThreadFactory factory;
   // TODO(anm9) discuss sleep time
-  factory.create_daemon_thread(&ZkNnClient::timer,
-                               nncli, 30); 
+  factory.create_daemon_thread(&zkclient::ZkNnClient::timer,
+                               &nncli, 30); 
 
   LOG(INFO) << "Namenode is starting";
   ClientNamenodeTranslator translator(port, &nncli);

@@ -126,7 +126,7 @@ void ZkNnClient::registerNameNode() {
 
 std::string ZkNnClient::generateNnId() {
   int new_id = -1;
-  bool uinque = false;
+  bool unique = false;
   while(!unique) {
     new_id = rand();
     unique = true;
@@ -163,9 +163,9 @@ bool ZkNnClient::is_leader() {
 
 bool ZkNnClient::timer() {
   if(!is_leader()) {
-    return;
+    return true;
   }
-
+  return true;
 }
 
 void ZkNnClient::register_watches() {
