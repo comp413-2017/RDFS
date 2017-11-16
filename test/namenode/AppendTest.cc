@@ -17,7 +17,7 @@ TEST_F(NamenodeTest, checkLeaseTest) {
   ASSERT_EQ(client->create_file(create_req, create_resp),
             zkclient::ZkNnClient::CreateResponse::Ok);
 
-  ASSERT_TRUE(client->check_lease(client_name, "test_file"));
+  ASSERT_FALSE(client->check_lease(client_name, "test_file"));
 }
 
 // TEST_F(NamenodeTest, checkLeaseTest) {

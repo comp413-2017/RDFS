@@ -335,7 +335,6 @@ bool ZkNnClient::process_request(std::string client_name,
 bool ZkNnClient::check_lease(std::string client_name,
                              std::string file_path) {
   int error_code;
-  bool exists;
 
   std::vector<std::string> children;
   if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children,
