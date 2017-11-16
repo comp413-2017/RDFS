@@ -1,4 +1,4 @@
-  // Copyright 2017 Rice University, COMP 413 2017
+// Copyright 2017 Rice University, COMP 413 2017
 
 #ifndef ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
 #define ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_
@@ -17,18 +17,21 @@
 #include "erasurecoding.pb.h"
 #include <ConfigReader.h>
 #include "util.h"
+#include "LRUCache.h"
+
+#define MAX_USERNAME_LEN 256
 
 namespace zkclient {
 
 typedef enum class FileStatus : int {
-    UnderConstruction,
-    FileComplete,
-    UnderDestruction
+  UnderConstruction,
+  FileComplete,
+  UnderDestruction
 } FileStatus;
 
 /**
- * This is the basic znode to describe a file
- */
+* This is the basic znode to describe a file
+*/
 typedef struct {
   uint32_t replication;  // the block replication factor.
   bool isEC;  // 1 if EC file. 0 if replication based.
@@ -43,9 +46,28 @@ typedef struct {
   // java.lang.String)
   std::uint64_t access_time;
   std::uint64_t modification_time;
-  char owner[256];  // the client who created the file
-  char group[256];
+  char owner[MAX_USERNAME_LEN];  // the client who created the file
+  char group[MAX_USERNAME_LEN];
+  char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
+  int perm_length;  // number of slots filled in permissions
+  int permission_number;
 } FileZNode;
+
+/**
+ * Lease info that stores in each lease node.
+ */
+typedef struct {
+  std::string clientName;   // Same as the
+                            // clientName passed
+                            // from RenewLeaseRequestProto
+} LeaseInfo;
+
+/**
+ * Client info that stores in each client node
+ */
+typedef struct {
+  uint64_t timestamp;    // std::time()
+} ClientInfo;
 
 struct TargetDN {
   char policy;
@@ -53,26 +75,26 @@ struct TargetDN {
   uint64_t free_bytes;    // free space on disk
   uint32_t num_xmits;        // current number of xmits
 
-  TargetDN(std::string id, int bytes, int xmits, char policy) : dn_id(id),
-                                                   free_bytes(bytes),
-                                                   policy(policy),
-                                                   num_xmits(xmits) {
+  TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
+                                  dn_id(id),
+                                  free_bytes(bytes),
+                                  num_xmits(xmits) {
   }
 
   bool operator<(const struct TargetDN &other) const {
     // If storage policy is 'x' for xmits, choose the min xmits node
     if (policy == MIN_XMITS) {
-        if (num_xmits == other.num_xmits) {
-            return free_bytes < other.free_bytes;
-        }
-        return num_xmits > other.num_xmits;
+    if (num_xmits == other.num_xmits) {
+      return free_bytes < other.free_bytes;
+    }
+    return num_xmits > other.num_xmits;
 
     // Default policy is choose the node with the most free space
     } else {
-        if (free_bytes == other.free_bytes) {
-            return num_xmits > other.num_xmits;
-        }
-        return free_bytes < other.free_bytes;
+    if (free_bytes == other.free_bytes) {
+      return num_xmits > other.num_xmits;
+    }
+    return free_bytes < other.free_bytes;
     }
   }
 };
@@ -105,6 +127,15 @@ using hadoop::hdfs::GetContentSummaryRequestProto;
 using hadoop::hdfs::GetContentSummaryResponseProto;
 using hadoop::hdfs::ContentSummaryProto;
 using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::SetOwnerRequestProto;
+using hadoop::hdfs::SetOwnerResponseProto;
+using hadoop::hdfs::RenameResponseProto;
+using hadoop::hdfs::SetPermissionRequestProto;
+using hadoop::hdfs::SetPermissionResponseProto;
+using hadoop::hdfs::RenewLeaseRequestProto;
+using hadoop::hdfs::RenewLeaseResponseProto;
+using hadoop::hdfs::RecoverLeaseRequestProto;
+using hadoop::hdfs::RecoverLeaseResponseProto;
 using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
@@ -113,7 +144,6 @@ using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
-
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -132,10 +162,11 @@ class ZkNnClient : public ZkClientCommon {
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
-enum class ListingResponse {
-      Ok,                   // 0
-      FileDoesNotExist,     // 1
-      FailedChildRetrieval  // 2
+  enum class ListingResponse {
+      Ok,                    // 0
+      FileDoesNotExist,      // 1
+      FailedChildRetrieval,  // 2
+      FileAccessRestricted   // 3
   };
 
   enum class DeleteResponse {
@@ -146,13 +177,15 @@ enum class ListingResponse {
       FailedChildRetrieval,
       FailedBlockRetrieval,
       FailedDataNodeRetrieval,
-      FailedZookeeperOp
+      FailedZookeeperOp,
+      FileAccessRestricted
   };
 
   enum class GetFileInfoResponse {
     Ok,
     FileDoesNotExist,
-    FailedReadZnode
+    FailedReadZnode,
+    FileAccessRestricted
   };
 
   enum class MkdirResponse {
@@ -172,7 +205,8 @@ enum class ListingResponse {
       FileDoesNotExist,
       RenameOpsFailed,
       InvalidType,
-      MultiOpFailed
+      MultiOpFailed,
+      FileAccessRestricted
   };
 
   enum class ErasureCodingPoliciesResponse {
@@ -190,39 +224,146 @@ enum class ListingResponse {
       FailedZookeeperOp
   };
 
-  explicit ZkNnClient(std::string zkIpAndAddress);
+  explicit ZkNnClient(std::string zkIpAndAddress)
+                        : ZkClientCommon(zkIpAndAddress),
+                          cache(new lru::Cache<std::string,
+                          std::shared_ptr<GetListingResponseProto>>(64, 10)) {
+    mkdir_helper("/", false);
+    populateDefaultECProto();
+  }
 
   /**
    * Use this constructor to build ZkNnClient with a custom ZKWrapper.
    * Which will allow you to set a root
    * directory for all operations on this client
    * @param zk_in shared pointer to a ZKWrapper
+   * @param secureMode boolean indicating using secure mode or not
    * @return ZkNnClient
    */
-  explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in);
+  explicit ZkNnClient(std::shared_ptr<ZKWrapper> zk_in,
+                      bool secureMode = false)
+                        : ZkClientCommon(zk_in),
+                          cache(new lru::Cache<std::string,
+                          std::shared_ptr<GetListingResponseProto>>(64, 10)) {
+    mkdir_helper("/", false);
+    isSecureMode = secureMode;
+    populateDefaultECProto();
+  }
   void register_watches();
+  /**
+   * Returns the current timestamp in milliseconds
+   */
+  uint64_t current_time_ms();
+  /**
+   * Returns the latest timestamp by the client
+   */
+  uint64_t get_client_lease_timestamp(std::string client_name);
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles
    */
-
+  void renew_lease(RenewLeaseRequestProto &req,
+                   RenewLeaseResponseProto &res);
+  void recover_lease(RecoverLeaseRequestProto &req,
+                     RecoverLeaseResponseProto &res);
+  /**
+   * Get info of the file.
+   * @param req GetFileInfoRequestProto
+   * @param res GetFileInfoResponseProto
+   * @return GetFileInfoResponse
+   */
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
-                               GetFileInfoResponseProto &res);
-  ZkNnClient::CreateResponse  create_file(CreateRequestProto &request,
-                                          CreateResponseProto &response);
-  void get_block_locations(GetBlockLocationsRequestProto &req,
-                           GetBlockLocationsResponseProto &res);
-  DeleteResponse destroy(DeleteRequestProto &req, DeleteResponseProto &res);
-  MkdirResponse mkdir(MkdirsRequestProto &req, MkdirsResponseProto &res);
-  void complete(CompleteRequestProto &req, CompleteResponseProto &res);
-  RenameResponse rename(RenameRequestProto &req, RenameResponseProto &res);
-  ListingResponse get_listing(GetListingRequestProto &req,
-                              GetListingResponseProto &res);
-  void get_content(GetContentSummaryRequestProto &req,
-                   GetContentSummaryResponseProto &res);
+                               GetFileInfoResponseProto &res,
+                               std::string client_name = "default");
 
+  /**
+   * Create the file.
+   * @param req CreateRequestProto
+   * @param res CreateResponseProto
+   * @return CreateResponse
+   */
+  CreateResponse create_file(CreateRequestProto &request,
+                                         CreateResponseProto &response);
+
+  /**
+   * Get locations of blocks.
+   * @param req GetBlockLocationsRequestProto
+   * @param res GetBlockLocationsResponseProto
+   * @param client_name client's name as string
+   * @return
+   */
+  void get_block_locations(GetBlockLocationsRequestProto &req,
+                           GetBlockLocationsResponseProto &res,
+                           std::string client_name = "default");
+  /**
+   * Make a directory.
+   * @param req MkdirsRequestProto
+   * @param res MkdirsResponseProto
+   * @return MkdirResponse
+   */
+  MkdirResponse mkdir(MkdirsRequestProto &req,
+                      MkdirsResponseProto &res);
+
+  /**
+   * Destroy the file.
+   * @param req DeleteRequestProto
+   * @param res DeleteResponseProto
+   * @param client_name client's name as string
+   * @return MkdirResponse
+   */
+  DeleteResponse destroy(DeleteRequestProto &req,
+                         DeleteResponseProto &res,
+                         std::string client_name = "default");
+
+  /**
+   * Complete the file.
+   * @param req CompleteRequestProto
+   * @param res CompleteResponseProto
+   * @param client_name client's name as string
+   * @return 
+   */
+  void complete(CompleteRequestProto &req,
+                CompleteResponseProto &res,
+                std::string client_name = "default");
+
+  /**
+   * Rename the file.
+   * @param req RenameRequestProto
+   * @param res RenameResponseProto
+   * @param client_name client's name as string
+   * @return RenameResponse
+   */
+  RenameResponse rename(RenameRequestProto &req,
+                        RenameResponseProto &res,
+                        std::string client_name = "default");
+
+  /**
+   * Get listing of the file.
+   * @param req GetListingRequestProto
+   * @param res GetListingResponseProto
+   * @param client_name client's name as string
+   * @return ListingResponse
+   */
+  ListingResponse get_listing(GetListingRequestProto &req,
+                              GetListingResponseProto &res,
+                              std::string client_name = "default");
+  /**
+   * Get content of the file.
+   * @param req GetContentSummaryRequestProto
+   * @param res GetContentSummaryResponseProto
+   * @param client_name client's name as string
+   * @return
+   */
+  void get_content(GetContentSummaryRequestProto &req,
+                   GetContentSummaryResponseProto &res,
+                   std::string client_name = "default");
+
+  /**
+   * Sets file info content.
+   */
   void set_file_info_content(ContentSummaryProto *status,
-                             const std::string &path, FileZNode &znode_data);
+                             const std::string &path,
+                             FileZNode &znode_data);
 
   void set_node_policy(char policy);
 
@@ -250,11 +391,45 @@ enum class ListingResponse {
       SetErasureCodingPolicyRequestProto &req,
       SetErasureCodingPolicyResponseProto &res);
 
+//  bool modifyAclEntries(ModifyAclEntriesRequestProto req,
+//                        ModifyAclEntriesResponseProto res);
+  /**
+   * Sets the permission of the file.
+   * @param req SetPermissionRequestProto
+   * @param res SetPermissionResponseProto
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool set_permission(SetPermissionRequestProto &req,
+                      SetPermissionResponseProto &res);
+
+  /**
+   * Sets the owner of the file.
+   * @param req SetOwnerRequestProto
+   * @param res SetOwnerResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool set_owner(SetOwnerRequestProto &req,
+                 SetOwnerResponseProto &res,
+                 std::string client_name = "default");
   /**
    * Adds a block by making appropriate namespace changes and returns information about
    * the set of DataNodes that the block data should be hosted by.
+   * @param req AddBlockRequestProto
+   * @param res AddBlockResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
    */
-  bool add_block(AddBlockRequestProto &req, AddBlockResponseProto &res);
+  bool add_block(AddBlockRequestProto &req,
+                 AddBlockResponseProto &res,
+                 std::string client_name = "default");
+  /*
+   * Sets the owner of the file.
+   * @param req SetOwnerRequestProto
+   * @param res SetOwnerResponseProto
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res);
 
   /**
    * A helper method that achieves the above add_block method.
@@ -330,9 +505,14 @@ enum class ListingResponse {
 
   /**
    * Abandons the block - basically reverses all of add block's multiops
+   * @param req AbandonBlockRequestProtoProto
+   * @param res AbandonBlockResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
    */
   bool abandon_block(AbandonBlockRequestProto &req,
-                     AbandonBlockResponseProto &res);
+                     AbandonBlockResponseProto &res,
+                     std::string client_name = "default");
 
   bool previousBlockComplete(uint64_t prev_id);
   /**
@@ -377,12 +557,17 @@ enum class ListingResponse {
   void get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
-                           LocatedBlocksProto *blocks);
+                           LocatedBlocksProto *blocks,
+                           std::string client_name = "default");
 
   /**
    * Read a znode corresponding to a file into znode_data
    */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
+
+  bool cache_contains(const std::string &path);
+
+  int cache_size();
 
  private:
   /**
@@ -398,6 +583,15 @@ enum class ListingResponse {
   void set_file_info(HdfsFileStatusProto *fs,
                      const std::string &path,
                      FileZNode &node);
+  /**
+   * Given the client name, get the client path.
+   */
+  std::string ClientZookeeperPath(const std::string & clientname);
+  /**
+    * Given the filesystem path, get the full zookeeper path for leases
+    */
+  std::string LeaseZookeeperPath(const std::string & hadoopPath);
+
   /**
    * Given the filesystem path, get the full zookeeper path for the blocks
    * where the data is located
@@ -437,6 +631,10 @@ enum class ListingResponse {
    */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
+  template <class T>
+  void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+  template <class T>
+  void read_znode_data(T &znode_data, const std::string &path);
 
   /**
    * Try to delete a node and log error if we couldnt and set response to false
@@ -506,10 +704,13 @@ enum class ListingResponse {
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
+  static void watcher_listing(zhandle_t *zzh, int type, int state,
+                              const char *path, void *watcherCtx);
+
   /**
-   * Returns the current timestamp in milliseconds
+   * Returns whether the input client is still alive.
    */
-  uint64_t current_time_ms();
+  bool lease_expired(std::string lease_holder_client);
 
   /**
   * Informs Zookeeper when the DataNode has deleted a block.
@@ -524,15 +725,32 @@ enum class ListingResponse {
    */
   void populateDefaultECProto();
 
+  /**
+   * Check access to a file
+   * @param username client's username
+   * @param znode_data reference to the fileZNode being accessed
+   * @return boolean indicating whether the given username has access 
+   *                 to a znode or not
+   */
+  bool checkAccess(std::string username, FileZNode &znode_data);
+
   const int UNDER_CONSTRUCTION = 1;
   const int FILE_COMPLETE = 0;
   const int UNDER_DESTRUCTION = 2;
+
   const int IS_FILE = 2;
   const int IS_DIR = 1;
   // TODO(2016): Should eventually be read from a conf file
   // in millisecons, 10 minute timeout when waiting for
   // replication acknowledgements
   const int ACK_TIMEOUT = 600000;
+
+  // Boolean indicating whether zk_nn is in secure mode
+  bool isSecureMode = false;
+  const uint64_t EXPIRATION_TIME =
+    2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
+
+  lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 
 }  // namespace zkclient

@@ -12,12 +12,16 @@
 #include <memory>
 #include <cstring>
 #include <map>
+#include "LRUCache.h"
+
 
 enum ZK_ERRORS {
   OK = 0,
   PATH_NOT_FOUND = -1
   // TODO(2016): Add more errors as needed
 };
+
+class ZkNnClient;
 
 /**
  * Class representing a ZooKeeper op. Performs manual memory management on the
@@ -26,7 +30,7 @@ enum ZK_ERRORS {
 class ZooOp {
  public:
   ZooOp(const std::string &path_in,
-        const std::vector<std::uint8_t> &data_in) {
+      const std::vector<std::uint8_t> &data_in) {
     this->path = new char[path_in.size() + 1];
     snprintf(this->path, path_in.size() + 1, "%s", path_in.c_str());
     if (data_in.size() != 0) {  // Only save non-empty data
@@ -74,6 +78,9 @@ class ZKWrapper {
 
   std::string removeZKRoot(const std::string &path) const;
 
+  std::string removeZKRootAndDir(const std::string &prefix,
+                                 const std::string &path) const;
+
   /**
    * Translate numerical error code to zookeeper error string
    *
@@ -82,6 +89,12 @@ class ZKWrapper {
    */
   static std::string translate_error(int error_code);
 
+  static void watcher_znode_data(zhandle_t *zzh,
+                                 int type,
+                                 int state,
+                                 const char *path,
+                                 void *watcherCtx);
+
   /**
    * Create a znode in zookeeper
    *
@@ -89,7 +102,7 @@ class ZKWrapper {
    * @param data The data contained in this znode
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool create(const std::string &path,
               const std::vector<std::uint8_t> &data,
@@ -107,13 +120,14 @@ class ZKWrapper {
    *
    * @param path The path to the new sequential znode. The last component must
    *        end in "-" like: '/foo/bar-'. When the node is created, a 10 digit
-   *        sequential ID unique to the parent node will be appended to the name.
+   *        sequential ID unique to the parent node will be appended to the 
+   *        name.
    * @param data The data contained in this znode
    * @param new_path Will contain the value of the newly created path
    * @param ephemeral If true, the created node will ephemeral
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool create_sequential(const std::string &path,
                          const std::vector<std::uint8_t> &data,
@@ -130,7 +144,7 @@ class ZKWrapper {
    * @param data The data to store in the new znode
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool recursive_create(const std::string &path,
                         const std::vector<std::uint8_t> &data,
@@ -141,10 +155,11 @@ class ZKWrapper {
    * Checks if a znode exists or not.
    *
    * @param path The path to the node
-   * @param exist Set to true if a znode exists at the given path, false otherwise
+   * @param exist Set to true if a znode exists at the given path, false 
+   *              otherwise
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool exists(const std::string &path, bool &exist, int &error_code) const;
 
@@ -153,12 +168,14 @@ class ZKWrapper {
    * specify a watcher object rather than a boolean watch flag.
    *
    * @param path The path to the znode that needs to be checked
-   * @param exist Set to true if a znode exists at the given path, false otherwise
+   * @param exist Set to true if a znode exists at the given path, false 
+   *              otherwise
    * @param watch A watcher function
-   * @param watcherCtx User specific data, will be passed to the watcher callback.
+   * @param watcherCtx User specific data, will be passed to the watcher 
+   *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool wexists(const std::string &path,
                bool &exist,
@@ -172,19 +189,20 @@ class ZKWrapper {
    * @param path The path to the znode that should be deleted
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool delete_node(const std::string &path,
                    int &error_code,
                    bool sync = true) const;
 
   /**
-   * Recursively deletes the znode specified in the path and any children of that path
+   * Recursively deletes the znode specified in the path and any children of
+   * that path
    *
    * @param path The path the znode (and its children) which will be deleted
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool recursive_delete(const std::string &path, int &error_code) const;
 
@@ -197,7 +215,7 @@ class ZKWrapper {
    *        TODO: How large should this vector be when passed in?
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool get_children(const std::string &path,
                     std::vector<std::string> &children,
@@ -212,10 +230,11 @@ class ZKWrapper {
    *        names of the children znodes of the given path
    *        TODO: How large should this vector be when passed in?
    * @param watch A watcher function
-   * @param watcherCtx User specific data, will be passed to the watcher callback.
+   * @param watcherCtx User specific data, will be passed to the watcher 
+   *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool wget_children(const std::string &path,
                      std::vector<std::string> &children,
@@ -228,10 +247,11 @@ class ZKWrapper {
    *
    * @param path The path to the node
    * @param data Reference to a vector which will be filled with the znode data
-   *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
+   *        Should be of size MAX_PAYLOAD when passed in, will be resized in
+   *        this method
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool get(const std::string &path,
            std::vector<std::uint8_t> &data,
@@ -245,7 +265,7 @@ class ZKWrapper {
    * @param stat Reference to a stat struct to be filled with znode info
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   *		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool get_info(const std::string &path,
                 struct Stat &stat,
@@ -257,12 +277,14 @@ class ZKWrapper {
    *
    * @param path The path to the node
    * @param data Reference to a vector which will be filled with the znode data
-   *        Should be of size MAX_PAYLOAD when passed in, will be resized in this method
+   *        Should be of size MAX_PAYLOAD when passed in, will be resized in 
+   *        this method
    * @param watch A watcher function
-   * @param watcherCtx User specific data, will be passed to the watcher callback.
+   * @param watcherCtx User specific data, will be passed to the watcher 
+   *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool wget(const std::string &path,
             std::vector<std::uint8_t> &data,
@@ -279,7 +301,7 @@ class ZKWrapper {
    * @param version A version number indicating changes to the data at this node
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation completed successfully,
-   * 		   False otherwise (caller should check 'error_code' value)
+   *       False otherwise (caller should check 'error_code' value)
    */
   bool set(const std::string &path,
            const std::vector<std::uint8_t> &data,
@@ -364,6 +386,8 @@ class ZKWrapper {
 
   static const std::map<int, std::string> error_message;
   static const std::string CLASS_NAME;
+
+  lru::Cache<std::string, std::shared_ptr<std::vector<unsigned char>>> *cache;
 };
 
 #endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_

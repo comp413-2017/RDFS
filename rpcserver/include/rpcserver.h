@@ -2,6 +2,7 @@
 
 #include <easylogging++.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <unistd.h>
 #include <thread>
 #include <iostream>
 #include <string>
@@ -16,6 +17,8 @@
 
 #include "socket_writes.h"
 #include "socket_reads.h"
+
+#include <unistd.h>
 
 #pragma once
 
@@ -44,6 +47,12 @@ class RPCServer {
   void register_handler(
       std::string key,
       std::function<std::string(std::string)> handler);
+
+  /**
+   * Returns the name of the current running linux user.
+   * @return A string of the current user's name
+   */
+  std::string getUsername();
 
  private:
   /**

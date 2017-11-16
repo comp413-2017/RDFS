@@ -1,5 +1,6 @@
 // Copyright 2017 Rice University, COMP 413 2017
 
+#include <ClientNamenodeProtocol.pb.h>
 #include "NameNodeTest.h"
 
 #define ELPP_THREAD_SAFE
@@ -15,6 +16,11 @@ void NamenodeTest::SetUp() {
     assert(error_code == 0);  // Z_OK
     client = new zkclient::ZkNnClient(zk_shared);
     zk = new ZKWrapper("localhost:2181", error_code, "/testing");
+}
+
+void NamenodeTest::TearDown() {
+  client->zk->close();
+  zk->close();
 }
 
 hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
@@ -374,6 +380,7 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 int main(int argc, char **argv) {
     el::Configurations conf(LOG_CONFIG_FILE);
     conf.set(el::Level::Info, el::ConfigurationType::Enabled, "false");
+    // conf.set(el::Level::Error, el::ConfigurationType::Enabled, "false");
     el::Loggers::reconfigureAllLoggers(conf);
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 

@@ -1,7 +1,7 @@
 #ifndef SIMPLE_WEB_UTILITY_HPP
 #define SIMPLE_WEB_UTILITY_HPP
 
-#include "status_code.hpp"
+#include "status_code.h"
 #include <atomic>
 #include <iostream>
 #include <memory>
