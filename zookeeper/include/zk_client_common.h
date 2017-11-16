@@ -57,6 +57,8 @@ class ZkClientCommon {
   static const char BLOCKS_TREE[];
   static const char HEALTH[];
   static const char HEALTH_BACKSLASH[];
+  static const char LEADERSHIP[];
+  static const char LEADERSHIP_BACKSLASH[];
   static const char STATS[];
   static const char HEARTBEAT[];
   static const char WORK_QUEUES[];

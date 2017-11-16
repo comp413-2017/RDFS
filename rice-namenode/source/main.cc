@@ -8,6 +8,7 @@
 #include "ClientNamenodeProtocolImpl.h"
 #include "HaServiceProtocolImpl.h"
 #include "zk_nn_client.h"
+#include "DaemonFactory.h"
 
 #define ELPP_FRESH_LOG_FILE
 #define ELPP_THREAD_SAFE
@@ -127,6 +128,11 @@ int main(int argc, char *argv[]) {
   zkclient::ZkNnClient nncli(zk_shared);
   nncli.register_watches();
   nncli.set_node_policy(node_policy);
+
+  daemon_thread::DaemonThreadFactory factory;
+  // TODO(anm9) discuss sleep time
+  factory.create_daemon_thread(&ZkNnClient::timer,
+                               nncli, 30); 
 
   LOG(INFO) << "Namenode is starting";
   ClientNamenodeTranslator translator(port, &nncli);

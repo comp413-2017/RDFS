@@ -150,6 +150,7 @@ using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
  */
 class ZkNnClient : public ZkClientCommon {
  public:
+  std::string nnID;
   char policy;
   const char* EC_REPLICATION = "REPLICATION";
   const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
@@ -258,6 +259,29 @@ class ZkNnClient : public ZkClientCommon {
    * Returns the latest timestamp by the client
    */
   uint64_t get_client_lease_timestamp(std::string client_name);
+
+  /**
+   * Registers namenode in Zookeeper for leadership election
+   */
+  void registerNameNode();
+
+  /**
+   * Generates system-unique ID for the namenode
+   * @return the new ID for the namenode
+   */
+  std::string generateNnId();
+
+  /**
+   * Checks if this namenode is the elected leader
+   * @return whether this namenode is the leader
+   */
+  bool is_leader();
+
+  /**
+   * Runs periodically to do timer-related work.
+   * Exits immediately if you are not the leader.
+   */
+  bool timer();
 
   /**
    * These methods will correspond to proto calls that the client namenode protocol handles

@@ -3,6 +3,7 @@
 #ifndef RDFS_ZKNNCLIENT_CC
 #define RDFS_ZKNNCLIENT_CC
 
+#include <cstdlib>
 #include "zk_lock.h"
 #include "zk_dn_client.h"
 #include "zkwrapper.h"
@@ -73,6 +74,19 @@ using hadoop::hdfs::StorageTypeProto;
 
 namespace zkclient {
 
+ZkNnClient::ZkNnClient(std::string zkIpAndAddress) :
+    ZkClientCommon(zkIpAndAddress) {
+  mkdir_helper("/", false);
+  populateDefaultECProto();
+}
+
+ZkNnClient::ZkNnClient(std::shared_ptr<ZKWrapper> zk_in) :
+    ZkClientCommon(zk_in) {
+  registerNameNode(); 
+  mkdir_helper("/", false);
+  populateDefaultECProto();
+}
+
 void ZkNnClient::populateDefaultECProto() {
   DEFAULT_EC_SCHEMA.set_parityunits(DEFAULT_PARITY_UNITS);
   DEFAULT_EC_SCHEMA.set_dataunits(DEFAULT_DATA_UNITS);
@@ -89,6 +103,69 @@ void ZkNnClient::populateDefaultECProto() {
 */
 void notify_delete() {
   printf("No heartbeat, no childs to retrieve\n");
+}
+
+void ZkNnClient::registerNameNode() {
+  // TODO(anm9) use locks to ensure consistency
+  bool success = false;
+  int attempts = 0;
+  while (success && attempts < 3) {
+    nnID = generateNnId();
+    int error;
+    success = zk->create(LEADERSHIP_BACKSLASH + nnID,
+                        ZKWrapper::EMPTY_VECTOR, error, true);
+    if (!success) {
+      LOG(INFO) << "Failed to create leadership node, retrying";
+      attempts++;
+    }
+  }
+  if (attempts >= 3) {
+    LOG(ERROR) << "Could not create leadership node";
+  }
+}
+
+std::string ZkNnClient::generateNnId() {
+  int new_id = -1;
+  bool uinque = false;
+  while(!unique) {
+    new_id = rand();
+    unique = true;
+    int err;
+    auto nn_ids = std::vector<std::string>();
+    if (!zk->get_children(LEADERSHIP, nn_ids,err)) {
+      LOG(ERROR) << "Failed to read leadership children";
+      new_id = -1;
+      break;
+    }
+    for (auto nn_id : nn_ids) {
+      if(!nn_id.compare(std::to_string(new_id))) {
+        unique = false;
+        break;
+      }
+    }
+  }
+  return std::to_string(new_id);
+}
+
+bool ZkNnClient::is_leader() {
+  // TODO(anm9) use locks for consistency
+  int err;
+  auto nn_ids = std::vector<std::string>();
+  if (!zk->get_children(LEADERSHIP, nn_ids,err)) {
+    LOG(ERROR) << "Failed to read leadership children";
+  }
+  for (auto nn_id : nn_ids) {
+    if (std::stoi(nn_id) > std::stoi(nnID))
+      return false;
+  }
+  return true;
+}
+
+bool ZkNnClient::timer() {
+  if(!is_leader()) {
+    return;
+  }
+
 }
 
 void ZkNnClient::register_watches() {

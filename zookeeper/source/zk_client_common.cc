@@ -27,6 +27,8 @@ const char ZkClientCommon::NAMESPACE_PATH[] = "/fileSystem";
 const char ZkClientCommon::BLOCKS_TREE[] = "/blocks";
 const char ZkClientCommon::HEALTH[] = "/health";
 const char ZkClientCommon::HEALTH_BACKSLASH[] = "/health/";
+const char ZkClientCommon::LEADERSHIP[] = "/leadership";
+const char ZkClientCommon::LEADERSHIP_BACKSLASH[] = "/leadership/";
 const char ZkClientCommon::STATS[] = "/stats";
 const char ZkClientCommon::HEARTBEAT[] = "/heartbeat";
 const char ZkClientCommon::BLOCK_LOCATIONS[] = "/block_locations/";
@@ -84,6 +86,14 @@ void ZkClientCommon::init() {
   } else {
     // TODO(2016): Handle error
   }
+
+  if (zk->exists("/leadership", exists, error_code)) {
+    if (!exists) {
+      if (!zk->create("/leadership", vec, error_code, false))
+        LOG(ERROR << "Failed creating /leadership: " << error_code);
+    }
+  }
+
   if (zk->exists("/fileSystem", exists, error_code)) {
     if (!exists) {
       zk->create("/fileSystem", vec, error_code, false);
