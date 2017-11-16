@@ -78,7 +78,7 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
     if (!exists) {
-      zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + std::to_string(uuid)));
+      zk->flush(zk->prepend_zk_root(BLOCK_LOCATIONS + std::to_string(uuid)), true);
       if (zk->exists(BLOCK_LOCATIONS + std::to_string(uuid),
                      exists, error_code)) {
         LOG(ERROR) << "/block_locations/<block_uuid> did not exist "
