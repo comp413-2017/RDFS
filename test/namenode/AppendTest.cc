@@ -1,6 +1,4 @@
-//
-// Created by Marc Canby on 11/16/17.
-//
+// Copyright 2017 Rice University, COMP 413 2017
 
 #include "NameNodeTest.h"
 
