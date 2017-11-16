@@ -361,7 +361,7 @@ class ZKWrapper {
    * @param synchronous Whether this operation is blocking
    * @return true on success
    */
-  bool flush(const std::string &full_path, bool synchronous = true) const;
+  bool flush(const std::string &full_path, bool synchronous = false) const;
 
   void close();
 
