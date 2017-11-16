@@ -343,8 +343,11 @@ bool ZkNnClient::check_lease(std::string client_name,
                << ZookeeperFilePath(file_path) << ".";
     return false;
   }
-  if (children.size() > 0) {
+
+  if (children.size() == 1 && children.at(0) == client_name) {
     return true;
+  } else if (children.size() >= 1) {
+    return false;
   } else {
     // Currently there is no client holding a lease for this file.
     ClientInfo clientInfo;
