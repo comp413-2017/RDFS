@@ -7,11 +7,14 @@ include_directories(${CMAKE_SOURCE_DIR}/zkwrapper/include
         ${CMAKE_SOURCE_DIR}/utility/include
         ${CMAKE_SOURCE_DIR}/rice-datanode/include
         ${CMAKE_SOURCE_DIR}/native-filesystem/include
-        ${CMAKE_SOURCE_DIR}/rpcserver/include)
+        ${CMAKE_SOURCE_DIR}/rpcserver/include
+		${CMAKE_SOURCE_DIR}/isal/include)
 
 add_library(zk_client_common source/zk_client_common.cc)
 target_link_libraries(zk_client_common zkwrapper)
 target_link_libraries(zk_client_common easylogging++)
+target_link_libraries(zk_client_common isal)
+target_link_libraries(zk_client_common /usr/lib/x86_64-linux-gnu/libdl.so)
 
 add_library(zk_client_dn source/zk_dn_client.cc)
 target_link_libraries(zk_client_dn zk_client_common)
