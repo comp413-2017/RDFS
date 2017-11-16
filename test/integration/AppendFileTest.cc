@@ -2,9 +2,13 @@
 
 #include <easylogging++.h>
 #include <gtest/gtest.h>
+#include "ClientNamenodeProtocolImpl.h"
+#include <asio.hpp>
 #include "../util/RDFSTestUtils.h"
 
 #define ELPP_THREAD_SAFE
+
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/test-log-conf.conf"
 
 INITIALIZE_EASYLOGGINGPP
 
