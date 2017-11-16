@@ -30,8 +30,16 @@ TEST_F(NamenodeTest, checkLeaseTest) {
   ASSERT_TRUE(client->check_lease(client_name, file_path));
   bool exists;
   int error_code;
-  ASSERT_TRUE(client->zk->exists(zkclient::ZkNnClient::ZookeeperFilePath(file_path) + client->LEASES + '/' +
-                             client_name, exists, error_code));
+
+  //  ASSERT_TRUE(client->zk->exists(
+  //  zkclient::ZkNnClient::ZookeeperFilePath(file_path) + client->LEASES +
+  //  '/' + client_name, exists, error_code));
+
+  // Trying feeding in the physical path instead of the above
+  // b/c we don't have access to ZookeeperFilePath
+  ASSERT_TRUE(client->zk->exists("/fileSystem/" + file_path +
+              client->LEASES + '/' + client_name, exists, error_code));
+
   ASSERT_TRUE(exists);
 }
 
