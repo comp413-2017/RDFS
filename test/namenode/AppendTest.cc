@@ -11,13 +11,13 @@ TEST_F(NamenodeTest, checkLeaseTest) {
   std::string client_name = "test_client";
 
   hadoop::hdfs::CreateRequestProto create_req =
-      getCreateRequestProto("test_file");
+      getCreateRequestProto("test_file_mjp");
   hadoop::hdfs::CreateResponseProto create_resp;
 
   ASSERT_EQ(client->create_file(create_req, create_resp),
             zkclient::ZkNnClient::CreateResponse::Ok);
 
-  ASSERT_FALSE(client->check_lease(client_name, "test_file"));
+  ASSERT_FALSE(client->check_lease(client_name, "test_file_mjp"));
 }
 
 // TEST_F(NamenodeTest, checkLeaseTest) {
