@@ -4,6 +4,38 @@
 #include <gtest/gtest.h>
 #include "../util/RDFSTestUtils.h"
 
+#define ELPP_THREAD_SAFE
+
+INITIALIZE_EASYLOGGINGPP
+
+using asio::ip::tcp;
+using client_namenode_translator::ClientNamenodeTranslator;
+using RDFSTestUtils::initializeDatanodes;
+
+static const int NUM_DATANODES = 3;
+
+int num_threads = 4;
+int max_xmits = 100000;
+// These are incremented for each test.
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+// Use minDatanodId++ when you want to kill a datanode.
+int minDatanodeId = 0;
+uint16_t nextPort = 5351;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  initializeDatanodes(
+    maxDatanodeId,
+    numDatanodes,
+    "ReplicationTestServer",
+    xferPort,
+    ipcPort);
+  maxDatanodeId += numDatanodes;
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
+
 namespace {
 
 TEST(AppendFileTest, testFileAppend) {
