@@ -160,6 +160,18 @@ Public Types</h2></td></tr>
 <br/>
  }</td></tr>
 <tr class="separator:af0bfebd9345cd2fc3be4371991dd854e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f1a6635c6f7eeececa87e87a0067908"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>ErasureCodingPoliciesResponse</b> { <b>Ok</b>
+ }</td></tr>
+<tr class="separator:a4f1a6635c6f7eeececa87e87a0067908"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada65324ebdc7be69804c4f7be0f40fe9"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>ErasureCodingPolicyResponse</b> { <b>Ok</b>, 
+<b>FileDoesNotExist</b>
+ }</td></tr>
+<tr class="separator:ada65324ebdc7be69804c4f7be0f40fe9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ad872b95972215a3b819e35142af2c1"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>SetErasureCodingPolicyResponse</b> { <b>Ok</b>, 
+<b>FileDoesNotExist</b>, 
+<b>FailedZookeeperOp</b>
+ }</td></tr>
+<tr class="separator:a6ad872b95972215a3b819e35142af2c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -206,6 +218,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set_node_policy</b> (
 <tr class="memitem:ac8b69576b0cc0cd521fc9f535b89b2ec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8b69576b0cc0cd521fc9f535b89b2ec"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>get_node_policy</b> ()</td></tr>
 <tr class="separator:ac8b69576b0cc0cd521fc9f535b89b2ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44856670a141e5291e1692664e9dc059"><td class="memItemLeft" align="right" valign="top">ErasureCodingPoliciesResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a44856670a141e5291e1692664e9dc059">get_erasure_coding_policies</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_request_proto.html">GetErasureCodingPoliciesRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_response_proto.html">GetErasureCodingPoliciesResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a44856670a141e5291e1692664e9dc059"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e0975d25d25bc2f286bb297902c8579"><td class="memItemLeft" align="right" valign="top">ErasureCodingPolicyResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a5e0975d25d25bc2f286bb297902c8579">get_erasure_coding_policy_of_path</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_request_proto.html">GetErasureCodingPolicyRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_response_proto.html">GetErasureCodingPolicyResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a5e0975d25d25bc2f286bb297902c8579"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abad5abba35376fd55d4df0d0d83e6010"><td class="memItemLeft" align="right" valign="top">SetErasureCodingPolicyResponse&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#abad5abba35376fd55d4df0d0d83e6010">set_erasure_coding_policy_of_path</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_request_proto.html">SetErasureCodingPolicyRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_response_proto.html">SetErasureCodingPolicyResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:abad5abba35376fd55d4df0d0d83e6010"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf941af735ce29cebd68b3845720b2b8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8">set_permission</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">SetPermissionRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_permission_response_proto.html">SetPermissionResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:abf941af735ce29cebd68b3845720b2b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79174a329fe6447182f16cc1a83e1569"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">set_owner</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
@@ -215,6 +233,20 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>get_node_policy</b> (
 <tr class="memitem:ae122e7b1eeaccbdb221285178ff88a3f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae122e7b1eeaccbdb221285178ff88a3f"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>set_owner</b> (<a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res)</td></tr>
 <tr class="separator:ae122e7b1eeaccbdb221285178ff88a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8b2a76fdcbc0332f7013b40c35d69ed"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ab8b2a76fdcbc0332f7013b40c35d69ed">add_block</a> (const std::string &amp;fileName, u_int64_t &amp;block_id, std::vector&lt; std::string &gt; &amp;dataNodes, uint32_t replication_factor)</td></tr>
+<tr class="separator:ab8b2a76fdcbc0332f7013b40c35d69ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5798896390890ab4646affcbf4f58a1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ac5798896390890ab4646affcbf4f58a1">add_block_group</a> (const std::string &amp;filePath, u_int64_t &amp;block_group_id, std::vector&lt; std::string &gt; &amp;dataNodes, std::vector&lt; char &gt; &amp;blockIndices, uint32_t total_num_storage_blocks)</td></tr>
+<tr class="separator:ac5798896390890ab4646affcbf4f58a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2179be9a98e824e407006b87c69b5c33"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a2179be9a98e824e407006b87c69b5c33">get_total_num_storage_blocks</a> (const std::string &amp;fileName, u_int64_t &amp;block_group_id)</td></tr>
+<tr class="separator:a2179be9a98e824e407006b87c69b5c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed7030e0bc4c4d154ad622b93f3c698f"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#aed7030e0bc4c4d154ad622b93f3c698f">generate_storage_block_id</a> (uint64_t block_group_id, uint64_t index_within_group)</td></tr>
+<tr class="separator:aed7030e0bc4c4d154ad622b93f3c698f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca59af943b99fb48a9be62d36466308c"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#aca59af943b99fb48a9be62d36466308c">generate_block_group_id</a> ()</td></tr>
+<tr class="separator:aca59af943b99fb48a9be62d36466308c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd57a5cb8c600a7ca2c9c702e6c847fa"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#abd57a5cb8c600a7ca2c9c702e6c847fa">get_block_group_id</a> (u_int64_t storage_block_id)</td></tr>
+<tr class="separator:abd57a5cb8c600a7ca2c9c702e6c847fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b136663dbb9cc41af0ad1c51528bef1"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a7b136663dbb9cc41af0ad1c51528bef1">get_index_within_block_group</a> (u_int64_t storage_block_id)</td></tr>
+<tr class="separator:a7b136663dbb9cc41af0ad1c51528bef1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e22f5b3c250bbf9cf69b3364f2dfb05"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a2e22f5b3c250bbf9cf69b3364f2dfb05">abandon_block</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;res, std::string client_name=&quot;default&quot;)</td></tr>
 <tr class="separator:a2e22f5b3c250bbf9cf69b3364f2dfb05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ccd588b92bf248818519f30b2357fa3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ccd588b92bf248818519f30b2357fa3"></a>
@@ -224,15 +256,15 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>previousBlockComplete
 <tr class="separator:a11c08c24c2a199ab29c0bb0836f25c88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af24e553e280ac12fc2772019a45379e0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#af24e553e280ac12fc2772019a45379e0">get_block_size</a> (const u_int64_t &amp;block_id, uint64_t &amp;blocksize)</td></tr>
 <tr class="separator:af24e553e280ac12fc2772019a45379e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8b2a76fdcbc0332f7013b40c35d69ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab8b2a76fdcbc0332f7013b40c35d69ed"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>add_block</b> (const std::string &amp;fileName, u_int64_t &amp;block_id, std::vector&lt; std::string &gt; &amp;dataNodes, uint32_t replication_factor)</td></tr>
-<tr class="separator:ab8b2a76fdcbc0332f7013b40c35d69ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bc5787f9d109466460baf6f9b548892"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3bc5787f9d109466460baf6f9b548892"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>find_datanode_for_block</b> (std::vector&lt; std::string &gt; &amp;datanodes, const std::uint64_t blockId, uint32_t replication_factor, bool newBlock, uint64_t blocksize)</td></tr>
-<tr class="separator:a3bc5787f9d109466460baf6f9b548892"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a871b7e27116314fc2c5b34e183c480a0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a871b7e27116314fc2c5b34e183c480a0"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>find_all_datanodes_with_block</b> (const std::string &amp;block_uuid_str, std::vector&lt; std::string &gt; &amp;rdatanodes, int &amp;error_code)</td></tr>
-<tr class="separator:a871b7e27116314fc2c5b34e183c480a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a676bdb1eeda97edf804b4c916a3d581e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a676bdb1eeda97edf804b4c916a3d581e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>find_live_datanodes</b> (const uint64_t blockId, int error_code, std::vector&lt; std::string &gt; &amp;live_data_nodes)</td></tr>
+<tr class="separator:a676bdb1eeda97edf804b4c916a3d581e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05d00b0229f23a30f8940831a691af3e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a05d00b0229f23a30f8940831a691af3e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>find_datanode_for_block</b> (std::vector&lt; std::string &gt; &amp;datanodes, std::vector&lt; std::string &gt; &amp;excluded_dns, const u_int64_t blockId, uint32_t replication_factor, uint64_t blocksize)</td></tr>
+<tr class="separator:a05d00b0229f23a30f8940831a691af3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af01077b9818456f05d44aac1baed244c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af01077b9818456f05d44aac1baed244c"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>find_all_datanodes_with_block</b> (const uint64_t &amp;block_uuid, std::vector&lt; std::string &gt; &amp;rdatanodes, int &amp;error_code)</td></tr>
+<tr class="separator:af01077b9818456f05d44aac1baed244c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88e442620389be579800e80523ccfcef"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a88e442620389be579800e80523ccfcef">rename_ops_for_file</a> (const std::string &amp;src, const std::string &amp;dst, std::vector&lt; std::shared_ptr&lt; <a class="el" href="class_zoo_op.html">ZooOp</a> &gt;&gt; &amp;ops)</td></tr>
 <tr class="separator:a88e442620389be579800e80523ccfcef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8b2173bf5be14f8e9199c02ef47416b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab8b2173bf5be14f8e9199c02ef47416b"></a>
@@ -261,12 +293,48 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>cache_size</b> ()</td>
 <tr class="memitem:a3e9df789cefde3395d4be256692914c3 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3e9df789cefde3395d4be256692914c3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>init</b> ()</td></tr>
 <tr class="separator:a3e9df789cefde3395d4be256692914c3 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a103480a7f35369e5e9a23bfd234e4d99 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a103480a7f35369e5e9a23bfd234e4d99">get_block_metadata_path</a> (u_int64_t block_or_block_group_id)</td></tr>
+<tr class="separator:a103480a7f35369e5e9a23bfd234e4d99 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a400df23c450c2ac2974b28306685176d inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a400df23c450c2ac2974b28306685176d">get_block_group_id</a> (u_int64_t storage_block_id)</td></tr>
+<tr class="separator:a400df23c450c2ac2974b28306685176d inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88e527d6686decd037b02ebf3f6be2d5 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a88e527d6686decd037b02ebf3f6be2d5">get_index_within_block_group</a> (u_int64_t storage_block_id)</td></tr>
+<tr class="separator:a88e527d6686decd037b02ebf3f6be2d5 inherit pub_methods_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a966584481a3d08066930d5c22d549195"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a966584481a3d08066930d5c22d549195"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>policy</b></td></tr>
 <tr class="separator:a966584481a3d08066930d5c22d549195"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c761a60db0d12f3284499c2f6f1bb38"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0c761a60db0d12f3284499c2f6f1bb38"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>EC_REPLICATION</b> = &quot;REPLICATION&quot;</td></tr>
+<tr class="separator:a0c761a60db0d12f3284499c2f6f1bb38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebec1c9c3f357e8b7b817adc150457d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aebec1c9c3f357e8b7b817adc150457d4"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_EC_POLICY</b> = &quot;RS-6-3-1024k&quot;</td></tr>
+<tr class="separator:aebec1c9c3f357e8b7b817adc150457d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d61f81f91f9f2327302e10713650463"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6d61f81f91f9f2327302e10713650463"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_EC_CELLCIZE</b> = 1024*1024</td></tr>
+<tr class="separator:a6d61f81f91f9f2327302e10713650463"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fba696f0bad803aabccc30f284487e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8fba696f0bad803aabccc30f284487e4"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_EC_ID</b> = 1</td></tr>
+<tr class="separator:a8fba696f0bad803aabccc30f284487e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90ff9a08b9938fd3593511d9be957048"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a90ff9a08b9938fd3593511d9be957048"></a>
+const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_DATA_UNITS</b> = 6</td></tr>
+<tr class="separator:a90ff9a08b9938fd3593511d9be957048"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4628871a3f6bd38e3cb1e0d147cb7eed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4628871a3f6bd38e3cb1e0d147cb7eed"></a>
+const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_PARITY_UNITS</b> = 3</td></tr>
+<tr class="separator:a4628871a3f6bd38e3cb1e0d147cb7eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4d908bd1840c27db52faf52d1b4be9b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4d908bd1840c27db52faf52d1b4be9b"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_EC_CODEC_NAME</b> = &quot;rs&quot;</td></tr>
+<tr class="separator:ad4d908bd1840c27db52faf52d1b4be9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa50ef55fa07e5fd456c530265ce594c2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa50ef55fa07e5fd456c530265ce594c2"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_STORAGE_ID</b> = &quot;1&quot;</td></tr>
+<tr class="separator:aa50ef55fa07e5fd456c530265ce594c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46c9a1c896c2310cdbbd4e98812d8ec0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a46c9a1c896c2310cdbbd4e98812d8ec0"></a>
+<a class="el" href="classhadoop_1_1hdfs_1_1_e_c_schema_proto.html">ECSchemaProto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_EC_SCHEMA</b></td></tr>
+<tr class="separator:a46c9a1c896c2310cdbbd4e98812d8ec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad288a6f1f23eefa62430d4270c25d6e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad288a6f1f23eefa62430d4270c25d6e4"></a>
+<a class="el" href="classhadoop_1_1hdfs_1_1_erasure_coding_policy_proto.html">ErasureCodingPolicyProto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>RS_SOLOMON_PROTO</b></td></tr>
+<tr class="separator:ad288a6f1f23eefa62430d4270c25d6e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_classzkclient_1_1_zk_client_common"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_classzkclient_1_1_zk_client_common')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></td></tr>
 <tr class="memitem:aa7a5917b79dd6209e9fcdac2203fbb49 inherit pub_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa7a5917b79dd6209e9fcdac2203fbb49"></a>
 std::shared_ptr&lt; <a class="el" href="class_z_k_wrapper.html">ZKWrapper</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>zk</b></td></tr>
@@ -323,15 +391,30 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>REPLICAT
 <tr class="memitem:a9017b8843f86193035c40c35f15f89c7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9017b8843f86193035c40c35f15f89c7"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCK_LOCATIONS</b> [] = &quot;/block_locations/&quot;</td></tr>
 <tr class="separator:a9017b8843f86193035c40c35f15f89c7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33fef4957743e4a99a84dab30498cc58 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33fef4957743e4a99a84dab30498cc58"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCK_GROUP_LOCATIONS</b> [] = &quot;/block_group_locations/&quot;</td></tr>
+<tr class="separator:a33fef4957743e4a99a84dab30498cc58 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2a68ae8979092f0aa45cb626afb9cb7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2a68ae8979092f0aa45cb626afb9cb7"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</b> [] = &quot;/blocks&quot;</td></tr>
 <tr class="separator:ab2a68ae8979092f0aa45cb626afb9cb7 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b066b15642970877ab4b4ae2975301b inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b066b15642970877ab4b4ae2975301b"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>EC_RECOVER_QUEUES</b> [] = &quot;/work_queues/ec_recover/&quot;</td></tr>
+<tr class="separator:a3b066b15642970877ab4b4ae2975301b inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a805b6cf8b95d3171b93eb85efec75058 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a805b6cf8b95d3171b93eb85efec75058"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>EC_RECOVER_QUEUES_NO_BACKSLASH</b> []</td></tr>
+<tr class="separator:a805b6cf8b95d3171b93eb85efec75058 inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a198f84c6c1200d3591ccf4e53dcff2ab inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a198f84c6c1200d3591ccf4e53dcff2ab"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>LEASES</b> [] = &quot;/leases&quot;</td></tr>
 <tr class="separator:a198f84c6c1200d3591ccf4e53dcff2ab inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad74a3d1891dd80b1b3b3469dea24b44a inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad74a3d1891dd80b1b3b3469dea24b44a"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS</b> [] = &quot;/clients&quot;</td></tr>
 <tr class="separator:ad74a3d1891dd80b1b3b3469dea24b44a inherit pub_static_attribs_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_static_methods_classzkclient_1_1_zk_client_common"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_classzkclient_1_1_zk_client_common')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></td></tr>
+<tr class="memitem:a73978bc075ec3c6607ee25e279b409d3 inherit pub_static_methods_classzkclient_1_1_zk_client_common"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a73978bc075ec3c6607ee25e279b409d3">is_ec_block</a> (u_int64_t block_id)</td></tr>
+<tr class="separator:a73978bc075ec3c6607ee25e279b409d3 inherit pub_static_methods_classzkclient_1_1_zk_client_common"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This is used by ClientNamenodeProtocolImpl to communicate the zookeeper. </p>
@@ -454,7 +537,7 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Add block. </p>
+<p>Adds a block by making appropriate namespace changes and returns information about the set of DataNodes that the block data should be hosted by. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">req</td><td>AddBlockRequestProto </td></tr>
@@ -464,6 +547,101 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>boolean indicating whether operation succeeded or not </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ab8b2a76fdcbc0332f7013b40c35d69ed"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zkclient::ZkNnClient::add_block </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>fileName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int64_t &amp;&#160;</td>
+          <td class="paramname"><em>block_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>dataNodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>replication_factor</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A helper method that achieves the above add_block method. Does 1) Creates namespace changes to the given file. 2) Generates a block id. The id is generated randomly for replication blocks and based on the hierarchical naming scheme for EC blocks. 3) Finds a set of data nodes on which to allocate the new block. In the case of replication, the set of DataNodes has primary / secondary replicas of the block. In the case of EC, each DataNode hosts a block group. </p>
+
+</div>
+</div>
+<a class="anchor" id="ac5798896390890ab4646affcbf4f58a1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zkclient::ZkNnClient::add_block_group </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>filePath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int64_t &amp;&#160;</td>
+          <td class="paramname"><em>block_group_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>dataNodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>blockIndices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>total_num_storage_blocks</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Makes metadata changes required to add a new block group. This helper method is called for an EC file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filePath</td><td>the file specified by its path. </td></tr>
+    <tr><td class="paramname">block_group_id</td><td>the block group id to be generated. </td></tr>
+    <tr><td class="paramname">dataNodes</td><td>the set of data nodes on which to allocate each storage block. </td></tr>
+    <tr><td class="paramname">blockIndices</td><td>the set of block indices within a block gorup. </td></tr>
+    <tr><td class="paramname">total_num_storage_blocks</td><td>the number of data + parity storage blocks. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if successful. false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -563,7 +741,8 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>CreateResponse</dd></dl>
-<p>Create a file in zookeeper </p>
+<p>Create a new file entry in the namespace.</p>
+<p>This will create an empty file specified by the source path, a full path originated at the root. </p>
 
 </div>
 </div>
@@ -640,6 +819,82 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
       </table>
 </div><div class="memdoc">
 <p>Information that the protocol might need to respond to individual rpc calls </p>
+
+</div>
+</div>
+<a class="anchor" id="aca59af943b99fb48a9be62d36466308c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int64_t zkclient::ZkNnClient::generate_block_group_id </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generates the block group id. </p>
+<dl class="section return"><dt>Returns</dt><dd>an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aed7030e0bc4c4d154ad622b93f3c698f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int64_t zkclient::ZkNnClient::generate_storage_block_id </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>block_group_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>index_within_group</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Given the block group id and index in the block group, returns the hierarchical block id. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">block_group_id</td><td>the id of a block group this storage block belongs to. </td></tr>
+    <tr><td class="paramname">index_within_group</td><td>the index within the block group. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the storage block id. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="abd57a5cb8c600a7ca2c9c702e6c847fa"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int64_t zkclient::ZkNnClient::get_block_group_id </td>
+          <td>(</td>
+          <td class="paramtype">u_int64_t&#160;</td>
+          <td class="paramname"><em>storage_block_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gets the block group id from the storage block id. i.e. bit 2 ~ bit 48. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">storage_block_id</td><td>the given storage block id. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the block group id. </dd></dl>
 
 </div>
 </div>
@@ -771,6 +1026,84 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
 
 </div>
 </div>
+<a class="anchor" id="a44856670a141e5291e1692664e9dc059"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ZkNnClient::ErasureCodingPoliciesResponse zkclient::ZkNnClient::get_erasure_coding_policies </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_request_proto.html">GetErasureCodingPoliciesRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_response_proto.html">GetErasureCodingPoliciesResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the erasure coding policies loaded in Namenode, excluding REPLICATION policy. </p>
+
+</div>
+</div>
+<a class="anchor" id="a5e0975d25d25bc2f286bb297902c8579"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ZkNnClient::ErasureCodingPolicyResponse zkclient::ZkNnClient::get_erasure_coding_policy_of_path </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_request_proto.html">GetErasureCodingPolicyRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_response_proto.html">GetErasureCodingPolicyResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the erasure coding policy of a file or a directory specified by the path. </p>
+
+</div>
+</div>
+<a class="anchor" id="a7b136663dbb9cc41af0ad1c51528bef1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int64_t zkclient::ZkNnClient::get_index_within_block_group </td>
+          <td>(</td>
+          <td class="paramtype">u_int64_t&#160;</td>
+          <td class="paramname"><em>storage_block_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gets the index within the block group. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">storage_block_id</td><td>the given storage block id. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the index within the block group. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a17ec72de0d2400af7bac9ba56e7c3bdc"></a>
 <div class="memitem">
 <div class="memproto">
@@ -851,6 +1184,41 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>ListingResponse </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2179be9a98e824e407006b87c69b5c33"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t zkclient::ZkNnClient::get_total_num_storage_blocks </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>fileName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int64_t &amp;&#160;</td>
+          <td class="paramname"><em>block_group_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Given a file, figure out the number of storage blocks to have within a block group. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fileName</td><td>the file name. </td></tr>
+    <tr><td class="paramname">block_group_id</td><td>the block group id. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the number of storage blocks to have within a block group. </dd></dl>
 
 </div>
 </div>
@@ -1026,6 +1394,33 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS<
       </table>
 </div><div class="memdoc">
 <p>These methods will correspond to proto calls that the client namenode protocol handles </p>
+
+</div>
+</div>
+<a class="anchor" id="abad5abba35376fd55d4df0d0d83e6010"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ZkNnClient::SetErasureCodingPolicyResponse zkclient::ZkNnClient::set_erasure_coding_policy_of_path </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_request_proto.html">SetErasureCodingPolicyRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_response_proto.html">SetErasureCodingPolicyResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Sets the erasure coding policy of a path by the given erasure coding policy name. </p>
 
 </div>
 </div>

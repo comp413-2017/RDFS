@@ -1,19 +1,14 @@
 var searchData=
 [
-  ['packetheaderproto',['PacketHeaderProto',['../classhadoop_1_1hdfs_1_1_packet_header_proto.html',1,'hadoop::hdfs']]],
-  ['parser',['Parser',['../classel_1_1_configurations_1_1_parser.html',1,'el::Configurations']]],
-  ['percent',['Percent',['../class_simple_web_1_1_percent.html',1,'SimpleWeb']]],
-  ['perfileencryptioninfoproto',['PerFileEncryptionInfoProto',['../classhadoop_1_1hdfs_1_1_per_file_encryption_info_proto.html',1,'hadoop::hdfs']]],
-  ['performancetrackingcallback',['PerformanceTrackingCallback',['../classel_1_1_performance_tracking_callback.html',1,'el']]],
-  ['perrorwriter',['PErrorWriter',['../classel_1_1base_1_1_p_error_writer.html',1,'el::base']]],
-  ['persistedrecoverypaxosdata',['PersistedRecoveryPaxosData',['../classhadoop_1_1hdfs_1_1qjournal_1_1_persisted_recovery_paxos_data.html',1,'hadoop::hdfs::qjournal']]],
-  ['pipelineackproto',['PipelineAckProto',['../classhadoop_1_1hdfs_1_1_pipeline_ack_proto.html',1,'hadoop::hdfs']]],
-  ['predicate',['Predicate',['../classel_1_1_configuration_1_1_predicate.html',1,'el::Configuration']]],
-  ['predicate',['Predicate',['../classel_1_1base_1_1_hit_counter_1_1_predicate.html',1,'el::base::HitCounter']]],
-  ['preparerecoveryrequestproto',['PrepareRecoveryRequestProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_prepare_recovery_request_proto.html',1,'hadoop::hdfs::qjournal']]],
-  ['preparerecoveryresponseproto',['PrepareRecoveryResponseProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_prepare_recovery_response_proto.html',1,'hadoop::hdfs::qjournal']]],
-  ['protocolsignatureproto',['ProtocolSignatureProto',['../classhadoop_1_1common_1_1_protocol_signature_proto.html',1,'hadoop::common']]],
-  ['protocolversionproto',['ProtocolVersionProto',['../classhadoop_1_1common_1_1_protocol_version_proto.html',1,'hadoop::common']]],
-  ['purgelogsrequestproto',['PurgeLogsRequestProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_purge_logs_request_proto.html',1,'hadoop::hdfs::qjournal']]],
-  ['purgelogsresponseproto',['PurgeLogsResponseProto',['../classhadoop_1_1hdfs_1_1qjournal_1_1_purge_logs_response_proto.html',1,'hadoop::hdfs::qjournal']]]
+  ['opblockchecksumproto',['OpBlockChecksumProto',['../classhadoop_1_1hdfs_1_1_op_block_checksum_proto.html',1,'hadoop::hdfs']]],
+  ['opblockchecksumresponseproto',['OpBlockChecksumResponseProto',['../classhadoop_1_1hdfs_1_1_op_block_checksum_response_proto.html',1,'hadoop::hdfs']]],
+  ['opcopyblockproto',['OpCopyBlockProto',['../classhadoop_1_1hdfs_1_1_op_copy_block_proto.html',1,'hadoop::hdfs']]],
+  ['opreadblockproto',['OpReadBlockProto',['../classhadoop_1_1hdfs_1_1_op_read_block_proto.html',1,'hadoop::hdfs']]],
+  ['opreplaceblockproto',['OpReplaceBlockProto',['../classhadoop_1_1hdfs_1_1_op_replace_block_proto.html',1,'hadoop::hdfs']]],
+  ['oprequestshortcircuitaccessproto',['OpRequestShortCircuitAccessProto',['../classhadoop_1_1hdfs_1_1_op_request_short_circuit_access_proto.html',1,'hadoop::hdfs']]],
+  ['opt_5ffalse',['opt_false',['../structopt__false.html',1,'']]],
+  ['opt_5ftrue',['opt_true',['../structopt__true.html',1,'']]],
+  ['optransferblockproto',['OpTransferBlockProto',['../classhadoop_1_1hdfs_1_1_op_transfer_block_proto.html',1,'hadoop::hdfs']]],
+  ['opwriteblockproto',['OpWriteBlockProto',['../classhadoop_1_1hdfs_1_1_op_write_block_proto.html',1,'hadoop::hdfs']]],
+  ['os',['OS',['../classel_1_1base_1_1utils_1_1_o_s.html',1,'el::base::utils']]]
 ];

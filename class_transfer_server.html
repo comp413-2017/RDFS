@@ -108,17 +108,86 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sendStats</b> ()</td>
 <tr class="separator:a09967bab30f4638b9b720440bcdeb06b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa178c0a06b2c2f073dccef1ac34a6c10"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_transfer_server.html#aa178c0a06b2c2f073dccef1ac34a6c10">replicate</a> (uint64_t len, std::string ip, std::string xferport, <a class="el" href="classhadoop_1_1hdfs_1_1_extended_block_proto.html">ExtendedBlockProto</a> blockToTarget)</td></tr>
 <tr class="separator:aa178c0a06b2c2f073dccef1ac34a6c10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add7c51eddb686686db5edd0aaa3791e9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_transfer_server.html#add7c51eddb686686db5edd0aaa3791e9">remote_read</a> (uint64_t len, std::string ip, std::string xferport, <a class="el" href="classhadoop_1_1hdfs_1_1_extended_block_proto.html">ExtendedBlockProto</a> blockToTarget, std::string data, int &amp;read_len)</td></tr>
+<tr class="separator:add7c51eddb686686db5edd0aaa3791e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a568b6fe4b5bce30a52335d003853dfc0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a568b6fe4b5bce30a52335d003853dfc0"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>rmBlock</b> (uint64_t block_id)</td></tr>
 <tr class="separator:a568b6fe4b5bce30a52335d003853dfc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e51c65c89c7842814d3481e39024a0e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_transfer_server.html#a8e51c65c89c7842814d3481e39024a0e">writeBlock</a> (uint64_t block_id, std::string data)</td></tr>
+<tr class="separator:a8e51c65c89c7842814d3481e39024a0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11aca1ca23a823ea66085617290a0e2d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a11aca1ca23a823ea66085617290a0e2d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>poll_replicate</b> ()</td></tr>
 <tr class="separator:a11aca1ca23a823ea66085617290a0e2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed48d02cd299176e52a396fa893da367"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aed48d02cd299176e52a396fa893da367"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>poll_delete</b> ()</td></tr>
 <tr class="separator:aed48d02cd299176e52a396fa893da367"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e6ae07473a2a64c8148e4b7c0e2e09"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a09e6ae07473a2a64c8148e4b7c0e2e09"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>poll_reconstruct</b> ()</td></tr>
+<tr class="separator:a09e6ae07473a2a64c8148e4b7c0e2e09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="add7c51eddb686686db5edd0aaa3791e9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TransferServer::remote_read </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>ip</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>xferport</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_extended_block_proto.html">ExtendedBlockProto</a>&#160;</td>
+          <td class="paramname"><em>blockToTarget</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>read_len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>the length of the block </td></tr>
+    <tr><td class="paramname">ip</td><td>the ip of the datanode we are sending the read request to </td></tr>
+    <tr><td class="paramname">xferport</td><td>the xfer port of the datandoe we are sending the read request to </td></tr>
+    <tr><td class="paramname">blockToTarget</td><td>the block info of the block to replicate </td></tr>
+    <tr><td class="paramname">data</td><td>the string to store the read data into </td></tr>
+    <tr><td class="paramname">read_len</td><td>the length of data read</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Reads data from a remote block </p>
+
+</div>
+</div>
 <a class="anchor" id="aa178c0a06b2c2f073dccef1ac34a6c10"></a>
 <div class="memitem">
 <div class="memproto">
@@ -164,6 +233,40 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>poll_delete</b> ()</t
   </dd>
 </dl>
 <p>Send a read request to anotehr datanode for a certain block, stream in the packets and write them to our disk </p>
+
+</div>
+</div>
+<a class="anchor" id="a8e51c65c89c7842814d3481e39024a0e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TransferServer::writeBlock </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>block_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">block_id</td><td>the id of the block to write </td></tr>
+    <tr><td class="paramname">data</td><td>to write</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>writes a block to the local DN </p>
 
 </div>
 </div>

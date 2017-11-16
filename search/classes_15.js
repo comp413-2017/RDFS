@@ -1,8 +1,21 @@
 var searchData=
 [
-  ['versioninfo',['VersionInfo',['../classel_1_1_version_info.html',1,'el']]],
-  ['versionrequestproto',['VersionRequestProto',['../classhadoop_1_1hdfs_1_1_version_request_proto.html',1,'hadoop::hdfs']]],
-  ['versionresponseproto',['VersionResponseProto',['../classhadoop_1_1hdfs_1_1_version_response_proto.html',1,'hadoop::hdfs']]],
-  ['volumefailuresummaryproto',['VolumeFailureSummaryProto',['../classhadoop_1_1hdfs_1_1datanode_1_1_volume_failure_summary_proto.html',1,'hadoop::hdfs::datanode']]],
-  ['vregistry',['VRegistry',['../classel_1_1base_1_1_v_registry.html',1,'el::base']]]
+  ['unlinkeventproto',['UnlinkEventProto',['../classhadoop_1_1hdfs_1_1_unlink_event_proto.html',1,'hadoop::hdfs']]],
+  ['updateblockforpipelinerequestproto',['UpdateBlockForPipelineRequestProto',['../classhadoop_1_1hdfs_1_1_update_block_for_pipeline_request_proto.html',1,'hadoop::hdfs']]],
+  ['updateblockforpipelineresponseproto',['UpdateBlockForPipelineResponseProto',['../classhadoop_1_1hdfs_1_1_update_block_for_pipeline_response_proto.html',1,'hadoop::hdfs']]],
+  ['updatepipelinerequestproto',['UpdatePipelineRequestProto',['../classhadoop_1_1hdfs_1_1_update_pipeline_request_proto.html',1,'hadoop::hdfs']]],
+  ['updatepipelineresponseproto',['UpdatePipelineResponseProto',['../classhadoop_1_1hdfs_1_1_update_pipeline_response_proto.html',1,'hadoop::hdfs']]],
+  ['updatereplicaunderrecoveryrequestproto',['UpdateReplicaUnderRecoveryRequestProto',['../classhadoop_1_1hdfs_1_1_update_replica_under_recovery_request_proto.html',1,'hadoop::hdfs']]],
+  ['updatereplicaunderrecoveryresponseproto',['UpdateReplicaUnderRecoveryResponseProto',['../classhadoop_1_1hdfs_1_1_update_replica_under_recovery_response_proto.html',1,'hadoop::hdfs']]],
+  ['userinformationproto',['UserInformationProto',['../classhadoop_1_1common_1_1_user_information_proto.html',1,'hadoop::common']]],
+  ['utf16_5fcounter',['utf16_counter',['../structutf16__counter.html',1,'']]],
+  ['utf16_5fdecoder',['utf16_decoder',['../structutf16__decoder.html',1,'']]],
+  ['utf16_5fwriter',['utf16_writer',['../structutf16__writer.html',1,'']]],
+  ['utf32_5fcounter',['utf32_counter',['../structutf32__counter.html',1,'']]],
+  ['utf32_5fdecoder',['utf32_decoder',['../structutf32__decoder.html',1,'']]],
+  ['utf32_5fwriter',['utf32_writer',['../structutf32__writer.html',1,'']]],
+  ['utf8_5fcounter',['utf8_counter',['../structutf8__counter.html',1,'']]],
+  ['utf8_5fdecoder',['utf8_decoder',['../structutf8__decoder.html',1,'']]],
+  ['utf8_5fwriter',['utf8_writer',['../structutf8__writer.html',1,'']]],
+  ['utils',['Utils',['../classel_1_1base_1_1utils_1_1_utils.html',1,'el::base::utils']]]
 ];

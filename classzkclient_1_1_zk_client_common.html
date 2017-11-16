@@ -90,6 +90,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classzkclient_1_1_zk_client_common-members.html">List of all members</a>  </div>
@@ -119,6 +120,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3e9df789cefde3395d4be256692914c3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3e9df789cefde3395d4be256692914c3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>init</b> ()</td></tr>
 <tr class="separator:a3e9df789cefde3395d4be256692914c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a103480a7f35369e5e9a23bfd234e4d99"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a103480a7f35369e5e9a23bfd234e4d99">get_block_metadata_path</a> (u_int64_t block_or_block_group_id)</td></tr>
+<tr class="separator:a103480a7f35369e5e9a23bfd234e4d99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a400df23c450c2ac2974b28306685176d"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a400df23c450c2ac2974b28306685176d">get_block_group_id</a> (u_int64_t storage_block_id)</td></tr>
+<tr class="separator:a400df23c450c2ac2974b28306685176d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88e527d6686decd037b02ebf3f6be2d5"><td class="memItemLeft" align="right" valign="top">u_int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a88e527d6686decd037b02ebf3f6be2d5">get_index_within_block_group</a> (u_int64_t storage_block_id)</td></tr>
+<tr class="separator:a88e527d6686decd037b02ebf3f6be2d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a73978bc075ec3c6607ee25e279b409d3"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_client_common.html#a73978bc075ec3c6607ee25e279b409d3">is_ec_block</a> (u_int64_t block_id)</td></tr>
+<tr class="separator:a73978bc075ec3c6607ee25e279b409d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -173,9 +185,18 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>REPLICAT
 <tr class="memitem:a9017b8843f86193035c40c35f15f89c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9017b8843f86193035c40c35f15f89c7"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCK_LOCATIONS</b> [] = &quot;/block_locations/&quot;</td></tr>
 <tr class="separator:a9017b8843f86193035c40c35f15f89c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33fef4957743e4a99a84dab30498cc58"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33fef4957743e4a99a84dab30498cc58"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCK_GROUP_LOCATIONS</b> [] = &quot;/block_group_locations/&quot;</td></tr>
+<tr class="separator:a33fef4957743e4a99a84dab30498cc58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2a68ae8979092f0aa45cb626afb9cb7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2a68ae8979092f0aa45cb626afb9cb7"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>BLOCKS</b> [] = &quot;/blocks&quot;</td></tr>
 <tr class="separator:ab2a68ae8979092f0aa45cb626afb9cb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b066b15642970877ab4b4ae2975301b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b066b15642970877ab4b4ae2975301b"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>EC_RECOVER_QUEUES</b> [] = &quot;/work_queues/ec_recover/&quot;</td></tr>
+<tr class="separator:a3b066b15642970877ab4b4ae2975301b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a805b6cf8b95d3171b93eb85efec75058"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a805b6cf8b95d3171b93eb85efec75058"></a>
+static const char&#160;</td><td class="memItemRight" valign="bottom"><b>EC_RECOVER_QUEUES_NO_BACKSLASH</b> []</td></tr>
+<tr class="separator:a805b6cf8b95d3171b93eb85efec75058"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a198f84c6c1200d3591ccf4e53dcff2ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a198f84c6c1200d3591ccf4e53dcff2ab"></a>
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>LEASES</b> [] = &quot;/leases&quot;</td></tr>
 <tr class="separator:a198f84c6c1200d3591ccf4e53dcff2ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -183,6 +204,111 @@ static const char&#160;</td><td class="memItemRight" valign="bottom"><b>LEASES</
 static const char&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENTS</b> [] = &quot;/clients&quot;</td></tr>
 <tr class="separator:ad74a3d1891dd80b1b3b3469dea24b44a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a400df23c450c2ac2974b28306685176d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int64_t zkclient::ZkClientCommon::get_block_group_id </td>
+          <td>(</td>
+          <td class="paramtype">u_int64_t&#160;</td>
+          <td class="paramname"><em>storage_block_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gets the block group id from the storage block id. i.e. bit 2 ~ bit 48. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">storage_block_id</td><td>the given storage block id. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the block group id. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a103480a7f35369e5e9a23bfd234e4d99"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string zkclient::ZkClientCommon::get_block_metadata_path </td>
+          <td>(</td>
+          <td class="paramtype">u_int64_t&#160;</td>
+          <td class="paramname"><em>block_or_block_group_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Given a block or block group id, returns the path to the corresponding metadata. For a non EC block, it is BLOCK_LOCATIONS + ID For an EC block, it is BLOCK_GROUP_LOCATIONS + ID </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">block_or_block_group_id</td><td>the id of a block or a block group. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the path to the corresponding metadata. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a88e527d6686decd037b02ebf3f6be2d5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int64_t zkclient::ZkClientCommon::get_index_within_block_group </td>
+          <td>(</td>
+          <td class="paramtype">u_int64_t&#160;</td>
+          <td class="paramname"><em>storage_block_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gets the index within the block group. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">storage_block_id</td><td>the given storage block id. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the index within the block group. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a73978bc075ec3c6607ee25e279b409d3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zkclient::ZkClientCommon::is_ec_block </td>
+          <td>(</td>
+          <td class="paramtype">u_int64_t&#160;</td>
+          <td class="paramname"><em>block_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>true if the highest bit is set to 1. false otherwise. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">block_id</td><td>the id of a block (or a block group) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true or false. </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>zookeeper/include/<a class="el" href="zk__client__common_8h_source.html">zk_client_common.h</a></li>
 <li>zookeeper/source/zk_client_common.cc</li>
