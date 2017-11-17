@@ -36,6 +36,9 @@ const char ZkClientCommon::BLOCK_GROUP_LOCATIONS[] = "/block_group_locations/";
 const char ZkClientCommon::BLOCKS[] = "/blocks";
 const char ZkClientCommon::LEASES[] = "/leases";
 const char ZkClientCommon::CLIENTS[] = "/clients";
+const char ZkClientCommon::MIGRATION_QUEUES[] = "/work_queues/migrate/";
+const char ZkClientCommon::
+        MIGRATION_QUEUES_NO_BACKSLASH[] = "/work_queues/migrate";
 
 ZkClientCommon::ZkClientCommon(std::string hostAndIp) {
   int error_code;
@@ -142,12 +145,12 @@ void ZkClientCommon::init() {
       }
     }
   }
-  if (zk->exists(EC_RECOVER_QUEUES_NO_BACKSLASH, exists, error_code)) {
+  if (zk->exists(MIGRATION_QUEUES_NO_BACKSLASH, exists, error_code)) {
     if (!exists) {
-      if (!zk->create(EC_RECOVER_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
+      if (!zk->create(MIGRATION_QUEUES_NO_BACKSLASH, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
-        // Handle failed to create ec_recover node.
-        LOG(INFO) << "Creation failed for ec_rec queue";;
+        // Handle failed to create migrate node.
+        LOG(INFO) << "Creation failed for migrate queue";;
       }
     }
   }

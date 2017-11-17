@@ -76,6 +76,8 @@ class ZkClientCommon {
   static const char EC_RECOVER_QUEUES_NO_BACKSLASH[];
   static const char LEASES[];
   static const char CLIENTS[];
+  static const char MIGRATION_QUEUES[];
+  static const char MIGRATION_QUEUES_NO_BACKSLASH[];
 
  private:
   static const std::string CLASS_NAME;
