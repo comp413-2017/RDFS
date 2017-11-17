@@ -231,6 +231,9 @@ int main(int argc, char **argv) {
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
   sleep(10);
 
+  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
+  system("/home/vagrant/rdfs/build/rice-datanode/datanode &");
+  
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
