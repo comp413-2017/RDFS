@@ -65,8 +65,8 @@ void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::string path) {
   LOG(DEBUG) << "HTTP request: mkdir_handler";
 
-  hadoop::hdfs::MkdirResponseProto res;
-  hadoop::hdfs::MkdirRequestProto req;
+  hadoop::hdfs::MkdirsResponseProto res;
+  hadoop::hdfs::MkdirsRequestProto req;
 
   req.set_src(path);
   zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
@@ -97,8 +97,8 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
   std::string path = (request->path).substr(idxOfSplit);
 
-  std::vector<string> tokens;
-  stringstream ss(request->query_string);
+  std::vector<std::string> tokens;
+  std::stringstream ss(request->query_string);
   std::string item;
   std::string pathForRename;
   while (getline(ss, item, '?')) {
