@@ -2,6 +2,29 @@
 #include <gtest/gtest.h>
 #include "../util/RDFSTestUtils.h"
 
+using RDFSTestUtils::initializeDatanodes;
+
+
+// These are incremented for each test.
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+// Use minDatanodId++ when you want to kill a datanode.
+int minDatanodeId = 0;
+uint16_t nextPort = 5351;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  initializeDatanodes(
+      maxDatanodeId,
+      numDatanodes,
+      "AppendFileTestServer",
+      xferPort,
+      ipcPort);
+  maxDatanodeId += numDatanodes;
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
+
 namespace {
 
 TEST(AppendFileTest, testFileAppend) {
@@ -13,13 +36,11 @@ TEST(AppendFileTest, testFileAppend) {
 
   // Put it into rdfs.
   system(
-        "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-          "-copyFromLocal testfile1234 /f");
+        "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
 
   // Append the file.
   system(
-        "hdfs dfs -fs hdfs://localhost:5351 "
-          "-appendToFile testfile1234 /f");
+        "hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /f");
 
   // Read it from rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
@@ -50,12 +71,6 @@ int main(int argc, char **argv) {
   // initialize a datanode
   initializeDatanodes(1);
 
-  el::Configurations conf(LOG_CONFIG_FILE);
-  el::Loggers::reconfigureAllLoggers(conf);
-  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
-  el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
-  el::Loggers::setVerboseLevel(9);
-
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
@@ -63,6 +78,7 @@ int main(int argc, char **argv) {
 
   // Remove test files and shutdown zookeeper
   system("pkill -f namenode");  // uses port 5351
+  system("pkill -f AppendFileTestServer*");
   system("~/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
