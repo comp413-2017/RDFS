@@ -48,37 +48,40 @@ TEST(WebServerTest, testRead) {
 TEST(WebServerTest, testCreate) {
   system(
         "hdfs dfs -fs hdfs://localhost:5351 "
-        "-copyFromLocal fileForTesting /fileToRead");
+        "-copyFromLocal fileForTesting /fileToCreate");
 
       ASSERT_EQ(0,
                 system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                               "fileToRead?op=CREATE > actualResultRead"));
+                               "fileToCreate?op=CREATE > actualResultCreate"));
 
       // Check that results match
       ASSERT_EQ(0,
                 system("diff /home/vagrant/rdfs/test/webRDFS/"
-                               "expectedResultRead actualResultRead"));
+                               "expectedResultCreate actualResultCreate"));
 
-      system("rm actualResultRead");
-      system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
+      system("rm actualResultCreate");
+      system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToCreate");
 }
 
 TEST(WebServerTest, testListing) {
   system(
+         "hdfs dfs -fs hdfs://localhost:5351 "
+         "-mkdir /dirToLs");
+  system(
         "hdfs dfs -fs hdfs://localhost:5351 "
-        "-copyFromLocal fileForTesting /fileToRead");
+        "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting /dirToLs/");
 
       ASSERT_EQ(0,
                 system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                               "fileToRead?op=LISTSTATUS > actualResultRead"));
+                               "dirToLs?op=LISTSTATUS > actualResultLs"));
 
       // Check that results match
       ASSERT_EQ(0,
                 system("diff /home/vagrant/rdfs/test/webRDFS/"
-                               "expectedResultRead actualResultRead"));
+                               "expectedResultLs actualResultLs"));
 
-      system("rm actualResultRead");
-      system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
+      //system("rm actualResultLs");
+      system("hdfs dfs -fs hdfs://localhost:5351 -rm -r /dirToLs");
     }
 }  // namespace
 

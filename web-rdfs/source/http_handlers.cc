@@ -19,17 +19,21 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
   hadoop::hdfs::CreateResponseProto res;
   hadoop::hdfs::CreateRequestProto req;
 
+  req.set_src(path);
+
   zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
 
   response->write(webRequestTranslator::getCreateResponse(path));
 }
 
 void ls_handler(std::shared_ptr<HttpsServer::Response> response,
-                std::shared_ptr<HttpsServer::Request> request) {
+                std::shared_ptr<HttpsServer::Request> request,
+                std::string path) {
   LOG(DEBUG) << "HTTP request: listing_directory_handler";
-
   GetListingRequestProto req;
   GetListingResponseProto res;
+
+  req.set_src(path);
 
   zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req, res);
 
@@ -95,11 +99,10 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
     delete_file_handler(response, path);
   } else if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
-  } else if (!typeOfRequest.compare("CREATE")){
+  } else if (!typeOfRequest.compare("CREATE")) {
     create_file_handler(response, path);
-  }
-  else {
-    ls_handler(response, request);
+  } else if (!typeOfRequest.compare("LISTSTATUS")) {
+    ls_handler(response, request, path);
   }
 }
 
