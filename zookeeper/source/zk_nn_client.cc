@@ -318,9 +318,6 @@ bool ZkNnClient::process_request(std::string client_name,
     // Check if valid client
   }
 
-  // TODO (ref Anthony): When is client put into the metadata?
-  // Shouldn't we update "clients" if necessary? not just check and fail
-  // if it doesn't already exist
   if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
                CLIENTS << client_name
@@ -350,8 +347,7 @@ bool ZkNnClient::check_lease(std::string client_name,
   if (children.size() == 1 && children.at(0) == client_name) {
     return true;
   } else if (children.size() >= 1) {
-    // TODO (ref Anthony): I think this should throw an error (it shouldn't
-    // just return false).
+    // TODO(marccanby): This should throw an error as well. --anthony
     // (There should never be more than one lease open for a file at a time.)
     LOG(ERROR) << "Children size greater than 1 in check_lease for " <<
                client_name << "!";
@@ -364,8 +360,7 @@ bool ZkNnClient::check_lease(std::string client_name,
     znode_data_to_vec(&clientInfo, data);
 
     // QUESTION: Do we need to add to client -> timestamp or not?
-    // TODO (ref Anthony): yes, we do need to do that. Also, see above TODO
-    // comment
+    // TODO(marccanby): yes, we do need to this  --anthony
     if (!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
       LOG(ERROR) << "Failed to set data for " <<
                  ClientZookeeperPath(client_name) << ".";
@@ -384,7 +379,7 @@ bool ZkNnClient::check_lease(std::string client_name,
   }
 }
 
-// TODO (ref Anthony): we should rename this method - it's misleading
+// TODO(marccanby): should rename this method; it's misleading --anthony
 bool ZkNnClient::get_primary_block_info(std::string file_path,
                                         AppendRequestProto &req,
                                         AppendResponseProto &res) {
@@ -392,20 +387,10 @@ bool ZkNnClient::get_primary_block_info(std::string file_path,
   std::uint64_t block_id;
   std::vector<std::string> data_nodes;
 
-  // Trying to get replication_factor
-  FileZNode znode_data;
-  if (!file_exists(file_path)) {
-    LOG(ERROR) << "Requested file " << file_path << " does not exist";
-    return false;
-  }
-  read_file_znode(znode_data, file_path);
-  // Assert that the znode we want to modify is a file
-  if (znode_data.filetype != IS_FILE) {
-    LOG(ERROR) << "Requested file " << file_path << " is not a file";
-    return false;
-  }
-  uint32_t replication_factor = znode_data.replication;
 
+  // TODO(marccanby): If this works, it works, but we should really be
+  // using the internal add_block method instead of the public one.
+  // --anthony
   AddBlockRequestProto add_block_req;
   AddBlockResponseProto add_block_res;
   add_block_req.set_src(req.src());
@@ -418,20 +403,12 @@ bool ZkNnClient::get_primary_block_info(std::string file_path,
 
   res.set_allocated_block(&non_const_block_proto);
   // QUESTION: Do we need to fill in the stat field of res?
-
   // look at AppendResponseProto has field for LocatedBlockProto field  -
   // fill it up (look at create_file for ideas)
   // just fill it up, and lket client call add_block (so don't call
   // add_block)
   // Summary: basically in all validate correct append request
   // (constructing lease if necessary) and fill out the proto
-
-  CompleteRequestProto complete_req;
-  CompleteResponseProto complete_resp;
-  complete_req.set_src(req.src());
-  complete_req.set_clientname(req.clientname());
-
-  complete(complete_req, complete_resp, req.clientname());
 
   return true;
 }
