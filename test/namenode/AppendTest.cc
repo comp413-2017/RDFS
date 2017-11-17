@@ -57,6 +57,30 @@ TEST_F(NamenodeTest, checkLeaseTest) {
   ASSERT_FALSE(client->check_lease(client_name, file_path));
 }
 
+TEST_F(NamenodeTest, processRequestTest) {
+  std::string client_name = "test_client_mjp_3";
+  std::string file_path = "test_file_mjp_3";
+
+  hadoop::hdfs::AppendRequestProto append_req;
+  append_req.set_clientname(client_name);
+  append_req.set_src(file_path);
+
+  bool exists;
+  int error_code;
+
+  // Verify that the file doesn't exist.
+  ASSERT_FALSE(client->process_request(client_name, file_path, append_req));
+
+  // Now add the file path in, but verify that the client still doesn't exist.
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto(file_path);
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+            zkclient::ZkNnClient::CreateResponse::Ok);
+
+  ASSERT_FALSE(client->process_request(client_name, file_path, append_req));
+}
+
 // TEST_F(NamenodeTest, checkLeaseTest) {
 //  LOG(INFO) << "In checkLeaseCorrectnessTest";
 //
