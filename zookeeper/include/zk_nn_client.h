@@ -368,7 +368,8 @@ class ZkNnClient : public ZkClientCommon {
   bool add_block(AddBlockRequestProto &req,
                  AddBlockResponseProto &res,
                  std::string client_name = "default");
-  /*
+
+  /**
    * Sets the owner of the file.
    * @param req SetOwnerRequestProto
    * @param res SetOwnerResponseProto
@@ -376,6 +377,22 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res);
 
+  /**
+   * A helper method that achieves the above add_block method.
+   * Does
+   * 1) Creates namespace changes to the given file.
+   * 2) Generates a block id. The id is generated randomly for replication
+   * blocks and based on the hierarchical naming scheme for EC blocks.
+   * 3) Finds a set of data nodes on which to allocate the new block.
+   * In the case of replication, the set of DataNodes has primary / secondary
+   * replicas of the block.
+   * In the case of EC, each DataNode hosts a block group.
+   */
+  /*bool add_block(const std::string &fileName,
+                u_int64_t &block_id,
+                std::vector<std::string> &dataNodes,
+                uint32_t replication_factor);
+  */
   /**
    * Abandons the block - basically reverses all of add block's multiops
    * @param req AbandonBlockRequestProtoProto
