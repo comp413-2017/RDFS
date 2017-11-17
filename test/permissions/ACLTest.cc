@@ -49,23 +49,7 @@ namespace {
             create_req.set_createflag(0);
             return create_req;
         }
-
-
-
     };
-
-TEST_F(ACLTest, testGetUsertemp) {
-
-auto namenodeServer = nn_translator->getRPCServer();
-
-// fetch name of current user
-std::string expectedUsername;
-expectedUsername = getenv("USER");
-
-// assert current user is listed as admin
-ASSERT_TRUE(expectedUsername.compare(namenodeServer.getUsername()) == 0);
-
-}
 
 TEST_F(ACLTest, testReadOwnFile) {
 
@@ -79,7 +63,7 @@ system(
 "expected_testfile1234"));
 // Put it into rdfs.
 system(
-"hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
+"hdfs dfs -fs hdfs://localhost:5351 "
 "-copyFromLocal expected_testfile1234 /f");
 // Read it from rdfs.
 system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
@@ -105,10 +89,52 @@ system(
 
 // Put it into rdfs.
 system(
-"hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
+"hdfs dfs -fs hdfs://localhost:5351 "
 "-copyFromLocal expected_testfile1234 /f");
 
 // Switch users.
+system("echo \"vagrant\" > in");
+system("sudo su - user2");
+
+
+system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+
+// Check that its contents do not match.
+ASSERT_NE(0,
+system("diff expected_testfile1234 actual_testfile1234 > "
+"/dev/null"));
+system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+
+
+
+// hdfs dfs chmod 755 <filename>
+
+}
+
+TEST_F(ACLTest, testAddPermFile) {
+
+std::string oldUsername;
+oldUsername = getenv("USER");
+
+// Make a file.
+ASSERT_EQ(0,
+system(
+"python /home/vagrant/rdfs/test/integration/generate_file.py > "
+"expected_testfile1234"));
+
+// Put it into rdfs.
+system(
+"hdfs dfs -fs hdfs://localhost:5351 "
+"-copyFromLocal expected_testfile1234 /f");
+
+// Add permissions for user2
+system( "hdfs dfs -fs hdfs://localhost:5351 "
+"-chmod 755 user2");
+
+// Switch users.
+system("echo \"vagrant\" > in");
+system("sudo su - user2");
+
 
 system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
 
@@ -117,6 +143,51 @@ ASSERT_EQ(0,
 system("diff expected_testfile1234 actual_testfile1234 > "
 "/dev/null"));
 system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+
+}
+
+
+TEST_F(ACLTest, testRemovePermFile) {
+
+std::string oldUsername;
+oldUsername = getenv("USER");
+
+// Make a file.
+ASSERT_EQ(0,
+system(
+"python /home/vagrant/rdfs/test/integration/generate_file.py > "
+"expected_testfile1234"));
+
+// Put it into rdfs.
+system(
+"hdfs dfs -fs hdfs://localhost:5351 "
+"-copyFromLocal expected_testfile1234 /f");
+
+// Add permissions for user2
+system( "hdfs dfs -fs hdfs://localhost:5351 "
+"-chmod 755 user2");
+
+// Switch users.
+system("echo \"vagrant\" > in");
+std::string str = string("sudo su - ") + oldUsername
+system(str);
+
+// Remove permissions for user2
+system( "hdfs dfs -fs hdfs://localhost:5351 "
+"-chmod 700 user2");
+
+
+system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+
+// Check that its contents do not match.
+ASSERT_NE(0,
+system("diff expected_testfile1234 actual_testfile1234 > "
+"/dev/null"));
+system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+
+// Switch users again.
+system("echo \"vagrant\" > in");
+system("sudo su - user2");
 
 
 
@@ -130,17 +201,30 @@ system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 
 int main(int argc, char **argv) {
 
-    // Redirect cin to a static file
-    system("echo \"vagrant\nvagrant\nvagrant\nn\n\n\n\nY\n\" > in.txt");
-    std::ifstream in("in.txt");
+    system("getent passwd user2 > t");
+    char ch;
+    std::ifstream f ("t");
+    std::ifstream in("in");
     std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
-    std::cin.rdbuf(in.rdbuf()); //redirect std::cin to in.txt!
 
-  // New linux user
-  system("sudo adduser user2");
+    system("echo > in");
+    if(f.eof()) // if user2 does not exist
+    {
+        system("echo \"vagrant\nvagrant\nvagrant\n\n\n\n\n\nY\nvagrant\n\" > in");
+        // Redirect cin to a static file
+        std::cin.rdbuf(in.rdbuf()); //redirect std::cin to the file in
 
-//    std::cin.rdbuf(cinbuf);   //reset to standard input again
+        system("sudo adduser user2");
+        system("sudo usermod -aG sudo user2");
+    }
+    else {
+        // Redirect cin to a static file
+        std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
+        std::cin.rdbuf(in.rdbuf()); //redirect std::cin to in.txt!
+    }
+    f.close();
 
+  std::cout << "Have created user 'user2'.\n";
 
     // Start up zookeeper
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
@@ -154,5 +238,8 @@ int main(int argc, char **argv) {
   // Remove test files and shutdown zookeeper
   system("~/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-  return res;
+
+  std::cin.rdbuf(cinbuf);   //reset to standard input again
+
+    return res;
 }

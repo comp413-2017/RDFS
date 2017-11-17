@@ -16,28 +16,39 @@ INITIALIZE_EASYLOGGINGPP
 using client_namenode_translator::ClientNamenodeTranslator;
 
 namespace {
-TEST(UsernameTest, testGetUser) {
-  zkclient::ZkNnClient *nncli;
-  ClientNamenodeTranslator *nn_translator;
-  std::shared_ptr<ZKWrapper> zk;
 
-  int error_code;
-  zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
-  assert(error_code == 0);  // Z_OK
+    class UsernameTest : public ::testing::Test {
+    protected:
+        virtual void SetUp() {
 
-  nncli = new zkclient::ZkNnClient(zk);
-  nncli->register_watches();
-  nn_translator = new ClientNamenodeTranslator(5351, nncli);
+            int error_code;
+            zk = std::make_shared<ZKWrapper>("localhost:2181", error_code, "/testing");
+            assert(error_code == 0);  // Z_OK
 
-  auto namenodeServer = nn_translator->getRPCServer();
+            nncli = new zkclient::ZkNnClient(zk);
+            nncli->register_watches();
+            nn_translator = new ClientNamenodeTranslator(5351, nncli);
 
-  std::string expectedVagrant("vagrant");
-  std::string expectedTravis("travis");
-  ASSERT_TRUE((expectedVagrant.compare(namenodeServer.getUsername()) == 0) ||
-              (expectedTravis.compare(namenodeServer.getUsername()) == 0));
+        }
+
+        zkclient::ZkNnClient *nncli;
+        ClientNamenodeTranslator *nn_translator;
+        std::shared_ptr<ZKWrapper> zk;
+    };
+
+TEST_F(UsernameTest, testGetUser) {
+
+auto namenodeServer = nn_translator->getRPCServer();
+
+// fetch name of current user
+std::string expectedUsername;
+expectedUsername = getenv("USER");
+
+ASSERT_TRUE(expectedUsername.compare(namenodeServer.getUsername()) == 0);
 }
 
 }  // namespace
+
 
 int main(int argc, char **argv) {
     // Start up zookeeper
