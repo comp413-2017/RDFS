@@ -101,17 +101,19 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   std::stringstream ss(request->query_string);
   std::string item;
   std::string pathForRename;
-  while (getline(ss, item, '?')) {
+  while (getline(ss, item, '&')) {
     tokens.push_back(item);
   }
+  LOG(DEBUG) << "request->query_string: " << request->query_string;
   // Remove op= from query string
   std::string typeOfRequest = tokens[0].substr(3);
-  if (sizeof(tokens) > 1) {
+  if (tokens.size() > 1) {
     pathForRename = tokens[1].substr(8);
   }
 
   LOG(DEBUG) << "Type of Request " << typeOfRequest;
   LOG(DEBUG) << "Path " << path;
+  
 
   if (!typeOfRequest.compare("DELETE")) {
     delete_file_handler(response, path);
