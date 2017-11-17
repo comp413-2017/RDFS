@@ -416,6 +416,7 @@ class ZkNnClient : public ZkClientCommon {
   bool set_owner(SetOwnerRequestProto &req,
                  SetOwnerResponseProto &res,
                  std::string client_name = "default");
+
   /**
    * Adds a block by making appropriate namespace changes and returns information about
    * the set of DataNodes that the block data should be hosted by.
