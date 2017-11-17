@@ -319,7 +319,8 @@ bool ZkNnClient::process_request(std::string client_name,
   }
 
   // TODO (ref Anthony): When is client put into the metadata?
-  // Shouldn't we update "clients" if necessary? not just check and fail if it doesn't already exist
+  // Shouldn't we update "clients" if necessary? not just check and fail
+  // if it doesn't already exist
   if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
     LOG(ERROR) << "Failed to check whether " <<
                CLIENTS << client_name
@@ -349,8 +350,11 @@ bool ZkNnClient::check_lease(std::string client_name,
   if (children.size() == 1 && children.at(0) == client_name) {
     return true;
   } else if (children.size() >= 1) {
-    // TODO (ref Anthony): I think this should throw an error (it shouldn't just return false).
+    // TODO (ref Anthony): I think this should throw an error (it shouldn't
+    // just return false).
     // (There should never be more than one lease open for a file at a time.)
+    LOG(ERROR) << "Children size greater than 1 in check_lease for " <<
+               client_name << "!";
     return false;
   } else {
     // Currently there is no client holding a lease for this file.
@@ -360,7 +364,8 @@ bool ZkNnClient::check_lease(std::string client_name,
     znode_data_to_vec(&clientInfo, data);
 
     // QUESTION: Do we need to add to client -> timestamp or not?
-    // TODO (ref Anthony): yes, we do need to do that. Also, see above TODO comment
+    // TODO (ref Anthony): yes, we do need to do that. Also, see above TODO
+    // comment
     if (!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
       LOG(ERROR) << "Failed to set data for " <<
                  ClientZookeeperPath(client_name) << ".";
