@@ -431,7 +431,7 @@ std::string ClientNamenodeTranslator::Serialize(
     google::protobuf::Message &res
 ) {
   std::string out;
-  logMessage(&res, "Responding with ");
+  // logMessage(&res, "Responding with ");
   if (!res.SerializeToString(&out)) {
     // TODO(2016): handle error
   }
