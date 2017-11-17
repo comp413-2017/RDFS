@@ -67,7 +67,7 @@ TEST(WebServerTest, testRename) {
 
   ASSERT_EQ(0,
             system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                  "fileToRename?op=RENAME?newName=newPath > actualResultRename"));
+                  "fileToRename?op=RENAME&newName=newPath > actualResultRename"));
 
   // Check that results match
   ASSERT_EQ(0,
