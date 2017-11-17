@@ -31,14 +31,11 @@ TEST_F(NamenodeTest, checkLeaseTest) {
   bool exists;
   int error_code;
 
-  //  ASSERT_TRUE(client->zk->exists(
-  //  zkclient::ZkNnClient::ZookeeperFilePath(file_path) + client->LEASES +
-  //  '/' + client_name, exists, error_code));
-
-  // Trying feeding in the physical path instead of the above
-  // b/c we don't have access to ZookeeperFilePath
+  // Check that client is added to /file_path/leases branch of zk tree.
   ASSERT_TRUE(client->zk->exists("/fileSystem/" + file_path +
               "/leases/" + client_name, exists, error_code));
+
+
 
   ASSERT_TRUE(exists);
 }
