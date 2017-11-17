@@ -27,7 +27,7 @@ static inline void initializeDatanodes(int numDatanodes) {
 
 namespace {
 
-TEST(AppendFileTest, testFileAppend) {
+TEST(AppendFileTest, testSimpleFileAppend) {
   // Make a file.
   ASSERT_EQ(0,
             system(
@@ -53,6 +53,25 @@ TEST(AppendFileTest, testFileAppend) {
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
             "/dev/null"));
+}
+
+TEST(AppendFileTest, appendToNonExistentFile) {
+  // Make a local file.
+  ASSERT_EQ(0,
+  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+
+  // Append the file.
+  system("hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /non_existent_testfile");
+
+  // Read it from rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /non_existent_testfile > actual_testfile1234");
+
+  // Create the expected test file by appending the test file twice
+  system("cat testfile1234 >> expected_testfile1234");
+
+  // Check that its contents match.
+  ASSERT_EQ(0,
+  system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 }
 }
 
