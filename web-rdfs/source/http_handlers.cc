@@ -109,6 +109,8 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
   hadoop::hdfs::CreateResponseProto res;
   hadoop::hdfs::CreateRequestProto req;
 
+  req.set_src(path);
+
   zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
 
   *response << webRequestTranslator::getCreateResponse(path);
@@ -252,7 +254,7 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
     read_file_handler(response, path);
   } else if (!typeOfRequest.compare("LISTST")) {
     ls_handler(response, request, path);
-  }else {
+  } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
 }
