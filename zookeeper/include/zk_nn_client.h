@@ -427,7 +427,8 @@ class ZkNnClient : public ZkClientCommon {
   bool add_block(AddBlockRequestProto &req,
                  AddBlockResponseProto &res,
                  std::string client_name = "default");
-  /*
+
+  /**
    * Sets the owner of the file.
    * @param req SetOwnerRequestProto
    * @param res SetOwnerResponseProto
