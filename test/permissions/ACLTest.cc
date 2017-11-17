@@ -53,9 +53,6 @@ namespace {
 
 TEST_F(ACLTest, testReadOwnFile) {
 
-std::string currUsername;
-currUsername = getenv("USER");
-
 // Make a file.
 ASSERT_EQ(0,
 system(
@@ -78,9 +75,6 @@ system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 
 TEST_F(ACLTest, testUnauthorizedReadFailFile) {
 
-std::string oldUsername;
-oldUsername = getenv("USER");
-
 // Make a file.
 ASSERT_EQ(0,
 system(
@@ -93,9 +87,7 @@ system(
 "-copyFromLocal expected_testfile1234 /f");
 
 // Switch users.
-system("echo \"vagrant\" > in");
 system("sudo su - user2");
-
 
 system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
 
@@ -104,10 +96,6 @@ ASSERT_NE(0,
 system("diff expected_testfile1234 actual_testfile1234 > "
 "/dev/null"));
 system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
-
-
-
-// hdfs dfs chmod 755 <filename>
 
 }
 
@@ -132,9 +120,7 @@ system( "hdfs dfs -fs hdfs://localhost:5351 "
 "-chmod 755 user2");
 
 // Switch users.
-system("echo \"vagrant\" > in");
 system("sudo su - user2");
-
 
 system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
 
@@ -168,7 +154,17 @@ system( "hdfs dfs -fs hdfs://localhost:5351 "
 "-chmod 755 user2");
 
 // Switch users.
-system("echo \"vagrant\" > in");
+system("sudo su - user2");
+
+system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+
+// Check that its contents match.
+ASSERT_EQ(0,
+system("diff expected_testfile1234 actual_testfile1234 > "
+"/dev/null"));
+system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+
+// Switch back to first user
 std::string str = "sudo su - " + oldUsername;
 system(str.c_str());
 
@@ -176,6 +172,8 @@ system(str.c_str());
 system( "hdfs dfs -fs hdfs://localhost:5351 "
 "-chmod 700 user2");
 
+// switch back to second user
+system("sudo su - user2");
 
 system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
 
@@ -198,30 +196,20 @@ system("sudo su - user2");
 
 int main(int argc, char **argv) {
 
-    system("getent passwd user2 > t");
     char ch;
-    std::ifstream f ("t");
-    std::ifstream in("in");
-    std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
+  //  std::ifstream in("in");
+    //std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
 
-    system("echo > in");
-    if(f.eof()) // if user2 does not exist
-    {
-        system("echo \"vagrant\nvagrant\nvagrant\n\n\n\n\n\nY\nvagrant\n\" > in");
-        // Redirect cin to a static file
-        std::cin.rdbuf(in.rdbuf()); //redirect std::cin to the file in
+//    system("echo > in");
 
-        system("sudo adduser user2");
-        system("sudo usermod -aG sudo user2");
-    }
-    else {
-        // Redirect cin to a static file
-        std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
-        std::cin.rdbuf(in.rdbuf()); //redirect std::cin to in.txt!
-    }
-    f.close();
+    // Redirect cin to a static file
+//    std::cin.rdbuf(in.rdbuf()); //redirect std::cin to the file in
+    system("sudo deluser user2");
+    system("sudo adduser user2 --gecos \"F,R,W,H\" --disabled-password");
+    system("echo \"user2:vagrant\" | sudo chpasswd");
 
-  std::cout << "Have created user 'user2'.\n";
+//        system("sudo adduser user2");
+    system("sudo usermod -aG sudo user2");
 
     // Start up zookeeper
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
@@ -235,12 +223,13 @@ int main(int argc, char **argv) {
   int res = RUN_ALL_TESTS();
 
   // Remove test files and shutdown zookeeper
+  sleep(10);
   system("~/zookeeper/bin/zkCli.sh rmr /testing");
   system("pkill -f namenode");
   system("pkill -f datanode");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 
-  std::cin.rdbuf(cinbuf);   //reset to standard input again
+ // std::cin.rdbuf(cinbuf);   //reset to standard input again
 
   return res;
 }
