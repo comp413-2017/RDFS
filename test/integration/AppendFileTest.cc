@@ -53,9 +53,14 @@ TEST(AppendFileTest, testSimpleFileAppend) {
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
             "/dev/null"));
+
+  // Remove files created by this test
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  system("rm testfile1234");
+  system("rm expected_testfile1234");
 }
 
-TEST(AppendFileTest, appendToNonExistentFile) {
+TEST(AppendFileTest, testAppendToNonExistentFile) {
   // Make a local file.
   ASSERT_EQ(0,
   system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
@@ -72,6 +77,11 @@ TEST(AppendFileTest, appendToNonExistentFile) {
   // Check that its contents match.
   ASSERT_EQ(0,
   system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+
+  // Remove the created files
+  system("rm testfile1234");
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /non_existent_testfile");
+  system("rm expected_testfile1234");
 }
 }
 
