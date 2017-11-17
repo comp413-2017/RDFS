@@ -149,6 +149,15 @@ void ZkClientCommon::init() {
     // TODO(2016): Handle error
   }
 
+  // For EC
+  if (zk->exists("/block_group_locations", exists, error_code)) {
+    if (!exists) {
+      zk->create("/block_group_locations", vec, error_code, false);
+    }
+  } else {
+    // TODO(2016): Handle error
+  }
+
   LOG(INFO) << "Finished ZkClientCommon";
 }
 }  // namespace zkclient
