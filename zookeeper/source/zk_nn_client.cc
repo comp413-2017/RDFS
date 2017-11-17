@@ -1083,7 +1083,6 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
     DeleteResponseProto &response,
     std::string client_name) {
   int error_code;
-  int error_code;
   const std::string &path = request.src();
   bool recursive = request.recursive();
   response.set_result(true);
@@ -1864,22 +1863,6 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
     // Write the modified node back to Zookeeper
     zk->set(ZookeeperFilePath(path), zk_data, zk_error);
-
-    if (zk_error != ZK_ERRORS::OK) {
-      LOG(ERROR) << "ZK reported error writing modified node back to disk";
-      return false;
-    }
-
-    return true;
-  }
-
-    if (zk_error != ZK_ERRORS::OK) {
-      LOG(ERROR) << "ZK reported error writing modified node back to disk";
-      return false;
-    }
-
-    return true;
-  }
 
     if (zk_error != ZK_ERRORS::OK) {
       LOG(ERROR) << "ZK reported error writing modified node back to disk";
