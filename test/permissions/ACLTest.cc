@@ -230,7 +230,6 @@ int main(int argc, char **argv) {
 
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   system("/home/vagrant/rdfs/build/rice-datanode/datanode &");
-
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
