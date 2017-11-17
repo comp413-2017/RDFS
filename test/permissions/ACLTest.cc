@@ -188,8 +188,6 @@ system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 // Switch users again.
 system("echo \"vagrant\" > in");
 system("sudo su - user2");
-
-
 // hdfs dfs chmod 755 <filename>
 
 }
