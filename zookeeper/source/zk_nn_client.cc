@@ -577,6 +577,8 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     return false;
   }
 
+  LOG(INFO) << "repl factor: " << znode_data.replication;
+
   uint32_t replication_factor = znode_data.replication;
   uint64_t block_size = znode_data.blocksize;
   assert(block_size > 0);
@@ -1983,9 +1985,11 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
 
 
   for (auto storageBlockID : storage_block_ids) {
+    std::string path = get_block_metadata_path(block_group_id) +
+        "/" + std::to_string(storageBlockID);
+    LOG(INFO) << "add_block_group blockpath: " << path;
     auto storage_block_op = zk->build_create_op(
-        get_block_metadata_path(
-            storageBlockID) + "/" + std::to_string(storageBlockID),
+        path,
         ZKWrapper::EMPTY_VECTOR);
     ops.push_back(storage_block_op);
     LOG(INFO)
@@ -1999,12 +2003,14 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
 
   if (!zk->execute_multi(ops, results, err, false)) {
     LOG(ERROR)
-      << "Failed to write the addBlock multiop, ZK state was not changed"
+      << "GROUP: Failed to write the addBlock multiop, ZK state was not changed"
       << std::endl;
     ZKWrapper::print_error(err);
 
     return false;
   }
+
+  LOG(INFO) << "add_block_group: multi-op executed successfully";
 
   return true;
 }
