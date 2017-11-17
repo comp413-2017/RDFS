@@ -585,14 +585,13 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
-  uint64_t block_group_id;
   std::vector<char> block_indices;
 
   if (!znode_data.isEC) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
       add_block_group(
-          file_path, block_group_id, data_nodes, block_indices,
+          file_path, block_id, data_nodes, block_indices,
           DEFAULT_PARITY_UNITS + DEFAULT_DATA_UNITS);
   }
 
@@ -607,7 +606,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   if (znode_data.isEC) {
     // Add storage IDs for an EC block.
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-      block->set_storageids(i, DEFAULT_STORAGE_ID);
+      block->add_storageids(DEFAULT_STORAGE_ID);
     }
 
     // Add block indices for an EC block.
@@ -616,11 +615,12 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
       block_index_string.push_back(block_indices[i]);
     }
+
     block->set_blockindices(block_index_string);
 
     // Add storage types for an EC block.
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-      block->set_storagetypes(i, StorageTypeProto::DISK);
+      block->add_storagetypes(StorageTypeProto::DISK);
     }
   }
 
@@ -1208,8 +1208,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
   znode_data.perm_length = 1;
 
-  // in the case of EC, this inputECPolicyName is empty.
-  znode_data.isEC = inputECPolicyName.empty();
+  // in the case of replication, this inputECPolicyName is empty.
+  znode_data.isEC = !inputECPolicyName.empty();
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
