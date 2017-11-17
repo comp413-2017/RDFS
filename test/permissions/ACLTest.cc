@@ -190,7 +190,6 @@ system("echo \"vagrant\" > in");
 system("sudo su - user2");
 
 
-
 // hdfs dfs chmod 755 <filename>
 
 }
