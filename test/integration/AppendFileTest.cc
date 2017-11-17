@@ -1,6 +1,7 @@
 #include <easylogging++.h>
 #include <gtest/gtest.h>
 #include "../util/RDFSTestUtils.h"
+#include <thread>
 
 using RDFSTestUtils::initializeDatanodes;
 
@@ -23,6 +24,24 @@ static inline void initializeDatanodes(int numDatanodes) {
   maxDatanodeId += numDatanodes;
   xferPort += numDatanodes;
   ipcPort += numDatanodes;
+}
+
+void threadOneAppend() {
+  // Create an identifying text file for thread one
+  system("echo 'Thread 1' > thread1.txt");
+  // Append the file.
+  system(
+      "hdfs dfs -fs hdfs://localhost:5351 -appendToFile thread1.txt /f");
+  system("rm thread1.txt");
+}
+
+void threadTwoAppend() {
+  // Create an identifying text file for thread two
+  system("echo 'Thread 2' > thread2.txt");
+  // Append the file.
+  system(
+      "hdfs dfs -fs hdfs://localhost:5351 -appendToFile thread2.txt /f");
+  system("rm thread2.txt");
 }
 
 namespace {
@@ -63,7 +82,7 @@ TEST(AppendFileTest, testSimpleFileAppend) {
 TEST(AppendFileTest, testAppendToNonExistentFile) {
   // Make a local file.
   ASSERT_EQ(0,
-  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+            system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
 
   // Append the file.
   system("hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /non_existent_testfile");
@@ -76,11 +95,44 @@ TEST(AppendFileTest, testAppendToNonExistentFile) {
 
   // Check that its contents match.
   ASSERT_EQ(0,
-  system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+            system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
 
   // Remove the created files
   system("rm testfile1234");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /non_existent_testfile");
+  system("rm expected_testfile1234");
+}
+
+TEST(AppendFileTest, testOneClientAppends) {
+  // Make a file.
+  ASSERT_EQ(0,
+            system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+
+  // Put it into rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
+
+  // Create another client and append to the file from that thread
+  std::thread threadOne(threadOneAppend);
+  threadOne.join();
+
+  // Check to make sure that these append changes are in the file
+
+  // Read it from rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+
+  // Create the expected test file by appending the test file twice
+  system("echo 'Thread 1' > thread1.txt");
+  system("cat testfile1234 >> expected_testfile1234");
+  system("cat thread1.txt >> expected_testfile1234");
+  system("rm thread1.txt");
+
+  // Check that its contents match.
+  ASSERT_EQ(0,
+            system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+
+  // Remove files created by this test
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  system("rm testfile1234");
   system("rm expected_testfile1234");
 }
 }
