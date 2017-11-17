@@ -24,7 +24,7 @@
 #include <easylogging++.h>
 #include <google/protobuf/message.h>
 #include <erasurecoding.pb.h>
-
+#include <zk_nn_client.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -755,7 +755,7 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
   const std::string &path = req.src();
 
   if (file_exists(path)) {
-    LOG(INFO) << "File exists";
+    LOG(INFO) << "File exists: " << path;
     // read the node into the file node struct
     FileZNode znode_data;
     read_file_znode(znode_data, path);
@@ -766,14 +766,14 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
       return GetFileInfoResponse::FileAccessRestricted;
     }
 
-    // set the file status in the get file info response res
+    // set the file status in the get file info response
     HdfsFileStatusProto *status = res.mutable_fs();
 
     set_file_info(status, path, znode_data);
-    LOG(INFO) << "Got info for file ";
+    LOG(INFO) << "Got info for file: " << path;
     return GetFileInfoResponse::Ok;
   } else {
-    LOG(INFO) << "No file to get info for";
+    LOG(INFO) << "No file to get info for. " << path;
     return GetFileInfoResponse::FileDoesNotExist;
   }
 }
@@ -785,11 +785,11 @@ bool ZkNnClient::create_file_znode(const std::string &path,
                                   FileZNode *znode_data) {
   int error_code;
   if (!file_exists(path)) {
-    LOG(INFO) << "Creating file znode at " << path;
+    LOG(INFO) << "Creating file znode at " << ZookeeperFilePath(path);
     {
       LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
-      LOG(INFO) << znode_data->replication;
-      LOG(INFO) << znode_data->owner;
+      LOG(INFO) << "repl factor: " << znode_data->replication;
+      LOG(INFO) << "owner: " << znode_data->owner;
       LOG(INFO) << "size of znode is " << sizeof(*znode_data);
     }
     // serialize struct to byte vector
@@ -1026,6 +1026,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   file_znode_struct_to_vec(&znode_data, data);
+  LOG(ERROR) << "YO: " << static_cast<int>(znode_data.under_construction);
   if (!zk->set(ZookeeperFilePath(src), data, error_code)) {
       LOG(ERROR)
           << " complete could not change the construction bit and file length";
@@ -1177,7 +1178,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
     std::string directory_paths = "";
     std::vector<std::string> split_path;
     boost::split(split_path, path, boost::is_any_of("/"));
-    LOG(INFO) << split_path.size();
+    LOG(INFO) << "#elements in path: " << split_path.size();
     for (int i = 1; i < split_path.size() - 1; i++) {
       directory_paths += ("/" + split_path[i]);
     }
@@ -1206,11 +1207,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.perm_length = 1;
 
   // in the case of EC, this inputECPolicyName is empty.
-  if (inputECPolicyName.empty()) {
-    znode_data.isEC = false;
-  } else {
-    znode_data.isEC = true;
-  }
+  znode_data.isEC = inputECPolicyName.empty();
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -2139,7 +2136,7 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
     }
 
     while (datanodes.size() < replication_factor && targets.size() > 0) {
-      LOG(INFO) << "DNs size IS : " << datanodes.size();
+      LOG(INFO) << "#Datanodes selected : " << datanodes.size();
       TargetDN target = targets.top();
       datanodes.push_back(target.dn_id);
       LOG(INFO) << "Selecting target DN "
@@ -2637,7 +2634,7 @@ bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
   assert(split_address.size() == 2);
 
   auto data = std::vector<std::uint8_t>();
-  if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
+  if (!zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
         error_code, sizeof(zkclient::DataNodePayload))) {
     LOG(ERROR) << "Getting data node stats failed with " << error_code;
   }
