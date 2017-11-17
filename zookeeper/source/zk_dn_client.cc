@@ -229,13 +229,23 @@ void ZkClientDn::registerDataNode(const std::string &ip,
       }
     }
   }
-  // Create the ec_reover queue
+  // Create the ec_recover queue
   if (zk->exists(EC_RECOVER_QUEUES + id, exists, error_code)) {
     if (!exists) {
       LOG(INFO) << "doesn't exist, trying to make it";
       if (!zk->create(EC_RECOVER_QUEUES + id, ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
         LOG(INFO) << "ec_recover queue Creation failed";
+      }
+    }
+  }
+  // Create the migration queue
+  if (zk->exists(MIGRATION_QUEUES + id, exists, error_code)) {
+    if (!exists) {
+      LOG(INFO) << "doesn't exist, trying to make it";
+      if (!zk->create(MIGRATION_QUEUES + id, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        LOG(INFO) << "migrate queue Creation failed";
       }
     }
   }
