@@ -9,7 +9,7 @@
 TEST_F(NamenodeTest, checkLeaseTest) {
   LOG(INFO) << "In checkLeaseCorrectnessTest";
 
-  std::string client_name = "test_client";
+  std::string client_name = "test_client_mjp";
   std::string file_path = "test_file_mjp";
 
   // Add file to system!
@@ -43,6 +43,18 @@ TEST_F(NamenodeTest, checkLeaseTest) {
   ASSERT_TRUE(client->zk->exists("/fileSystem/" + file_path +
               "/leases/" + client_name, exists, error_code));
   ASSERT_TRUE(exists);
+
+  // Now try adding a dumb child! Then it should fail.
+  std::string client2 = "test_client_2_mjp";
+  hadoop::hdfs::RenewLeaseRequestProto renew_lease_req2;
+  hadoop::hdfs::RenewLeaseResponseProto renew_lease_res2;
+  renew_lease_req2.set_clientname(client2);
+  client->renew_lease(renew_lease_req2, renew_lease_res2);
+
+  ASSERT_TRUE(zk->create("/fileSystem/" + file_path +
+                  "/leases/" + client2, ZKWrapper::EMPTY_VECTOR, error_code,
+                         false));
+  ASSERT_FALSE(client->check_lease(client_name, file_path));
 }
 
 // TEST_F(NamenodeTest, checkLeaseTest) {
