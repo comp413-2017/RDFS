@@ -196,20 +196,12 @@ system("sudo su - user2");
 
 int main(int argc, char **argv) {
 
-    char ch;
-  //  std::ifstream in("in");
-    //std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
-
-//    system("echo > in");
-
-    // Redirect cin to a static file
-//    std::cin.rdbuf(in.rdbuf()); //redirect std::cin to the file in
-    system("sudo deluser user2");
-    system("sudo adduser user2 --gecos \"F,R,W,H\" --disabled-password");
-    system("echo \"user2:vagrant\" | sudo chpasswd");
+    system("sudo /usr/sbin/deluser user2");
+    system("sudo /usr/sbin/adduser user2 --gecos \"F,R,W,H\" --disabled-password");
+    system("echo \"user2:vagrant\" | sudo /usr/sbin/chpasswd");
 
 //        system("sudo adduser user2");
-    system("sudo usermod -aG sudo user2");
+    system("sudo /usr/sbin/usermod -aG sudo user2");
 
     // Start up zookeeper
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
