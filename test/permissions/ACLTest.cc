@@ -169,8 +169,8 @@ system( "hdfs dfs -fs hdfs://localhost:5351 "
 
 // Switch users.
 system("echo \"vagrant\" > in");
-std::string str = string("sudo su - ") + oldUsername
-system(str);
+std::string str = "sudo su - " + oldUsername;
+system(str.c_str());
 
 // Remove permissions for user2
 system( "hdfs dfs -fs hdfs://localhost:5351 "
