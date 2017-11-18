@@ -5,7 +5,6 @@
 #include <easylogging++.h>
 
 #include <gtest/gtest.h>
-#include "webRequestTranslator.h"
 
 #include <iostream>
 
