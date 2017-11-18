@@ -5,7 +5,7 @@
 
 #include "server_http.h"
 #include "web_rdfs_server.h"
-#include "webRequestTranslator.h"
+#include "web_request_translator.h"
 
 #include <string>
 #include <fstream>
