@@ -1,3 +1,5 @@
+// Copyright 2017 Rice University, COMP 413 2017
+
 #include <google/protobuf/message.h>
 #include "hdfs.pb.h"
 
@@ -16,7 +18,9 @@ namespace webRequestTranslator {
   /**
   * Converts the RDFS namenode create response into the appropriate webRDFS response.
   */
-  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto
+                                        &dataProto,
+                                        std::string requestLink);
 
   /**
   * Converts the RDFS datanode create response into the appropriate webRDFS response.
@@ -31,37 +35,46 @@ namespace webRequestTranslator {
   /**
   * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
   */
-  std::string getMkdirResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+  std::string getMkdirResponse(hadoop::hdfs::DatanodeInfoProto &dataProto,
+                               std::string requestLink);
 
   /**
   * Converts the RDFS datanode mv response into the appropriate webRDFS response.
   */
-  std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink);
+  std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto,
+                            std::string requestLink);
 
   /**
   * Converts the RDFS datanode delete response into the appropriate webRDFS response.
   */
-  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &resProto);
+  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse
+                                &resProto);
 
   /**
    * Gets all the file info from the status and converts it to a string.
    */
-  std::string getFileInfoHelper(const hadoop::hdfs::HdfsFileStatusProto *file_status);
+  std::string getFileInfoHelper(const hadoop::hdfs::HdfsFileStatusProto
+                                *file_status);
 
   /**
    * Converts RDFS response from getFileInfo into the appropriate webRDFS response.
    */
-  std::string getFileInfoResponse(zkclient::ZkNnClient::GetFileInfoResponse &resResp,
-                                hadoop::hdfs::GetFileInfoResponseProto &resProto);
+  std::string getFileInfoResponse(zkclient::ZkNnClient::GetFileInfoResponse
+                                  &resResp,
+                                  hadoop::hdfs::GetFileInfoResponseProto
+                                  &resProto);
 
   /**
    * Converts RDFS response from getListing into the appropriate webRDFS response.
    */
-  std::string getListingResponse(zkclient::ZkNnClient::ListingResponse &resResp,
-                                hadoop::hdfs::GetListingResponseProto &resProto);
+  std::string getListingResponse(zkclient::ZkNnClient::ListingResponse
+                                 &resResp,
+                                 hadoop::hdfs::GetListingResponseProto
+                                 &resProto);
 
   /**
    * Gets all the file info from the status and converts it to a string.
    */
-  std::string getFileInfoHelper(const hadoop::hdfs::HdfsFileStatusProto *file_status);
-}; // namespace
+  std::string getFileInfoHelper(const hadoop::hdfs::HdfsFileStatusProto
+                                *file_status);
+};  // namespace webRequestTranslator
