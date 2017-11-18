@@ -1632,7 +1632,6 @@ ZkNnClient::get_erasure_coding_policy_of_path(
     ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
     ecSchemaProto->set_parityunits(DEFAULT_PARITY_UNITS);
   }
-
   return ErasureCodingPolicyResponse::Ok;
 }
 
