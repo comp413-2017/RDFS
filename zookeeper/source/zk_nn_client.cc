@@ -1817,7 +1817,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
   }
 
-  LOG(ERROR) << "[set_file_info] Successfully set the file info ";
+  LOG(INFO) << "[set_file_info] Successfully set the file info ";
 }
   bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
                                   SetPermissionResponseProto &res) {
