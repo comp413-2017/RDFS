@@ -46,8 +46,6 @@ TEST(WebServerTest, testRead) {
 }
 
 TEST(WebServerTest, testMkdir) {
-  //system("hdfs dfs -fs hdfs://localhost:5351 -touchz /pathToCreate");
-
   ASSERT_EQ(0,
             system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
                   "pathToCreate?op=MKDIR > actualResultMkdir"));
