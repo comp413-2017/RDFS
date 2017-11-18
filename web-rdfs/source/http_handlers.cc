@@ -121,11 +121,46 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
+  // TODO(security): invoke another handler depending on qs opcode.
+  std::string baseUrl = "/webhdfs/v1";
+
+  hadoop::hdfs::MkdirsResponseProto res;
+  hadoop::hdfs::MkdirsRequestProto req;
+
+  req.set_createparent(true);
+  req.set_src(path);
+  zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
+
+  response->write(webRequestTranslator::getMkdirResponse(zkResp));
+}
+
+void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
+                         std::string oldPath,
+                         std::string newPath) {
+  LOG(DEBUG) << "HTTP request: rename_file_handler";
+
+  hadoop::hdfs::RenameResponseProto res;
+  hadoop::hdfs::RenameRequestProto req;
+
+  req.set_src(oldPath);
+  req.set_dst(newPath);
+  zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
+
+  response->write(webRequestTranslator::getRenameResponse(zkResp));
+}
+
+void get_handler(std::shared_ptr<HttpsServer::Response> response,
+                 std::shared_ptr<HttpsServer::Request> request) {
   std::string typeOfRequest = get_request_type(request);
   std::string path = get_path(request);
 
   if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
+  } else if (!typeOfRequest.compare("MKDIR")) {
+    mkdir_handler(response, path);
+  } else if (!typeOfRequest.find("RENAME")) {
+    std::string pathForRename = typeOfRequest.substr(6);
+    rename_file_handler(response, path, pathForRename);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
