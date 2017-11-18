@@ -552,7 +552,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   // Build a new block for the response
   auto block = res.mutable_block();
 
-  // TODO(2016): Make sure we are appending / not appending ZKPath at every step
+  // TODO(may): Make sure we are appending / not appending ZKPath at every step
   const std::string file_path = req.src();
 
   LOG(INFO) << "Attempting to add block to existing file " << file_path;
@@ -798,24 +798,21 @@ bool ZkNnClient::create_file_znode(const std::string &path,
 
     // create the node in zookeeper
     if (!zk->create(ZookeeperFilePath(path), data, error_code, false)) {
-      LOG(ERROR) << "Create failed with error code " << error_code;
+      LOG(ERROR) << "ZK create failed with error code " << error_code;
       return false;
-      // TODO(2016): handle error
     }
 
     if (znode_data->filetype == 2) {
       std::vector<std::uint8_t> data2(sizeof(*znode_data));
       if (!zk->create(ZookeeperBlocksPath(path), data2, error_code, false)) {
-        LOG(ERROR) << "Create failed with error code " << error_code;
+        LOG(ERROR) << "ZK create failed with error code " << error_code;
         return false;
-        // TODO(2016): handle error
       }
       // create the lease branch
       if (!zk->create(LeaseZookeeperPath(path), ZKWrapper::EMPTY_VECTOR,
                       error_code, false)) {
-        LOG(ERROR) << "Create lease file path failed" << error_code;
+        LOG(ERROR) << "ZK create lease file path failed" << error_code;
         return false;
-        // TODO(2016): handle error
       }
     }
     return true;
