@@ -80,14 +80,35 @@ TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
   auto create_req = getCreateRequestProto("filethatexists");
   req.set_src("filethatexists");
   hadoop::hdfs::CreateResponseProto create_res;
-
   client->create_file(create_req, create_res);
   ASSERT_EQ(
       zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
       client->get_erasure_coding_policy_of_path(req, res));
+  // check that the ecpolicy is null
+  ASSERT_TRUE(!res.has_ecpolicy());
 
-  // TODO(nate): check that the ecpolicy is null
-  // TODO(nate): add another test by creating an ec based file.
+  // TODO(nate): get rid of copy and paste by
+  // refactoring EC related test code
+  hadoop::hdfs::GetErasureCodingPolicyRequestProto req2;
+  hadoop::hdfs::GetErasureCodingPolicyResponseProto res2;
+
+  auto create_req2 = getCreateRequestProto("ECfilethatexists");
+  hadoop::hdfs::CreateResponseProto create_res2;
+  req2.set_src("ECfilethatexists");
+  create_req2.set_ecpolicyname("RS-6-3-1024k");
+  client->create_file(create_req2, create_res2);
+  ASSERT_EQ(
+    zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
+    client->get_erasure_coding_policy_of_path(req2, res2));
+
+  ASSERT_TRUE(res2.has_ecpolicy());
+
+  auto ecpolicy = res2.ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
 }
 
 TEST_F(NamenodeTest, setErasureCodingPolicies) {
@@ -124,7 +145,8 @@ TEST_F(NamenodeTest, addECBlock) {
   addblock_req.set_clientname("unittest");
   addblock_req.set_src("ec_file2");
 
-//  ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
+  // TODO(nate): investigate GMock and mock out the ZooKeeper related logic.
+  // ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
 }
 
 TEST_F(NamenodeTest, findDataNodes) {
