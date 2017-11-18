@@ -3,6 +3,8 @@
 #include "http_handlers.h"
 #include <cstdlib>
 #include <easylogging++.h>
+#include <sstream>
+#include <iostream>
 
 zkclient::ZkNnClient *zk;
 
@@ -59,6 +61,35 @@ void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
   system(("rm " + storedFile).c_str());  // Clean up temp file
 }
 
+void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
+                         std::string path) {
+  LOG(DEBUG) << "HTTP request: mkdir_handler";
+
+  hadoop::hdfs::MkdirsResponseProto res;
+  hadoop::hdfs::MkdirsRequestProto req;
+
+  req.set_createparent(true);
+  req.set_src(path);
+  zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
+
+  response->write(webRequestTranslator::getMkdirResponse(zkResp));
+}
+
+void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
+                         std::string oldPath,
+                         std::string newPath) {
+  LOG(DEBUG) << "HTTP request: rename_file_handler";
+
+  hadoop::hdfs::RenameResponseProto res;
+  hadoop::hdfs::RenameRequestProto req;
+
+  req.set_src(oldPath);
+  req.set_dst(newPath);
+  zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
+
+  response->write(webRequestTranslator::getRenameResponse(zkResp));
+}
+
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
@@ -77,6 +108,11 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
     delete_file_handler(response, path);
   } else if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
+  } else if (!typeOfRequest.compare("MKDIR")) {
+    mkdir_handler(response, path);
+  } else if (!typeOfRequest.find("RENAME")) {
+    std::string pathForRename = typeOfRequest.substr(6);
+    rename_file_handler(response, path, pathForRename);
   } else {
     create_file_handler(response, request);
   }
