@@ -97,19 +97,8 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
   std::string path = (request->path).substr(idxOfSplit);
 
-  std::vector<std::string> tokens;
-  std::stringstream ss(request->query_string);
-  std::string item;
-  std::string pathForRename;
-  while (getline(ss, item, '&')) {
-    tokens.push_back(item);
-  }
-  LOG(DEBUG) << "request->query_string: " << request->query_string;
   // Remove op= from query string
-  std::string typeOfRequest = tokens[0].substr(3);
-  if (tokens.size() > 1) {
-    pathForRename = tokens[1].substr(8);
-  }
+  std::string typeOfRequest = request->query_string.substr(3);
 
   LOG(DEBUG) << "Type of Request " << typeOfRequest;
   LOG(DEBUG) << "Path " << path;
@@ -121,7 +110,8 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
     read_file_handler(response, path);
   } else if (!typeOfRequest.compare("MKDIR")) {
     mkdir_handler(response, path);
-  } else if (!typeOfRequest.compare("RENAME")) {
+  } else if (!typeOfRequest.find("RENAME")) {
+    std::string pathForRename = typeOfRequest.substr(6);
     rename_file_handler(response, path, pathForRename);
   } else {
     create_file_handler(response, request);
