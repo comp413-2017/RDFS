@@ -1639,7 +1639,6 @@ ZkNnClient::SetErasureCodingPolicyResponse
 ZkNnClient::set_erasure_coding_policy_of_path(
     SetErasureCodingPolicyRequestProto &req,
     SetErasureCodingPolicyResponseProto &res) {
-
   std::string file_src = req.src();
   std::string ecpolicy_name = req.ecpolicyname();
 

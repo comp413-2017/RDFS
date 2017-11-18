@@ -112,7 +112,18 @@ TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
 }
 
 TEST_F(NamenodeTest, setErasureCodingPolicies) {
-  // TODO(nate): implement this unit test.
+  hadoop::hdfs::SetErasureCodingPolicyRequestProto set_ec_req;
+  hadoop::hdfs::SetErasureCodingPolicyResponseProto set_ec_res;
+  set_ec_req.set_src("/");
+  set_ec_req.set_ecpolicyname("RS-6-3-1024k");
+  ASSERT_EQ(client->set_erasure_coding_policy_of_path(
+    set_ec_req, set_ec_res),
+    zkclient::ZkNnClient::SetErasureCodingPolicyResponse::Ok);
+
+  set_ec_req.set_src("/Idondtexist/");
+  ASSERT_EQ(client->set_erasure_coding_policy_of_path(
+    set_ec_req, set_ec_res),
+    zkclient::ZkNnClient::SetErasureCodingPolicyResponse::FileDoesNotExist);
 }
 
 TEST_F(NamenodeTest, createECFile) {
