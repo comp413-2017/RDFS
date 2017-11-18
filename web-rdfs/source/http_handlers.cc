@@ -102,7 +102,7 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   std::string typeOfRequest = request->query_string.substr(3);
 
   LOG(DEBUG) << "Type of Request " << typeOfRequest;
-  LOG(DEBUG) << "Path " << path;  
+  LOG(DEBUG) << "Path " << path;
 
   if (!typeOfRequest.compare("DELETE")) {
     delete_file_handler(response, path);
