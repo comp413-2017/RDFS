@@ -1,14 +1,21 @@
-#include "webRequestTranslator.h"
+// Copyright 2017 Rice University, COMP 413 2017
+
+#include "web_request_translator.h"
 
 namespace webRequestTranslator {
   /**
    * Converts the RDFS namenode create response into the appropriate webRDFS response.
    */
-  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
+  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto
+                                        &dataProto,
+                                        std::string requestLink) {
     std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
 
     std::string delimiter = "/webhfs/v1/";
-    std::string restOfRequest = requestLink.substr(requestLink.find(delimiter) + delimiter.length(), requestLink.length());
+    std::string restOfRequest = requestLink.substr(requestLink
+                                                   .find(delimiter)
+                                                   + delimiter.length(),
+                                                   requestLink.length());
 
     hadoop::hdfs::DatanodeIDProto id = dataProto.id();
     res += "Location: http://";
@@ -26,7 +33,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode create response into the appropriate webRDFS response.
    */
-  std::string getDatanodeCreateResponse(std::string location, std::string contentOfFile) {
+  std::string getDatanodeCreateResponse(std::string location,
+                                        std::string contentOfFile) {
     std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
 
     res += location;
@@ -66,14 +74,16 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode mv response into the appropriate webRDFS response.
    */
-  std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto, std::string requestLink) {
+  std::string getMvResponse(hadoop::hdfs::DatanodeInfoProto &dataProto,
+                            std::string requestLink) {
     return "{\"boolean\":true}\n";
   }
 
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
-  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse &resProto) {
+  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse
+                                &resProto) {
     if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
       return "{\"boolean\":true}\n";
     } else {
@@ -84,13 +94,17 @@ namespace webRequestTranslator {
   /**
    * Converts RDFS response from getFileInfo into the appropriate webRDFS response.
    */
-  std::string getFileInfoResponse(zkclient::ZkNnClient::GetFileInfoResponse &resResp,
-                                hadoop::hdfs::GetFileInfoResponseProto &resProto) {
+  std::string getFileInfoResponse(zkclient::ZkNnClient::GetFileInfoResponse
+                                  &resResp,
+                                  hadoop::hdfs::GetFileInfoResponseProto
+                                  &resProto) {
     std::string res = std::string("");
 
-    if (resResp == zkclient::ZkNnClient::GetFileInfoResponse::FileDoesNotExist) {
+    if (resResp ==
+        zkclient::ZkNnClient::GetFileInfoResponse::FileDoesNotExist) {
       return "File does not exist\n";
-    } else if (resResp == zkclient::ZkNnClient::GetFileInfoResponse::FailedReadZnode){
+    } else if (resResp ==
+               zkclient::ZkNnClient::GetFileInfoResponse::FailedReadZnode) {
       return "Failed to read znode\n";
     }
     res += "{\n\"FileStatus\":\n\n";
@@ -107,8 +121,10 @@ namespace webRequestTranslator {
   /**
    * Converts RDFS response from getListing into the appropriate webRDFS response.
    */
-  std::string getListingResponse(zkclient::ZkNnClient::ListingResponse &resResp,
-                                 hadoop::hdfs::GetListingResponseProto &resProto) {
+  std::string getListingResponse(zkclient::ZkNnClient::ListingResponse
+                                 &resResp,
+                                 hadoop::hdfs::GetListingResponseProto
+                                 &resProto) {
     std::string res = std::string("");
 
     if (resResp ==
@@ -139,26 +155,37 @@ namespace webRequestTranslator {
   /**
    * Gets all the file info from the status and converts it to a string.
    */
-  std::string getFileInfoHelper(const hadoop::hdfs::HdfsFileStatusProto *file_status) {
+  std::string getFileInfoHelper(const hadoop::hdfs::HdfsFileStatusProto
+                                *file_status) {
     std::string statusString = std::string("");
 
     char buf[400];
     int len = 0;
 
-    len += snprintf(buf, 400, "\"accessTime\":%ld\n", (long)file_status->access_time());
-    len += snprintf(buf + len, 400, "\"blockSize\":%ld\n", (long)file_status->blocksize());
-    len += snprintf(buf + len, 400, "\"group\":%s\n", file_status->group().c_str());
-    len += snprintf(buf + len, 400, "\"length\":%ld\n", (long)file_status->length());
-    len += snprintf(buf + len, 400, "\"modificationTime\":%ld\n", (long)file_status->modification_time());
-    len += snprintf(buf + len, 400, "\"owner\":%s\n", file_status->owner().c_str());
-    len += snprintf(buf + len, 400, "\"path\":%s\n", file_status->path().c_str());
-    len += snprintf(buf + len, 400, "\"permission\":%ld\n", file_status->permission().perm());
-    len += snprintf(buf + len, 400, "\"replication\":%ld\n", (long)file_status->block_replication());
-    len += snprintf(buf + len, 400, "\"type\":%d\n", file_status->filetype());
+    len += snprintf(buf, sizeof(buf), "\"accessTime\":%ld\n",
+                    file_status->access_time());
+    len += snprintf(buf + len, sizeof(buf), "\"blockSize\":%ld\n",
+                    file_status->blocksize());
+    len += snprintf(buf + len, sizeof(buf), "\"group\":%s\n",
+                    file_status->group().c_str());
+    len += snprintf(buf + len, sizeof(buf), "\"length\":%ld\n",
+                    file_status->length());
+    len += snprintf(buf + len, sizeof(buf), "\"modificationTime\":%ld\n",
+                    file_status->modification_time());
+    len += snprintf(buf + len, sizeof(buf), "\"owner\":%s\n",
+                    file_status->owner().c_str());
+    len += snprintf(buf + len, sizeof(buf), "\"path\":%s\n",
+                    file_status->path().c_str());
+    len += snprintf(buf + len, sizeof(buf), "\"permission\":%ld\n",
+                    file_status->permission().perm());
+    len += snprintf(buf + len, sizeof(buf), "\"replication\":%ld\n",
+                    file_status->block_replication());
+    len += snprintf(buf + len, sizeof(buf), "\"type\":%d\n",
+                    file_status->filetype());
 
     statusString += std::string(buf);
 
     return statusString;
   }
-}; // namespace
+};  // namespace webRequestTranslator
 
