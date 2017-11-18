@@ -152,25 +152,25 @@ namespace webRequestTranslator {
     char buf[400];
     int len = 0;
 
-    len += snprintf(buf, 400, "\"accessTime\":%ld\n",
-                    (long)file_status->access_time());
-    len += snprintf(buf + len, 400, "\"blockSize\":%ld\n",
-                    (long)file_status->blocksize());
-    len += snprintf(buf + len, 400, "\"group\":%s\n",
+    len += snprintf(buf, sizeof(buf), "\"accessTime\":%ld\n",
+                    file_status->access_time());
+    len += snprintf(buf + len, sizeof(buf), "\"blockSize\":%ld\n",
+                    file_status->blocksize());
+    len += snprintf(buf + len, sizeof(buf), "\"group\":%s\n",
                     file_status->group().c_str());
-    len += snprintf(buf + len, 400, "\"length\":%ld\n",
-                    (long)file_status->length());
-    len += snprintf(buf + len, 400, "\"modificationTime\":%ld\n",
-                    (long)file_status->modification_time());
-    len += snprintf(buf + len, 400, "\"owner\":%s\n",
+    len += snprintf(buf + len, sizeof(buf), "\"length\":%ld\n",
+                    file_status->length());
+    len += snprintf(buf + len, sizeof(buf), "\"modificationTime\":%ld\n",
+                    file_status->modification_time());
+    len += snprintf(buf + len, sizeof(buf), "\"owner\":%s\n",
                     file_status->owner().c_str());
-    len += snprintf(buf + len, 400, "\"path\":%s\n",
+    len += snprintf(buf + len, sizeof(buf), "\"path\":%s\n",
                     file_status->path().c_str());
-    len += snprintf(buf + len, 400, "\"permission\":%ld\n",
+    len += snprintf(buf + len, sizeof(buf), "\"permission\":%ld\n",
                     file_status->permission().perm());
-    len += snprintf(buf + len, 400, "\"replication\":%ld\n",
-                    (long)file_status->block_replication());
-    len += snprintf(buf + len, 400, "\"type\":%d\n",
+    len += snprintf(buf + len, sizeof(buf), "\"replication\":%ld\n",
+                    file_status->block_replication());
+    len += snprintf(buf + len, sizeof(buf), "\"type\":%d\n",
                     file_status->filetype());
 
     statusString += std::string(buf);
