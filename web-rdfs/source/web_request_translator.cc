@@ -56,19 +56,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
-  std::string getMkdirResponse(zkclient::ZkNnClient::MkdirResponse &resProto) {
-    if (resProto == zkclient::ZkNnClient::MkdirResponse::Ok) {
-      return "{\"boolean\":true}\n";
-    } else {
-      return "{\"boolean\":false}\n";
-    }
-  }
-
-  /**
-   * Converts the RDFS datanode rename response into the appropriate webRDFS response.
-   */
-  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse
-                                &resProto) {
+  std::string getMkdirResponse(hadoop::hdfs::DatanodeInfoProto &dataProto,
+                               std::string requestLink) {
     return "{\"boolean\":true}\n";
   }
 
