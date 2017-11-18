@@ -68,6 +68,7 @@ void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
   hadoop::hdfs::MkdirsResponseProto res;
   hadoop::hdfs::MkdirsRequestProto req;
 
+  req.set_createparent(true);
   req.set_src(path);
   zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
 
