@@ -122,3 +122,4 @@ target_link_libraries(WebServerTest namenode_protos)
 target_link_libraries(WebServerTest zk_client_nn zk_client_dn rpcserver)
 target_link_libraries(WebServerTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
 target_link_libraries(WebServerTest web-request web_rdfs_server)
+

@@ -29,6 +29,10 @@ add_library(web_request_translator source/web_request_translator.cc)
 target_link_libraries(web_request_translator easylogging++)
 target_link_libraries(web_request_translator protobuf)
 
+add_library(web_request_translator source/web_request_translator.cc)
+target_link_libraries(web_request_translator easylogging++)
+target_link_libraries(web_request_translator protobuf)
+
 add_executable(webrdfs source/main.cc)
 target_link_libraries(webrdfs web_rdfs_server)
 target_link_libraries(webrdfs http_handlers)
