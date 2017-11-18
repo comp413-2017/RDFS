@@ -40,7 +40,7 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode rename response into the appropriate webRDFS response.
    */
-  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse &resProto); 
+  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse &resProto);
 
   /**
   * Converts the RDFS datanode mv response into the appropriate webRDFS response.
