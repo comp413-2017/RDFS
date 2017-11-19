@@ -2028,6 +2028,15 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
         << " " << storageBlockID
         << std::endl;
   }
+  auto seq_file_block_op = zk->build_create_op(
+      ZookeeperBlocksPath(file_path) + "/block_",
+      data,
+      ZOO_SEQUENCE);
+  ops.push_back(seq_file_block_op);
+  auto ack_op = zk->build_create_op(
+      "/work_queues/wait_for_acks/" + block_id_str,
+      ZKWrapper::EMPTY_VECTOR);
+  ops.push_back(ack_op);
 
   auto results = std::vector<zoo_op_result>();
   int err;
