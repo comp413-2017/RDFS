@@ -810,7 +810,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     std::string parent_path = find_parent(path);
     FileZNode parent_node;
     read_file_znode(parent_node, ZookeeperFilePath(parent_path));
-    znode_data->isEC = parent_node.isEC;
+    znode_data->isEC |= parent_node.isEC;
     {
       LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
       LOG(INFO) << "repl factor: " << znode_data->replication;
@@ -1855,7 +1855,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   // If a block is an EC block, optionally set the ecPolicy field.
   if (znode_data.isEC) {
-      LOG(ERROR) << "Setting EC related proto fields";
+      LOG(INFO) << "Setting EC related proto fields";
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
       ecPolicyProto->set_name(DEFAULT_EC_POLICY);
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
@@ -1866,7 +1866,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
   }
 
-  LOG(ERROR) << "Successfully set the file info ";
+  LOG(INFO) << "Successfully set the file info ";
 }
   bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
                                   SetPermissionResponseProto &res) {
