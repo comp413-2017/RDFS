@@ -296,6 +296,7 @@ TEST_F(NamenodeTest, getFileInfo) {
   // create a file under the root w/o explicitly setting the ec policy.
   // a file at 2 depths below the directory where we set the EC policy.
   auto create_req3 = getCreateRequestProto("/someDir/ECfile2");
+  create_req3.set_createparent(1);
   hadoop::hdfs::CreateResponseProto create_res3;
   hadoop::hdfs::GetFileInfoRequestProto file_info_req3;
   hadoop::hdfs::GetFileInfoResponseProto file_info_res3;
