@@ -770,7 +770,6 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
 
     // set the file status in the get file info response
     HdfsFileStatusProto *status = res.mutable_fs();
-
     set_file_info(status, path, znode_data);
     LOG(INFO) << "Got info for file: " << path;
     return GetFileInfoResponse::Ok;
