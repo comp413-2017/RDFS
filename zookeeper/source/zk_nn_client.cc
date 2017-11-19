@@ -2575,6 +2575,7 @@ bool ZkNnClient::recover_ec_blocks(
     LOG(ERROR) << "Failed to execute multiop for recover_ec_blocks";
     return false;
   }
+  return true;
 }
 
 

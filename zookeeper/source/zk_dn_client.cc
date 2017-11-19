@@ -275,7 +275,7 @@ bool ZkClientDn::poll_replication_queue() {
 }
 
 bool ZkClientDn::poll_delete_queue() {
-  LOG(INFO) << " poll delete queue";
+//  LOG(INFO) << " poll delete queue";
   processDeleteQueue();
   return true;
 }
@@ -542,7 +542,9 @@ void ZkClientDn::processDeleteQueue() {
     return;
   }
 
-  LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  if (work_items.size() > 0) {
+    LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  }
 
   for (auto &block : work_items) {
     LOG(INFO) << "Delete working on " << block;
