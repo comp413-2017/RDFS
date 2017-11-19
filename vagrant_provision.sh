@@ -60,7 +60,10 @@ if [ ! -d /home/vagrant/hadoop2 ]; then
 fi
 
 # Setup Intel Storage Acceleration Library (ISA-L)
-if [  -d /home/vagrant/isal ]; then
+if [ -d /home/vagrant/isal ]; then
+    cd /home/vagrant/isal
+    make clean
+    cd /home/vagrant
     rm -rf /home/vagrant/isal
 fi
 wget --quiet http://kevinlin.web.rice.edu/static/isal-2.tar.gz

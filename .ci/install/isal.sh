@@ -6,6 +6,9 @@ ISAL_MIRROR=http://kevinlin.web.rice.edu/static/isal-2.tar.gz
 
 cd $HOME
 if [ -d /tmp/cache/isal ]; then
+    cd /tmp/cache/isal
+    make clean
+    cd $HOME
     rm -rf /tmp/cache/isal
 fi
 wget --quiet -O isal.tar.gz $ISAL_MIRROR
