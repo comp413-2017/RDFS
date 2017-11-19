@@ -224,6 +224,97 @@ TEST_F(NamenodeTest, findDataNodesWithReplicas) {
   // already contain a replica
 }
 
+TEST_F(NamenodeTest, getFileInfo) {
+  hadoop::hdfs::GetFileInfoRequestProto file_info_req;
+  hadoop::hdfs::GetFileInfoResponseProto file_info_res;
+  file_info_req.set_src("/");
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+      client->get_info(file_info_req, file_info_res));
+
+  // Set the EC policy on the root.
+  hadoop::hdfs::SetErasureCodingPolicyRequestProto set_ec_req;
+  hadoop::hdfs::SetErasureCodingPolicyResponseProto set_ec_res;
+  set_ec_req.set_src("/");
+  set_ec_req.set_ecpolicyname("RS-6-3-1024k");
+  ASSERT_EQ(client->set_erasure_coding_policy_of_path(
+      set_ec_req, set_ec_res),
+  zkclient::ZkNnClient::SetErasureCodingPolicyResponse::Ok);
+
+  // call the file info again
+  // and verify that the response proto has EC related fields.
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+    client->get_info(file_info_req, file_info_res));
+
+  ASSERT_TRUE(file_info_res.fs().has_ecpolicy());
+
+  auto ecpolicy = file_info_res.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+
+  // create a file under the root by explicitly setting the ec policy
+  // and verify its content.
+  auto create_req = getCreateRequestProto("/ECfile");
+  file_info_req.set_src("/ECfile");
+  hadoop::hdfs::CreateResponseProto create_res;
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  client->create_file(create_req, create_res);
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+    client->get_info(file_info_req, file_info_res));
+
+  ASSERT_TRUE(file_info_res.fs().has_ecpolicy());
+
+  ecpolicy = file_info_res.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+
+  // create a file under the root w/o explicitly setting the ec policy.
+  auto create_req2 = getCreateRequestProto("/ECfile2");
+  hadoop::hdfs::CreateResponseProto create_res2;
+  hadoop::hdfs::GetFileInfoRequestProto file_info_req2;
+  hadoop::hdfs::GetFileInfoResponseProto file_info_res2;
+  file_info_req2.set_src("/ECfile2");
+  client->create_file(create_req2, create_res2);
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+      client->get_info(file_info_req2, file_info_res2));
+
+  // TODO(nate): verify if this is the expected behavior.
+  ASSERT_TRUE(file_info_req2.fs().has_ecpolicy());
+
+  ecpolicy = file_info_res2.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+
+  // create a file under the root w/o explicitly setting the ec policy.
+  // a file at 2 depths below the directory where we set the EC policy.
+  auto create_req3 = getCreateRequestProto("/someDir/ECfile2");
+  hadoop::hdfs::CreateResponseProto create_res3;
+  hadoop::hdfs::GetFileInfoRequestProto file_info_req3;
+  hadoop::hdfs::GetFileInfoResponseProto file_info_res3;
+  file_info_req3.set_src("/someDir/ECfile2");
+  client->create_file(create_req3, create_res3);
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+      client->get_info(file_info_req3, file_info_res3));
+
+  // TODO(nate): verify if this is the expected behavior.
+  ASSERT_TRUE(file_info_req3.fs().has_ecpolicy());
+
+  ecpolicy = file_info_res3.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+}
+
 TEST_F(NamenodeTest, basicCheckAcks) {
   // Check if check_acks works as intended
   int error;
