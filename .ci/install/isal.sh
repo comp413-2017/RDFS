@@ -12,6 +12,9 @@ wget --quiet -O isal.tar.gz $ISAL_MIRROR
 tar -xf isal.tar.gz -C /tmp
 mv /tmp/isal /tmp/cache/isal
 cd /tmp/cache/isal
-make && make install
+./autogen.sh
+./configure
+make
+sudo make install
 cd $HOME
 ln -s /tmp/cache/isal isal
