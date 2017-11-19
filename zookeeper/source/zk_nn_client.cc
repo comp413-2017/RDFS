@@ -808,11 +808,14 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     LOG(INFO) << "Creating file znode at " << ZookeeperFilePath(path);
     // Find the EC policy of parent dir
     std::string parent_path = find_parent(path);
+    LOG(ERROR) << "Parent path is " << parent_path;
+    LOG(ERROR) << "Zookeeper path of parent is "
+              << ZookeeperFilePath(parent_path);
     FileZNode parent_node;
-    read_file_znode(parent_node, ZookeeperFilePath(parent_path));
+    read_file_znode(parent_node, parent_path);
     znode_data->isEC |= parent_node.isEC;
-    {
-      LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
+    { 
+      LOG(ERROR) << "is this file ec? " << znode_data->isEC << "\n";
       LOG(INFO) << "repl factor: " << znode_data->replication;
       LOG(INFO) << "owner: " << znode_data->owner;
       LOG(INFO) << "size of znode is " << sizeof(*znode_data);
@@ -1235,7 +1238,8 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
 
   // in the case of replication, this inputECPolicyName is empty.
-  znode_data.isEC = !inputECPolicyName.empty();
+  if(!inputECPolicyName.empty())
+    znode_data.isEC = true;
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
