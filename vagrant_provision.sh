@@ -60,15 +60,18 @@ if [ ! -d /home/vagrant/hadoop2 ]; then
 fi
 
 # Setup Intel Storage Acceleration Library (ISA-L)
-if [ ! -d /home/vagrant/isal ]; then
-    wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
-    tar -xf isal.tar.gz
-    mv isa-l_open_src_2.13 /home/vagrant/isal
-    rm isal.tar.gz
-    cd /home/vagrant/isal
-    make
-    cd /home/vagrant
+if [  -d /home/vagrant/isal ]; then
+    rm -rf /home/vagrant/isal
 fi
+wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
+tar -xf isal.tar.gz
+rm isal.tar.gz
+cd /home/vagrant/isal
+./autogen.sh
+./configure
+make
+sudo make install
+cd /home/vagrant
 
 # Setup Apache zookeeper
 if [ -d /home/vagrant/zookeeper ]; then
