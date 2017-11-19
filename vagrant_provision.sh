@@ -63,9 +63,9 @@ fi
 if [  -d /home/vagrant/isal ]; then
     rm -rf /home/vagrant/isal
 fi
-wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
-tar -xf isal.tar.gz
-rm isal.tar.gz
+wget --quiet http://kevinlin.web.rice.edu/static/isal-2.tar.gz
+tar -xf isal-2.tar.gz
+rm isal-2.tar.gz
 cd /home/vagrant/isal
 ./autogen.sh
 ./configure
