@@ -569,6 +569,13 @@ class ZkNnClient : public ZkClientCommon {
 
   int cache_size();
 
+  /**
+   * Find the parent directory of a path
+   * @param path The path of the source file
+   * @return the parent of the path
+   */
+  std::string find_parent(const std::string &path);
+
  private:
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
@@ -614,13 +621,6 @@ class ZkNnClient : public ZkClientCommon {
    * znode data contained in "znode_data"
    */
   bool create_file_znode(const std::string &path, FileZNode *znode_data);
-  
-  /**
-   * Find the parent directory of a path
-   * @param path The path of the source file
-   * @return the parent of the path
-   */
-  std::string find_parent(const std::string &path);
 
   /**
    * Set the default information in a directory znode struct
