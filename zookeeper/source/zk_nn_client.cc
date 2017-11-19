@@ -1679,7 +1679,7 @@ ZkNnClient::set_erasure_coding_policy_of_path(
 
   // TODO(nate): this boolean flag must change if
   // we support multiple ec policies.
-  if (file_src.empty()) {
+  if (ecpolicy_name.empty()) {
     znode_data.isEC = 0;
   } else {
     znode_data.isEC = 1;
