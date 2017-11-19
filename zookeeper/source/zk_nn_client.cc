@@ -730,7 +730,7 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
 
   std::vector<std::string> datanodes;
   if (!find_all_datanodes_with_block(blockId, datanodes, error_code)) {
-    LOG(ERROR) << "[abandon_block] Could not find datandoes with the block.";
+    LOG(ERROR) << "[abandon_block] Could not find datandoes with the block";
   }
 
   std::vector<std::shared_ptr<ZooOp>> ops;
@@ -1523,7 +1523,14 @@ void ZkNnClient::get_block_locations(const std::string &src,
   blocks->set_islastblockcomplete(true);
   blocks->set_filelength(znode_data.length);
 
+<<<<<<< HEAD
   uint64_t block_size;
+=======
+  uint64_t block_size = znode_data.blocksize;
+
+  LOG(INFO) << "[get_block_locations] Block size of " << zk_path << " is "
+            << block_size;
+>>>>>>> ZkNnClient log cleanup (#190)
 
   auto sorted_blocks = std::vector<std::string>();
 
@@ -1546,6 +1553,23 @@ void ZkNnClient::get_block_locations(const std::string &src,
       LOG(INFO) << "[get_block_locations] Breaking at block " << sorted_block;
       break;
     }
+<<<<<<< HEAD
+=======
+    if (size + block_size >= offset) {
+      auto data = std::vector<uint8_t>();
+      if (!zk->get(zk_path + "/" + sorted_block, data,
+                   error_code, sizeof(uint64_t))) {
+        LOG(ERROR) << "[get_block_locations] Failed to get "
+                   << zk_path << "/"
+                   << sorted_block
+                   << " info: "
+                   << error_code;
+        return;  // TODO(2016): Signal error
+      }
+      uint64_t block_id = *reinterpret_cast<uint64_t *>(&data[0]);
+      LOG(INFO) << "[get_block_locations] Found block " << block_id
+                << " for " << zk_path;
+>>>>>>> ZkNnClient log cleanup (#190)
 
     // Retreive block size
     auto data = std::vector<uint8_t>();
@@ -1585,6 +1609,10 @@ void ZkNnClient::get_block_locations(const std::string &src,
       buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
       auto data_nodes = std::vector<std::string>();
+<<<<<<< HEAD
+=======
+      std::string block_metadata_path = get_block_metadata_path(block_id);
+>>>>>>> ZkNnClient log cleanup (#190)
       LOG(INFO) << "[get_block_locations] Getting datanode locations for block:"
                 << block_metadata_path;
 
