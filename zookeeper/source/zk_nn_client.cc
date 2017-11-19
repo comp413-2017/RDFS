@@ -336,6 +336,11 @@ bool ZkNnClient::check_lease(std::string client_name,
                              std::string file_path) {
   int error_code;
 
+  // Set RenewLease protos to call renew_lease
+  RenewLeaseRequestProto renew_lease_req;
+  RenewLeaseResponseProto renew_lease_res;
+  renew_lease_req.set_clientname(client_name);
+
   std::vector<std::string> children;
   if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children,
                         error_code)) {
@@ -345,6 +350,7 @@ bool ZkNnClient::check_lease(std::string client_name,
   }
 
   if (children.size() == 1 && children.at(0) == client_name) {
+    renew_lease(renew_lease_req, renew_lease_res);
     return true;
   } else if (children.size() >= 1) {
     // TODO(marccanby): This should throw an error as well. --anthony
