@@ -783,19 +783,19 @@ std::string ZkNnClient::find_parent(const std::string &path) {
   std::string parent_path = "/";
   int parent_index = -1;
   for (int i = path.length() - 1; i >= 0; i--) {
-    if(path[i] == '/') {
+    if (path[i] == '/') {
       parent_index = i;
-       break;
-     }
-   }
-   if (parent_index != -1) {
-     parent_path = path.substr(0, parent_index);
-     // If the parent is the root, restore the leading '/';
-     if (parent_index == 0) {
-       parent_path = "/";
-     }
-   }
-   return parent_path;
+      break;
+    }
+  }
+  if (parent_index != -1) {
+    parent_path = path.substr(0, parent_index);
+    // If the parent is the root, restore the leading '/';
+    if (parent_index == 0) {
+      parent_path = "/";
+    }
+  }
+  return parent_path;
 }
 
 /**
@@ -818,7 +818,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
       znode_data->isEC = parent_node.isEC;
     }
 
-    { 
+    {
       LOG(ERROR) << "is this file ec? " << znode_data->isEC << "\n";
       LOG(INFO) << "repl factor: " << znode_data->replication;
       LOG(INFO) << "owner: " << znode_data->owner;
@@ -1058,6 +1058,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   file_znode_struct_to_vec(&znode_data, data);
+  LOG(ERROR) << "YO: " << static_cast<int>(znode_data.under_construction);
   if (!zk->set(ZookeeperFilePath(src), data, error_code)) {
       LOG(ERROR)
           << " complete could not change the construction bit and file length";
@@ -1241,7 +1242,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
 
   // in the case of replication, this inputECPolicyName is empty.
-  if(!inputECPolicyName.empty())
+  if (!inputECPolicyName.empty())
     znode_data.isEC = true;
 
   // if we failed, then do not set any status
