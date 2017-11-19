@@ -315,6 +315,12 @@ TEST_F(NamenodeTest, getFileInfo) {
   ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
 }
 
+TEST_F(NamenodeTest, testFindParent) {
+  ASSERT_EQ("/", client->find_parent("/"));
+  ASSERT_EQ("/hey", client->find_parent("/hey/yo.txt"));
+  ASSERT_EQ("/hey/yo", client->find_parent("/hey/yo/lo.txt"));
+}
+
 TEST_F(NamenodeTest, basicCheckAcks) {
   // Check if check_acks works as intended
   int error;
