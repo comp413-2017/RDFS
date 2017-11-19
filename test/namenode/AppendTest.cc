@@ -65,9 +65,6 @@ TEST_F(NamenodeTest, processRequestTest) {
   append_req.set_clientname(client_name);
   append_req.set_src(file_path);
 
-  bool exists;
-  int error_code;
-
   // Verify that the file doesn't exist.
   ASSERT_FALSE(client->process_request(client_name, file_path, append_req));
 
