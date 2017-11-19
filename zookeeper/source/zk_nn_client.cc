@@ -812,14 +812,10 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     LOG(ERROR) << "Zookeeper path of parent is "
               << ZookeeperFilePath(parent_path);
     FileZNode parent_node;
-    read_file_znode(parent_node, parent_path);
-    // inherit the ec policy of the parent directory.
-    if (!znode_data->isEC) {
-      znode_data->isEC = parent_node.isEC;
-    }
-
-    { 
-      LOG(ERROR) << "is this file ec? " << znode_data->isEC << "\n";
+    read_file_znode(parent_node, ZookeeperFilePath(parent_path));
+    znode_data->isEC |= parent_node.isEC;
+    {
+      LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
       LOG(INFO) << "repl factor: " << znode_data->replication;
       LOG(INFO) << "owner: " << znode_data->owner;
       LOG(INFO) << "size of znode is " << sizeof(*znode_data);
