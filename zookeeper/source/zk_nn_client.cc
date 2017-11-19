@@ -1058,7 +1058,6 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   file_znode_struct_to_vec(&znode_data, data);
-  LOG(ERROR) << "YO: " << static_cast<int>(znode_data.under_construction);
   if (!zk->set(ZookeeperFilePath(src), data, error_code)) {
       LOG(ERROR)
           << " complete could not change the construction bit and file length";

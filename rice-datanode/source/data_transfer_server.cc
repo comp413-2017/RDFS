@@ -147,6 +147,10 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   std::string block_data;
   // 1 added to include the empty termination packet
   int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1;
+  LOG(INFO) << "bytes sent: " << bytesSent;
+  LOG(INFO) << "bytes in block: " << bytesInBlock;
+  LOG(INFO) << "max capacity: " << max_capacity;
+
   PacketHeaderProto last_header;
   while (!last_packet) {
     asio::error_code error;
@@ -157,7 +161,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
     LOG(INFO) << "Receiving packet " << p_head.seqno();
-    last_packet = p_head.lastpacketinblock();
+    LOG(INFO) << " -- packet data size " << p_head.datalen();
+    last_packet = p_head.lastpacketinblock() || p_head.datalen() == 0;
     uint64_t data_len = p_head.datalen();
     uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
     std::string checksum(checksum_len, 0);

@@ -89,6 +89,9 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
   } else {
     block_metadata_path = get_block_metadata_path(uuid);
   }
+
+  LOG(DEBUG) << "block metadata path: " << block_metadata_path;
+
   if (zk->exists(block_metadata_path, exists, error_code)) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
