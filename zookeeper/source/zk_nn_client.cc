@@ -779,6 +779,25 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
   }
 }
 
+std::string ZkNnClient::find_parent(const std::string &path) {
+  std::string parent_path = "/";
+  int parent_index = -1;
+  for (int i = path.length() - 1; i >= 0; i--) {
+    if(path[i] == '/') {
+      parent_index = i;
+       break;
+     }
+   }
+   if (parent_index != -1) {
+     parent_path = path.substr(0, parent_index);
+     // If the parent is the root, restore the leading '/';
+     if (parent_index == 0) {
+       parent_path = "/";
+     }
+   }
+   return parent_path;
+}
+
 /**
  * Create a node in zookeeper corresponding to a file
  */
@@ -787,6 +806,11 @@ bool ZkNnClient::create_file_znode(const std::string &path,
   int error_code;
   if (!file_exists(path)) {
     LOG(INFO) << "Creating file znode at " << ZookeeperFilePath(path);
+    // Find the EC policy of parent dir
+    std::string parent_path = find_parent(path);
+    FileZNode parent_node;
+    read_file_znode(parent_node, ZookeeperFilePath(parent_path));
+    znode_data->isEC = parent_node.isEC;
     {
       LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
       LOG(INFO) << "repl factor: " << znode_data->replication;
@@ -1206,6 +1230,9 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   // Initialize permissions for file with owner and admin.
   snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
   znode_data.perm_length = 1;
+
+  // read the EC policy of the parent directory
+
 
   // in the case of replication, this inputECPolicyName is empty.
   znode_data.isEC = !inputECPolicyName.empty();
