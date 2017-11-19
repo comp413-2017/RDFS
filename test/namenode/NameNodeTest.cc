@@ -284,7 +284,7 @@ TEST_F(NamenodeTest, getFileInfo) {
       client->get_info(file_info_req2, file_info_res2));
 
   // TODO(nate): verify if this is the expected behavior.
-  ASSERT_TRUE(file_info_req2.fs().has_ecpolicy());
+  ASSERT_TRUE(file_info_res2.fs().has_ecpolicy());
 
   ecpolicy = file_info_res2.fs().ecpolicy();
   ASSERT_EQ(ecpolicy.id(), 1);
@@ -305,7 +305,7 @@ TEST_F(NamenodeTest, getFileInfo) {
       client->get_info(file_info_req3, file_info_res3));
 
   // TODO(nate): verify if this is the expected behavior.
-  ASSERT_TRUE(file_info_req3.fs().has_ecpolicy());
+  ASSERT_TRUE(file_info_res3.fs().has_ecpolicy());
 
   ecpolicy = file_info_res3.fs().ecpolicy();
   ASSERT_EQ(ecpolicy.id(), 1);
