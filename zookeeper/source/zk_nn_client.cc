@@ -818,11 +818,12 @@ bool ZkNnClient::create_file_znode(const std::string &path,
       znode_data->isEC = parent_node.isEC;
     }
 
-    LOG(INFO) << "is this file ec? " << znode_data->isEC << "\n";
-    LOG(INFO) << "repl factor: " << znode_data->replication;
-    LOG(INFO) << "owner: " << znode_data->owner;
-    LOG(INFO) << "size of znode is " << sizeof(*znode_data);
-
+    {
+      LOG(ERROR) << "is this file ec? " << znode_data->isEC << "\n";
+      LOG(INFO) << "repl factor: " << znode_data->replication;
+      LOG(INFO) << "owner: " << znode_data->owner;
+      LOG(INFO) << "size of znode is " << sizeof(*znode_data);
+    }
     // serialize struct to byte vector
     std::vector<std::uint8_t> data(sizeof(*znode_data));
     file_znode_struct_to_vec(znode_data, data);
@@ -2583,6 +2584,7 @@ bool ZkNnClient::recover_ec_blocks(
     LOG(ERROR) << "Failed to execute multiop for recover_ec_blocks";
     return false;
   }
+  return true;
 }
 
 

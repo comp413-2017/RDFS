@@ -89,6 +89,9 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
   } else {
     block_metadata_path = get_block_metadata_path(uuid);
   }
+
+  LOG(DEBUG) << "block metadata path: " << block_metadata_path;
+
   if (zk->exists(block_metadata_path, exists, error_code)) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
@@ -275,7 +278,7 @@ bool ZkClientDn::poll_replication_queue() {
 }
 
 bool ZkClientDn::poll_delete_queue() {
-  LOG(INFO) << " poll delete queue";
+//  LOG(INFO) << " poll delete queue";
   processDeleteQueue();
   return true;
 }
@@ -542,7 +545,9 @@ void ZkClientDn::processDeleteQueue() {
     return;
   }
 
-  LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  if (work_items.size() > 0) {
+    LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  }
 
   for (auto &block : work_items) {
     LOG(INFO) << "Delete working on " << block;

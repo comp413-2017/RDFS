@@ -150,8 +150,6 @@ int main(int argc, char *argv[]) {
                                                       zk_shared,
                                                       total_disk_space,
                                                       ipcPort,
-                                                      // TODO(eddiedugan):
-                                                      // Change the datanode id
                                                       xferPort);
   client_datanode_translator::ClientDatanodeTranslator translator(ipcPort);
   auto transfer_server = std::make_shared<TransferServer>(xferPort, fs, dncli);

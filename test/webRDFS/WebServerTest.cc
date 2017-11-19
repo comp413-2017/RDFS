@@ -5,7 +5,6 @@
 #include <easylogging++.h>
 
 #include <gtest/gtest.h>
-#include "webRequestTranslator.h"
 
 #include <iostream>
 
@@ -43,6 +42,36 @@ TEST(WebServerTest, testRead) {
 
   system("rm actualResultRead");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
+}
+
+TEST(WebServerTest, testMkdir) {
+  ASSERT_EQ(0,
+            system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
+                  "pathToCreate?op=MKDIR > actualResultMkdir"));
+
+  // Check that results match
+  ASSERT_EQ(0,
+            system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultMkdir"
+                  " actualResultMkdir"));
+
+  system("rm actualResultMkdir");
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /pathToCreate");
+}
+
+TEST(WebServerTest, testRename) {
+  system("hdfs dfs -fs hdfs://localhost:5351 -touchz /fileToRename");
+
+  ASSERT_EQ(0,
+            system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
+                  "fileToRename?op=RENAMEnewPath > actualResultRename"));
+
+  // Check that results match
+  ASSERT_EQ(0,
+            system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultRename"
+                  " actualResultRename"));
+
+  system("rm actualResultRename");
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRename");
 }
 
 }  // namespace
