@@ -615,7 +615,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   }
 
   // TODO(nate): this might be seriously wrong.
-  block->set_offset(0);  // TODO(2016): Set this
+  block->set_offset(0);
   block->set_corrupt(false);
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
@@ -1018,7 +1018,6 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   }    LOG(ERROR) << "[complete] No blocks found for file "
                   << ZookeeperFilePath(src);
 
-    // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
     auto data = std::vector<std::uint8_t>();
     if (!zk->get(ZookeeperBlocksPath(src) + "/" + file_block, data,
@@ -1194,7 +1193,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   const std::string &inputECPolicyName = request.ecpolicyname();
 
   if (file_exists(path)) {
-    // TODO(2016) solve this issue of overwriting files
     LOG(ERROR) << "[create_file] File already exists";
     return CreateResponse::FileAlreadyExists;
   }
@@ -1332,7 +1330,7 @@ ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
 void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->length = 0;
   uint64_t mslong = current_time_ms();
-  znode_data->access_time = mslong;  // TODO(2016) what are these
+  znode_data->access_time = mslong;
   znode_data->modification_time = mslong;
   znode_data->blocksize = 0;
   znode_data->replication = 0;
