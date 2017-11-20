@@ -6,7 +6,7 @@ HADOOP_MIRROR=http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
 
 cd $HOME
 if [ -d /tmp/cache/hadoop ]; then
-    rm /tmp/cache/hadoop
+    rm -rf /tmp/cache/hadoop
 fi
 wget --quiet -O hadoop.tar.gz $HADOOP_MIRROR
 tar -xf hadoop.tar.gz -C /tmp
