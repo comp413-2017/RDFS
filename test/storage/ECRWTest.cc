@@ -87,8 +87,7 @@ TEST_F(ECRWTest, testECRW) {
   // Put a file into rdfs.
   system(("hdfs dfs -fs hdfs://localhost:" +
       std::to_string(port) +
-      " -D dfs.blocksize=1048576 "
-          "-copyFromLocal CMakeCache.txt /f").c_str());
+          " -copyFromLocal CMakeCache.txt /f").c_str());
   sleep(60);
 
   // Read it from rdfs.
