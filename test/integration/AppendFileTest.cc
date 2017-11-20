@@ -198,6 +198,48 @@ TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
   system("rm expected_testfile1234_*");
 }
 
+TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
+  // Make a file.
+  ASSERT_EQ(0,
+  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+
+  // Put it into rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
+
+  // Create another client and append to the file from that thread
+  std::thread threadOne(threadOneAppendF);
+  std::thread threadTwo(threadTwoAppendF);
+  threadOne.join();
+  threadTwo.join();
+
+  // Check to make sure that these append changes are in the file
+
+  // Read it from rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234_f");
+
+  // Create the expected test file by appending the test file twice
+  system("echo 'Thread 1' > thread1.txt");
+  system("cat testfile1234 >> thread1_expected_testfile1234_f");
+  system("cat thread1.txt >> thread1_expected_testfile1234_f");
+  system("rm thread1.txt");
+
+  system("echo 'Thread 2' > thread2.txt");
+  system("cat testfile1234 >> thread2_expected_testfile1234_f");
+  system("cat thread2.txt >> thread2_expected_testfile1234_f");
+  system("rm thread2.txt");
+
+  // Check that its contents match. Because only one of the threads will
+  // have obtained the lease, we check to make sure that only one thread
+  // successfully appended to the file.
+  ASSERT_TRUE(system("diff thread1_expected_testfile1234_f actual_testfile1234_f > /dev/null") == 0
+              || system("diff thread2_expected_testfile1234_f actual_testfile1234_f > /dev/null") == 0);
+
+  // Remove files created by this test
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  system("rm testfile1234_*");
+  system("rm expected_testfile1234_*");
+}
+
 TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
   // Make a file.
   ASSERT_EQ(0,
