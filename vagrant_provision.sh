@@ -31,10 +31,10 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 if [ -d /home/vagrant/hadoop3 ]; then
     rm -rf /home/vagrant/hadoop3
 fi
-wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1.tar.gz
-tar -xf hadoop-3.0.0-beta1.tar.gz
+wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
+tar -xf hadoop-3.0.0-beta1-2.tar.gz
 mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
-rm hadoop-3.0.0-beta1.tar.gz
+rm hadoop-3.0.0-beta1-2.tar.gz
 ln -s hadoop3 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
@@ -60,15 +60,21 @@ if [ ! -d /home/vagrant/hadoop2 ]; then
 fi
 
 # Setup Intel Storage Acceleration Library (ISA-L)
-if [ ! -d /home/vagrant/isal ]; then
-    wget --quiet http://kevinlin.web.rice.edu/static/isal.tar.gz
-    tar -xf isal.tar.gz
-    mv isa-l_open_src_2.13 /home/vagrant/isal
-    rm isal.tar.gz
+if [ -d /home/vagrant/isal ]; then
     cd /home/vagrant/isal
-    make
+    make clean
     cd /home/vagrant
+    rm -rf /home/vagrant/isal
 fi
+wget --quiet http://kevinlin.web.rice.edu/static/isal-2.tar.gz
+tar -xf isal-2.tar.gz
+rm isal-2.tar.gz
+cd /home/vagrant/isal
+./autogen.sh
+./configure
+make
+sudo make install
+cd /home/vagrant
 
 # Setup Apache zookeeper
 if [ -d /home/vagrant/zookeeper ]; then
