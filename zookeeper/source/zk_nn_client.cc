@@ -592,6 +592,10 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
 
   // Assert that the znode we want to modify is a file
+<<<<<<< HEAD
+=======
+
+>>>>>>> enum for file type
   if (znode_data.file_type != FileType::File) {
     LOG(ERROR) << "[add_block] Requested file " << file_path << " is not a file";
     return false;
@@ -702,7 +706,8 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
 
   // Assert that the znode we want to modify is a file
   if (znode_data.file_type != FileType::File) {
-    LOG(ERROR) << "[abandon_block] Requested file " << file_path << " is not a file";
+    LOG(ERROR) << "[abandon_block] Requested file "
+               << file_path << " is not a file";
     return false;
   }
   LOG(INFO) << "[abandon_block] File exists. Building multi op "
@@ -905,7 +910,6 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
   FileZNode znode_data;
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
-  LOG(INFO) << "read file znode successful";
   if (znode_data.file_type == FileType::Dir) {
     if (!zk->get_children(ZookeeperFilePath(path), children, error_code)) {
           LOG(FATAL) << "[destroy_helper] Failed to get children for " << path;
@@ -923,10 +927,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       LOG(FATAL) << "[destroy_helper] Failed to get children for " << path;
       return DeleteResponse::FailedChildRetrieval;
     }
-
     if (znode_data.file_status == FileStatus::UnderConstruction) {
-      LOG(ERROR) << path << "[destroy_helper] is under construction, 
-            so it cannot be deleted.";
+      LOG(ERROR) << "[destroy_helper] " << path
+                 << " is under construction, so it cannot be deleted.";
       return DeleteResponse::FileUnderConstruction;
     }
     for (auto &child : children) {
@@ -1334,7 +1337,8 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->modification_time = mslong;
   znode_data->blocksize = 0;
   znode_data->replication = 0;
-  znode_data->file_type = FileType::Dir;
+
+  znode_data->filetype = FileType::Dir;
   znode_data->isEC = false;
   // Note no permissions list because this is a directory not a file.
   znode_data->perm_length = -1;
@@ -1834,8 +1838,9 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   HdfsFileStatusProto_FileType filetype;
   // get the filetype, since we do not want to serialize an enum
   switch (znode_data.file_type) {
-    case (FileType::Dir):
-      filetype = HdfsFileStatusProto::IS_DIR;
+    case (0):filetype = HdfsFileStatusProto::IS_DIR;
+      break;
+    case (1):filetype = HdfsFileStatusProto::IS_DIR;
       break;
     case (FileType::File):
       filetype = HdfsFileStatusProto::IS_FILE;
