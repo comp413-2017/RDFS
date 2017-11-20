@@ -167,6 +167,7 @@ class ZkNnClient : public ZkClientCommon {
   std::string DEFAULT_STORAGE_ID = "1";           // default storage id
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+  static const std::string CLASS_NAME;
 
   /**
    * Response enums for client protocol calls
@@ -492,9 +493,8 @@ class ZkNnClient : public ZkClientCommon {
    * @param block_group_id the block group id.
    * @return the number of storage blocks to have within a block group.
    */
-  uint32_t get_total_num_storage_blocks(
-          const std::string &fileName,
-          u_int64_t &block_group_id);
+  uint32_t get_total_num_storage_blocks(const std::string &fileName,
+                                        u_int64_t &block_group_id);
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
@@ -502,9 +502,8 @@ class ZkNnClient : public ZkClientCommon {
    * @param index_within_group the index within the block group.
    * @return the storage block id.
    */
-  u_int64_t generate_storage_block_id(
-          uint64_t block_group_id,
-          uint64_t index_within_group);
+  u_int64_t generate_storage_block_id(uint64_t block_group_id,
+                                      uint64_t index_within_group);
   /**
    * Generates the block group id.
    * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
@@ -548,9 +547,6 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool get_block_size(const u_int64_t &block_id, uint64_t &blocksize);
 
-  // this is public because we have not member functions in this file
-  static const std::string CLASS_NAME;
-
   bool find_live_datanodes(const uint64_t blockId, int error_code,
                            std::vector<std::string> &live_data_nodes);
 
@@ -563,7 +559,13 @@ class ZkNnClient : public ZkClientCommon {
   bool find_all_datanodes_with_block(const uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,
                                      int &error_code);
-
+  /**
+   * Generates multiop ops for renaming src to dst
+   * @param src The path to the source file (not znode) within the filesystem
+   * @param dst The path to the renamed destination file (not znode) within the filesystem
+   * @param ops The vector of multiops which will make up the overall atomic rename operation
+   * @return Boolean indicating success or failure of the rename
+   */
   bool rename_ops_for_file(const std::string &src, const std::string &dst,
                            std::vector<std::shared_ptr<ZooOp>> &ops);
   bool rename_ops_for_dir(const std::string &src, const std::string &dst,
@@ -576,7 +578,9 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool check_acks();
 
-  // get locations given src, offset, and length
+  /** 
+   * Get locations given src, offset, and length
+   */
   bool get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
@@ -588,11 +592,23 @@ class ZkNnClient : public ZkClientCommon {
    */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
+  /** 
+   * Check if the listing cache contains a path.
+   */
   bool cache_contains(const std::string &path);
 
+  /** 
+   * Get the current size of the listing cache.
+   */
   int cache_size();
 
  private:
+  /**
+   * A simple print function that will be triggered when
+   * namenode loses a heartbeat
+   */
+  void notify_delete();
+
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
    */
@@ -610,6 +626,7 @@ class ZkNnClient : public ZkClientCommon {
    * Given the client name, get the client path.
    */
   std::string ClientZookeeperPath(const std::string & clientname);
+
   /**
     * Given the filesystem path, get the full zookeeper path for leases
     */
@@ -639,9 +656,10 @@ class ZkNnClient : public ZkClientCommon {
   bool create_file_znode(const std::string &path, FileZNode *znode_data);
 
   /**
-   * Set the default information in a directory znode struct
+   * Set the default information for a directory znode
    */
   void set_mkdir_znode(FileZNode *znode_data);
+
   /**
    * Create the directories at path. If create_parent is true, then we create
    * all the parent directories which are not in zookeeper already. Return false
@@ -654,8 +672,10 @@ class ZkNnClient : public ZkClientCommon {
    */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
+
   template <class T>
   void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+
   template <class T>
   void read_znode_data(T &znode_data, const std::string &path);
 
@@ -716,17 +736,22 @@ class ZkNnClient : public ZkClientCommon {
                                const uint64_t &block_size);
 
   /**
-   * Watches /health for new datanodes, attaches watchers to new datanodes' heartbeats.
+   * The zk watch for health nodes. Simply re-adds the health watch
+   * when triggered (mimicking a heartbeat).
    */
   static void watcher_health(zhandle_t *zzh, int type, int state,
                              const char *path, void *watcherCtx);
 
   /**
-   * Watches datanode heartbeats.
+   * The zk watch for children of health nodes. Clears data associated with
+   * the node if the node is dead.
    */
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
+  /**
+   * The zk watch used by getListing to invalidate cache entry
+   */
   static void watcher_listing(zhandle_t *zzh, int type, int state,
                               const char *path, void *watcherCtx);
 
@@ -757,19 +782,16 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool checkAccess(std::string username, FileZNode &znode_data);
 
-  // TODO(2016): Should eventually be read from a conf file
-  // in millisecons, 10 minute timeout when waiting for
-  // replication acknowledgements
+  // Timeout when waiting for replication acknowledgements, 10 min in ms
   const int ACK_TIMEOUT = 600000;
 
   // Boolean indicating whether zk_nn is in secure mode
   bool isSecureMode = false;
-  const uint64_t EXPIRATION_TIME =
-    2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
-  /** 
-   * Cache to speed up GetListing
-   */
+  // Expiration time; 2 hours in ms.
+  const uint64_t EXPIRATION_TIME = 2 * 60 * 60 * 1000;
+
+  // Cache to speed up GetListing
   lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 
