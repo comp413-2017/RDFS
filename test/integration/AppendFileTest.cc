@@ -1,6 +1,7 @@
 #include <easylogging++.h>
 #include <gtest/gtest.h>
 #include "../util/RDFSTestUtils.h"
+#include <string>
 #include <thread>
 
 using RDFSTestUtils::initializeDatanodes;
@@ -40,6 +41,16 @@ void threadTwoAppendF() {
   // Append the file.
   system("hdfs dfs -fs hdfs://localhost:5351 -appendToFile thread2.txt /f");
   system("rm thread2.txt");
+}
+
+void threadNAppend(int threadNum) {
+  // Create an identifying text file for thread threadNum
+  std::string fileName = "thread" + std::to_string(threadNum) + ".txt";
+  system(("echo 'Thread" + std::to_string(threadNum) + "' > " + fileName).c_str());
+  // Append the file.
+  system(("hdfs dfs -fs hdfs://localhost:5351 -appendToFile "
+             + fileName + " /f" + std::to_string(threadNum)).c_str());
+  system(("rm " + fileName).c_str());
 }
 
 void threadTwoAppendG() {
@@ -183,6 +194,57 @@ TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
+  system("rm testfile1234_*");
+  system("rm expected_testfile1234_*");
+}
+
+TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
+  // Make a file.
+  ASSERT_EQ(0,
+  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+
+  // Number of threads
+  int n = 5;
+
+  // Put it into rdfs.
+  for (int i = 0; i < n; i++) {
+    system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f" + i);
+  }
+
+  // Create another client and append to the file from that thread
+  std::thread threads[n];
+  for (int i = 0; i < n; i++) {
+    threads[i] = std::thread(threadNAppend, i);
+  }
+
+  for (int i = 0; i < n; i++) {
+    threads[i].join();
+  }
+
+  // Check to make sure that these append changes are in the file
+
+  // Read it from rdfs.
+  for (int i = 0; i < n; i++) {
+    system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f" + std::to_string(i) + " > actual_testfile1234_f" + std::to_string(i)).c_str());
+  }
+
+  // Create the expected test file by appending the test file twice
+  for (int i = 0; i < n; i++) {
+    std::string threadFileName = "thread" + std::to_string(i) + ".txt";
+    system(("echo 'Thread '" + std::to_string(i) + " > " + threadFileName).c_str());
+    system(("cat testfile1234 >> expected_testfile1234_f" + std::to_string(i)).c_str());
+    system(("cat " + threadFileName + " >> expected_testfile1234_f" + std::to_string(i)).c_str());
+    system(("rm " + threadFileName).c_str());
+  }
+
+  // Check that its contents match.
+  for (int i = 0; i < n; i++) {
+    ASSERT_EQ(0,
+    system(("diff expected_testfile1234_f" + std::to_string(i) + " actual_testfile1234_f" + std::to_string(i) + " > /dev/null").c_str()));
+  }
+
+  // Remove files created by this test
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f*");
   system("rm testfile1234_*");
   system("rm expected_testfile1234_*");
 }
