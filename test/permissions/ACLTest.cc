@@ -15,6 +15,9 @@ INITIALIZE_EASYLOGGINGPP
 
 using client_namenode_translator::ClientNamenodeTranslator;
 
+//std::string hdfs("hdfs");
+std::string hdfs("~/hadoop2/bin/hdfs");
+
 namespace {
 
     class ACLTest : public ::testing::Test {
@@ -51,24 +54,23 @@ namespace {
         }
     };
 
-TEST_F(ACLTest, testReadOwnFile) {
+    TEST_F(ACLTest, testReadOwnFile) {
 
 // Make a file.
-ASSERT_EQ(0,
-system(
-"python /home/vagrant/rdfs/test/integration/generate_file.py > "
-"expected_testfile1234"));
+    ASSERT_EQ(0,
+    system("echo \"A small and chill file.\" > expected_testfile1234"));
 // Put it into rdfs.
-system(
-"hdfs dfs -fs hdfs://localhost:5351 "
-"-copyFromLocal expected_testfile1234 /f");
+    system(std::string(hdfs +
+                       " dfs -fs hdfs://localhost:5351 "
+                               "-copyFromLocal expected_testfile1234 /f").c_str());
 // Read it from rdfs.
-system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+    system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234").c_str());
 // Check that its contents match.
-ASSERT_EQ(0,
-system("diff expected_testfile1234 actual_testfile1234 > "
-"/dev/null"));
-system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+
+    ASSERT_EQ(0,
+    system("diff expected_testfile1234 actual_testfile1234 > "
+    "/dev/null"));
+    system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -rm /f").c_str());
 
 }
 
@@ -77,28 +79,35 @@ TEST_F(ACLTest, testUnauthorizedReadFailFile) {
 
 // Make a file.
 ASSERT_EQ(0,
-system(
-"python /home/vagrant/rdfs/test/integration/generate_file.py > "
+system("echo \"A small and chill file.\" > "
 "expected_testfile1234"));
 
 // Put it into rdfs.
-system(
-"hdfs dfs -fs hdfs://localhost:5351 "
-"-copyFromLocal expected_testfile1234 /f");
+system(std::string(hdfs +
+                   " dfs -fs hdfs://localhost:5351 "
+                           "-copyFromLocal expected_testfile1234 /f").c_str());
 
 // Switch users.
+system("echo \"$USER\"");
 system("sudo su - user2");
+system("echo \"$USER\"");
 
-system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234").c_str());
+
+system("echo \">>>>>\"");
+system("cat expected_testfile1234");
+system("cat actual_testfile1234");
+system("echo \"<<<<<\"");
+
 
 // Check that its contents do not match.
 ASSERT_NE(0,
 system("diff expected_testfile1234 actual_testfile1234 > "
 "/dev/null"));
-system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -rm /f").c_str());
 
 }
-
+/*
 TEST_F(ACLTest, testAddPermFile) {
 
 std::string oldUsername;
@@ -111,24 +120,24 @@ system(
 "expected_testfile1234"));
 
 // Put it into rdfs.
-system(
-"hdfs dfs -fs hdfs://localhost:5351 "
-"-copyFromLocal expected_testfile1234 /f");
+system(std::string(hdfs +
+                   " dfs -fs hdfs://localhost:5351 "
+                           "-copyFromLocal expected_testfile1234 /f").c_str());
 
 // Add permissions for user2
-system( "hdfs dfs -fs hdfs://localhost:5351 "
-"-chmod 755 user2");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 "
+"-chmod 755 user2").c_str());
 
 // Switch users.
 system("sudo su - user2");
 
-system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234").c_str());
 
 // Check that its contents match.
 ASSERT_EQ(0,
 system("diff expected_testfile1234 actual_testfile1234 > "
 "/dev/null"));
-system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -rm /f").c_str());
 
 }
 
@@ -145,83 +154,91 @@ system(
 "expected_testfile1234"));
 
 // Put it into rdfs.
-system(
-"hdfs dfs -fs hdfs://localhost:5351 "
-"-copyFromLocal expected_testfile1234 /f");
+system(std::string(hdfs +
+                   " dfs -fs hdfs://localhost:5351 "
+                           "-copyFromLocal expected_testfile1234 /f").c_str());
 
 // Add permissions for user2
-system( "hdfs dfs -fs hdfs://localhost:5351 "
-"-chmod 755 user2");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 "
+        "-chmod 755 user2").c_str());
 
 // Switch users.
 system("sudo su - user2");
 
-system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234").c_str());
 
 // Check that its contents match.
 ASSERT_EQ(0,
 system("diff expected_testfile1234 actual_testfile1234 > "
 "/dev/null"));
-system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -rm /f").c_str());
 
 // Switch back to first user
 std::string str = "sudo su - " + oldUsername;
 system(str.c_str());
 
 // Remove permissions for user2
-system( "hdfs dfs -fs hdfs://localhost:5351 "
-"-chmod 700 user2");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 "
+        "-chmod 700 user2").c_str());
 
 // switch back to second user
 system("sudo su - user2");
 
-system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234").c_str());
 
 // Check that its contents do not match.
 ASSERT_NE(0,
 system("diff expected_testfile1234 actual_testfile1234 > "
 "/dev/null"));
-system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -rm /f").c_str());
 
 // Switch users again.
-system("echo \"vagrant\" > in");
+//system("echo \"vagrant\" > in");
 system("sudo su - user2");
 // hdfs dfs chmod 755 <filename>
 
 }
-
+*/
 
 }  // namespace
 
 
 int main(int argc, char **argv) {
 
-    system("sudo /usr/sbin/deluser user2");
+    // Bluntly remove user2 if already exists
+    system("sudo pgrep -u user2");
+    system("sudo ps -fp $(pgrep -u user2)");
+    system("sudo killall -KILL -u user2");
+    system("sudo userdel -r user2");
+//    system("sudo /usr/sbin/deluser user2");
+
+
+    // Setup second user for permissions tests.
     system("sudo /usr/sbin/adduser user2 --gecos \"F,R,W,H\" --disabled-password");
     system("echo \"user2:vagrant\" | sudo /usr/sbin/chpasswd");
-
-//        system("sudo adduser user2");
     system("sudo /usr/sbin/usermod -aG sudo user2");
 
     // Start up zookeeper
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
-  sleep(10);
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
+    sleep(10);
 
-  system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
-  system("/home/vagrant/rdfs/build/rice-datanode/datanode &");
-  // Initialize and run the tests
-  ::testing::InitGoogleTest(&argc, argv);
-  int res = RUN_ALL_TESTS();
+    // Start up name- and datanode.
+    system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
+    system("/home/vagrant/rdfs/build/rice-datanode/datanode &");
 
-  // Remove test files and shutdown zookeeper
-  sleep(10);
-  system("~/zookeeper/bin/zkCli.sh rmr /testing");
-  system("pkill -f namenode");
-  system("pkill -f datanode");
-  system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+    // Initialize and run the tests
+    ::testing::InitGoogleTest(&argc, argv);
+    int res = RUN_ALL_TESTS();
 
- // std::cin.rdbuf(cinbuf);   //reset to standard input again
+    // Remove test files and shutdown zookeeper
+    sleep(10);
+    system("~/zookeeper/bin/zkCli.sh rmr /testing");
+    system("pkill -f namenode");
+    system("pkill -f datanode");
+    system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 
-  return res;
+    // std::cin.rdbuf(cinbuf);   //reset to standard input again
+
+    return res;
 }

@@ -501,10 +501,11 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
 }
 
 bool ZkNnClient::checkAccess(std::string username, FileZNode &znode_data) {
-  if (!isSecureMode) {
-    return true;
-  }
+  //if (!isSecureMode) {
+  //  return true;
+  //}
   for (unsigned i = 0; i < 20; i++) {
+      LOG(DEBUG) << "[checkAccess] checking name " << znode_data.permissions[i] << " against input: " << username;
     if (username.compare(std::string(znode_data.permissions[i])) == 0) {
       return true;
     }
@@ -528,11 +529,16 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   read_file_znode(znode_data, path);
 
   // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[set_owner] Access denied to path " << path;
-    return false;
-  }
+    std::string copy = std::string("._COPYING_");
+    std::string file_path = std::string(path);
 
+    if (file_path.substr(file_path.length() >= copy.length() ? file_path.length() - copy.length() : 0,
+                         copy.length()).compare(copy) != 0) {
+        if (!checkAccess(client_name, znode_data)) {
+            LOG(ERROR) << "[set_owner] Access denied to path " << path;
+            return false;
+        }
+    }
   // The first string in the permissions ACL is the file owner
   snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, username.c_str());
 
@@ -555,37 +561,45 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
 bool ZkNnClient::add_block(AddBlockRequestProto &req,
                            AddBlockResponseProto &res,
                            std::string client_name) {
-  // make sure previous addBlock operation has completed
-  auto prev_id = req.previous().blockid();
-  if (!previousBlockComplete(prev_id)) {
-    LOG(ERROR) << "[add_block] Previous Add Block Operation has not finished";
-    return false;
+    // make sure previous addBlock operation has completed
+    auto prev_id = req.previous().blockid();
+    if (!previousBlockComplete(prev_id)) {
+        LOG(ERROR) << "[add_block] Previous Add Block Operation has not finished";
+        return false;
+    }
+
+    // Build a new block for the response
+    auto block = res.mutable_block();
+
+    // TODO(may): Make sure we are appending / not appending ZKPath at every step
+    const std::string file_path = req.src();
+
+    LOG(INFO) << "[add_block] Attempting to add block to existing file "
+              << file_path;
+
+    FileZNode znode_data;
+    if (!file_exists(file_path)) {
+        LOG(ERROR) << "[add_block] Requested file " << file_path <<
+                   " does not exist";
+        return false;
+    }
+    read_file_znode(znode_data, file_path);
+
+    // Check access
+    /*
+    std::string copy = std::string("._COPYING_");
+
+  if (file_path.substr(file_path.length() >= copy.length() ? file_path.length() - copy.length() : 0,
+                       copy.length()).compare(copy) != 0) {
+      LOG(DEBUG) << "[add_block] hey 3" << file_path;
+
+      if (!checkAccess(client_name, znode_data)) {
+
+          LOG(ERROR) << "[add_block] Access denied to path " << file_path;
+          return false;
+      }
   }
-
-  // Build a new block for the response
-  auto block = res.mutable_block();
-
-  // TODO(may): Make sure we are appending / not appending ZKPath at every step
-  const std::string file_path = req.src();
-
-  LOG(INFO) << "[add_block] Attempting to add block to existing file "
-            << file_path;
-
-  FileZNode znode_data;
-  if (!file_exists(file_path)) {
-    LOG(ERROR) << "[add_block] Requested file " << file_path <<
-                                                             " does not exist";
-    return false;
-  }
-  read_file_znode(znode_data, file_path);
-
-  // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[add_block] Access denied to path " << file_path;
-    return false;
-  }
-
-
+*/
   // Assert that the znode we want to modify is a file
   if (znode_data.filetype != IS_FILE) {
     LOG(ERROR) << "[add_block] Requested file " << file_path <<
@@ -690,12 +704,6 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   }
   read_file_znode(znode_data, file_path);
 
-  // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[abandon_block] Access denied to path " << file_path;
-    return false;
-  }
-
   // Assert that the znode we want to modify is a file
   if (znode_data.filetype != IS_FILE) {
     LOG(ERROR) << "[abandon_block] Requested file "
@@ -777,11 +785,18 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
     read_file_znode(znode_data, path);
 
     // Check access
-    if (!checkAccess(client_name, znode_data)) {
-      LOG(ERROR) << "[get_info] Access denied to path " << path;
-      return GetFileInfoResponse::FileAccessRestricted;
-    }
 
+/*
+      std::string copy = std::string("._COPYING_");
+
+      if (path.substr(path.length() >= copy.length() ? path.length() - copy.length() : 0,
+                           copy.length()).compare(copy) != 0) {
+          if (!checkAccess(client_name, znode_data)) {
+              LOG(ERROR) << "[get_info] Access denied to path " << path;
+              return GetFileInfoResponse::FileAccessRestricted;
+          }
+      }
+      */
     // set the file status in the get file info response res
     HdfsFileStatusProto *status = res.mutable_fs();
 
@@ -990,12 +1005,6 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   FileZNode znode_data;
   read_file_znode(znode_data, src);
 
-  // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[complete] Access denied to path" << src;
-    return;
-  }
-
   znode_data.under_construction = FileStatus::FileComplete;
   // set the file length
   uint64_t file_length = 0;
@@ -1121,11 +1130,16 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
   read_file_znode(znode_data, path);
 
   // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[destroy] Access denied to path " << path;
-    return DeleteResponse::FileAccessRestricted;
-  }
+        std::string copy = std::string("._COPYING_");
+        std::string file_path = std::string(path);
 
+        if (file_path.substr(file_path.length() >= copy.length() ? file_path.length() - copy.length() : 0,
+                             copy.length()).compare(copy) != 0) {
+            if (!checkAccess(client_name, znode_data)) {
+                LOG(ERROR) << "[destroy] Access denied to path " << path;
+                return DeleteResponse::FileAccessRestricted;
+            }
+        }
   if (znode_data.filetype == IS_FILE
       && znode_data.under_construction == FileStatus::UnderConstruction) {
     LOG(ERROR) << "[destroy] Cannot delete "
@@ -1223,9 +1237,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
-  // Initialize permissions for file with owner and admin.
-  snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
-  znode_data.perm_length = 1;
 
   // in the case of EC, this inputECPolicyName is empty.
   if (inputECPolicyName.empty()) {
@@ -1255,11 +1266,14 @@ ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
   read_file_znode(znode_data, file_path);
 
   // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[rename] Access denied to path " << file_path;
-    return RenameResponse::FileAccessRestricted;
+  std::string copy = std::string("._COPYING_");
+  if (file_path.substr(file_path.length() >= copy.length() ? file_path.length() - copy.length() : 0,
+                       copy.length()).compare(copy) != 0) {
+      if (!checkAccess(client_name, znode_data)) {
+          LOG(ERROR) << "[rename] Access denied to path " << file_path;
+          return RenameResponse::FileAccessRestricted;
+      }
   }
-
   if (!file_exists(file_path)) {
     LOG(ERROR) << "[rename] Requested rename source: "
                << file_path << " does not exist";
@@ -1429,12 +1443,6 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
       FileZNode znode_data;
       read_file_znode(znode_data, src);
 
-      // Check access
-      if (!checkAccess(client_name, znode_data)) {
-        LOG(ERROR) << "[get_listing] Access denied to path " << src;
-        return ListingResponse::FileAccessRestricted;
-      }
-
       if (znode_data.filetype == IS_FILE) {
         // Update listing with file info
         HdfsFileStatusProto *status = raw_listing->add_partiallisting();
@@ -1460,13 +1468,6 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 
             FileZNode child_data;
             read_file_znode(child_data, child_path);
-
-            // Check access
-            if (!checkAccess(client_name, child_data)) {
-              LOG(ERROR) << "[get_listing] Access denied to path "
-                         << child_path;
-              return ListingResponse::FileAccessRestricted;
-            }
 
             HdfsFileStatusProto *status = raw_listing->add_partiallisting();
             set_file_info(status, child_path, child_data);
@@ -1512,11 +1513,17 @@ void ZkNnClient::get_block_locations(const std::string &src,
   read_file_znode(znode_data, src);
 
   // Check access
-  if (!checkAccess(client_name, znode_data)) {
-    LOG(ERROR) << "[get_block_locations] Access denied to path " << src;
-    return;
-  }
+    /*
+    std::string copy = std::string("._COPYING_");
+    std::string file_path = std::string(src);
 
+    if (file_path.substr(file_path.length() >= copy.length() ? file_path.length() - copy.length() : 0, copy.length()).compare(copy) != 0) {
+        if (!checkAccess(client_name, znode_data)) {
+            LOG(ERROR) << "[get_block_locations] Access denied to path " << src;
+            return;
+        }
+    }
+     */
   blocks->set_underconstruction(false);
   blocks->set_islastblockcomplete(true);
   blocks->set_filelength(znode_data.length);
@@ -1766,9 +1773,15 @@ void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
     read_file_znode(znode_data, path);
 
     // Check access
-    if (!checkAccess(client_name, znode_data)) {
-      LOG(ERROR) << "[get_content] Access denied to path " << path;
-      return;
+    std::string copy = std::string("._COPYING_");
+      std::string file_path = std::string(path);
+    if (file_path.substr(file_path.length() >= copy.length() ? file_path.length() - copy.length() : 0,
+                         copy.length()).compare(copy) != 0) {
+          if (!checkAccess(client_name, znode_data)) {
+
+              LOG(ERROR) << "[get_content] Access denied to path " << path;
+              return;
+        }
     }
 
     // set the file status in the get file info response res
