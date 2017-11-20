@@ -1447,7 +1447,9 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
         set_file_info(status, src, znode_data);
         if (need_location) {
           LocatedBlocksProto *blocks = status->mutable_locations();
-          get_block_locations(src, 0, znode_data.length, blocks);
+          if (!get_block_locations(src, 0, znode_data.length, blocks)) {
+              return ListingResponse::FailedGetBlockLocations;
+          }
         }
       } else {
         // Update listing with directory info
@@ -1479,7 +1481,9 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 
             if (need_location) {
               LocatedBlocksProto *blocks = status->mutable_locations();
-              get_block_locations(child_path, 0, child_data.length, blocks);
+              if (!get_block_locations(child_path, 0, child_data.length, blocks)) {
+                  return ListingResponse::FailedGetBlockLocations;
+              }
             }
           }
         }
@@ -1496,17 +1500,17 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
   return ListingResponse::Ok;
 }
 
-void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
+bool ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
                                      GetBlockLocationsResponseProto &res,
                                      std::string client_name) {
   const std::string &src = req.src();
   google::protobuf::uint64 offset = req.offset();
   google::protobuf::uint64 length = req.length();
   LocatedBlocksProto *blocks = res.mutable_locations();
-  get_block_locations(src, offset, length, blocks, client_name);
+  return get_block_locations(src, offset, length, blocks, client_name);
 }
 
-void ZkNnClient::get_block_locations(const std::string &src,
+bool ZkNnClient::get_block_locations(const std::string &src,
                                      google::protobuf::uint64 offset,
                                      google::protobuf::uint64 length,
                                      LocatedBlocksProto *blocks,
@@ -1520,7 +1524,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
   // Check access
   if (!checkAccess(client_name, znode_data)) {
     LOG(ERROR) << "[get_block_locations] Access denied to path " << src;
-    return;
+    return false;
   }
 
   blocks->set_underconstruction(false);
@@ -1534,12 +1538,12 @@ void ZkNnClient::get_block_locations(const std::string &src,
 
   auto sorted_blocks = std::vector<std::string>();
 
-  // TODO(2016): Make more efficient
   if (!zk->get_children(zk_path, sorted_blocks, error_code)) {
     LOG(ERROR) << "[get_block_locations] Failed getting children of "
                << zk_path
                << " with error: "
                << error_code;
+    return false;
   }
 
   std::sort(sorted_blocks.begin(), sorted_blocks.end());
@@ -1562,7 +1566,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
                    << sorted_block
                    << " info: "
                    << error_code;
-        return;  // TODO(2016): Signal error
+        return false;
       }
       uint64_t block_id = *reinterpret_cast<uint64_t *>(&data[0]);
       LOG(INFO) << "[get_block_locations] Found block " << block_id
@@ -1589,6 +1593,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
                    << block_metadata_path
                    << " with error: "
                    << error_code;
+        return false;
       }
 
       auto sorted_data_nodes = std::vector<std::string>();
@@ -1615,6 +1620,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
     }
     size += block_size;
   }
+  return true;
 }
 
 
