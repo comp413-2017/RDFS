@@ -25,6 +25,7 @@
 #include <google/protobuf/message.h>
 #include <erasurecoding.pb.h>
 #include <zk_nn_client.h>
+#include <zk_dn_client.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -67,6 +68,7 @@ using hadoop::hdfs::ModifyAclEntriesRequestProto;
 using hadoop::hdfs::ModifyAclEntriesResponseProto;
 using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
+using hadoop::hdfs::ErasureCodingPolicyState;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 using hadoop::hdfs::StorageTypeProto;
@@ -1668,6 +1670,7 @@ ZkNnClient::get_erasure_coding_policies(
   ec_policy_to_add->set_id(DEFAULT_EC_ID);
   ec_policy_to_add->set_name(DEFAULT_EC_POLICY);
   ec_policy_to_add->set_cellsize(DEFAULT_EC_CELLCIZE);
+  ec_policy_to_add->set_state(ErasureCodingPolicyState::ENABLED);
   ECSchemaProto* ecSchemaProto = ec_policy_to_add->mutable_schema();
   ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
   ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
@@ -1698,6 +1701,7 @@ ZkNnClient::get_erasure_coding_policy_of_path(
     ecPolicyProto->set_id(DEFAULT_EC_ID);
     ecPolicyProto->set_name(DEFAULT_EC_POLICY);
     ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+    ecPolicyProto->set_state(ErasureCodingPolicyState::ENABLED);
     ECSchemaProto* ecSchemaProto = ecPolicyProto->mutable_schema();
     ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
     ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
@@ -1904,6 +1908,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
       ecPolicyProto->set_name(DEFAULT_EC_POLICY);
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+      ecPolicyProto->set_state(ErasureCodingPolicyState::ENABLED);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
       ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
       ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
