@@ -13,4 +13,3 @@ cd $HOME/isal
 make
 sudo make install
 cd $HOME
-ln -s $HOME/isal isal
