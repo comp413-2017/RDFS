@@ -88,9 +88,10 @@ TEST_F(ECRWTest, testECRW) {
   system(("hdfs dfs -fs hdfs://localhost:" +
       std::to_string(port) +
           " -copyFromLocal CMakeCache.txt /f").c_str());
-  sleep(60);
+  sleep(30);
 
   // Read it from rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -ls /");
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
   // Check that its contents match.
 //  ASSERT_EQ(0,
@@ -114,7 +115,8 @@ int main(int argc, char **argv) {
   sleep(10);
   system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   sleep(5);
-  system("rm -f expected_testfile1234 actual_testfile* temp* tfs*");
+  system("rm -f expected_testfile1234 datanode*_out actual_testfile* temp* "
+             "tfs*");
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);

@@ -330,8 +330,7 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
 
     blocksize = block_data.block_size;
     
-  }
-  else {
+  } else {
     auto children = std::vector<std::string>();
     if (!zk->get_children(block_path, children, error_code)) {
       LOG(ERROR) << "Can't get storage blks!";
