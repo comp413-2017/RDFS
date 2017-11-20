@@ -1636,18 +1636,26 @@ void ZkNnClient::get_block_locations(const std::string &src,
         // Add datanodes for the EC block
         for (auto storage_block : block_meta_children) {
           auto datanodes = std::vector<std::string>();
-          if(!zk->get_children(BLOCK_GROUP_LOCATIONS + '/' + storage_block, datanodes,
+          LOG(INFO) << BLOCK_GROUP_LOCATIONS + std::to_string(block_id) + "/" + storage_block;
+          if(!zk->get_children(BLOCK_GROUP_LOCATIONS + std::to_string(block_id) + "/" + storage_block, datanodes,
                                error_code)) {
             //
           }
           if (datanodes.size() > 1) {
             LOG(ERROR) << "More than one datanode found for an EC storage block,"
                 "using the first datanode found. Blockid: " << storage_block;
+          } else if (datanodes.size() == 1) {
+            located_block->add_storageids(DEFAULT_STORAGE_ID);
+            located_block->add_storagetypes(StorageTypeProto::DISK);
+            LOG(INFO) << datanodes.size();
+            buildDatanodeInfoProto(located_block->add_locs(), datanodes[0]);
+            std::uint64_t blk_id;
+            std::stringstream strm(storage_block);
+            strm >> blk_id;
+            block_index_string.push_back((char) get_index_within_block_group(blk_id));
+          } else {
+            LOG(WARNING) << "No datanodes found for this storage block: " << storage_block;
           }
-          located_block->set_storageids(i, DEFAULT_STORAGE_ID);
-          located_block->set_storagetypes(i++, StorageTypeProto::DISK);
-          buildDatanodeInfoProto(located_block->add_locs(), datanodes[0]);
-          block_index_string.push_back((char) get_index_within_block_group((u_int64_t)std::stol(storage_block)));
         }
         located_block->set_blockindices(block_index_string);
       }
