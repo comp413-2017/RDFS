@@ -25,6 +25,7 @@
 #include <google/protobuf/message.h>
 #include <erasurecoding.pb.h>
 #include <zk_nn_client.h>
+#include <zk_dn_client.h>
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;

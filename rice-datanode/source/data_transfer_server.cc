@@ -175,6 +175,7 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
       LOG(ERROR) << "Failed to read packet " << p_head.seqno();
       break;
     }
+
     if (!last_packet && data_len != 0) {
       block_data += data;
     }

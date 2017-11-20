@@ -12,7 +12,8 @@ namespace RDFSTestUtils {
       int numDatanodes,
       std::string serverName,
       int32_t xferPort,
-      int32_t ipcPort) {
+      int32_t ipcPort,
+      bool outputToFile = false) {
     int i = startId;
     for (; i < startId + numDatanodes; i++) {
       system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
@@ -22,7 +23,11 @@ namespace RDFSTestUtils {
       std::string cmdLine =
           "bash -c \"exec -a " + serverName + std::to_string(i) +
               " /home/vagrant/rdfs/build/rice-datanode/datanode " +
-              dnCliArgs + "\" & ";
+              dnCliArgs + " \" ";
+      if (outputToFile) {
+        cmdLine += " > datanode" + std::to_string(i) + "_out";
+      }
+      cmdLine += " & ";
       system(cmdLine.c_str());
       sleep(3);
     }
