@@ -23,33 +23,39 @@
 
 namespace zkclient {
 
+/** 
+ * Enum describing the file status of a file znode
+ */
 typedef enum class FileStatus : int {
-  UnderConstruction,
   FileComplete,
+  UnderConstruction,
   UnderDestruction
 } FileStatus;
 
+/** 
+ * Enum describing the file type of a file znode
+ */
+typedef enum class FileType : int {
+  Dir = 1,
+  File
+} FileType;
+
 /**
-* This is the basic znode to describe a file
-*/
+ * This is the basic znode to describe a file
+ */
 typedef struct {
-  uint32_t replication;  // the block replication factor.
-  bool isEC;  // 1 if EC file. 0 if replication based.
+  uint32_t replication;                     // block replication factor
+  bool isEC;                                // 1 if EC file; 0 if replication
   uint64_t blocksize;
-  // 1 for under construction, 0 for complete
-  zkclient::FileStatus under_construction;
-  int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
+  zkclient::FileStatus file_status;
+  zkclient::FileType file_type;
   std::uint64_t length;
-  // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
-  // FileSystem.html#setOwner(org.apache.hadoop.fs.Path,
-  // java.lang.String,
-  // java.lang.String)
   std::uint64_t access_time;
   std::uint64_t modification_time;
-  char owner[MAX_USERNAME_LEN];  // the client who created the file
+  char owner[MAX_USERNAME_LEN];             // the client who created the file
   char group[MAX_USERNAME_LEN];
-  char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
-  int perm_length;  // number of slots filled in permissions
+  char permissions[20][MAX_USERNAME_LEN];   // max 20 users can view the file
+  int perm_length;                          // # of slots filled in permissions
   int permission_number;
 } FileZNode;
 
@@ -57,23 +63,23 @@ typedef struct {
  * Lease info that stores in each lease node.
  */
 typedef struct {
-  std::string clientName;   // Same as the
-                            // clientName passed
-                            // from RenewLeaseRequestProto
+  std::string clientName;     // Same as the
+                              // clientName passed
+                              // from RenewLeaseRequestProto
 } LeaseInfo;
 
 /**
  * Client info that stores in each client node
  */
 typedef struct {
-  uint64_t timestamp;    // std::time()
+  uint64_t timestamp;         // std::time()
 } ClientInfo;
 
 struct TargetDN {
   char policy;
   std::string dn_id;
-  uint64_t free_bytes;    // free space on disk
-  uint32_t num_xmits;        // current number of xmits
+  uint64_t free_bytes;        // free space on disk
+  uint32_t num_xmits;         // current number of xmits
 
   TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
                                   dn_id(id),
@@ -146,19 +152,19 @@ using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
 
 /**
- * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
+ * This is used by ClientNamenodeProtocolImpl to communicate to zookeeper
  */
 class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
   const char* EC_REPLICATION = "REPLICATION";
-  const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
+  const char* DEFAULT_EC_POLICY = "RS-6-3-1024k"; // default policy
+  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;       // default cell size is 64kb
   uint32_t DEFAULT_EC_ID = 1;
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
-  std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
+  std::string DEFAULT_STORAGE_ID = "1";           // default storage id
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
@@ -734,12 +740,6 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool checkAccess(std::string username, FileZNode &znode_data);
 
-  const int UNDER_CONSTRUCTION = 1;
-  const int FILE_COMPLETE = 0;
-  const int UNDER_DESTRUCTION = 2;
-
-  const int IS_FILE = 2;
-  const int IS_DIR = 1;
   // TODO(2016): Should eventually be read from a conf file
   // in millisecons, 10 minute timeout when waiting for
   // replication acknowledgements
@@ -750,6 +750,9 @@ class ZkNnClient : public ZkClientCommon {
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
+  /** 
+   * Cache to speed up GetListing
+   */
   lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 
