@@ -92,7 +92,7 @@ TEST_F(ECRWTest, testECRW) {
   sleep(60);
 
   // Read it from rdfs.
-//  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
   // Check that its contents match.
 //  ASSERT_EQ(0,
 //            system("diff expected_testfile1234 actual_testfile1234 > "
