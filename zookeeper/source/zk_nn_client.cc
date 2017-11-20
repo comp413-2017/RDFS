@@ -311,17 +311,40 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
                                 uint64_t &blocksize) {
   int error_code;
   std::string block_path = get_block_metadata_path(block_id);
+  blocksize = 0;
 
-  BlockZNode block_data;
-  std::vector<std::uint8_t> data(sizeof(block_data));
-  if (!zk->get(block_path, data, error_code)) {
-    LOG(ERROR) << "We could not read the block at " << block_path;
-    return false;
+  if(!is_ec_block(block_id)) {
+    BlockZNode block_data;
+    std::vector<std::uint8_t> data(sizeof(block_data));
+    if (!zk->get(block_path, data, error_code)) {
+      LOG(ERROR) << "We could not read the block at " << block_path;
+      return false;
+    }
+
+    std::uint8_t *buffer = &data[0];
+    memcpy(&block_data, &data[0], sizeof(block_data));
+
+    blocksize = block_data.block_size;
+    
   }
-  std::uint8_t *buffer = &data[0];
-  memcpy(&block_data, &data[0], sizeof(block_data));
-
-  blocksize = block_data.block_size;
+  else {
+    auto children = std::vector<std::string>();
+    if (!zk->get_children(block_path, children, error_code)) {
+      LOG(ERROR) << "Can't get storage blks!";
+      return false;
+    }
+    for (auto child : children) {
+      BlockZNode block_data;
+      std::vector<std::uint8_t> data(sizeof(block_data));
+      if (!zk->get(block_path + "/" + child, data, error_code)) {
+        LOG(ERROR) << "We could not read the block at " << block_path
+                   << "/" << child;
+        return false;
+      }
+      memcpy(&block_data, &data[0], sizeof(block_data));
+      blocksize += block_data.block_size;
+    }
+  }
   LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   return true;
 }
@@ -1041,20 +1064,8 @@ void ZkNnClient::complete(CompleteRequestProto& req,
       return;
     }
     uint64_t block_uuid = *reinterpret_cast<uint64_t *>(&data[0]);
-    auto block_data = std::vector<std::uint8_t>();
-    std::string block_metadata_path = get_block_metadata_path(block_uuid);
-    if (!zk->get(block_metadata_path,
-                 block_data, error_code, sizeof(uint64_t))) {
-      LOG(ERROR) << "Failed to get "
-                 << block_metadata_path
-                 << " with error: "
-                 << error_code;
-      res.set_result(false);
-      return;
-    }
-
-    // TODO(nate): figure out why this value is the length.
-    uint64_t length = *reinterpret_cast<uint64_t *>(&block_data[0]);
+    uint64_t length;
+    get_block_size(block_uuid, length);
     file_length += length;
   }
   znode_data.length = file_length;
