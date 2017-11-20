@@ -119,8 +119,9 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
   std::vector<std::string> children = std::vector<std::string>();
   if (!(zk->wget_children(HEALTH, children, ZkNnClient::watcher_health,
               watcherCtx, err))) {
-    // TODO(2016): Handle error
-    LOG(ERROR) << "[watcher_health], wget failed " << err;
+    // Symptomatic of larger zk failure.
+    LOG(FATAL) << "[watcher_health], wget failed " << err;
+    zk->close();
   }
 
   for (int i = 0; i < children.size(); i++) {
@@ -133,8 +134,9 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
                 ZkNnClient::watcher_health_child,
                 watcherCtx,
                 err))) {
-      // TODO(2016): Handle error
-      LOG(ERROR) << "[watcher_health], wget failed " << err;
+      // Symptomatic of larger zk failure.
+      LOG(FATAL) << "[watcher_health], wget failed " << err;
+      zk->close();
     }
   }
 }
@@ -1514,11 +1516,8 @@ bool ZkNnClient::get_block_locations(const std::string &src,
       LOG(INFO) << "[get_block_locations] Found block " << block_id
                 << " for " << zk_path;
 
-      // TODO(2016): This block of code should be moved to a function,
-      // repeated with add_block
       LocatedBlockProto *located_block = blocks->add_blocks();
       located_block->set_corrupt(0);
-      // TODO(2016): This offset may be incorrect
       located_block->set_offset(size);
 
       buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
@@ -1872,7 +1871,10 @@ bool ZkNnClient::add_block(const std::string &file_path,
            << file_path
            << " still under construction";
   }
-  // TODO(2016): Check the replication factor
+
+  if (replicationFactor < 0) {
+    return false;
+  }
 
   std::string block_id_str;
 
@@ -2112,15 +2114,15 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
     }
 
     LOG(INFO) << "[find_datanode_for_block] There are "
-          << targets.size()
-          << " viable DNs. Requested: "
-          << replication_factor;
+              << targets.size()
+              << " viable DNs. Requested: "
+              << replication_factor;
     if (targets.size() < replication_factor) {
-      LOG(ERROR) << "[find_datanode_for_block] Not enough"
-              " available DNs! Available: "
-             << targets.size()
-             << " Requested: "
-             << replication_factor;
+      LOG(INFO) << "[find_datanode_for_block] Not enough"
+                 << " available DNs! Available: "
+                 << targets.size()
+                 << " Requested: "
+                 << replication_factor;
       // no return because we still want the client to write to some datanodes
     }
 
@@ -2130,19 +2132,19 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
       TargetDN target = targets.top();
       datanodes.push_back(target.dn_id);
       LOG(INFO) << "[find_datanode_for_block] Selecting target DN "
-            << target.dn_id
-            << " with "
-            << target.num_xmits
-            << " xmits and "
-            << target.free_bytes
-            << " free bytes";
+                << target.dn_id
+                << " with "
+                << target.num_xmits
+                << " xmits and "
+                << target.free_bytes
+                << " free bytes";
       targets.pop();
     }
 
   } else {
     LOG(ERROR) << "[find_datanode_for_block] Failed to get list of datanodes at"
-           << std::string(HEALTH) + " "
-           << error_code;
+               << std::string(HEALTH) + " "
+               << error_code;
     return false;
   }
 
