@@ -107,7 +107,7 @@ system("diff expected_testfile1234 actual_testfile1234 > "
 system(std::string(hdfs + " dfs -fs hdfs://localhost:5351 -rm /f").c_str());
 
 }
-/*
+
 TEST_F(ACLTest, testAddPermFile) {
 
 std::string oldUsername;
@@ -198,7 +198,7 @@ system("sudo su - user2");
 // hdfs dfs chmod 755 <filename>
 
 }
-*/
+
 
 }  // namespace
 
