@@ -728,7 +728,7 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
 
   std::vector<std::string> datanodes;
   if (!find_all_datanodes_with_block(blockId, datanodes, error_code)) {
-    LOG(ERROR) << "[abandon_block] Could not find datandoes with the block";
+    LOG(ERROR) << "[abandon_block] Could not find datandoes with the block.";
   }
 
   std::vector<std::shared_ptr<ZooOp>> ops;
