@@ -92,6 +92,55 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
+  std::string baseUrl = "/webhdfs/v1";
+
+  int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
+  std::string path = (request->path).substr(idxOfSplit);
+
+  // Remove op= from query string
+  std::string typeOfRequest = request->query_string.substr(3);
+
+  LOG(DEBUG) << "Type of Request " << typeOfRequest;
+  LOG(DEBUG) << "Path " << path;
+
+  if (!typeOfRequest.compare("OPEN")) {
+    read_file_handler(response, path);
+  } else {
+    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+  }
+}
+
+void post_handler(std::shared_ptr<HttpsServer::Response> response,
+                  std::shared_ptr<HttpsServer::Request> request) {
+  // TODO(security): invoke another handler depending on qs opcode.
+  create_file_handler(response, request);
+}
+
+void put_handler(std::shared_ptr<HttpsServer::Response> response,
+                 std::shared_ptr<HttpsServer::Request> request) {
+  std::string baseUrl = "/webhdfs/v1";
+
+  int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
+  std::string path = (request->path).substr(idxOfSplit);
+
+  // Remove op= from query string
+  std::string typeOfRequest = request->query_string.substr(3);
+
+  LOG(DEBUG) << "Type of Request " << typeOfRequest;
+  LOG(DEBUG) << "Path " << path;
+
+  if (!typeOfRequest.compare("MKDIRS")) {
+    mkdir_handler(response, path);
+  } else if (!typeOfRequest.find("RENAME")) {
+    std::string pathForRename = typeOfRequest.substr(6);
+    rename_file_handler(response, path, pathForRename);
+  } else {
+    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+  }
+}
+
+void delete_handler(std::shared_ptr<HttpsServer::Response> response,
+                    std::shared_ptr<HttpsServer::Request> request) {
   // TODO(security): invoke another handler depending on qs opcode.
   std::string baseUrl = "/webhdfs/v1";
 
@@ -106,32 +155,7 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 
   if (!typeOfRequest.compare("DELETE")) {
     delete_file_handler(response, path);
-  } else if (!typeOfRequest.compare("OPEN")) {
-    read_file_handler(response, path);
-  } else if (!typeOfRequest.compare("MKDIR")) {
-    mkdir_handler(response, path);
-  } else if (!typeOfRequest.find("RENAME")) {
-    std::string pathForRename = typeOfRequest.substr(6);
-    rename_file_handler(response, path, pathForRename);
   } else {
-    create_file_handler(response, request);
+    response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
-}
-
-void post_handler(std::shared_ptr<HttpsServer::Response> response,
-                  std::shared_ptr<HttpsServer::Request> request) {
-  // TODO(security): invoke another handler depending on qs opcode.
-  create_file_handler(response, request);
-}
-
-void put_handler(std::shared_ptr<HttpsServer::Response> response,
-                 std::shared_ptr<HttpsServer::Request> request) {
-  // TODO(security): invoke another handler depending on qs opcode.
-  create_file_handler(response, request);
-}
-
-void delete_handler(std::shared_ptr<HttpsServer::Response> response,
-                    std::shared_ptr<HttpsServer::Request> request) {
-  // TODO(security): invoke another handler depending on qs opcode.
-  create_file_handler(response, request);
 }
