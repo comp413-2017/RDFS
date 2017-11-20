@@ -83,6 +83,10 @@ void ZkNnClient::populateDefaultECProto() {
   RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
   RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
+  REPLICATION_PROTO.set_name(EC_REPLICATION);
+  REPLICATION_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  REPLICATION_PROTO.set_id(REPLICATION_EC_ID);
+  REPLICATION_PROTO.set_allocated_schema(&REPLICATION_1_2_SCHEMA);
 }
 
 /*
@@ -1540,6 +1544,15 @@ void ZkNnClient::get_block_locations(const std::string &src,
     return;
   }
 
+
+  ErasureCodingPolicyProto *ecpolicy = blocks->mutable_ecpolicy();
+  if (znode_data.isEC) {
+    ecpolicy->CopyFrom(RS_SOLOMON_PROTO);
+  } else {
+    ecpolicy->CopyFrom(REPLICATION_PROTO);
+  }
+
+
   blocks->set_underconstruction(false);
   blocks->set_islastblockcomplete(true);
   blocks->set_filelength(znode_data.length);
@@ -1592,39 +1605,70 @@ void ZkNnClient::get_block_locations(const std::string &src,
 
       buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
-      auto data_nodes = std::vector<std::string>();
+      auto block_meta_children = std::vector<std::string>();
       std::string block_metadata_path = get_block_metadata_path(block_id);
       LOG(INFO) << "Getting datanode locations for block: "
                 << block_metadata_path;
 
       if (!zk->get_children(block_metadata_path,
-                            data_nodes, error_code)) {
+                            block_meta_children, error_code)) {
         LOG(ERROR) << "Failed getting datanode locations for block: "
                    << block_metadata_path
                    << " with error: "
                    << error_code;
       }
 
-      LOG(INFO) << "Found block locations " << data_nodes.size();
-
-      auto sorted_data_nodes = std::vector<std::string>();
-      if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
-        for (auto data_node = sorted_data_nodes.begin();
-             data_node != sorted_data_nodes.end();
-             ++data_node) {
-          LOG(INFO) << "Block DN Loc: " << *data_node;
-          buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+      LOG(INFO) << "Found block locations " << block_meta_children.size();
+      if (!znode_data.isEC) {
+        auto sorted_data_nodes = std::vector<std::string>();
+        if (sort_by_xmits(block_meta_children, sorted_data_nodes)) {
+          for (auto data_node = sorted_data_nodes.begin();
+               data_node != sorted_data_nodes.end();
+               ++data_node) {
+            LOG(INFO) << "Block DN Loc: " << *data_node;
+            buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+          }
+        } else {
+          LOG(ERROR)
+              << "Unable to sort DNs by # xmits in get_block_locations. "
+                  "Using unsorted instead.";
+          for (auto data_node = block_meta_children.begin();
+               data_node != block_meta_children.end();
+               ++data_node) {
+            LOG(INFO) << "Block DN Loc: " << *data_node;
+            buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+          }
         }
       } else {
-        LOG(ERROR)
-            << "Unable to sort DNs by # xmits in get_block_locations. "
-                "Using unsorted instead.";
-        for (auto data_node = data_nodes.begin();
-             data_node != data_nodes.end();
-             ++data_node) {
-          LOG(INFO) << "Block DN Loc: " << *data_node;
-          buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+        // Add block indices for an EC block.
+        // Each byte (i.e. char) represents an index into the group.
+        std::string block_index_string;
+        int i = 0;
+        // Add datanodes for the EC block
+        for (auto storage_block : block_meta_children) {
+          auto datanodes = std::vector<std::string>();
+          LOG(INFO) << BLOCK_GROUP_LOCATIONS + std::to_string(block_id) + "/" + storage_block;
+          if(!zk->get_children(BLOCK_GROUP_LOCATIONS + std::to_string(block_id) + "/" + storage_block, datanodes,
+                               error_code)) {
+            //
+          }
+          if (datanodes.size() > 1) {
+            LOG(ERROR) << "More than one datanode found for an EC storage block,"
+                "using the first datanode found. Blockid: " << storage_block;
+          } else if (datanodes.size() == 1) {
+            located_block->add_storageids(DEFAULT_STORAGE_ID);
+            located_block->add_storagetypes(StorageTypeProto::DISK);
+            LOG(INFO) << datanodes.size();
+            buildDatanodeInfoProto(located_block->add_locs(), datanodes[0]);
+            std::uint64_t blk_id;
+            std::stringstream strm(storage_block);
+            strm >> blk_id;
+            block_index_string.push_back((char) get_index_within_block_group(blk_id));
+          } else {
+            LOG(WARNING) << "No datanodes found for this storage block: " << storage_block;
+          }
         }
+        located_block->set_blockindices(block_index_string);
       }
 
       buildTokenProto(located_block->mutable_blocktoken());
