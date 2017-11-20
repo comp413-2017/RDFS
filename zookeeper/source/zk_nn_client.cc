@@ -83,18 +83,10 @@ void ZkNnClient::populateDefaultECProto() {
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
 }
 
-/**
- * A simple print function that will be triggered when
- * namenode loses a heartbeat
- */
-void notify_delete() {
+void ZkNnClient::notify_delete() {
   printf("No heartbeat, no childs to retrieve\n");
 }
 
-/**
- * Registers watches on health nodes; essentially mimicking a heartbeat
- * liveness check.
- */
 bool ZkNnClient::register_watches() {
   int err;
   std::vector<std::string> children = std::vector<std::string>();
@@ -116,10 +108,6 @@ bool ZkNnClient::register_watches() {
   }
 }
 
-/**
- * The zk watch for health nodes. Simply re-adds the health watch
- * when triggered (mimicking a heartbeat).
- */
 void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
                 const char *path, void *watcherCtx) {
   LOG(INFO) << "[watcher_health] Health watcher triggered on " << path;
@@ -151,10 +139,6 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
   }
 }
 
-/**
- * The zk watch for children of health nodes. Clears data associated with
- * the node if the node is dead.
- */
 void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
                     const char *raw_path, void *watcherCtx) {
   ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
@@ -293,9 +277,6 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
   }
 }
 
-/**
- * The zk watch used by getListing to invalidate cache entry
- */
 void ZkNnClient::watcher_listing(zhandle_t *zzh,
                                  int type,
                                  int state,
@@ -357,7 +338,9 @@ bool ZkNnClient::cache_contains(const std::string &path) {
 int ZkNnClient::cache_size() {
     return cache->currentSize();
 }
+
 // --------------------------- PROTOCOL CALLS -------------------------------
+
 void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
                              RenewLeaseResponseProto &res) {
   std::string client_name = req.clientname();
@@ -659,22 +642,6 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   return true;
 }
 
-/**
- * Since the names were a bit strange and it was a pain to go back and figure out
- * where these were again, I'm writing what the proto fields are here.
- *
- * message has:
- * required ExtendedBlockProto b = 1;
- * required string src = 2;
- * required string holder = 3;
- * optional uint64 fileId = 4 [default = 0];  // default to GRANDFATHER_INODE_ID
- *
- * ExtendedBlockProto has:
- * required string poolId = 1;   // Block pool id - gloablly unique across clusters
- * required uint64 blockId = 2;  // the local id within a pool
- * required uint64 generationStamp = 3;
- * optional uint64 numBytes = 4 [default = 0];  // len does not belong in ebid
-*/
 bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
                                AbandonBlockResponseProto &res,
                                std::string client_name) {
@@ -806,9 +773,6 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
   }
 }
 
-/**
- * Create a node in zookeeper corresponding to a file
- */
 bool ZkNnClient::create_file_znode(const std::string &path,
                                   FileZNode *znode_data) {
   int error_code;
@@ -899,7 +863,6 @@ bool ZkNnClient::blockDeleted(uint64_t uuid, std::string id) {
   }
   return true;
 }
-
 
 ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
                                 std::vector<std::shared_ptr<ZooOp>> &ops) {
@@ -1107,10 +1070,6 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   res.set_result(true);
 }
 
-/**
- * Go down directories recursively. If a child is a file, then put its deletion on a queue.
- * Files delete themselves, but directories are deleted by their parent (so root can't be deleted)
- */
 ZkNnClient::DeleteResponse ZkNnClient::destroy(
     DeleteRequestProto &request,
     DeleteResponseProto &response,
@@ -1181,12 +1140,6 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
   return DeleteResponse::Ok;
 }
 
-/**
- * Create a new file entry in the namespace.
- *
- * This will create an empty file specified by the source path, a full path originated at the root.
- *
- */
 ZkNnClient::CreateResponse ZkNnClient::create_file(
         CreateRequestProto &request,
         CreateResponseProto &response) {
@@ -1253,9 +1206,6 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   return CreateResponse::Ok;
 }
 
-/**
- * Rename a file in the zookeeper filesystem
- */
 ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
                                               RenameResponseProto& res,
                                               std::string client_name) {
@@ -1329,11 +1279,6 @@ ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
   }
 }
 
-// ------- make a directory
-
-/**
-* Set the default information for a directory znode
-*/
 void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->length = 0;
   uint64_t mslong = current_time_ms();
@@ -1347,9 +1292,6 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->perm_length = -1;
 }
 
-/**
-* Make a directory in zookeeper
-*/
 ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
                                             MkdirsResponseProto &response) {
   const std::string &path = request.src();
@@ -1359,10 +1301,6 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
   return rv;
 }
 
-/**
-* Helper for creating a directory znode. Iterates over the parents and creates
-* them if necessary.
-*/
 ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
                            bool create_parent) {
   LOG(INFO) << "[mkdir_helper] mkdir_helper called with input " << path;
@@ -1626,7 +1564,6 @@ bool ZkNnClient::get_block_locations(const std::string &src,
   }
   return true;
 }
-
 
 ZkNnClient::ErasureCodingPoliciesResponse
 ZkNnClient::get_erasure_coding_policies(
@@ -2064,7 +2001,6 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
   return true;
 }
 
-
 u_int64_t ZkNnClient::generate_storage_block_id(
         u_int64_t block_group_id,
         u_int64_t index_within_group) {
@@ -2093,16 +2029,14 @@ u_int64_t ZkNnClient::get_index_within_block_group(u_int64_t storage_block_id) {
     return storage_block_id & mask;
 }
 
-
 bool ZkNnClient::find_live_datanodes(const uint64_t blockId, int error_code,
                                     std::vector<std::string> &live_data_nodes) {
   std::string block_metadata_path = get_block_metadata_path(blockId);
   return zk->get_children(HEALTH, live_data_nodes, error_code);
 }
 
-
 bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
-                                        std::vector<std::string> &excluded_dns,
+                                         std::vector<std::string> &excluded_dns,
                                          const u_int64_t blockId,
                                          uint32_t replication_factor,
                                          uint64_t blocksize) {
@@ -2235,13 +2169,6 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
   return true;
 }
 
-/**
-* Generates multiop ops for renaming src to dst
-* @param src The path to the source file (not znode) within the filesystem
-* @param dst The path to the renamed destination file (not znode) within the filesystem
-* @param ops The vector of multiops which will make up the overall atomic rename operation
-* @return Boolean indicating success or failure of the rename
-*/
 bool ZkNnClient::rename_ops_for_file(const std::string &src,
                                      const std::string &dst,
                                      std::vector<std::shared_ptr<ZooOp>> &ops) {
@@ -2448,13 +2375,6 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
   return true;
 }
 
-/**
- * Checks that each block UUID in the wait_for_acks dir:
- *	 1. has REPLICATION_FACTOR many children
- *	 2. if the block UUID was created more than ACK_TIMEOUT milliseconds ago
- *   TODO: Add to header file
- * @return
- */
 bool ZkNnClient::check_acks() {
   int error_code = 0;
 
@@ -2602,7 +2522,6 @@ bool ZkNnClient::recover_ec_blocks(
   }
 }
 
-
 bool ZkNnClient::replicate_blocks(const std::vector<std::string> &to_replicate,
                   int err) {
   std::vector<std::shared_ptr<ZooOp>> ops;
@@ -2680,9 +2599,6 @@ int ZkNnClient::ms_since_creation(std::string &path) {
   return elapsed;
 }
 
-/**
-* Returns the current timestamp in milliseconds
-*/
 uint64_t ZkNnClient::current_time_ms() {
   // http://stackoverflow.com/questions/19555121/how-to-get-current-time
   // stamp-in-milliseconds-since-1970-just-the-way-java-gets
