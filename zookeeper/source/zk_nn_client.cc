@@ -2555,7 +2555,10 @@ delete_ack:
                  << " ERROR CODE: " << results[i].err;
     }
   }
-  return true;
+  if (error_code == 0)
+    return true;
+  else
+    return false;
 }
 
 bool ZkNnClient::recover_ec_blocks(
