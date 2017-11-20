@@ -95,12 +95,12 @@ void notify_delete() {
  * Registers watches on health nodes; essentially mimicking a heartbeat
  * liveness check.
  */
-void ZkNnClient::register_watches() {
+bool ZkNnClient::register_watches() {
   int err;
   std::vector<std::string> children = std::vector<std::string>();
   if (!(zk->wget_children(HEALTH, children, watcher_health, this, err))) {
-    // TODO(2016): Handle error
     LOG(ERROR) << "[register_watchers], wget failed " << err;
+    return false;
   }
 
   for (int i = 0; i < children.size(); i++) {
@@ -110,14 +110,15 @@ void ZkNnClient::register_watches() {
     std::vector<std::string> ephem = std::vector<std::string>();
     if (!(zk->wget_children(HEALTH_BACKSLASH + children[i], ephem,
                 watcher_health_child, this, err))) {
-      // TODO(2016): Handle error
       LOG(ERROR) << "[register_watchers], wget failed " << err;
+      return false;
     }
   }
 }
 
 /**
- * 
+ * The zk watch for health nodes. Simply re-adds the health watch
+ * when triggered (mimicking a heartbeat).
  */
 void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
                 const char *path, void *watcherCtx) {
@@ -151,8 +152,9 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
 }
 
 /**
-* Static
-*/
+ * The zk watch for children of health nodes. Clears data associated with
+ * the node if the node is dead.
+ */
 void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
                     const char *raw_path, void *watcherCtx) {
   ZkNnClient *cli = reinterpret_cast<ZkNnClient *>(watcherCtx);
@@ -291,7 +293,9 @@ void ZkNnClient::watcher_health_child(zhandle_t *zzh, int type, int state,
   }
 }
 
-
+/**
+ * The zk watch used by getListing to invalidate cache entry
+ */
 void ZkNnClient::watcher_listing(zhandle_t *zzh,
                                  int type,
                                  int state,

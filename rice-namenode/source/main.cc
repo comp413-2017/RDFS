@@ -125,7 +125,10 @@ int main(int argc, char *argv[]) {
       error_code,
       "/testing");
   zkclient::ZkNnClient nncli(zk_shared);
-  nncli.register_watches();
+  if (!nncli.register_watches()) {
+    LOG(FATAL) << "[rice-namenode] Failed to register heartbeat watches.";
+    return -1;
+  }
   nncli.set_node_policy(node_policy);
 
   LOG(INFO) << "Namenode is starting";
