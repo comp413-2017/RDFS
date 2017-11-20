@@ -334,56 +334,73 @@ bool ZkNnClient::process_request(std::string client_name,
 
 bool ZkNnClient::check_lease(std::string client_name,
                              std::string file_path) {
-  int error_code;
+  RecoverLeaseRequestProto rec_lease_req;
+  RecoverLeaseResponseProto rec_lease_res;
+  rec_lease_req.set_clientname(client_name);
+  rec_lease_req.set_src(file_path);
+  recover_lease_helper(rec_lease_req, rec_lease_res);
 
-  // Set RenewLease protos to call renew_lease
-  RenewLeaseRequestProto renew_lease_req;
-  RenewLeaseResponseProto renew_lease_res;
-  renew_lease_req.set_clientname(client_name);
+  if (rec_lease_res.result()) {
+    // Set RenewLease protos to call renew_lease
+    RenewLeaseRequestProto renew_lease_req;
+    RenewLeaseResponseProto renew_lease_res;
+    renew_lease_req.set_clientname(client_name);
 
-  std::vector<std::string> children;
-  if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children,
-                        error_code)) {
-    LOG(ERROR) << "Failed to get children of "
-               << ZookeeperFilePath(file_path) << ".";
-    return false;
-  }
+    renew_lease_helper(renew_lease_req, renew_lease_res);
 
-  if (children.size() == 1 && children.at(0) == client_name) {
-    renew_lease(renew_lease_req, renew_lease_res);
-    return true;
-  } else if (children.size() >= 1) {
-    // TODO(marccanby): This should throw an error as well. --anthony
-    // (There should never be more than one lease open for a file at a time.)
-    LOG(ERROR) << "Children size greater than 1 in check_lease for " <<
-               client_name << "!";
-    return false;
-  } else {
-    // Currently there is no client holding a lease for this file.
+    // Now update/set the timestamp in files->leases.
+    int error_code;
     ClientInfo clientInfo;
     clientInfo.timestamp = current_time_ms();
     std::vector<std::uint8_t> data(sizeof(clientInfo));
     znode_data_to_vec(&clientInfo, data);
-
-    // QUESTION: Do we need to add to client -> timestamp or not?
-    // TODO(marccanby): yes, we do need to this  --anthony
-    if (!zk->set(ClientZookeeperPath(client_name), data, error_code)) {
-      LOG(ERROR) << "Failed to set data for " <<
-                 ClientZookeeperPath(client_name) << ".";
-      return false;
-    }
-
-    // Add to filename -> leases
     if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
                     client_name, data, error_code, false)) {
-      LOG(ERROR) << "Failed to put lease into file_name->timestamp for " <<
-                 ZookeeperFilePath(file_path)  << LEASES << '/' <<
+      LOG(ERROR) << "Failed to put lease into file_name->leases for " <<
+                 ZookeeperFilePath(file_path) << LEASES << '/' <<
                  client_name << ".";
       return false;
     }
     return true;
+
+  } else {
+    int error_code;
+    std::vector<std::string> children;
+    if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children,
+                          error_code)) {
+      LOG(ERROR) << "Failed to get children of "
+                 << ZookeeperFilePath(file_path) << ".";
+      return false;
+    }
+    if (children.size() == 1 && children.at(0) == client_name) {
+      RenewLeaseRequestProto renew_lease_req;
+      RenewLeaseResponseProto renew_lease_res;
+      renew_lease_req.set_clientname(client_name);
+      renew_lease_helper(renew_lease_req, renew_lease_res);
+
+      // Now update/set the timestamp in files->leases.
+      int error_code2;
+      ClientInfo clientInfo;
+      clientInfo.timestamp = current_time_ms();
+      std::vector<std::uint8_t> data(sizeof(clientInfo));
+      znode_data_to_vec(&clientInfo, data);
+      if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
+                      client_name, data, error_code2, false)) {
+        LOG(ERROR) << "Failed to put lease into file_name->leases for " <<
+                   ZookeeperFilePath(file_path) << LEASES << '/' <<
+                   client_name << ".";
+        return false;
+      }
+      return true;
+
+  } else {
+      LOG(ERROR) << "Recover lease failed with file " << file_path <<
+                 " and client" << client_name << "!!";
+      return false;
+    }
   }
 }
+
 
 // TODO(marccanby): should rename this method; it's misleading --anthony
 bool ZkNnClient::get_primary_block_info(std::string file_path,
@@ -423,8 +440,9 @@ int ZkNnClient::cache_size() {
     return cache->currentSize();
 }
 // --------------------------- PROTOCOL CALLS -------------------------------
-void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
-                             RenewLeaseResponseProto &res) {
+
+void ZkNnClient::renew_lease_helper(RenewLeaseRequestProto &req,
+                  RenewLeaseResponseProto & res) {
   std::string client_name = req.clientname();
   bool exists;
   int error_code;
@@ -452,8 +470,16 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
   }
 }
 
-void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
+
+void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
+                             RenewLeaseResponseProto &res) {
+  renew_lease_helper(req, res);
+}
+
+
+void ZkNnClient::recover_lease_helper(RecoverLeaseRequestProto &req,
                                RecoverLeaseResponseProto &res) {
+
   std::string client_name = req.clientname();
   std::string file_path = req.src();
   int error_code;
@@ -510,6 +536,11 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
     res.set_result(false);
     return;
   }
+}
+
+void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
+                               RecoverLeaseResponseProto &res) {
+  recover_lease_helper(req, res);
 }
 
 void ZkNnClient::read_file_znode(FileZNode &znode_data,

@@ -232,6 +232,7 @@ class ZkNnClient : public ZkClientCommon {
    */
   void renew_lease(RenewLeaseRequestProto &req,
                    RenewLeaseResponseProto &res);
+
   void recover_lease(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
   /**
@@ -458,6 +459,13 @@ class ZkNnClient : public ZkClientCommon {
   int cache_size();
 
  private:
+
+  void recover_lease_helper(RecoverLeaseRequestProto &req,
+                     RecoverLeaseResponseProto &res);
+
+  void renew_lease_helper(RenewLeaseRequestProto &req,
+                          RenewLeaseResponseProto &res);
+
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
    */
