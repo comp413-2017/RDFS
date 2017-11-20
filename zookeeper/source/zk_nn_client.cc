@@ -1838,9 +1838,8 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   HdfsFileStatusProto_FileType filetype;
   // get the filetype, since we do not want to serialize an enum
   switch (znode_data.file_type) {
-    case (0):filetype = HdfsFileStatusProto::IS_DIR;
-      break;
-    case (1):filetype = HdfsFileStatusProto::IS_DIR;
+    case (FileType::Dir):
+      filetype = HdfsFileStatusProto::IS_DIR;
       break;
     case (FileType::File):
       filetype = HdfsFileStatusProto::IS_FILE;
