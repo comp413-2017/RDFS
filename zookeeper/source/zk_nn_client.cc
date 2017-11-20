@@ -2544,9 +2544,11 @@ bool ZkNnClient::check_acks() {
       continue;
     }
 delete_ack:
-    auto undo_ack_op = zk->build_delete_op(block_path);
-    ops.push_back(undo_ack_op);
+    if (!zk->recursive_delete(block_path, error_code)) {
+      LOG(ERROR) << "[check_acks] Failed to delete ack with error code: ";
+    }
   }
+  /*
   auto results = std::vector<zoo_op_result>();
   if (!zk->execute_multi(ops, results, error_code)) {
     ZKWrapper::print_error(error_code);
@@ -2555,6 +2557,7 @@ delete_ack:
                  << " ERROR CODE: " << results[i].err;
     }
   }
+  */
   if (error_code == 0)
     return true;
   else
