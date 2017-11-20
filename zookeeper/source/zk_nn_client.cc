@@ -595,8 +595,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
           DEFAULT_PARITY_UNITS + DEFAULT_DATA_UNITS);
   }
 
-  // TODO(nate): this might be seriously wrong.
-  block->set_offset(0);  // TODO(2016): Set this
+  block->set_offset(znode_data.length);
   block->set_corrupt(false);
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
@@ -817,6 +816,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     if (!znode_data->isEC) {
       znode_data->isEC = parent_node.isEC;
     }
+    znode_data->length = 0;
 
     {
       LOG(ERROR) << "is this file ec? " << znode_data->isEC << "\n";
@@ -1058,7 +1058,6 @@ void ZkNnClient::complete(CompleteRequestProto& req,
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
   file_znode_struct_to_vec(&znode_data, data);
-  LOG(ERROR) << "YO: " << static_cast<int>(znode_data.under_construction);
   if (!zk->set(ZookeeperFilePath(src), data, error_code)) {
       LOG(ERROR)
           << " complete could not change the construction bit and file length";
@@ -1242,8 +1241,10 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
 
 
   // in the case of replication, this inputECPolicyName is empty.
-  if (!inputECPolicyName.empty())
+  if (!inputECPolicyName.empty()) {
     znode_data.isEC = true;
+    znode_data.replication = 1;
+  }
 
   // if we failed, then do not set any status
   if (!create_file_znode(path, &znode_data))
@@ -2029,13 +2030,16 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
         << " " << storageBlockID
         << std::endl;
   }
+  std::vector<std::uint8_t> data;
+  data.resize(sizeof(u_int64_t));
+  memcpy(&data[0], &block_group_id, sizeof(u_int64_t));
   auto seq_file_block_op = zk->build_create_op(
-      ZookeeperBlocksPath(file_path) + "/block_",
+      ZookeeperBlocksPath(filePath) + "/block_",
       data,
       ZOO_SEQUENCE);
   ops.push_back(seq_file_block_op);
   auto ack_op = zk->build_create_op(
-      "/work_queues/wait_for_acks/" + block_id_str,
+      "/work_queues/wait_for_acks/" + std::to_string(block_group_id),
       ZKWrapper::EMPTY_VECTOR);
   ops.push_back(ack_op);
 

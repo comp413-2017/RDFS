@@ -60,7 +60,7 @@ std::string ZkClientCommon::get_block_metadata_path(
 }
 
 u_int64_t ZkClientCommon::get_block_group_id(u_int64_t storage_block_id) {
-    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    u_int64_t mask = (~(0ull)) << 16;  // 47 ones and 16 zeros.
     return storage_block_id & mask;
 }
 
