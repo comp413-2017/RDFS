@@ -78,8 +78,8 @@ TEST_F(ECRWTest, testECRW) {
   std::thread(&RPCServer::serve, namenodeServer, std::ref(io_service)).detach();
   sleep(3);
 
-//  ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
-//                          "generate_file.py > expected_""testfile1234"));
+  ASSERT_EQ(0, system("python /home/vagrant/rdfs/test/integration/"
+                          "generate_file.py > expected_""testfile1234"));
 
   // Set the EC policy first
   system("hdfs ec -setPolicy -path / -policy RS-6-3-1024k");
