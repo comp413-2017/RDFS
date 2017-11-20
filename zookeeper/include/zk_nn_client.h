@@ -169,22 +169,22 @@ class ZkNnClient : public ZkClientCommon {
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
   enum class ListingResponse {
-      Ok,                    // 0
-      FileDoesNotExist,      // 1
-      FailedChildRetrieval,  // 2
-      FileAccessRestricted   // 3
+    Ok,                    // 0
+    FileDoesNotExist,      // 1
+    FailedChildRetrieval,  // 2
+    FileAccessRestricted   // 3
   };
 
   enum class DeleteResponse {
-      Ok,
-      FileDoesNotExist,
-      FileUnderConstruction,
-      FileIsDirectoryMismatch,
-      FailedChildRetrieval,
-      FailedBlockRetrieval,
-      FailedDataNodeRetrieval,
-      FailedZookeeperOp,
-      FileAccessRestricted
+    Ok,
+    FileDoesNotExist,
+    FileUnderConstruction,
+    FileIsDirectoryMismatch,
+    FailedChildRetrieval,
+    FailedBlockRetrieval,
+    FailedDataNodeRetrieval,
+    FailedZookeeperOp,
+    FileAccessRestricted
   };
 
   enum class GetFileInfoResponse {
@@ -195,41 +195,45 @@ class ZkNnClient : public ZkClientCommon {
   };
 
   enum class MkdirResponse {
-      Ok,
-      FailedZnodeCreation
+    Ok,
+    FailedZnodeCreation
   };
 
   enum class CreateResponse {
-      Ok,
-      FileAlreadyExists,
-      FailedMkdir,
-      FailedCreateZnode
+    Ok,
+    FileAlreadyExists,
+    FailedMkdir,
+    FailedCreateZnode
   };
 
   enum class RenameResponse {
-      Ok,
-      FileDoesNotExist,
-      RenameOpsFailed,
-      InvalidType,
-      MultiOpFailed,
-      FileAccessRestricted
+    Ok,
+    FileDoesNotExist,
+    RenameOpsFailed,
+    InvalidType,
+    MultiOpFailed,
+    FileAccessRestricted
   };
 
   enum class ErasureCodingPoliciesResponse {
-      Ok
+    Ok
   };
 
   enum class ErasureCodingPolicyResponse {
-      Ok,
-      FileDoesNotExist
+    Ok,
+    FileDoesNotExist
   };
 
   enum class SetErasureCodingPolicyResponse {
-      Ok,
-      FileDoesNotExist,
-      FailedZookeeperOp
+    Ok,
+    FileDoesNotExist,
+    FailedZookeeperOp
   };
 
+  /**
+   * Constructor to build ZkNnClient with a zkIpAndAddress.
+   * @param zkIpAndAddress
+   */
   explicit ZkNnClient(std::string zkIpAndAddress)
                         : ZkClientCommon(zkIpAndAddress),
                           cache(new lru::Cache<std::string,
