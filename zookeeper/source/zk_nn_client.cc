@@ -306,7 +306,8 @@ void ZkNnClient::watcher_listing(zhandle_t *zzh,
 }
 
 bool ZkNnClient::file_exists(const std::string &path) {
-  bool exists;
+  // Initialize to false in case exists fails.
+  bool exists = false;
   int error_code;
   zk->exists(ZookeeperFilePath(path), exists, error_code);
   return exists;
