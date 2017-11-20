@@ -1049,8 +1049,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     return;
   }
   if (file_blocks.size() == 0) {
+    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
     res.set_result(true);
-  }    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
+  }
 
     // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
