@@ -84,14 +84,18 @@ void ZkNnClient::populateDefaultECProto() {
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
 }
 
-/*
-* A simple print function that will be triggered when
-* namenode loses a heartbeat
-*/
+/**
+ * A simple print function that will be triggered when
+ * namenode loses a heartbeat
+ */
 void notify_delete() {
   printf("No heartbeat, no childs to retrieve\n");
 }
 
+/**
+ * Registers watches on health nodes; essentially mimicking a heartbeat
+ * liveness check.
+ */
 void ZkNnClient::register_watches() {
   int err;
   std::vector<std::string> children = std::vector<std::string>();
@@ -114,8 +118,8 @@ void ZkNnClient::register_watches() {
 }
 
 /**
-* Static
-*/
+ * 
+ */
 void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
                 const char *path, void *watcherCtx) {
   LOG(INFO) << "[watcher_health] Health watcher triggered on " << path;
@@ -589,9 +593,8 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
 
   // Assert that the znode we want to modify is a file
-  if (znode_data.filetype != IS_FILE) {
-    LOG(ERROR) << "[add_block] Requested file " << file_path <<
-                                                             " is not a file";
+  if (znode_data.file_type != FileType::File) {
+    LOG(ERROR) << "[add_block] Requested file " << file_path << " is not a file";
     return false;
   }
 
@@ -699,9 +702,8 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   }
 
   // Assert that the znode we want to modify is a file
-  if (znode_data.filetype != IS_FILE) {
-    LOG(ERROR) << "[abandon_block] Requested file "
-               << file_path << " is not a file";
+  if (znode_data.file_type != FileType::File) {
+    LOG(ERROR) << "[abandon_block] Requested file " << file_path << " is not a file";
     return false;
   }
   LOG(INFO) << "[abandon_block] File exists. Building multi op "
@@ -904,7 +906,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
   FileZNode znode_data;
   read_file_znode(znode_data, path);
   std::vector<std::string> children;
-  if (znode_data.filetype == IS_DIR) {
+  LOG(INFO) << "read file znode successful";
+  if (znode_data.file_type == FileType::Dir) {
     if (!zk->get_children(ZookeeperFilePath(path), children, error_code)) {
           LOG(FATAL) << "[destroy_helper] Failed to get children for " << path;
           return DeleteResponse::FailedChildRetrieval;
@@ -916,14 +919,15 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
         return status;
       }
     }
-  } else if (znode_data.filetype == IS_FILE) {
+  } else if (znode_data.file_type == FileType::File) {
     if (!zk->get_children(ZookeeperBlocksPath(path), children, error_code)) {
       LOG(FATAL) << "[destroy_helper] Failed to get children for " << path;
       return DeleteResponse::FailedChildRetrieval;
     }
-    if (znode_data.under_construction == FileStatus::UnderConstruction) {
-      LOG(ERROR) << path << "[destroy_helper] is under construction, "
-              "so it cannot be deleted.";
+
+    if (znode_data.file_status == FileStatus::UnderConstruction) {
+      LOG(ERROR) << path << "[destroy_helper] is under construction, 
+            so it cannot be deleted.";
       return DeleteResponse::FileUnderConstruction;
     }
     for (auto &child : children) {
@@ -998,7 +1002,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     return;
   }
 
-  znode_data.under_construction = FileStatus::FileComplete;
+  znode_data.file_status = FileStatus::FileComplete;
   // set the file length
   uint64_t file_length = 0;
   auto file_blocks = std::vector<std::string>();
@@ -1128,8 +1132,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
     return DeleteResponse::FileAccessRestricted;
   }
 
-  if (znode_data.filetype == IS_FILE
-      && znode_data.under_construction == FileStatus::UnderConstruction) {
+  if (znode_data.file_type == FileType::File
+      && znode_data.file_status == FileStatus::UnderConstruction) {
     LOG(ERROR) << "[destroy] Cannot delete "
                << path
                << " because it is under construction.";
@@ -1137,7 +1141,7 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
     return DeleteResponse::FileUnderConstruction;
   }
 
-  if (znode_data.filetype == IS_DIR && !recursive) {
+  if (znode_data.file_type == FileType::Dir && !recursive) {
     LOG(ERROR) << "[destroy] Cannot delete "
                << path
                << " because it is a directory. Use recursive = true.";
@@ -1216,7 +1220,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   // Now create the actual file which will hold blocks
   FileZNode znode_data;
   znode_data.length = 0;
-  znode_data.under_construction = FileStatus::UnderConstruction;
+  znode_data.file_status = FileStatus::UnderConstruction;
   uint64_t mslong = current_time_ms();
   znode_data.access_time = mslong;
   znode_data.modification_time = mslong;
@@ -1224,7 +1228,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   snprintf(znode_data.group, strlen(znode_data.group), owner.c_str());
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
-  znode_data.filetype = IS_FILE;
+  znode_data.file_type = FileType::File;
   // Initialize permissions for file with owner and admin.
   snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
   znode_data.perm_length = 1;
@@ -1270,7 +1274,7 @@ ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
   }
 
   auto ops = std::vector<std::shared_ptr<ZooOp>>();
-  if (znode_data.filetype == IS_DIR) {
+  if (znode_data.file_type == FileType::Dir) {
     if (!rename_ops_for_dir(req.src(), req.dst(), ops)) {
       LOG(ERROR) << "[rename] Failed to generate rename operatons for: "
                  << file_path;
@@ -1278,7 +1282,7 @@ ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
         return RenameResponse::RenameOpsFailed;
     }
 
-  } else if (znode_data.filetype == IS_FILE) {
+  } else if (znode_data.file_type == FileType::File) {
     if (!rename_ops_for_file(req.src(), req.dst(), ops)) {
       LOG(ERROR) << "[rename] Failed to generate rename operatons for: "
                  << file_path;
@@ -1333,7 +1337,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->modification_time = mslong;
   znode_data->blocksize = 0;
   znode_data->replication = 0;
-  znode_data->filetype = IS_DIR;
+  znode_data->filetype = FileType::Dir;
   znode_data->isEC = false;
   // Note no permissions list because this is a directory not a file.
   znode_data->perm_length = -1;
@@ -1437,7 +1441,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
         return ListingResponse::FileAccessRestricted;
       }
 
-      if (znode_data.filetype == IS_FILE) {
+      if (znode_data.file_type == FileType::File) {
         // Update listing with file info
         HdfsFileStatusProto *status = raw_listing->add_partiallisting();
         set_file_info(status, src, znode_data);
@@ -1827,7 +1831,7 @@ void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
                                        FileZNode &znode_data) {
   // get the filetype, since we do not want to serialize an enum
   int error_code = 0;
-  if (znode_data.filetype == IS_DIR) {
+  if (znode_data.file_type == FileType::Dir) {
     int num_file = 0;
     int num_dir = 0;
     std::vector<std::string> children;
@@ -1839,7 +1843,7 @@ void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
         auto child_path = util::concat_path(path, child);
         FileZNode child_data;
         read_file_znode(child_data, child_path);
-        if (child_data.filetype == IS_FILE) {
+        if (child_data.file_type == FileType::File) {
           num_file += 1;
         } else {
           num_dir += 1;
@@ -1870,7 +1874,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
                                const std::string &path, FileZNode &znode_data) {
   HdfsFileStatusProto_FileType filetype;
   // get the filetype, since we do not want to serialize an enum
-  switch (znode_data.filetype) {
+  switch (znode_data.file_type) {
     case (0):filetype = HdfsFileStatusProto::IS_DIR;
       break;
     case (1):filetype = HdfsFileStatusProto::IS_DIR;
@@ -1954,7 +1958,7 @@ bool ZkNnClient::add_block(const std::string &file_path,
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
   // TODO(2016): This is a faulty check
-  if (znode_data.under_construction == FileStatus::UnderConstruction) {
+  if (znode_data.file_status == FileStatus::UnderConstruction) {
     LOG(WARNING) << "[add_block] Last block for "
            << file_path
            << " still under construction";
@@ -2439,11 +2443,11 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
     std::string child_path = src + "/" + child;
     FileZNode znode_data;
     read_file_znode(znode_data, child_path);
-    if (znode_data.filetype == IS_DIR) {
+    if (znode_data.file_type == FileType::Dir) {
       LOG(INFO) << "[rename_ops_for_dir] Child: " << child << " is DIR";
       // Keep track of any nested directories
       nested_dirs.push_back(child);
-    } else if (znode_data.filetype == IS_FILE) {
+    } else if (znode_data.file_type == FileType::File) {
       // Generate ops for each file in the dir
       LOG(INFO) << "[rename_ops_for_dir] Child: " << child << " is FILE";
       if (!rename_ops_for_file(src + "/" + child, dst + "/" + child, ops)) {
