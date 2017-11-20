@@ -2132,8 +2132,6 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
                                          const u_int64_t blockId,
                                          uint32_t replication_factor,
                                          uint64_t blocksize) {
-  // TODO(2016): Actually perform this action
-  // TODO(2016): Perhaps we should keep a cached list of nodes
 
   std::vector<std::string> live_data_nodes = std::vector<std::string>();
   int error_code;
