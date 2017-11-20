@@ -168,6 +168,10 @@ class ZkNnClient : public ZkClientCommon {
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
 
+  /**
+   * Response enums for client protocol calls
+   */
+
   enum class ListingResponse {
     Ok,                    // 0
     FileDoesNotExist,      // 1
@@ -260,11 +264,18 @@ class ZkNnClient : public ZkClientCommon {
     isSecureMode = secureMode;
     populateDefaultECProto();
   }
-  void register_watches();
+
+  /**
+   * Registers watches on health nodes; essentially mimicking a heartbeat
+   * liveness check.
+   */
+  bool register_watches();
+
   /**
    * Returns the current timestamp in milliseconds
    */
   uint64_t current_time_ms();
+
   /**
    * Returns the latest timestamp by the client
    */
@@ -277,6 +288,7 @@ class ZkNnClient : public ZkClientCommon {
                    RenewLeaseResponseProto &res);
   void recover_lease(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
+
   /**
    * Get info of the file.
    * @param req GetFileInfoRequestProto
