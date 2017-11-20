@@ -384,9 +384,9 @@ bool ZkNnClient::check_lease(std::string client_name,
       clientInfo.timestamp = current_time_ms();
       std::vector<std::uint8_t> data(sizeof(clientInfo));
       znode_data_to_vec(&clientInfo, data);
-      if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
+      if (!zk->set(ZookeeperFilePath(file_path) + LEASES + '/' +
                       client_name, data, error_code2, false)) {
-        LOG(ERROR) << "Failed to put lease into file_name->leases for " <<
+        LOG(ERROR) << "Failed to update lease for file_name->leases for " <<
                    ZookeeperFilePath(file_path) << LEASES << '/' <<
                    client_name << ".";
         return false;
