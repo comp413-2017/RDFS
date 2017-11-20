@@ -63,10 +63,10 @@ TEST(WebServerTest, testMkdir) {
 TEST(WebServerTest, testRename) {
   system("hdfs dfs -fs hdfs://localhost:5351 -touchz /fileToRename");
 
-  ASSERT_EQ(0,
-            system("curl -i -X PUT --insecure "
-                   "https://localhost:8080/webhdfs/v1/"
-                   "fileToRename?op=RENAMEnewPath > actualResultRename"));
+  system("curl -i -X PUT --insecure "
+                   "\"https://localhost:8080/webhdfs/v1/"
+                   "fileToRename?op=RENAME&destination=newPath\" > "
+                   "actualResultRename");
 
   // Check that results match
   ASSERT_EQ(0,
