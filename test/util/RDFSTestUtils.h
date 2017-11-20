@@ -14,6 +14,10 @@ namespace RDFSTestUtils {
       int32_t xferPort,
       int32_t ipcPort,
       bool outputToFile = false) {
+    if (outputToFile) {
+      system("rm datanode*_out");
+    }
+
     int i = startId;
     for (; i < startId + numDatanodes; i++) {
       system(("truncate tfs" + std::to_string(i) + " -s 1000000000").c_str());
