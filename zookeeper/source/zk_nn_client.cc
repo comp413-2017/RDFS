@@ -830,8 +830,7 @@ bool ZkNnClient::create_file_znode(const std::string &path,
       return false;
     }
 
-
-    if (znode_data->file_type == 2) {
+    if (znode_data->file_type == FileType::File) {
       std::vector<std::uint8_t> data2(sizeof(*znode_data));
       if (!zk->create(ZookeeperBlocksPath(path), data2, error_code, false)) {
         LOG(ERROR) << "[create_file_znode] ZK create failed with error code "
