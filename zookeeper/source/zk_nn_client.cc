@@ -479,7 +479,6 @@ void ZkNnClient::renew_lease(RenewLeaseRequestProto &req,
 
 void ZkNnClient::recover_lease_helper(RecoverLeaseRequestProto &req,
                                RecoverLeaseResponseProto &res) {
-
   std::string client_name = req.clientname();
   std::string file_path = req.src();
   int error_code;

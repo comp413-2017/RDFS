@@ -459,7 +459,6 @@ class ZkNnClient : public ZkClientCommon {
   int cache_size();
 
  private:
-
   void recover_lease_helper(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
 
