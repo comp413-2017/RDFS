@@ -172,7 +172,8 @@ class ZkNnClient : public ZkClientCommon {
     Ok,                    // 0
     FileDoesNotExist,      // 1
     FailedChildRetrieval,  // 2
-    FileAccessRestricted   // 3
+    FileAccessRestricted,   // 3
+    FailedGetBlockLocations
   };
 
   enum class DeleteResponse {
@@ -302,7 +303,7 @@ class ZkNnClient : public ZkClientCommon {
    * @param client_name client's name as string
    * @return
    */
-  void get_block_locations(GetBlockLocationsRequestProto &req,
+  bool get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res,
                            std::string client_name = "default");
   /**
@@ -564,7 +565,7 @@ class ZkNnClient : public ZkClientCommon {
   bool check_acks();
 
   // get locations given src, offset, and length
-  void get_block_locations(const std::string &src,
+  bool get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
