@@ -1334,7 +1334,7 @@ void ZkNnClient::set_mkdir_znode(FileZNode *znode_data) {
   znode_data->modification_time = mslong;
   znode_data->blocksize = 0;
   znode_data->replication = 0;
-  znode_data->filetype = FileType::Dir;
+  znode_data->file_type = FileType::Dir;
   znode_data->isEC = false;
   // Note no permissions list because this is a directory not a file.
   znode_data->perm_length = -1;
