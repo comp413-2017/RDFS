@@ -1834,11 +1834,11 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   HdfsFileStatusProto_FileType filetype;
   // get the filetype, since we do not want to serialize an enum
   switch (znode_data.file_type) {
-    case (0):filetype = HdfsFileStatusProto::IS_DIR;
+    case (FileType::Dir):
+      filetype = HdfsFileStatusProto::IS_DIR;
       break;
-    case (1):filetype = HdfsFileStatusProto::IS_DIR;
-      break;
-    case (2):filetype = HdfsFileStatusProto::IS_FILE;
+    case (FileType::File):
+      filetype = HdfsFileStatusProto::IS_FILE;
       break;
     default:break;
   }
@@ -2457,7 +2457,7 @@ bool ZkNnClient::check_acks() {
            << error_code
            << " occurred in check_acks when getting children for "
            << WORK_QUEUES + std::string(WAIT_FOR_ACK);
-    return false;  // TODO(2016): Is this the right return val?
+    return false;
   }
   LOG(INFO) << "[check_acks] Checking acks for: " << block_uuids.size()
             << " blocks";
