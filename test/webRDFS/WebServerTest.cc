@@ -17,14 +17,15 @@ TEST(WebServerTest, testDelete) {
   ASSERT_EQ(0,
             system("curl -i -X DELETE --insecure "
                    "https://localhost:8080/webhdfs/v1/"
-                   "fileToDelete?op=DELETE > actualResultDelete"));
+                   "fileToDelete?op=DELETE > /home/vagrant/rdfs/test/webRDFS"
+                   "/actualResultDelete"));
 
   // Check that results match
   ASSERT_EQ(0,
             system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultDelete"
-                  " actualResultDelete"));
+                  " /home/vagrant/rdfs/test/webRDFS/actualResultDelete"));
 
-  system("rm actualResultDelete");
+  system("rm /home/vagrant/rdfs/test/webRDFS/actualResultDelete");
 }
 
 TEST(WebServerTest, testRead) {
@@ -34,14 +35,16 @@ TEST(WebServerTest, testRead) {
 
   ASSERT_EQ(0,
             system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                  "fileToRead?op=OPEN > actualResultRead"));
+                  "fileToRead?op=OPEN > /home/vagrant/rdfs/test/webRDFS"
+                  "/actualResultRead"));
 
   // Check that results match
   ASSERT_EQ(0,
             system("diff /home/vagrant/rdfs/test/webRDFS/"
-                   "expectedResultRead actualResultRead"));
+                   "expectedResultRead /home/vagrant/rdfs/test/webRDFS"
+                   "/actualResultRead"));
 
-  system("rm actualResultRead");
+  system("rm /home/vagrant/rdfs/test/webRDFS/actualResultRead");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRead");
 }
 
@@ -49,14 +52,15 @@ TEST(WebServerTest, testMkdir) {
   ASSERT_EQ(0,
             system("curl -i -X PUT --insecure "
                    "https://localhost:8080/webhdfs/v1/"
-                   "pathToCreate?op=MKDIRS > actualResultMkdir"));
+                   "pathToCreate?op=MKDIRS > /home/vagrant/rdfs/test/webRDFS"
+                   "/actualResultMkdir"));
 
   // Check that results match
   ASSERT_EQ(0,
             system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultMkdir"
-                  " actualResultMkdir"));
+                   " /home/vagrant/rdfs/test/webRDFS/actualResultMkdir"));
 
-  system("rm actualResultMkdir");
+  system("rm /home/vagrant/rdfs/test/webRDFS/actualResultMkdir");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /pathToCreate");
 }
 
@@ -66,14 +70,14 @@ TEST(WebServerTest, testRename) {
   system("curl -i -X PUT --insecure "
                    "\"https://localhost:8080/webhdfs/v1/"
                    "fileToRename?op=RENAME&destination=newPath\" > "
-                   "actualResultRename");
+                   "/home/vagrant/rdfs/test/webRDFS/actualResultRename");
 
   // Check that results match
   ASSERT_EQ(0,
             system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultRename"
-                   " actualResultRename"));
+                   " /home/vagrant/rdfs/test/webRDFS/actualResultRename"));
 
-  system("rm actualResultRename");
+  system("rm /home/vagrant/rdfs/test/webRDFS/actualResultRename");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRename");
 }
 
