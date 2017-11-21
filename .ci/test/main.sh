@@ -41,3 +41,4 @@ run_test ./ZKLockTest
 run_test ./ZKWrapperTest
 run_test ./UsernameTest
 run_test ./LeaseTest
+run_test ./WebServerTest
