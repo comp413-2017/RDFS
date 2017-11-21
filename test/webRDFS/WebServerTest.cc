@@ -86,6 +86,7 @@ TEST(WebServerTest, testRename) {
 int main(int argc, char **argv) {
   // Start up zookeeper
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
   sleep(10);
 
@@ -103,6 +104,7 @@ int main(int argc, char **argv) {
   system("pkill -f namenode");
   system("pkill -f datanode");
   system("pkill -f webrdfs");
+  system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
   return res;
 }
