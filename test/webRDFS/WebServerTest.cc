@@ -15,8 +15,8 @@ TEST(WebServerTest, testDelete) {
   system("hdfs dfs -fs hdfs://localhost:5351 -touchz /fileToDelete");
 
   ASSERT_EQ(0,
-            system("curl -i -X DELETE --insecure "
-                   "https://localhost:8080/webhdfs/v1/"
+            system("curl -i -X DELETE "
+                   "https://comp413.local:8080/webhdfs/v1/"
                    "fileToDelete?op=DELETE > actualResultDelete"));
 
   // Check that results match
