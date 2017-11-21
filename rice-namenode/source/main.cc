@@ -184,6 +184,26 @@ int main(int argc, char *argv[]) {
                             error_code,
                             false,
                             true)) {
+              if (error_code == ZNODEEXISTS) {
+                  // The PoR node was created since we checked,
+                  // so just get the value
+                  LOG(INFO) << "Process of record was already created, "
+                      "reconnecting";
+                  auto data = std::vector<uint8_t>();
+                  if (!zk_shared->get("/process_of_record",
+                                      data,
+                                      error_code)) {
+                      LOG(ERROR) << "Unable to get process of record";
+                      exit(1);
+                  }
+                  auto process_of_record_ip = std::string(data.begin(), data.end());
+                  LOG(INFO) << "Got ZK process of record "
+                      "at IP " << process_of_record_ip;
+
+                  zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
+                                                          error_code,
+                                                          "/testing");
+              }
               LOG(ERROR) << "Unable to create process of record entry";
               exit(1);
           } else {
