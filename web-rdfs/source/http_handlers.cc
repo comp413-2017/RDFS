@@ -12,6 +12,35 @@ void setZk(zkclient::ZkNnClient *zk_arg) {
   zk = zk_arg;
 }
 
+std::string get_request_type(std::shared_ptr<HttpsServer::Request> request) {
+  // Remove op= from query string
+  std::string typeOfRequest = request->query_string.substr(3, 6);
+
+  LOG(DEBUG) << "Type of Request " << typeOfRequest;
+
+  return typeOfRequest;
+}
+
+std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
+  std::string baseUrl = "/webhdfs/v1";
+  int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
+  std::string path = (request->path).substr(idxOfSplit);
+
+  LOG(DEBUG) << "Path given " << path;
+
+  return path;
+}
+
+std::string get_destination(std::shared_ptr<HttpsServer::Request> request) {
+  std::string destDelim = "&destination=";
+  int idxOfDest = request->query_string.rfind(destDelim) + destDelim.size();
+  std::string dest = request->query_string.substr(idxOfDest);
+
+  LOG(DEBUG) << "Destination given " << dest;
+
+  return dest;
+}
+
 void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::shared_ptr<HttpsServer::Request> request) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
@@ -92,16 +121,8 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::string baseUrl = "/webhdfs/v1";
-
-  int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
-  std::string path = (request->path).substr(idxOfSplit);
-
-  // Remove op= from query string
-  std::string typeOfRequest = request->query_string.substr(3);
-
-  LOG(DEBUG) << "Type of Request " << typeOfRequest;
-  LOG(DEBUG) << "Path " << path;
+  std::string typeOfRequest = get_request_type(request);
+  std::string path = get_path(request);
 
   if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
@@ -118,26 +139,13 @@ void post_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::string baseUrl = "/webhdfs/v1";
-
-  int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
-  std::string path = (request->path).substr(idxOfSplit);
-
-  // Remove op= from query string
-  std::string typeOfRequest = request->query_string.substr(3, 6);
-
-  LOG(DEBUG) << "Type of Request " << typeOfRequest;
-  LOG(DEBUG) << "Path " << path;
+  std::string typeOfRequest = get_request_type(request);
+  std::string path = get_path(request);
 
   if (!typeOfRequest.compare("MKDIRS")) {
     mkdir_handler(response, path);
-  } else if (!typeOfRequest.find("RENAME")) {
-    std::string destDelim = "&destination=";
-    int idxOfDest = request->query_string.rfind(destDelim) + destDelim.size();
-    std::string pathForRename = request->query_string.substr(idxOfDest);
-
-    LOG(DEBUG) << "Rename path " << pathForRename;
-
+  } else if (!typeOfRequest.compare("RENAME")) {
+    std::string pathForRename = get_destination(request);
     rename_file_handler(response, path, pathForRename);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
@@ -146,16 +154,9 @@ void put_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void delete_handler(std::shared_ptr<HttpsServer::Response> response,
                     std::shared_ptr<HttpsServer::Request> request) {
-  std::string baseUrl = "/webhdfs/v1";
-
-  int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
-  std::string path = (request->path).substr(idxOfSplit);
-
   // Remove op= from query string
-  std::string typeOfRequest = request->query_string.substr(3);
-
-  LOG(DEBUG) << "Type of Request " << typeOfRequest;
-  LOG(DEBUG) << "Path " << path;
+  std::string typeOfRequest = get_request_type(request);
+  std::string path = get_path(request);
 
   if (!typeOfRequest.compare("DELETE")) {
     delete_file_handler(response, path);
