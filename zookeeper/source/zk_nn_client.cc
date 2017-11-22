@@ -2148,9 +2148,6 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
     return false;
   }
 
-  // TODO(2016): Read strategy from config,
-  // but as of now select the first few blocks that are valid
-
   /* Select a random subset of the datanodes
    * if we've gotten more than the # requested.
    */
@@ -2381,9 +2378,7 @@ bool ZkNnClient::check_acks() {
   int error_code = 0;
 
   // Get the current block UUIDs that are waiting to be fully replicated
-  // TODO(2016): serialize block_uuids as u_int64_t rather than strings
   auto block_uuids = std::vector<std::string>();
-  // TODO(2016): Change all path constants in zk_client_common to NOT end in /
   if (!zk->get_children(WORK_QUEUES + std::string(WAIT_FOR_ACK),
               block_uuids, error_code)) {
     LOG(ERROR) << "[check_acks] ERROR CODE: "
