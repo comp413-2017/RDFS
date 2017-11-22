@@ -1564,7 +1564,8 @@ void ZkNnClient::get_block_locations(const std::string &src,
     std::string block_metadata_path = get_block_metadata_path(block_id);
     BlockZNode block_data;
     std::vector<std::uint8_t> block_data_vec(sizeof(block_data));
-    if (!zk->get(block_metadata_path, block_data_vec, error_code, sizeof(block_data))) {
+    if (!zk->get(block_metadata_path, block_data_vec, error_code,
+                 sizeof(block_data))) {
       LOG(ERROR) << "[get_block_locations] Failed getting block size for "
       << block_metadata_path << " with error " << error_code;
     }
