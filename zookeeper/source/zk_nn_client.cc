@@ -560,7 +560,6 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   // Build a new block for the response
   auto block = res.mutable_block();
 
-  // TODO(may): Make sure we are appending / not appending ZKPath at every step
   const std::string file_path = req.src();
 
   LOG(INFO) << "[add_block] Attempting to add block to existing file "
@@ -1870,7 +1869,6 @@ bool ZkNnClient::add_block(const std::string &file_path,
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
-  // TODO(2016): This is a faulty check
   if (znode_data.file_status == FileStatus::UnderConstruction) {
     LOG(WARNING) << "[add_block] Last block for "
            << file_path
@@ -2631,7 +2629,8 @@ bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
   DatanodeIDProto *id = dn_info->mutable_id();
   dn_info->set_location("/fixlocation");
   id->set_ipaddr(split_address[0]);
-  // TODO(2016): Fill out with the proper value
+  // TODO(2017): Fill out with the proper value. Left from 2016 class. 
+  // This should actually return data about the datanode
   id->set_hostname("localhost");
   id->set_datanodeuuid("1234");
   id->set_xferport(payload->xferPort);
