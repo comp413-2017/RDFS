@@ -3,14 +3,67 @@
 #define ELPP_THREAD_SAFE
 
 #include <easylogging++.h>
-
 #include <gtest/gtest.h>
-
 #include <iostream>
+#include <zk_nn_client.h>
+#include "ClientNamenodeProtocolImpl.h"
+#include "../util/RDFSTestUtils.h"
 
 INITIALIZE_EASYLOGGINGPP
 
+using client_namenode_translator::ClientNamenodeTranslator;
+using RDFSTestUtils::initializeDatanodes;
+
+static const int NUM_DATANODES = 3;
+
+int32_t xferPort = 50010;
+int32_t ipcPort = 50020;
+int maxDatanodeId = 0;
+int minDatanodeId = 0;
+uint16_t nextPort = 5351;
+
+static inline void initializeDatanodes(int numDatanodes) {
+  initializeDatanodes(
+    maxDatanodeId,
+    numDatanodes,
+    "WebServerTestDatanode",
+    xferPort,
+    ipcPort);
+  maxDatanodeId += numDatanodes;
+  xferPort += numDatanodes;
+  ipcPort += numDatanodes;
+}
+
 namespace {
+
+class WebServerTest : public ::testing::Test {
+ protected:
+  virtual void SetUp() {
+    initializeDatanodes(NUM_DATANODES);
+
+    int error_code;
+    zk = std::make_shared<ZKWrapper>(
+      "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
+    assert(error_code == 0);  // Z_OK
+
+    // Start the namenode in a way that gives us a local pointer to zkWrapper.
+    port = nextPort++;
+    nncli = new zkclient::ZkNnClient(zk);
+    nncli->register_watches();
+    nn_translator = new ClientNamenodeTranslator(port, nncli);
+  }
+
+  virtual void TearDown() {
+    system("pkill -f WebServerTestDatanode*");
+  }
+
+  // Objects declared here can be used by all tests below.
+  zkclient::ZkNnClient *nncli;
+  ClientNamenodeTranslator *nn_translator;
+  std::shared_ptr<ZKWrapper> zk;
+  unsigned short port;
+};
+
 TEST(WebServerTest, testDelete) {
   system("hdfs dfs -fs hdfs://localhost:5351 -touchz /fileToDelete");
 
@@ -94,8 +147,6 @@ int main(int argc, char **argv) {
 
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   sleep(10);
-  system("/home/vagrant/rdfs/build/rice-datanode/datanode &");
-  sleep(10);
   system("/home/vagrant/rdfs/build/web-rdfs/webrdfs &");
   sleep(5);
 
@@ -106,7 +157,6 @@ int main(int argc, char **argv) {
   // Remove test files and shutdown zookeeper
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToDelete");
   system("pkill -f namenode");
-  system("pkill -f datanode");
   system("pkill -f webrdfs");
   system("sudo /home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
