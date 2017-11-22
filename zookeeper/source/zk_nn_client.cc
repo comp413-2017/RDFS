@@ -317,7 +317,7 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
   std::string block_path = get_block_metadata_path(block_id);
   blocksize = 0;
 
-  if(!is_ec_block(block_id)) {
+  if (!is_ec_block(block_id)) {
     BlockZNode block_data;
     std::vector<std::uint8_t> data(sizeof(block_data));
     if (!zk->get(block_path, data, error_code)) {
@@ -329,7 +329,6 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
     memcpy(&block_data, &data[0], sizeof(block_data));
 
     blocksize = block_data.block_size;
-    
   } else {
     auto children = std::vector<std::string>();
     if (!zk->get_children(block_path, children, error_code)) {
@@ -1647,13 +1646,19 @@ void ZkNnClient::get_block_locations(const std::string &src,
         // Add datanodes for the EC block
         for (auto storage_block : block_meta_children) {
           auto datanodes = std::vector<std::string>();
-          LOG(INFO) << BLOCK_GROUP_LOCATIONS + std::to_string(block_id) + "/" + storage_block;
-          if(!zk->get_children(BLOCK_GROUP_LOCATIONS + std::to_string(block_id) + "/" + storage_block, datanodes,
+          LOG(INFO) <<
+                    BLOCK_GROUP_LOCATIONS + std::to_string(block_id) +
+                        "/" + storage_block;
+
+          if (!zk->get_children(
+              BLOCK_GROUP_LOCATIONS + std::to_string(block_id) +
+                  "/" + storage_block, datanodes,
                                error_code)) {
             //
           }
           if (datanodes.size() > 1) {
-            LOG(ERROR) << "More than one datanode found for an EC storage block,"
+            LOG(ERROR) <<
+                       "More than one datanode found for an EC storage block,"
                 "using the first datanode found. Blockid: " << storage_block;
           } else if (datanodes.size() == 1) {
             located_block->add_storageids(DEFAULT_STORAGE_ID);
@@ -1663,9 +1668,11 @@ void ZkNnClient::get_block_locations(const std::string &src,
             std::uint64_t blk_id;
             std::stringstream strm(storage_block);
             strm >> blk_id;
-            block_index_string.push_back((char) get_index_within_block_group(blk_id));
+            block_index_string.push_back(
+                static_cast<char>(get_index_within_block_group(blk_id)));
           } else {
-            LOG(WARNING) << "No datanodes found for this storage block: " << storage_block;
+            LOG(WARNING) <<
+                "No datanodes found for this storage block: " << storage_block;
           }
         }
         located_block->set_blockindices(block_index_string);

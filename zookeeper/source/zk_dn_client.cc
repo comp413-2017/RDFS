@@ -87,8 +87,8 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
     LOG(DEBUG) << "block group id: " << block_group_id;
     LOG(DEBUG) << "prefix: " << get_block_metadata_path(block_group_id);
 
-    block_metadata_path = util::concat_path(get_block_metadata_path(block_group_id),
-                      std::to_string(uuid));
+    block_metadata_path = util::concat_path(
+        get_block_metadata_path(block_group_id), std::to_string(uuid));
   } else {
     block_metadata_path = get_block_metadata_path(uuid);
   }
