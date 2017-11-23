@@ -580,10 +580,6 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
 
   // Assert that the znode we want to modify is a file
-<<<<<<< HEAD
-=======
-
->>>>>>> enum for file type
   if (znode_data.file_type != FileType::File) {
     LOG(ERROR) << "[add_block] Requested file " << file_path << " is not a file";
     return false;
