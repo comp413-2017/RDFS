@@ -581,7 +581,8 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
   // Assert that the znode we want to modify is a file
   if (znode_data.file_type != FileType::File) {
-    LOG(ERROR) << "[add_block] Requested file " << file_path << " is not a file";
+    LOG(ERROR) << "[add_block] Requested file " << file_path
+                      << " is not a file";
     return false;
   }
 
@@ -1420,7 +1421,8 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 
             if (need_location) {
               LocatedBlocksProto *blocks = status->mutable_locations();
-              if (!get_block_locations(child_path, 0, child_data.length, blocks)) {
+              if (!get_block_locations(child_path, 0,
+                        child_data.length, blocks)) {
                   return ListingResponse::FailedGetBlockLocations;
               }
             }
@@ -2036,7 +2038,6 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
                                          const u_int64_t blockId,
                                          uint32_t replication_factor,
                                          uint64_t blocksize) {
-
   std::vector<std::string> live_data_nodes = std::vector<std::string>();
   int error_code;
   // Get all of the live datanodes
@@ -2620,7 +2621,7 @@ bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
   DatanodeIDProto *id = dn_info->mutable_id();
   dn_info->set_location("/fixlocation");
   id->set_ipaddr(split_address[0]);
-  // TODO(2017): Fill out with the proper value. Left from 2016 class. 
+  // TODO(2017): Fill out with the proper value. Left from 2016 class.
   // This should actually return data about the datanode
   id->set_hostname("localhost");
   id->set_datanodeuuid("1234");
