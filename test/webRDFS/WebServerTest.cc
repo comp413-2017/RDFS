@@ -6,8 +6,9 @@
 
 #include <gtest/gtest.h>
 #include "webRequestTranslator.h"
+#include <fstream>
 
-#include <iostream>
+#include <sstream>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -50,15 +51,35 @@ TEST(WebServerTest, testCreate) {
         "hdfs dfs -fs hdfs://localhost:5351 "
         "-copyFromLocal fileForTesting /fileToCreate");
 
+      // Namenode
       ASSERT_EQ(0,
-                system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                               "fileToCreate?op=CREATE > actualResultCreate"));
+                system("curl -i -X PUT https://localhost:8080/webhdfs/v1/"
+                               "fileToCreate?op=CREATE > actualResultCreateName"));
 
       // Check that results match
       ASSERT_EQ(0,
                 system("diff /home/vagrant/rdfs/test/webRDFS/"
-                               "expectedResultCreate actualResultCreate"));
+                               "expectedResultCreateName actualResultCreateName"));
 
+      std::ifstream inFile("actualResultCreateName");
+      std::string line;
+      if (inFile.is_open())
+      {
+        getline(inFile, line);
+        getline(inFile, line);
+      }
+
+      std::string address = line.substr(10);
+
+      std::string cmd = "curl -i -X PUT -T fileToCrete "+ address + " > actualResultCreateData";
+
+      // Datanode
+      ASSERT_EQ(0,
+                system(cmd));
+
+      ASSERT_EQ(0,
+                system("diff /home/vagrant/rdfs/test/webRDFS/"
+                               "expectedResultCreateData actualResultCreateData"));
       system("rm actualResultCreate");
       system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToCreate");
 }
