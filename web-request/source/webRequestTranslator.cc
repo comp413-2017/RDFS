@@ -27,12 +27,12 @@ namespace webRequestTranslator {
    * Converts the RDFS datanode create response into the appropriate webRDFS response.
    */
   std::string getDatanodeCreateResponse(std::string location, std::string contentOfFile) {
-    std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
+    std::string res = std::string("HTTP/1.1 201 Created\nLocation: ");
 
     res += location;
     res += "\n";
-    res += "Content-Length: ";
-    res += std::to_string(contentOfFile.length());
+    res += "Content-Length: 0";
+    //res += std::to_string(contentOfFile.length());
     res += "\n\n";
 
     return "";
