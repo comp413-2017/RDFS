@@ -15,8 +15,8 @@ TEST(WebServerTest, testDelete) {
   system("hdfs dfs -fs hdfs://comp413.local:5351 -touchz /fileToDelete");
 
   ASSERT_EQ(0,
-            system("curl -i -X DELETE --insecure "
-                   "https://localhost:8080/webhdfs/v1/"
+            system("curl -i -X DELETE "
+                   "https://comp413.local:8080/webhdfs/v1/"
                    "fileToDelete?op=DELETE > actualResultDelete"));
 
   // Check that results match
@@ -75,38 +75,6 @@ TEST(WebServerTest, testRename) {
 
   system("rm actualResultRename");
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToRename");
-}
-
-TEST(WebServerTest, testMkdir) {
-  ASSERT_EQ(0,
-            system("curl -i -X PUT --insecure "
-                   "https://localhost:8080/webhdfs/v1/"
-                   "pathToCreate?op=MKDIRS > actualResultMkdir"));
-
-  // Check that results match
-  ASSERT_EQ(0,
-            system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultMkdir"
-                  " actualResultMkdir"));
-
-  system("rm actualResultMkdir");
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /pathToCreate");
-}
-
-TEST(WebServerTest, testRename) {
-  system("hdfs dfs -fs hdfs://localhost:5351 -touchz /fileToRename");
-
-  system("curl -i -X PUT --insecure "
-                   "\"https://localhost:8080/webhdfs/v1/"
-                   "fileToRename?op=RENAME&destination=newPath\" > "
-                   "actualResultRename");
-
-  // Check that results match
-  ASSERT_EQ(0,
-            system("diff /home/vagrant/rdfs/test/webRDFS/expectedResultRename"
-                   " actualResultRename"));
-
-  system("rm actualResultRename");
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToRename");
 }
 
 }  // namespace
