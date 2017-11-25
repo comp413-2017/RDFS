@@ -29,6 +29,7 @@ run_flaky_test() {
 }
 
 cd build/test
+run_test ./WebServerTest
 run_test ./ErasureCodeTest
 # TODO(LINKIWI): investigate failure root cause
 #run_test ./ReadWriteTest
