@@ -1473,14 +1473,7 @@ bool ZkNnClient::get_block_locations(const std::string &src,
   blocks->set_islastblockcomplete(true);
   blocks->set_filelength(znode_data.length);
 
-<<<<<<< HEAD
   uint64_t block_size;
-=======
-  uint64_t block_size = znode_data.blocksize;
-
-  LOG(INFO) << "[get_block_locations] Block size of " << zk_path << " is "
-            << block_size;
->>>>>>> ZkNnClient log cleanup (#190)
 
   auto sorted_blocks = std::vector<std::string>();
 
@@ -1503,21 +1496,34 @@ bool ZkNnClient::get_block_locations(const std::string &src,
       LOG(INFO) << "[get_block_locations] Breaking at block " << sorted_block;
       break;
     }
-    if (size + block_size >= offset) {
-      auto data = std::vector<uint8_t>();
-      if (!zk->get(zk_path + "/" + sorted_block, data,
-                   error_code, sizeof(uint64_t))) {
-        LOG(ERROR) << "[get_block_locations] Failed to get "
-                   << zk_path << "/"
-                   << sorted_block
-                   << " info: "
-                   << error_code;
-        return false;
-      }
-      uint64_t block_id = *reinterpret_cast<uint64_t *>(&data[0]);
-      LOG(INFO) << "[get_block_locations] Found block " << block_id
-                << " for " << zk_path;
+    // Retreive block size
+    auto data = std::vector<uint8_t>();
+    if (!zk->get(zk_path + "/" + sorted_block, data,
+                 error_code, sizeof(uint64_t))) {
+      LOG(ERROR) << "[get_block_locations] Failed to get "
+                 << zk_path << "/"
+                 << sorted_block
+                 << " info: "
+                 << error_code;
+                 return false;  // TODO(2016): Signal error
+    }
+    uint64_t block_id = *reinterpret_cast<uint64_t *>(&data[0]);
+    LOG(INFO) << "[get_block_locations] Found block " << block_id
+              << " for " << zk_path;
+    std::string block_metadata_path = get_block_metadata_path(block_id);
+    BlockZNode block_data;
+    std::vector<std::uint8_t> block_data_vec(sizeof(block_data));
+    if (!zk->get(block_metadata_path, block_data_vec, error_code,
+                 sizeof(block_data))) {
+      LOG(ERROR) << "[get_block_locations] Failed getting block size for "
+                 << block_metadata_path << " with error " << error_code;
+    }
+    memcpy(&block_data, &block_data_vec[0], sizeof(block_data));
+    block_size = block_data.block_size;
+    LOG(INFO) << "[get_block_locations] Block size of " << zk_path << "block "
+              << block_id << " is " << block_size;
 
+    if (size + block_size >= offset) {
       LocatedBlockProto *located_block = blocks->add_blocks();
       located_block->set_corrupt(0);
       located_block->set_offset(size);
@@ -1525,7 +1531,6 @@ bool ZkNnClient::get_block_locations(const std::string &src,
       buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
       auto data_nodes = std::vector<std::string>();
-      std::string block_metadata_path = get_block_metadata_path(block_id);
       LOG(INFO) << "[get_block_locations] Getting datanode locations for block:"
                 << block_metadata_path;
 
