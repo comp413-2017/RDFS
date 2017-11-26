@@ -187,5 +187,10 @@ chown -R vagrant:vagrant /home/vagrant/.ssh/*
 # Allow us to write to /dev/sdb.
 echo 'sudo chown vagrant:vagrant /dev/sdb' >> /home/vagrant/.bashrc
 
+# Consider the webRDFS self-signed certificate a trusted root CA.
+cp ~/rdfs/config/keys/server.crt /usr/local/share/ca-certificates/
+update-ca-certificates
+echo '127.0.0.1 comp413.local' >> /etc/hosts
+
 # add diff detector to path
 echo 'python /home/vagrant/rdfs/utility/provision_diff.py' >> /home/vagrant/.bashrc
