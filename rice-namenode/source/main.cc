@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
   if (local_ip.length() == 0) {
       LOG(WARNING) << "Unable to get the local IP for this NameNode";
   } else {
-      // TODO: Should not hard-code this, but fine for demo.
+      // TODO (2017): Should not hard-code this, but fine for demo.
       local_ip += ":2181";
 
       if (!zk_shared->exists("/process_of_record", exists, error_code)) {
@@ -176,7 +176,18 @@ int main(int argc, char *argv[]) {
           zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
                                                   error_code,
                                                   "/testing");
-
+          if (error_code == ZCONNECTIONLOSS) {
+              // Process of record is no longer live, so set to self
+              LOG(INFO) << "Process of record hung up, setting to " << local_ip;
+              if(!zk_shared->set("/process_of_record",
+                                    ZKWrapper::get_byte_vector(local_ip),
+                                    error_code)) {
+                  LOG(ERROR) << "Unable to set process of record entry";
+                  exit(1);
+              } else {
+                  zk_shared->flush("/process_of_record", true);
+              }
+          }
       } else {
           LOG(INFO) << "Process of record does not already exist, setting to " << local_ip;
           if(!zk_shared->create("/process_of_record",
@@ -203,9 +214,10 @@ int main(int argc, char *argv[]) {
                   zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
                                                           error_code,
                                                           "/testing");
+              } else {
+                  LOG(ERROR) << "Unable to create process of record entry";
+                  exit(1);
               }
-              LOG(ERROR) << "Unable to create process of record entry";
-              exit(1);
           } else {
               zk_shared->flush("/process_of_record", true);
           }
