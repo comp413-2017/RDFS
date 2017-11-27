@@ -153,6 +153,13 @@ int main(int argc, char *argv[]) {
       error_code,
       "/testing");
 
+  // TODO(2017): This implementation of the process-of-record is a little
+  //             hack-y, since it does not include a graceful recovery in the
+  //             case of process-of-record failure. However, implementation
+  //             of graceful recovery would imply too much engineering effort
+  //             at this point in the semester, so we rely power-cycling the
+  //             NameNodes to re-negotiate the process-of-record. This is not
+  //             really problematic since the NameNodes don't store anything.
   auto local_ip = get_local_ip();
   if (local_ip.length() == 0) {
       LOG(WARNING) << "Unable to get the local IP for this NameNode";
