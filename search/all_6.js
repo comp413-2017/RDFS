@@ -21,7 +21,7 @@ var searchData=
   ['find_5fpredicate_5fconst',['find_predicate_const',['../structfind__predicate__const.html',1,'']]],
   ['find_5fpredicate_5fprefix',['find_predicate_prefix',['../structfind__predicate__prefix.html',1,'']]],
   ['fixedtimeformat',['FixedTimeFormat',['../namespaceel.html#a2784aacd04cb7816ac1c0b20fcbf83cbaebbb601e28e0cf821dfe13b4a7cf409e',1,'el']]],
-  ['flush',['flush',['../classel_1_1_logger.html#a9a89d454008b1ee1a197eec4b92ce22a',1,'el::Logger::flush()'],['../class_z_k_wrapper.html#ac3eda1f418e5390b598bd38dce060939',1,'ZKWrapper::flush()']]],
+  ['flush',['flush',['../classel_1_1_logger.html#a9a89d454008b1ee1a197eec4b92ce22a',1,'el::Logger::flush()'],['../class_z_k_wrapper.html#ac09940f18607982b55759387f3f23010',1,'ZKWrapper::flush()']]],
   ['flushall',['flushAll',['../classel_1_1_loggers.html#a47e5eca4ee2f6cfbdccb2efabd2c4f12',1,'el::Loggers']]],
   ['foreachconfigtype',['forEachConfigType',['../classel_1_1_configuration_type_helper.html#a0b91c3c00c57483cbddca2748f477582',1,'el::ConfigurationTypeHelper']]],
   ['foreachlevel',['forEachLevel',['../classel_1_1_level_helper.html#a7f0dbfceb2354a72c2802d02c300430d',1,'el::LevelHelper']]],
