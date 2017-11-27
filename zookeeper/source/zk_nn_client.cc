@@ -1796,7 +1796,9 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
     case (FileType::File):
       filetype = HdfsFileStatusProto::IS_FILE;
       break;
-    default:break;
+    default:
+      filetype = HdfsFileStatusProto::IS_DIR;
+      break;
   }
 
   FsPermissionProto *permission = status->mutable_permission();
@@ -1804,6 +1806,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
   // TODO(heliumj): Should this be changed to read permission only for non-owner
   // users?
   permission->set_perm(~0);
+  LOG(INFO) << "Set file info";
   status->set_filetype(filetype);
   status->set_path(path);
   status->set_length(znode_data.length);
