@@ -31,7 +31,8 @@ using client_namenode_translator::ClientNamenodeTranslator;
  * command line.
  * @param verbosity A pointer in which to place the verbosity value entered at
  * the command line.
- * @param node_policy A pointer in which to place the node_policy value entered at the command line.
+ * @param node_policy A pointer in which to place the node_policy value entered
+ * at the command line.
  * @param backingStore A reference to set to the input backingStore.
  * @return 0 on success, -1 on any error.
  */
@@ -112,13 +113,16 @@ static inline std::string get_local_ip() {
     try {
         asio::io_service netService;
         asio::ip::udp::resolver  resolver(netService);
-        asio::ip::udp::resolver::query query(asio::ip::udp::v4(), "google.com", "");
+        asio::ip::udp::resolver::query query(asio::ip::udp::v4(),
+                                             "google.com", "");
         asio::ip::udp::resolver::iterator endpoints = resolver.resolve(query);
         asio::ip::udp::endpoint ep = *endpoints;
         asio::ip::udp::socket socket(netService);
         socket.connect(ep);
         asio::ip::address addr = socket.local_endpoint().address();
-        LOG(INFO) << "Starting NameNode with IP: " << addr.to_string() << std::endl;
+        LOG(INFO) << "Starting NameNode with IP: " <<
+                                                   addr.to_string() <<
+                                                                    std::endl;
         return addr.to_string();
     } catch (std::exception& e) {
         LOG(WARNING) << "Could not deal with socket. Exception: " << e.what();
@@ -153,7 +157,7 @@ int main(int argc, char *argv[]) {
   if (local_ip.length() == 0) {
       LOG(WARNING) << "Unable to get the local IP for this NameNode";
   } else {
-      // TODO (2017): Should not hard-code this, but fine for demo.
+      // TODO(2017): Should not hard-code this, but fine for demo.
       local_ip += ":2181";
 
       if (!zk_shared->exists("/process_of_record", exists, error_code)) {
@@ -171,7 +175,8 @@ int main(int argc, char *argv[]) {
               exit(1);
           }
           auto process_of_record_ip = std::string(data.begin(), data.end());
-          LOG(INFO) << "Got ZK process of record at IP " << process_of_record_ip;
+          LOG(INFO) << "Got ZK process of record at IP " <<
+                                                         process_of_record_ip;
 
           zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
                                                   error_code,
@@ -179,7 +184,7 @@ int main(int argc, char *argv[]) {
           if (error_code == ZCONNECTIONLOSS) {
               // Process of record is no longer live, so set to self
               LOG(INFO) << "Process of record hung up, setting to " << local_ip;
-              if(!zk_shared->set("/process_of_record",
+              if (!zk_shared->set("/process_of_record",
                                     ZKWrapper::get_byte_vector(local_ip),
                                     error_code)) {
                   LOG(ERROR) << "Unable to set process of record entry";
@@ -189,8 +194,9 @@ int main(int argc, char *argv[]) {
               }
           }
       } else {
-          LOG(INFO) << "Process of record does not already exist, setting to " << local_ip;
-          if(!zk_shared->create("/process_of_record",
+          LOG(INFO) << "Process of record does not already exist, setting to "
+                    << local_ip;
+          if (!zk_shared->create("/process_of_record",
                             ZKWrapper::get_byte_vector(local_ip),
                             error_code,
                             false,
@@ -207,7 +213,8 @@ int main(int argc, char *argv[]) {
                       LOG(ERROR) << "Unable to get process of record";
                       exit(1);
                   }
-                  auto process_of_record_ip = std::string(data.begin(), data.end());
+                  auto process_of_record_ip = std::string(data.begin(),
+                                                          data.end());
                   LOG(INFO) << "Got ZK process of record "
                       "at IP " << process_of_record_ip;
 

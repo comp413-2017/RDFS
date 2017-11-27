@@ -169,7 +169,8 @@ int main(int argc, char *argv[]) {
                                             error_code,
                                             "/testing");
   } else {
-    LOG(ERROR) << "Could not find ZooKeeper process of record. This implies that no NameNodes are live";
+    LOG(ERROR) << "Could not find ZooKeeper process of record. "
+        "This implies that no NameNodes are live";
   }
 
   auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1",
