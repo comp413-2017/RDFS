@@ -107,7 +107,8 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void not_found_handler(std::shared_ptr<HttpsServer::Response> response,
-                  std::shared_ptr<HttpsServer::Request> request, std::string path) {
+                       std::shared_ptr<HttpsServer::Request> request,
+                       std::string path) {
   // TODO(security): invoke another handler depending on qs opcode.
 }
 

@@ -54,32 +54,32 @@ TEST(WebServerTest, testCreate) {
       // Namenode
       ASSERT_EQ(0,
                 system("curl -i -X PUT https://localhost:8080/webhdfs/v1/"
-                               "fileToCreate?op=CREATE > actualResultCreateName"));
+                       "fileToCreate?op=CREATE > actualResultCreateName"));
 
       // Check that results match
       ASSERT_EQ(0,
                 system("diff /home/vagrant/rdfs/test/webRDFS/"
-                               "expectedResultCreateName actualResultCreateName"));
+                      "expectedResultCreateName actualResultCreateName"));
 
       std::ifstream inFile("actualResultCreateName");
       std::string line;
-      if (inFile.is_open())
-      {
+      if (inFile.is_open()) {
         getline(inFile, line);
         getline(inFile, line);
       }
 
       std::string address = line.substr(10);
 
-      std::string cmd = "curl -i -X PUT -T fileToCrete "+ address + " > actualResultCreateData";
+      std::string cmd = "curl -i -X PUT -T fileToCrete "+ address +
+              " > actualResultCreateData";
 
       // Datanode
       ASSERT_EQ(0,
-                system(cmd));
+                system(cmd.c_str()));
 
       ASSERT_EQ(0,
                 system("diff /home/vagrant/rdfs/test/webRDFS/"
-                               "expectedResultCreateData actualResultCreateData"));
+                      "expectedResultCreateData actualResultCreateData"));
       system("rm actualResultCreate");
       system("hdfs dfs -fs hdfs://localhost:5351 -rm /fileToCreate");
 }
@@ -90,18 +90,19 @@ TEST(WebServerTest, testListing) {
          "-mkdir /dirToLs");
   system(
         "hdfs dfs -fs hdfs://localhost:5351 "
-        "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting /dirToLs/");
+        "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting "
+                "/dirToLs/");
 
       ASSERT_EQ(0,
                 system("curl -i --insecure https://localhost:8080/webhdfs/v1/"
-                               "dirToLs?op=LISTSTATUS > actualResultLs"));
+                       "dirToLs?op=LISTSTATUS > actualResultLs"));
 
       // Check that results match
       ASSERT_EQ(0,
                 system("diff /home/vagrant/rdfs/test/webRDFS/"
-                               "expectedResultLs actualResultLs"));
+                       "expectedResultLs actualResultLs"));
 
-      //system("rm actualResultLs");
+      system("rm actualResultLs");
       system("hdfs dfs -fs hdfs://localhost:5351 -rm -r /dirToLs");
     }
 }  // namespace
