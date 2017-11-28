@@ -420,6 +420,10 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
     return;
   }
   std::string lease_holder_client = children[0];
+  if (lease_holder_client == client_name) {
+    res.set_result(true);
+    return;
+  }
   if (lease_expired(lease_holder_client)) {
     // TODO(elfyingying): start the lease recovery process
     // that closes the file for the
