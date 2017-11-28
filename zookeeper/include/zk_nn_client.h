@@ -799,6 +799,7 @@ class ZkNnClient : public ZkClientCommon {
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
+  /* TODO(2017) This needs to be reclaimed properly. */
   lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 

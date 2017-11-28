@@ -66,7 +66,7 @@ TEST_F(ZKDNClientTest, CanReadBlockSize) {
 
   client->blockReceived(block_id, block_size);
 
-  ASSERT_TRUE(zk->get(path, data, error_code));
+  ASSERT_TRUE(zk->get(path, data, error_code, false));
   memcpy(&size, &data[0], sizeof(data));
   ASSERT_EQ(block_size, size);
 }
@@ -82,7 +82,7 @@ TEST_F(ZKDNClientTest, CanDeleteBlock) {
   zk->create(path, ZKWrapper::EMPTY_VECTOR, error_code, false);
 
   client->blockReceived(block_id, block_size);
-  ASSERT_TRUE(zk->get(path + "/" + dn_id, data, error_code));
+  ASSERT_TRUE(zk->get(path + "/" + dn_id, data, error_code, false));
 }
 
 int main(int argc, char **argv) {

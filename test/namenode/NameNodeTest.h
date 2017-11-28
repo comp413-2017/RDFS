@@ -26,8 +26,8 @@ class NamenodeTest : public ::testing::Test {
             const std::string &path);
 
     // Objects declared here can be used by all tests in the test case for Foo.
-    ZKWrapper *zk;
-    zkclient::ZkNnClient *client;
+    std::unique_ptr<ZKWrapper> zk;
+    std::unique_ptr<zkclient::ZkNnClient> client;
 };
 
 #endif  // TEST_NAMENODE_NAMENODETEST_H_

@@ -158,7 +158,8 @@ int main(int argc, char *argv[]) {
     auto data = std::vector<uint8_t>();
     if (!zk_shared->get("/process_of_record",
                         data,
-                        error_code)) {
+                        error_code,
+                        true)) {
       LOG(ERROR) << "Unable to get process of record";
       exit(1);
     }

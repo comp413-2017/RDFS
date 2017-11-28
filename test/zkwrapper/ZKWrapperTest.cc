@@ -88,10 +88,10 @@ TEST_F(ZKWrapperTest, recursive_create) {
   auto data = ZKWrapper::get_byte_vector("hello");
   result = zk->recursive_create("/testrecur/test2", data, error);
   ASSERT_EQ(true, result);
-  result = zk->get("/testrecur/test2", retrieved_data, error);
+  result = zk->get("/testrecur/test2", retrieved_data, error, true);
   ASSERT_EQ(true, result);
   ASSERT_EQ(5, retrieved_data.size());
-  result = zk->get("/testrecur", retrieved_data, error);
+  result = zk->get("/testrecur", retrieved_data, error, true);
   ASSERT_EQ(true, result);
   ASSERT_EQ(0, retrieved_data.size());
 
@@ -197,7 +197,7 @@ TEST_F(ZKWrapperTest, get) {
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
   std::vector<std::uint8_t> data(65536);
-  result = zk->get("/testget", data, error);
+  result = zk->get("/testget", data, error, true);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
   ASSERT_EQ(0, data.size());
@@ -209,7 +209,7 @@ TEST_F(ZKWrapperTest, get) {
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
   std::vector<std::uint8_t> retrieved_data(65536);
-  result = zk->get("/testget_withdata", retrieved_data, error);
+  result = zk->get("/testget_withdata", retrieved_data, error, true);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
   ASSERT_EQ(5, retrieved_data.size());
@@ -223,7 +223,7 @@ TEST_F(ZKWrapperTest, wget) {
 
   std::vector<std::uint8_t> data(65536);
   bool check = false;
-  result = zk->wget("/testwget1", data, test_watcher, &check, error);
+  result = zk->wget("/testwget1", data, test_watcher, &check, error, false);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
   ASSERT_EQ(0, data.size());
@@ -256,7 +256,7 @@ TEST_F(ZKWrapperTest, set) {
   ASSERT_EQ("ZOK", zk->translate_error(error));
 
   std::vector<std::uint8_t> data_get(65536);
-  result = zk->get("/testget1", data_get, error);
+  result = zk->get("/testget1", data_get, error, true);
   ASSERT_EQ(true, result);
   ASSERT_EQ("ZOK", zk->translate_error(error));
   ASSERT_EQ(5, data_get.size());
@@ -318,11 +318,11 @@ TEST_F(ZKWrapperTest, MultiOperation) {
 
   std::vector<std::uint8_t> vec = std::vector<std::uint8_t>();
 
-  zk->get("/child11", vec, error_code);
+  zk->get("/child11", vec, error_code, true);
   ASSERT_EQ(hello_vec, vec);
-  zk->get("/child21", vec, error_code);
+  zk->get("/child21", vec, error_code, true);
   ASSERT_EQ(jello_vec, vec);
-  zk->get("/toDelete1", vec, error_code);
+  zk->get("/toDelete1", vec, error_code, true);
   ASSERT_EQ(bye_vec, vec);
 
   auto nhello_vec = ZKWrapper::get_byte_vector("new_hello");
@@ -339,9 +339,9 @@ TEST_F(ZKWrapperTest, MultiOperation) {
 
   ASSERT_TRUE(zk->execute_multi(operations, results, error_code));
 
-  zk->get("/child11", vec, error_code);
+  zk->get("/child11", vec, error_code, true);
   ASSERT_EQ(nhello_vec, vec);
-  zk->get("/child21", vec, error_code);
+  zk->get("/child21", vec, error_code, true);
   ASSERT_EQ(njello_vec, vec);
 
   bool exists;
