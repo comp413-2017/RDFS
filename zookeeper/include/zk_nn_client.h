@@ -613,7 +613,8 @@ class ZkNnClient : public ZkClientCommon {
    * Crate a znode corresponding to a file of "filetype", with path "path", with
    * znode data contained in "znode_data"
    */
-  bool create_file_znode(const std::string &path, FileZNode *znode_data, const std::string &client_name);
+  bool create_file_znode(const std::string &path, FileZNode *znode_data,
+                         const std::string &client_name);
 
   /**
    * Set the default information in a directory znode struct
