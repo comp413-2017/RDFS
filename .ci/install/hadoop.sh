@@ -2,7 +2,7 @@
 
 set -ex
 
-HADOOP_MIRROR=http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1.tar.gz
+HADOOP_MIRROR=http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
 
 cd $HOME
 if [ ! -d /tmp/cache/hadoop ]; then

@@ -6,7 +6,6 @@
 
 using RDFSTestUtils::initializeDatanodes;
 
-
 // These are incremented for each test.
 int32_t xferPort = 50010;
 int32_t ipcPort = 50020;

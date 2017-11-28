@@ -102,6 +102,11 @@ class ZkClientDn : public ZkClientCommon {
 
   bool poll_delete_queue();
 
+  /**
+   * Checks the ec_recovery queue for jobs
+   */
+  bool poll_reconstruct_queue();
+
   std::string get_datanode_id();
 
  private:
@@ -140,6 +145,11 @@ class ZkClientDn : public ZkClientCommon {
    */
   void handleReplicateCmds(const std::string &path);
 
+  /**
+   * Handle all reconstruct items on path
+   */
+  bool handleReconstructCmds(const std::string &path);
+
   static void thisDNDeleteQueueWatcher(zhandle_t *zzh,
                                        int type,
                                        int state,
@@ -149,7 +159,7 @@ class ZkClientDn : public ZkClientCommon {
   /**
    * Find one datanode that has the block_uuid
    */
-  bool find_datanode_with_block(const std::string &block_uuid_str,
+  bool find_datanode_with_block(uint64_t &block_uuid,
                                 std::string &datanode,
                                 int &error_code);
 

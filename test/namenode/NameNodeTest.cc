@@ -18,12 +18,17 @@ void NamenodeTest::SetUp() {
     zk = new ZKWrapper("localhost:2181", error_code, "/testing");
 }
 
+void NamenodeTest::TearDown() {
+  client->zk->close();
+  zk->close();
+}
+
 hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
         const std::string &path
 ) {
     hadoop::hdfs::CreateRequestProto create_req;
     create_req.set_src(path);
-    create_req.set_clientname("asdf");
+    create_req.set_clientname("unittest");
     create_req.set_createparent(false);
     create_req.set_blocksize(1);
     create_req.set_replication(1);
@@ -33,6 +38,93 @@ hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
 
 TEST_F(NamenodeTest, checkNamespace) {
   // nuffin
+}
+
+TEST_F(NamenodeTest, getErasureCodingPolicies) {
+  hadoop::hdfs::GetErasureCodingPoliciesRequestProto req;
+  hadoop::hdfs::GetErasureCodingPoliciesResponseProto res;
+  ASSERT_EQ(
+      zkclient::ZkNnClient::ErasureCodingPoliciesResponse::Ok,
+      client->get_erasure_coding_policies(req, res));
+
+  ASSERT_EQ(
+  1,
+  res.ecpolicies_size());
+
+  auto default_ecpolicy = res.ecpolicies(0);
+  ASSERT_EQ(
+  1024*1024,
+  default_ecpolicy.cellsize());
+
+  ASSERT_EQ(
+  1,
+  default_ecpolicy.id());
+
+  ASSERT_EQ(
+  "RS-6-3-1024k",
+  default_ecpolicy.name());
+}
+
+TEST_F(NamenodeTest, getErasureCodingPolicyPathNonExistentFile) {
+  hadoop::hdfs::GetErasureCodingPolicyRequestProto req;
+  hadoop::hdfs::GetErasureCodingPolicyResponseProto res;
+  req.set_src("non_existent_file");
+  ASSERT_EQ(
+    zkclient::ZkNnClient::ErasureCodingPolicyResponse::FileDoesNotExist,
+    client->get_erasure_coding_policy_of_path(req, res));
+}
+
+TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
+  hadoop::hdfs::GetErasureCodingPolicyRequestProto req;
+  hadoop::hdfs::GetErasureCodingPolicyResponseProto res;
+  auto create_req = getCreateRequestProto("filethatexists");
+  req.set_src("filethatexists");
+  hadoop::hdfs::CreateResponseProto create_res;
+
+  client->create_file(create_req, create_res);
+  ASSERT_EQ(
+      zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
+      client->get_erasure_coding_policy_of_path(req, res));
+
+  // TODO(nate): check that the ecpolicy is null
+  // TODO(nate): add another test by creating an ec based file.
+}
+
+TEST_F(NamenodeTest, setErasureCodingPolicies) {
+  // TODO(nate): implement this unit test.
+}
+
+TEST_F(NamenodeTest, createECFile) {
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("ec_file");
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+    zkclient::ZkNnClient::CreateResponse::Ok);
+  hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
+  ASSERT_EQ(file_status.ecpolicy().id(), 1);
+  ASSERT_EQ(file_status.ecpolicy().name(), "RS-6-3-1024k");
+  ASSERT_EQ(file_status.ecpolicy().schema().parityunits(), 3);
+  ASSERT_EQ(file_status.ecpolicy().schema().dataunits(), 6);
+  ASSERT_EQ(file_status.ecpolicy().schema().codecname(), "rs");
+  ASSERT_TRUE(client->file_exists("ec_file"));
+}
+
+TEST_F(NamenodeTest, addECBlock) {
+  hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("ec_file2");
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  hadoop::hdfs::CreateResponseProto create_res;
+  ASSERT_EQ(client->create_file(create_req, create_res),
+  zkclient::ZkNnClient::CreateResponse::Ok);
+
+  hadoop::hdfs::AddBlockRequestProto addblock_req;
+  hadoop::hdfs::AddBlockResponseProto addblock_res;
+
+  addblock_req.set_clientname("unittest");
+  addblock_req.set_src("ec_file2");
+
+//  ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
 }
 
 TEST_F(NamenodeTest, findDataNodes) {
@@ -65,8 +157,9 @@ TEST_F(NamenodeTest, findDataNodes) {
                          stats_vec, error, true));
 
   auto datanodes = std::vector<std::string>();
+  auto excluded = std::vector<std::string>();
   u_int64_t block_id;
-  util::generate_uuid(block_id);
+        util::generate_block_id(block_id);
 
   zkclient::BlockZNode block_data;
   block_data.block_size = 64;
@@ -78,10 +171,11 @@ TEST_F(NamenodeTest, findDataNodes) {
 
   LOG(INFO) << "Finding dn's for block " << block_id;
   int rep_factor = 1;
-  client->find_datanode_for_block(datanodes,
+  int err;
+  client->find_all_datanodes_with_block(block_id, excluded, err);
+  client->find_datanode_for_block(datanodes, excluded,
                                   block_id,
                                   rep_factor,
-                                  true,
                                   block_data.block_size);
 
   for (auto datanode : datanodes) {
@@ -147,7 +241,7 @@ TEST_F(NamenodeTest, previousBlockComplete) {
   LOG(INFO) << "Previous block_id is " << block_id;
   // Calling previousblockcomplete on the first block should be true.
   ASSERT_EQ(true, client->previousBlockComplete(block_id));
-  util::generate_uuid(block_id);
+        util::generate_block_id(block_id);
   /* mock the directory */
   zk->create("/block_locations", ZKWrapper::EMPTY_VECTOR, error, false);
   zk->create("/block_locations/" + std::to_string(block_id),
@@ -285,6 +379,7 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 int main(int argc, char **argv) {
     el::Configurations conf(LOG_CONFIG_FILE);
     conf.set(el::Level::Info, el::ConfigurationType::Enabled, "false");
+    // conf.set(el::Level::Error, el::ConfigurationType::Enabled, "false");
     el::Loggers::reconfigureAllLoggers(conf);
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 

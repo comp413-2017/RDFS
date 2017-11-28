@@ -3,9 +3,17 @@
 #ifndef WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_
 #define WEB_RDFS_INCLUDE_HTTP_HANDLERS_H_
 
-#include "server_https.h"
+#include "server_http.h"
+#include "web_rdfs_server.h"
+#include "web_request_translator.h"
+
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
+
+void setZk(zkclient::ZkNnClient *zk_arg);
 
 /**
  * Handler invoked when a client issues a GET request for an RDFS path.

@@ -10,7 +10,6 @@ TEST_F(NamenodeTest, deleteBasicFile) {
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp),
               zkclient::ZkNnClient::CreateResponse::Ok);
-
     // Try and delete before completing
     hadoop::hdfs::DeleteRequestProto delete_req;
     hadoop::hdfs::DeleteResponseProto delete_resp;
@@ -24,6 +23,7 @@ TEST_F(NamenodeTest, deleteBasicFile) {
     hadoop::hdfs::CompleteResponseProto complete_resp;
     complete_req.set_src(src);
     client->complete(complete_req, complete_resp);
+//    sleep(10);
 
     // Delete the file
     hadoop::hdfs::DeleteRequestProto delete_req2;
@@ -78,6 +78,7 @@ TEST_F(NamenodeTest, deleteDirectory) {
     hadoop::hdfs::CompleteResponseProto complete_resp;
     complete_req.set_src(src);
     client->complete(complete_req, complete_resp);
+//    sleep(5);
 
     // Delete the directory
     hadoop::hdfs::DeleteRequestProto delete_req;
@@ -92,7 +93,7 @@ TEST_F(NamenodeTest, deleteDirectory) {
 
 TEST_F(NamenodeTest, deleteNonexistantFile) {
     // Make up filename
-    std::string src = "delete_file";
+    std::string src = "delete_file2";
     ASSERT_FALSE(client->file_exists(src));
 
     // Try and delete it
@@ -115,7 +116,7 @@ TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
               zkclient::ZkNnClient::MkdirResponse::Ok);
 
     // Must give zookeeper time to construct file
-    sleep(10);
+//    sleep(10);
 
     // Make up filename
     std::string src = "basic_dir/basic_file";
@@ -130,7 +131,7 @@ TEST_F(NamenodeTest, deleteNestedNonexistantFile) {
 
 TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
     int error;
-    std::string src = "delete_file";
+    std::string src = "delete_file3";
     hadoop::hdfs::CreateRequestProto create_req = getCreateRequestProto(src);
     hadoop::hdfs::CreateResponseProto create_resp;
     ASSERT_EQ(client->create_file(create_req, create_resp),
@@ -138,7 +139,7 @@ TEST_F(NamenodeTest, deleteBasicFileWithBlock) {
     std::uint64_t block_id = 1234;
     std::vector<std::uint8_t> block_vec(sizeof(std::uint64_t));
     memcpy(block_vec.data(), &block_id, sizeof(std::uint64_t));
-    ASSERT_TRUE(zk->create("/fileSystem/delete_file/blocks/block-0000000000",
+    ASSERT_TRUE(zk->create("/fileSystem/delete_file3/blocks/block-0000000000",
                            block_vec,
                            error, false));
     ASSERT_TRUE(zk->create("/block_locations/1234",

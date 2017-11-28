@@ -79,7 +79,7 @@ class WebRDFSServer {
    *
    * @param port Port number on which to listen for HTTP requests.
    */
-  explicit WebRDFSServer(int16_t port, zkclient::ZkNnClient *zk_arg) :
+  explicit WebRDFSServer(int16_t port) :
     server(SERVER_CERTIFICATE_PATH, SERVER_KEY_PATH) {
     server.config.port = port;
   }
@@ -96,11 +96,6 @@ class WebRDFSServer {
   HttpsServer server;
 
   /**
-   * client to communicate with zookeeper
-   */
-  zkclient::ZkNnClient *zk;
-
-  /**
    * Register an endpoint handler on the server.
    *
    * @param pattern URL pattern to register.
@@ -114,10 +109,8 @@ class WebRDFSServer {
       std::shared_ptr<HttpsServer::Response> response,
       std::shared_ptr<HttpsServer::Request> request)> handler);
 
-
   std::string getFileInfo(GetFileInfoRequestProto req);
   std::string mkdir(MkdirsRequestProto req);
-  std::string destroy(DeleteRequestProto req);
   std::string create(CreateRequestProto req);
   std::string getBlockLocations(GetBlockLocationsRequestProto req);
   std::string getServerDefaults(GetServerDefaultsRequestProto req);
