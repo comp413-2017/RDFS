@@ -404,7 +404,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
     res.set_result(false);
     return;
   }
-  if (children.size() > 0) {
+  if (children.size() > 1) {
     for (std::string child : children) {
       LOG(ERROR) << "[recover_lease] Child: " + child;
     }
