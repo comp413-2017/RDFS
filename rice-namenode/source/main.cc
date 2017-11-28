@@ -4,6 +4,7 @@
 #include <easylogging++.h>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <asio.hpp>
 #include "ClientNamenodeProtocolImpl.h"
 #include "HaServiceProtocolImpl.h"
@@ -30,7 +31,8 @@ using client_namenode_translator::ClientNamenodeTranslator;
  * command line.
  * @param verbosity A pointer in which to place the verbosity value entered at
  * the command line.
- * @param node_policy A pointer in which to place the node_policy value entered at the command line.
+ * @param node_policy A pointer in which to place the node_policy value entered
+ * at the command line.
  * @param backingStore A reference to set to the input backingStore.
  * @return 0 on success, -1 on any error.
  */
@@ -103,6 +105,31 @@ static inline int parse_cmdline_options(
   return 0;
 }
 
+/**
+ * Function to get the local IP of the NameNode starting.
+ * @return A string representing the local IP of the current process.
+ */
+static inline std::string get_local_ip() {
+    try {
+        asio::io_service netService;
+        asio::ip::udp::resolver  resolver(netService);
+        asio::ip::udp::resolver::query query(asio::ip::udp::v4(),
+                                             "google.com", "");
+        asio::ip::udp::resolver::iterator endpoints = resolver.resolve(query);
+        asio::ip::udp::endpoint ep = *endpoints;
+        asio::ip::udp::socket socket(netService);
+        socket.connect(ep);
+        asio::ip::address addr = socket.local_endpoint().address();
+        LOG(INFO) << "Starting NameNode with IP: " <<
+                                                   addr.to_string() <<
+                                                                    std::endl;
+        return addr.to_string();
+    } catch (std::exception& e) {
+        LOG(WARNING) << "Could not deal with socket. Exception: " << e.what();
+        return std::string();
+    }
+}
+
 int main(int argc, char *argv[]) {
   el::Configurations conf(LOG_CONFIG_FILE);
   el::Loggers::reconfigureAllLoggers(conf);
@@ -115,6 +142,7 @@ int main(int argc, char *argv[]) {
   int port = 5351;
   int verbosity = 0;
   char node_policy = MAX_FREE_SPACE;
+  bool exists = false;
 
   parse_cmdline_options(argc, argv, &port, &verbosity, &node_policy);
 
@@ -124,6 +152,92 @@ int main(int argc, char *argv[]) {
       "localhost:2181,localhost:2182,localhost:2183",
       error_code,
       "/testing");
+
+  // TODO(2017): This implementation of the process-of-record is a little
+  //             hack-y, since it does not include a graceful recovery in the
+  //             case of process-of-record failure. However, implementation
+  //             of graceful recovery would imply too much engineering effort
+  //             at this point in the semester, so we rely power-cycling the
+  //             NameNodes to re-negotiate the process-of-record. This is not
+  //             really problematic since the NameNodes don't store anything.
+  auto local_ip = get_local_ip();
+  if (local_ip.length() == 0) {
+      LOG(WARNING) << "Unable to get the local IP for this NameNode";
+  } else {
+      // TODO(2017): Should not hard-code this, but fine for demo.
+      local_ip += ":2181";
+
+      if (!zk_shared->exists("/process_of_record", exists, error_code)) {
+          LOG(ERROR) << "Unable to check if process of record exists";
+          exit(1);
+      }
+
+      if (exists) {
+          LOG(INFO) << "Process of record already exists, reconnecting";
+          auto data = std::vector<uint8_t>();
+          if (!zk_shared->get("/process_of_record",
+                              data,
+                              error_code)) {
+              LOG(ERROR) << "Unable to get process of record";
+              exit(1);
+          }
+          auto process_of_record_ip = std::string(data.begin(), data.end());
+          LOG(INFO) << "Got ZK process of record at IP " <<
+                                                         process_of_record_ip;
+
+          zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
+                                                  error_code,
+                                                  "/testing");
+          if (error_code == ZCONNECTIONLOSS) {
+              // Process of record is no longer live, so set to self
+              LOG(INFO) << "Process of record hung up, setting to " << local_ip;
+              if (!zk_shared->set("/process_of_record",
+                                    ZKWrapper::get_byte_vector(local_ip),
+                                    error_code)) {
+                  LOG(ERROR) << "Unable to set process of record entry";
+                  exit(1);
+              } else {
+                  zk_shared->flush("/process_of_record", true);
+              }
+          }
+      } else {
+          LOG(INFO) << "Process of record does not already exist, setting to "
+                    << local_ip;
+          if (!zk_shared->create("/process_of_record",
+                            ZKWrapper::get_byte_vector(local_ip),
+                            error_code,
+                            false,
+                            true)) {
+              if (error_code == ZNODEEXISTS) {
+                  // The PoR node was created since we checked,
+                  // so just get the value
+                  LOG(INFO) << "Process of record was already created, "
+                      "reconnecting";
+                  auto data = std::vector<uint8_t>();
+                  if (!zk_shared->get("/process_of_record",
+                                      data,
+                                      error_code)) {
+                      LOG(ERROR) << "Unable to get process of record";
+                      exit(1);
+                  }
+                  auto process_of_record_ip = std::string(data.begin(),
+                                                          data.end());
+                  LOG(INFO) << "Got ZK process of record "
+                      "at IP " << process_of_record_ip;
+
+                  zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
+                                                          error_code,
+                                                          "/testing");
+              } else {
+                  LOG(ERROR) << "Unable to create process of record entry";
+                  exit(1);
+              }
+          } else {
+              zk_shared->flush("/process_of_record", true);
+          }
+      }
+  }
+
   zkclient::ZkNnClient nncli(zk_shared);
   nncli.register_watches();
   nncli.set_node_policy(node_policy);
