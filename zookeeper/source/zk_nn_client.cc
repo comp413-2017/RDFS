@@ -1372,6 +1372,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
 ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
                            bool create_parent) {
   LOG(INFO) << "[mkdir_helper] mkdir_helper called with input " << path;
+    std::string empty_string;
   if (create_parent) {
     std::vector<std::string> split_path;
     boost::split(split_path, path, boost::is_any_of("/"));
@@ -1391,7 +1392,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
         not_exist = true;
         FileZNode znode_data;
         set_mkdir_znode(&znode_data);
-        if (!create_file_znode(p_path, &znode_data)) {
+        if (!create_file_znode(p_path, &znode_data, empty_string)) {
           // TODO(2016) unroll the created directories
           return MkdirResponse::FailedZnodeCreation;
         }
@@ -1400,7 +1401,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
   } else {
     FileZNode znode_data;
     set_mkdir_znode(&znode_data);
-    return create_file_znode(path, &znode_data) ?
+    return create_file_znode(path, &znode_data, empty_string) ?
          MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
   }
   return MkdirResponse::Ok;
