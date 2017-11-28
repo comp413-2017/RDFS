@@ -47,7 +47,7 @@ void threadTwoAppendF() {
 void threadNAppend(int threadNum) {
   // Create an identifying text file for thread threadNum
   std::string fileName = "thread" + std::to_string(threadNum) + ".txt";
-  system(("echo 'Thread" + std::to_string(threadNum) + "' > " + fileName).c_str());
+  system(("echo 'Thread " + std::to_string(threadNum) + "' > " + fileName).c_str());
   // Append the file.
   system(("hdfs dfs -fs hdfs://localhost:5351 -appendToFile "
              + fileName + " /f" + std::to_string(threadNum)).c_str());
@@ -83,7 +83,7 @@ TEST(AppendFileTest, testSimpleFileAppend) {
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
 
   // Create the expected test file by appending the test file twice
-  system("cat testfile1234 >> expected_testfile1234");
+  system("cat testfile1234 > expected_testfile1234");
   system("cat testfile1234 >> expected_testfile1234");
 
   // Check that its contents match.
@@ -93,8 +93,7 @@ TEST(AppendFileTest, testSimpleFileAppend) {
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
-  system("rm testfile1234");
-  system("rm expected_testfile1234");
+  system("rm *testfile1234");
 }
 
 TEST(AppendFileTest, testAppendToNonExistentFile) {
@@ -109,7 +108,7 @@ TEST(AppendFileTest, testAppendToNonExistentFile) {
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /non_existent_testfile > actual_testfile1234");
 
   // Create the expected test file by appending the test file twice
-  system("cat testfile1234 >> expected_testfile1234");
+  system("cat testfile1234 > expected_testfile1234");
 
   // Check that its contents match.
   ASSERT_EQ(0,
@@ -118,7 +117,7 @@ TEST(AppendFileTest, testAppendToNonExistentFile) {
   // Remove the created files
   system("rm testfile1234");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /non_existent_testfile");
-  system("rm expected_testfile1234");
+  system("rm *testfile1234");
 }
 
 TEST(AppendFileTest, testOneClientAppends) {
@@ -140,7 +139,7 @@ TEST(AppendFileTest, testOneClientAppends) {
 
   // Create the expected test file by appending the test file twice
   system("echo 'Thread 1' > thread1.txt");
-  system("cat testfile1234 >> expected_testfile1234");
+  system("cat testfile1234 > expected_testfile1234");
   system("cat thread1.txt >> expected_testfile1234");
   system("rm thread1.txt");
 
@@ -150,8 +149,7 @@ TEST(AppendFileTest, testOneClientAppends) {
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
-  system("rm testfile1234");
-  system("rm expected_testfile1234");
+  system("rm *testfile1234");
 }
 
 TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
@@ -177,12 +175,12 @@ TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
 
   // Create the expected test file by appending the test file twice
   system("echo 'Thread 1' > thread1.txt");
-  system("cat testfile1234 >> expected_testfile1234_f");
+  system("cat testfile1234 > expected_testfile1234_f");
   system("cat thread1.txt >> expected_testfile1234_f");
   system("rm thread1.txt");
 
   system("echo 'Thread 2' > thread2.txt");
-  system("cat testfile1234 >> expected_testfile1234_g");
+  system("cat testfile1234 > expected_testfile1234_g");
   system("cat thread2.txt >> expected_testfile1234_g");
   system("rm thread2.txt");
 
@@ -195,8 +193,9 @@ TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /g");
-  system("rm testfile1234_*");
+  system("rm testfile1234");
   system("rm expected_testfile1234_*");
+  system("rm actual_testfile1234_*");
 }
 
 TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
@@ -220,12 +219,12 @@ TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
 
   // Create the expected test file by appending the test file twice
   system("echo 'Thread 1' > thread1.txt");
-  system("cat testfile1234 >> thread1_expected_testfile1234_f");
+  system("cat testfile1234 > thread1_expected_testfile1234_f");
   system("cat thread1.txt >> thread1_expected_testfile1234_f");
   system("rm thread1.txt");
 
   system("echo 'Thread 2' > thread2.txt");
-  system("cat testfile1234 >> thread2_expected_testfile1234_f");
+  system("cat testfile1234 > thread2_expected_testfile1234_f");
   system("cat thread2.txt >> thread2_expected_testfile1234_f");
   system("rm thread2.txt");
 
@@ -237,8 +236,9 @@ TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
-  system("rm testfile1234_*");
-  system("rm expected_testfile1234_*");
+  system("rm testfile1234");
+  system("rm *expected_testfile1234_*");
+  system("rm actual_testfile1234_*");
 }
 
 TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
@@ -275,7 +275,7 @@ TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
   for (int i = 0; i < n; i++) {
     std::string threadFileName = "thread" + std::to_string(i) + ".txt";
     system(("echo 'Thread '" + std::to_string(i) + " > " + threadFileName).c_str());
-    system(("cat testfile1234 >> expected_testfile1234_f" + std::to_string(i)).c_str());
+    system(("cat testfile1234 > expected_testfile1234_f" + std::to_string(i)).c_str());
     system(("cat " + threadFileName + " >> expected_testfile1234_f" + std::to_string(i)).c_str());
     system(("rm " + threadFileName).c_str());
   }
@@ -288,7 +288,8 @@ TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f*");
-  system("rm testfile1234_*");
+  system("rm testfile1234");
+  system("rm actual_testfile1234_*");
   system("rm expected_testfile1234_*");
 }
 }
