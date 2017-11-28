@@ -266,6 +266,7 @@ class ZkNnClient : public ZkClientCommon {
                    RenewLeaseResponseProto &res);
   void recover_lease(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
+  void recover_file(std::string &file_path);
   /**
    * Get info of the file.
    * @param req GetFileInfoRequestProto
