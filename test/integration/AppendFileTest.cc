@@ -6,6 +6,8 @@
 
 using RDFSTestUtils::initializeDatanodes;
 
+static const int NUM_DATANODES = 3;
+
 // These are incremented for each test.
 int32_t xferPort = 50010;
 int32_t ipcPort = 50020;
@@ -249,7 +251,7 @@ TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
 
   // Put it into rdfs.
   for (int i = 0; i < n; i++) {
-    system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f" + i);
+    system(("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f" + std::to_string(i)).c_str());
   }
 
   // Create another client and append to the file from that thread
@@ -304,7 +306,7 @@ int main(int argc, char **argv) {
   sleep(15);
 
   // initialize a datanode
-  initializeDatanodes(1);
+  initializeDatanodes(NUM_DATANODES);
 
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
