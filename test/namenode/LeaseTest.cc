@@ -40,6 +40,7 @@ TEST_F(NamenodeTest, recoverLeaseCorrectnessTest) {
   // Create the file
   hadoop::hdfs::CreateRequestProto create_req =
     getCreateRequestProto("test_filename");
+  create_req.set_clientname("test_client");
   hadoop::hdfs::CreateResponseProto create_resp;
   ASSERT_EQ(client->create_file(create_req, create_resp),
             zkclient::ZkNnClient::CreateResponse::Ok);
