@@ -121,8 +121,8 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
   if (!(zk->wget_children(HEALTH, children, ZkNnClient::watcher_health,
               watcherCtx, err))) {
     // Symptomatic of larger zk failure.
-    LOG(FATAL) << "[watcher_health], wget failed " << err;
-    zk->close();
+    LOG(ERROR) << "[watcher_health], wget failed " << err;
+    // zk->close();
   }
 
   for (int i = 0; i < children.size(); i++) {
@@ -136,8 +136,8 @@ void ZkNnClient::watcher_health(zhandle_t *zzh, int type, int state,
                 watcherCtx,
                 err))) {
       // Symptomatic of larger zk failure.
-      LOG(FATAL) << "[watcher_health], wget failed " << err;
-      zk->close();
+      LOG(ERROR) << "[watcher_health], wget failed " << err;
+      // zk->close();
     }
   }
 }
