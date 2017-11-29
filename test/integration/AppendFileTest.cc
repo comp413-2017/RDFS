@@ -66,8 +66,7 @@ namespace {
 
 TEST(AppendFileTest, testSimpleFileAppend) {
   // Make a file.
-  ASSERT_EQ(0,
-            system(
+  ASSERT_EQ(0, system(
               "python /home/vagrant/rdfs/test/integration/generate_file.py > "
                 "testfile1234"));
 
@@ -99,7 +98,9 @@ TEST(AppendFileTest, testSimpleFileAppend) {
 TEST(AppendFileTest, testAppendToNonExistentFile) {
   // Make a local file.
   ASSERT_EQ(0,
-            system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+            system(
+              "python /home/vagrant/rdfs/test/integration/generate_file.py "
+                "> testfile1234"));
 
   // Append the file.
   system("hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /non_existent_testfile");
@@ -221,22 +222,39 @@ TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
   system("echo 'Thread 1' > thread1.txt");
   system("cat testfile1234 > thread1_expected_testfile1234_f");
   system("cat thread1.txt >> thread1_expected_testfile1234_f");
-  system("rm thread1.txt");
 
   system("echo 'Thread 2' > thread2.txt");
   system("cat testfile1234 > thread2_expected_testfile1234_f");
   system("cat thread2.txt >> thread2_expected_testfile1234_f");
+
+  system("cat testfile1234 > thread_1_2_expected_testfile1234_f");
+  system("cat thread1.txt >> thread_1_2_expected_testfile1234_f");
+  system("cat thread2.txt >> thread_1_2_expected_testfile1234_f");
+  system("cat testfile1234 > thread_2_1_expected_testfile1234_f");
+  system("cat thread2.txt >> thread_2_1_expected_testfile1234_f");
+  system("cat thread1.txt >> thread_2_1_expected_testfile1234_f");
+
+  system("rm thread1.txt");
   system("rm thread2.txt");
+
+
 
   // Check that its contents match. Because only one of the threads will
   // have obtained the lease, we check to make sure that only one thread
   // successfully appended to the file.
-  ASSERT_TRUE(system("diff thread1_expected_testfile1234_f actual_testfile1234_f > /dev/null") == 0
-              || system("diff thread2_expected_testfile1234_f actual_testfile1234_f > /dev/null") == 0);
+  ASSERT_TRUE(
+      system("diff thread1_expected_testfile1234_f actual_testfile1234_f "
+                  "> /dev/null") == 0
+        || system("diff thread2_expected_testfile1234_f actual_testfile1234_f "
+                  "> /dev/null") == 0
+        || system("diff thread_1_2_expected_testfile1234_f actual_testfile1234_f "
+                  "> /dev/null") == 0
+        || system("diff thread_2_1_expected_testfile1234_f actual_testfile1234_f "
+                  "> /dev/null") == 0);
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
-  system("rm testfile1234");
+  system("rm *testfile1234*");
   system("rm *expected_testfile1234_*");
   system("rm actual_testfile1234_*");
 }
@@ -308,7 +326,7 @@ int main(int argc, char **argv) {
 
   // initialize a datanode
   initializeDatanodes(NUM_DATANODES);
-
+  
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
