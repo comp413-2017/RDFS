@@ -1512,6 +1512,10 @@ void ZkNnClient::get_block_locations(const std::string &src,
   FileZNode znode_data;
   read_file_znode(znode_data, src);
 
+    /*
+     * blocks -- which dn to follow up with for with block
+     * */
+
   // Check access
     /*
     std::string copy = std::string("._COPYING_");

@@ -177,6 +177,7 @@ std::string ClientNamenodeTranslator::create(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::getBlockLocations(std::string input) {
+  // TODO(danielbalkum) throw exception that proto does not have blocks populated because they do not have access (cannot get block locations from the nn)
   GetBlockLocationsRequestProto req;
   req.ParseFromString(input);
   logMessage(&req, "GetBlockLocations ");
