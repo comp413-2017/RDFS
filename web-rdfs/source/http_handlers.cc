@@ -89,7 +89,7 @@ void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
 //  bool isSuccess = zk->append_file(req, res);
 
   bool isSuccess = true;
-  
+
   if (isSuccess) {
     response->write(SimpleWeb::StatusCode::success_ok);
   } else {
@@ -200,9 +200,9 @@ void post_handler(std::shared_ptr<HttpsServer::Response> response,
 
   if (!typeOfRequest.compare("APPEND")) {
     append_file_handler(response, path);
+  } else {
+    response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
-
-  response->write(SimpleWeb::StatusCode::client_error_bad_request);
 }
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
