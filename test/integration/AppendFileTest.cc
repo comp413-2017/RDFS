@@ -76,9 +76,11 @@ TEST(AppendFileTest, testSimpleFileAppend) {
 
   // Put it into rdfs.
   system(
-        "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
+        "hdfs dfs -fs hdfs://localhost:5351 -touchz /f");
 
   // Append the file.
+  system(
+        "hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /f");
   system(
         "hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /f");
 
