@@ -1505,7 +1505,7 @@ bool ZkNnClient::get_block_locations(const std::string &src,
                  << sorted_block
                  << " info: "
                  << error_code;
-                 return false;  // TODO(2016): Signal error
+                 return false;
     }
     uint64_t block_id = *reinterpret_cast<uint64_t *>(&data[0]);
     LOG(INFO) << "[get_block_locations] Found block " << block_id
@@ -2127,10 +2127,10 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
               << replication_factor;
     if (targets.size() < replication_factor) {
       LOG(INFO) << "[find_datanode_for_block] Not enough"
-                 << " available DNs! Available: "
-                 << targets.size()
-                 << " Requested: "
-                 << replication_factor;
+                << " available DNs! Available: "
+                << targets.size()
+                << " Requested: "
+                << replication_factor;
       // no return because we still want the client to write to some datanodes
     }
 
