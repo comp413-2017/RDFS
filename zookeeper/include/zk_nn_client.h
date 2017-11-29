@@ -155,12 +155,16 @@ class ZkNnClient : public ZkClientCommon {
   const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
   uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
+  uint32_t REPLICATION_EC_ID = 0;
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
   std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+  ErasureCodingPolicyProto REPLICATION_PROTO;
+  ECSchemaProto REPLICATION_1_2_SCHEMA;
+
 
   enum class ListingResponse {
       Ok,                    // 0
@@ -568,6 +572,13 @@ class ZkNnClient : public ZkClientCommon {
   bool cache_contains(const std::string &path);
 
   int cache_size();
+
+  /**
+   * Find the parent directory of a path
+   * @param path The path of the source file
+   * @return the parent of the path
+   */
+  std::string find_parent(const std::string &path);
 
  private:
   /**

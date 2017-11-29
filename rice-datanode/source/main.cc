@@ -122,6 +122,7 @@ int main(int argc, char *argv[]) {
 
   int error_code = 0;
 
+  bool exists;
   asio::io_service io_service;
   int xferPort = 50010;
   int ipcPort = 50020;
@@ -146,12 +147,36 @@ int main(int argc, char *argv[]) {
   uint64_t total_disk_space = fs->getTotalSpace();
   auto zk_shared = std::make_shared<ZKWrapper>(
     "localhost:2181,localhost:2182,localhost:2183", error_code, "/testing");
+
+  if (!zk_shared->exists("/process_of_record", exists, error_code)) {
+    LOG(ERROR) << "Unable to check if process of record exists";
+    exit(1);
+  }
+
+  if (exists) {
+    LOG(INFO) << "Found process of record, connecting";
+    auto data = std::vector<uint8_t>();
+    if (!zk_shared->get("/process_of_record",
+                        data,
+                        error_code)) {
+      LOG(ERROR) << "Unable to get process of record";
+      exit(1);
+    }
+    auto process_of_record_ip = std::string(data.begin(), data.end());
+    LOG(INFO) << "Got ZK process of record at IP " << process_of_record_ip;
+
+    zk_shared = std::make_shared<ZKWrapper>(process_of_record_ip,
+                                            error_code,
+                                            "/testing");
+  } else {
+    LOG(ERROR) << "Could not find ZooKeeper process of record. "
+        "This implies that no NameNodes are live";
+  }
+
   auto dncli = std::make_shared<zkclient::ZkClientDn>("127.0.0.1",
                                                       zk_shared,
                                                       total_disk_space,
                                                       ipcPort,
-                                                      // TODO(eddiedugan):
-                                                      // Change the datanode id
                                                       xferPort);
   client_datanode_translator::ClientDatanodeTranslator translator(ipcPort);
   auto transfer_server = std::make_shared<TransferServer>(xferPort, fs, dncli);

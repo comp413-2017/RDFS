@@ -40,17 +40,17 @@ tar -xf hadoop-3.0.0-beta1-2.tar.gz
 mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
 rm hadoop-3.0.0-beta1-2.tar.gz
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
-echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
+echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop3/etc/hadoop/hadoop-env.sh
 
 # add custom config files to Hadoop
-cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop/etc/hadoop/hdfs-site.xml
-cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop/etc/hadoop/core-site.xml
+cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml
+cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop3/etc/hadoop/core-site.xml
 
 # add hadoop to path
 echo 'export PATH=/home/vagrant/hadoop2/bin:$PATH' >> /home/vagrant/.bashrc
 
 # add hadoop to classpath
-echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/hadoop/share/hadoop/common/*' >> /home/vagrant/.bashrc
+echo 'export CLASSPATH=/home/vagrant/hadoop3/share/hadoop/hdfs/*:/home/vagrant/hadoop3/share/hadoop/common/*' >> /home/vagrant/.bashrc
 
 # Download hadoop 2.7.4 as well, but do not set as default.
 if [ -d /home/vagrant/hadoop2 ]; then
@@ -188,7 +188,7 @@ chown -R vagrant:vagrant /home/vagrant/.ssh/*
 echo 'sudo chown vagrant:vagrant /dev/sdb' >> /home/vagrant/.bashrc
 
 # Consider the webRDFS self-signed certificate a trusted root CA.
-cp ~/rdfs/config/keys/server.crt /usr/local/share/ca-certificates/
+cp /home/vagrant/rdfs/config/keys/server.crt /usr/local/share/ca-certificates/
 update-ca-certificates
 echo '127.0.0.1 comp413.local' >> /etc/hosts
 
