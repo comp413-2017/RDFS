@@ -336,7 +336,10 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
       LOG(ERROR) << "Can't get storage blks!";
       return false;
     }
-    for (auto child : children) {
+    int total_storage = children.size();
+
+    for (int i = 0; i < total_storage; i++) {
+      auto child = children[i];
       BlockZNode block_data;
       std::vector<std::uint8_t> data(sizeof(block_data));
       if (!zk->get(block_path + "/" + child, data, error_code)) {
@@ -345,9 +348,12 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
         return false;
       }
       memcpy(&block_data, &data[0], sizeof(block_data));
+      LOG(INFO) << "Storage Block is size " << block_data.block_size;
       blocksize += block_data.block_size;
     }
   }
+  LOG(INFO) << "Default EC cellsize is " << DEFAULT_EC_CELLCIZE;
+  blocksize -= DEFAULT_PARITY_UNITS * DEFAULT_EC_CELLCIZE;
   LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   return true;
 }
@@ -1070,7 +1076,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     uint64_t block_uuid = *reinterpret_cast<uint64_t *>(&data[0]);
     uint64_t length;
     get_block_size(block_uuid, length);
+    LOG(INFO) << "block " << block_uuid << "is size " << length;
     file_length += length;
+    LOG(INFO) << "Updated file size is " << file_length;
   }
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
