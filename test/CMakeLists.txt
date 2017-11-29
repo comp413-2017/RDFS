@@ -115,7 +115,6 @@ add_executable(ErasureCodeTest isal/ErasureCodeTest.cc)
 target_link_libraries(ErasureCodeTest ${GTEST_LIBRARIES} pthread)
 target_link_libraries(ErasureCodeTest ${GTEST})
 target_link_libraries(ErasureCodeTest isal)
-target_link_libraries(ErasureCodeTest /usr/lib/x86_64-linux-gnu/libdl.so)
 
 add_executable(UsernameTest permissions/UsernameTest.cc)
 target_link_libraries(UsernameTest zkwrapper /usr/local/lib/libzookeeper_mt.so)
