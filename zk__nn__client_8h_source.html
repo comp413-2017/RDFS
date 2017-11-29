@@ -234,415 +234,422 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* DEFAULT_EC_POLICY = <span class="stringliteral">&quot;RS-6-3-1024k&quot;</span>;  <span class="comment">// the default policy.</span></div>
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  <span class="comment">// the default cell size is 64kb.</span></div>
 <div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  uint32_t DEFAULT_EC_ID = 1;</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;  <span class="keyword">const</span> uint32_t DEFAULT_DATA_UNITS = 6;</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;  <span class="keyword">const</span> uint32_t DEFAULT_PARITY_UNITS = 3;</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* DEFAULT_EC_CODEC_NAME = <span class="stringliteral">&quot;rs&quot;</span>;</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;  std::string DEFAULT_STORAGE_ID = <span class="stringliteral">&quot;1&quot;</span>;  <span class="comment">// the default storage id.</span></div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_e_c_schema_proto.html">ECSchemaProto</a> DEFAULT_EC_SCHEMA;</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_erasure_coding_policy_proto.html">ErasureCodingPolicyProto</a> RS_SOLOMON_PROTO;</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;  <span class="keyword">enum class</span> ListingResponse {</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;      Ok,                    <span class="comment">// 0</span></div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;      FileDoesNotExist,      <span class="comment">// 1</span></div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;      FailedChildRetrieval,  <span class="comment">// 2</span></div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;      FileAccessRestricted   <span class="comment">// 3</span></div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;  };</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;  <span class="keyword">enum class</span> DeleteResponse {</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;      Ok,</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;      FileDoesNotExist,</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;      FileUnderConstruction,</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;      FileIsDirectoryMismatch,</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;      FailedChildRetrieval,</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      FailedBlockRetrieval,</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;      FailedDataNodeRetrieval,</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;      FailedZookeeperOp,</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;      FileAccessRestricted</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;  };</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;  <span class="keyword">enum class</span> GetFileInfoResponse {</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    Ok,</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    FileDoesNotExist,</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    FailedReadZnode,</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;    FileAccessRestricted</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;  };</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;  <span class="keyword">enum class</span> MkdirResponse {</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;      Ok,</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;      FailedZnodeCreation</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;  };</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  <span class="keyword">enum class</span> CreateResponse {</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;      Ok,</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;      FileAlreadyExists,</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;      FailedMkdir,</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;      FailedCreateZnode</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;  };</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;  <span class="keyword">enum class</span> RenameResponse {</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;      Ok,</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;      FileDoesNotExist,</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;      RenameOpsFailed,</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;      InvalidType,</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;      MultiOpFailed,</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;      FileAccessRestricted</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;  };</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;  <span class="keyword">enum class</span> ErasureCodingPoliciesResponse {</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;      Ok</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;  uint32_t REPLICATION_EC_ID = 0;</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;  <span class="keyword">const</span> uint32_t DEFAULT_DATA_UNITS = 6;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  <span class="keyword">const</span> uint32_t DEFAULT_PARITY_UNITS = 3;</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* DEFAULT_EC_CODEC_NAME = <span class="stringliteral">&quot;rs&quot;</span>;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;  std::string DEFAULT_STORAGE_ID = <span class="stringliteral">&quot;1&quot;</span>;  <span class="comment">// the default storage id.</span></div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_e_c_schema_proto.html">ECSchemaProto</a> DEFAULT_EC_SCHEMA;</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_erasure_coding_policy_proto.html">ErasureCodingPolicyProto</a> RS_SOLOMON_PROTO;</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_erasure_coding_policy_proto.html">ErasureCodingPolicyProto</a> REPLICATION_PROTO;</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;  <a class="code" href="classhadoop_1_1hdfs_1_1_e_c_schema_proto.html">ECSchemaProto</a> REPLICATION_1_2_SCHEMA;</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;  <span class="keyword">enum class</span> ListingResponse {</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;      Ok,                    <span class="comment">// 0</span></div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;      FileDoesNotExist,      <span class="comment">// 1</span></div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;      FailedChildRetrieval,  <span class="comment">// 2</span></div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;      FileAccessRestricted   <span class="comment">// 3</span></div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;  };</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;  <span class="keyword">enum class</span> DeleteResponse {</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;      Ok,</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      FileDoesNotExist,</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;      FileUnderConstruction,</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;      FileIsDirectoryMismatch,</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;      FailedChildRetrieval,</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;      FailedBlockRetrieval,</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;      FailedDataNodeRetrieval,</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;      FailedZookeeperOp,</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;      FileAccessRestricted</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;  };</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;  <span class="keyword">enum class</span> GetFileInfoResponse {</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    Ok,</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    FileDoesNotExist,</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    FailedReadZnode,</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    FileAccessRestricted</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;  };</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;  <span class="keyword">enum class</span> MkdirResponse {</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;      Ok,</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;      FailedZnodeCreation</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;  };</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;  <span class="keyword">enum class</span> CreateResponse {</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;      Ok,</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;      FileAlreadyExists,</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;      FailedMkdir,</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;      FailedCreateZnode</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;  };</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;  <span class="keyword">enum class</span> RenameResponse {</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;      Ok,</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;      FileDoesNotExist,</div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;      RenameOpsFailed,</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;      InvalidType,</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;      MultiOpFailed,</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;      FileAccessRestricted</div>
 <div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;  };</div>
 <div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;  <span class="keyword">enum class</span> ErasureCodingPolicyResponse {</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;      Ok,</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;      FileDoesNotExist</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;  };</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;  <span class="keyword">enum class</span> SetErasureCodingPolicyResponse {</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;      Ok,</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;      FileDoesNotExist,</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;      FailedZookeeperOp</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;  };</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html">ZkNnClient</a>(std::string zkIpAndAddress)</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;                        : <a class="code" href="classzkclient_1_1_zk_client_common.html">ZkClientCommon</a>(zkIpAndAddress),</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;                          cache(<span class="keyword">new</span> <a class="code" href="classlru_1_1_cache.html">lru::Cache</a>&lt;std::string,</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;                          std::shared_ptr&lt;GetListingResponseProto&gt;&gt;(64, 10)) {</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    mkdir_helper(<span class="stringliteral">&quot;/&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    populateDefaultECProto();</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;  }</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;</div>
-<div class="line"><a name="l00243"></a><span class="lineno"><a class="line" href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">  243</a></span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">ZkNnClient</a>(std::shared_ptr&lt;ZKWrapper&gt; zk_in,</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;                      <span class="keywordtype">bool</span> secureMode = <span class="keyword">false</span>)</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;                        : <a class="code" href="classzkclient_1_1_zk_client_common.html">ZkClientCommon</a>(zk_in),</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;                          cache(new lru::Cache&lt;std::string,</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;                          std::shared_ptr&lt;<a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a>&gt;&gt;(64, 10)) {</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    mkdir_helper(<span class="stringliteral">&quot;/&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    isSecureMode = secureMode;</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    populateDefaultECProto();</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;  }</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;  <span class="keywordtype">void</span> register_watches();</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  uint64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a0a8dccaa1132724035ab9b35aef62ba2">current_time_ms</a>();</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;  uint64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a8b9de71cb289ada93bfdf000ed4c7363">get_client_lease_timestamp</a>(std::string client_name);</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#adf852df8449c9b2a010e5956dc2ad5fd">renew_lease</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_renew_lease_request_proto.html">RenewLeaseRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;                   <a class="code" href="classhadoop_1_1hdfs_1_1_renew_lease_response_proto.html">RenewLeaseResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  <span class="keywordtype">void</span> recover_lease(<a class="code" href="classhadoop_1_1hdfs_1_1_recover_lease_request_proto.html">RecoverLeaseRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;                     <a class="code" href="classhadoop_1_1hdfs_1_1_recover_lease_response_proto.html">RecoverLeaseResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;  GetFileInfoResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc">get_info</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;                               <a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;                               std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;  CreateResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">create_file</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request,</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;                                         <a class="code" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response);</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">get_block_locations</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;                           <a class="code" href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">GetBlockLocationsResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;                           std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;  MkdirResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a66bd01188b9944806d448876d4ae01aa">mkdir</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;                      <a class="code" href="classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html">MkdirsResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;  DeleteResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a0dc06e5c87b6c1f81534ae7ba3170f60">destroy</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;                         <a class="code" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;                         std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a80e314df5a0a8c5dbb5b08b8f1cdeae4">complete</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;                <a class="code" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;                std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;  RenameResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995">rename</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;                        <a class="code" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;                        std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;  ListingResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a29d04704113e8401d0de4eddd63d9c01">get_listing</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;                              <a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;                              std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a7124eb90fcf8edb23d534a521daa3117">get_content</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;                   <a class="code" href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">GetContentSummaryResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;                   std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;</div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a451138e886e54f576db5a6da7f3d7cd3">set_file_info_content</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">ContentSummaryProto</a> *status,</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;                             <span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;                             <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data);</div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;  <span class="keywordtype">void</span> set_node_policy(<span class="keywordtype">char</span> policy);</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;  <span class="keywordtype">char</span> get_node_policy();</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;  <span class="keyword">enum class</span> ErasureCodingPoliciesResponse {</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;      Ok</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;  };</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;  <span class="keyword">enum class</span> ErasureCodingPolicyResponse {</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;      Ok,</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;      FileDoesNotExist</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;  };</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;  <span class="keyword">enum class</span> SetErasureCodingPolicyResponse {</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;      Ok,</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;      FileDoesNotExist,</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;      FailedZookeeperOp</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;  };</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html">ZkNnClient</a>(std::string zkIpAndAddress)</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;                        : <a class="code" href="classzkclient_1_1_zk_client_common.html">ZkClientCommon</a>(zkIpAndAddress),</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;                          cache(<span class="keyword">new</span> <a class="code" href="classlru_1_1_cache.html">lru::Cache</a>&lt;std::string,</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;                          std::shared_ptr&lt;GetListingResponseProto&gt;&gt;(64, 10)) {</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    mkdir_helper(<span class="stringliteral">&quot;/&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    populateDefaultECProto();</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;  }</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;</div>
+<div class="line"><a name="l00247"></a><span class="lineno"><a class="line" href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">  247</a></span>&#160;  <span class="keyword">explicit</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">ZkNnClient</a>(std::shared_ptr&lt;ZKWrapper&gt; zk_in,</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;                      <span class="keywordtype">bool</span> secureMode = <span class="keyword">false</span>)</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                        : <a class="code" href="classzkclient_1_1_zk_client_common.html">ZkClientCommon</a>(zk_in),</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;                          cache(new lru::Cache&lt;std::string,</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;                          std::shared_ptr&lt;<a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a>&gt;&gt;(64, 10)) {</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    mkdir_helper(<span class="stringliteral">&quot;/&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    isSecureMode = secureMode;</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    populateDefaultECProto();</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;  }</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  <span class="keywordtype">void</span> register_watches();</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;  uint64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a0a8dccaa1132724035ab9b35aef62ba2">current_time_ms</a>();</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  uint64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a8b9de71cb289ada93bfdf000ed4c7363">get_client_lease_timestamp</a>(std::string client_name);</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#adf852df8449c9b2a010e5956dc2ad5fd">renew_lease</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_renew_lease_request_proto.html">RenewLeaseRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;                   <a class="code" href="classhadoop_1_1hdfs_1_1_renew_lease_response_proto.html">RenewLeaseResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  <span class="keywordtype">void</span> recover_lease(<a class="code" href="classhadoop_1_1hdfs_1_1_recover_lease_request_proto.html">RecoverLeaseRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;                     <a class="code" href="classhadoop_1_1hdfs_1_1_recover_lease_response_proto.html">RecoverLeaseResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;  GetFileInfoResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc">get_info</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;                               <a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">GetFileInfoResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;                               std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;  CreateResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">create_file</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> &amp;request,</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;                                         <a class="code" href="classhadoop_1_1hdfs_1_1_create_response_proto.html">CreateResponseProto</a> &amp;response);</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">get_block_locations</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;                           <a class="code" href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">GetBlockLocationsResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;                           std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;  MkdirResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a66bd01188b9944806d448876d4ae01aa">mkdir</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;                      <a class="code" href="classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html">MkdirsResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;  DeleteResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a0dc06e5c87b6c1f81534ae7ba3170f60">destroy</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">DeleteRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;                         <a class="code" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;                         std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a80e314df5a0a8c5dbb5b08b8f1cdeae4">complete</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;                <a class="code" href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">CompleteResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;                std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;  RenameResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995">rename</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;                        <a class="code" href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">RenameResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;                        std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;  ListingResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a29d04704113e8401d0de4eddd63d9c01">get_listing</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;                              <a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">GetListingResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;                              std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a7124eb90fcf8edb23d534a521daa3117">get_content</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;                   <a class="code" href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">GetContentSummaryResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;                   std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a451138e886e54f576db5a6da7f3d7cd3">set_file_info_content</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">ContentSummaryProto</a> *status,</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;                             <span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;                             <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data);</div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;</div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;  ErasureCodingPoliciesResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a44856670a141e5291e1692664e9dc059">get_erasure_coding_policies</a>(</div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_request_proto.html">GetErasureCodingPoliciesRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_response_proto.html">GetErasureCodingPoliciesResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;</div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;  ErasureCodingPolicyResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a5e0975d25d25bc2f286bb297902c8579">get_erasure_coding_policy_of_path</a>(</div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_request_proto.html">GetErasureCodingPolicyRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_response_proto.html">GetErasureCodingPolicyResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;  SetErasureCodingPolicyResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#abad5abba35376fd55d4df0d0d83e6010">set_erasure_coding_policy_of_path</a>(</div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_request_proto.html">SetErasureCodingPolicyRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_response_proto.html">SetErasureCodingPolicyResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment">//  bool modifyAclEntries(ModifyAclEntriesRequestProto req,</span></div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment">//                        ModifyAclEntriesResponseProto res);</span></div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment"></span>  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8">set_permission</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">SetPermissionRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;                      <a class="code" href="classhadoop_1_1hdfs_1_1_set_permission_response_proto.html">SetPermissionResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;</div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">set_owner</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;                 <a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;                 std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">add_block</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">AddBlockRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;                 <a class="code" href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">AddBlockResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;                 std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;  <span class="comment">/*</span></div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment">   * Sets the owner of the file.</span></div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">   * @param req SetOwnerRequestProto</span></div>
-<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;<span class="comment">   * @param res SetOwnerResponseProto</span></div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;<span class="comment">   * @return boolean indicating whether operation succeeded or not</span></div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment">   */</span></div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">set_owner</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req, <a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res);</div>
-<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;</div>
-<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">add_block</a>(<span class="keyword">const</span> std::string &amp;fileName,</div>
-<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;                 u_int64_t &amp;block_id,</div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;                 std::vector&lt;std::string&gt; &amp;dataNodes,</div>
-<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;                 uint32_t replication_factor);</div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;</div>
-<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ac5798896390890ab4646affcbf4f58a1">add_block_group</a>(<span class="keyword">const</span> std::string &amp;filePath,</div>
-<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;                       u_int64_t &amp;block_group_id,</div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;                       std::vector&lt;std::string&gt; &amp;dataNodes,</div>
-<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;                       std::vector&lt;char&gt; &amp;blockIndices,</div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;                       uint32_t total_num_storage_blocks);</div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;</div>
-<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;  uint32_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a2179be9a98e824e407006b87c69b5c33">get_total_num_storage_blocks</a>(</div>
-<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;          <span class="keyword">const</span> std::string &amp;fileName,</div>
-<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;          u_int64_t &amp;block_group_id);</div>
-<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;</div>
-<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#aed7030e0bc4c4d154ad622b93f3c698f">generate_storage_block_id</a>(</div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;          uint64_t block_group_id,</div>
-<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;          uint64_t index_within_group);</div>
-<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#aca59af943b99fb48a9be62d36466308c">generate_block_group_id</a>();</div>
-<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;</div>
-<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#abd57a5cb8c600a7ca2c9c702e6c847fa">get_block_group_id</a>(u_int64_t storage_block_id);</div>
-<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;</div>
-<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a7b136663dbb9cc41af0ad1c51528bef1">get_index_within_block_group</a>(u_int64_t storage_block_id);</div>
-<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;</div>
-<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a2e22f5b3c250bbf9cf69b3364f2dfb05">abandon_block</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> &amp;req,</div>
-<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;                     <a class="code" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;res,</div>
-<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;                     std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;</div>
-<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;  <span class="keywordtype">bool</span> previousBlockComplete(uint64_t prev_id);</div>
-<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a11c08c24c2a199ab29c0bb0836f25c88">file_exists</a>(<span class="keyword">const</span> std::string &amp;path);</div>
-<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;</div>
-<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#af24e553e280ac12fc2772019a45379e0">get_block_size</a>(<span class="keyword">const</span> u_int64_t &amp;block_id, uint64_t &amp;blocksize);</div>
-<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;</div>
-<div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160;  <span class="comment">// this is public because we have not member functions in this file</span></div>
-<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
-<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;</div>
-<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;  <span class="keywordtype">bool</span> find_live_datanodes(<span class="keyword">const</span> uint64_t blockId, <span class="keywordtype">int</span> error_code,</div>
-<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;                           std::vector&lt;std::string&gt; &amp;live_data_nodes);</div>
-<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;</div>
-<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;  <span class="keywordtype">bool</span> find_datanode_for_block(std::vector&lt;std::string&gt; &amp;datanodes,</div>
-<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;                                        std::vector&lt;std::string&gt; &amp;excluded_dns,</div>
-<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;                                         <span class="keyword">const</span> u_int64_t blockId,</div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;                                         uint32_t replication_factor,</div>
-<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;                                         uint64_t blocksize);</div>
-<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;</div>
-<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;  <span class="keywordtype">bool</span> find_all_datanodes_with_block(<span class="keyword">const</span> uint64_t &amp;block_uuid,</div>
-<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;                                     std::vector&lt;std::string&gt; &amp;rdatanodes,</div>
-<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;                                     <span class="keywordtype">int</span> &amp;error_code);</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;  <span class="keywordtype">void</span> set_node_policy(<span class="keywordtype">char</span> policy);</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;  <span class="keywordtype">char</span> get_node_policy();</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;  ErasureCodingPoliciesResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a44856670a141e5291e1692664e9dc059">get_erasure_coding_policies</a>(</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_request_proto.html">GetErasureCodingPoliciesRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_response_proto.html">GetErasureCodingPoliciesResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;  ErasureCodingPolicyResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#a5e0975d25d25bc2f286bb297902c8579">get_erasure_coding_policy_of_path</a>(</div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_request_proto.html">GetErasureCodingPolicyRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_response_proto.html">GetErasureCodingPolicyResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;  SetErasureCodingPolicyResponse <a class="code" href="classzkclient_1_1_zk_nn_client.html#abad5abba35376fd55d4df0d0d83e6010">set_erasure_coding_policy_of_path</a>(</div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_request_proto.html">SetErasureCodingPolicyRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;      <a class="code" href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_response_proto.html">SetErasureCodingPolicyResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment">//  bool modifyAclEntries(ModifyAclEntriesRequestProto req,</span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment">//                        ModifyAclEntriesResponseProto res);</span></div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment"></span>  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8">set_permission</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">SetPermissionRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;                      <a class="code" href="classhadoop_1_1hdfs_1_1_set_permission_response_proto.html">SetPermissionResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;</div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">set_owner</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;                 <a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;                 std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">add_block</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">AddBlockRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;                 <a class="code" href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">AddBlockResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;                 std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;  <span class="comment">/*</span></div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment">   * Sets the owner of the file.</span></div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">   * @param req SetOwnerRequestProto</span></div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="comment">   * @param res SetOwnerResponseProto</span></div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="comment">   * @return boolean indicating whether operation succeeded or not</span></div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="comment">   */</span></div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">set_owner</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> &amp;req, <a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">SetOwnerResponseProto</a> &amp;res);</div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;</div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">add_block</a>(<span class="keyword">const</span> std::string &amp;fileName,</div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;                 u_int64_t &amp;block_id,</div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;                 std::vector&lt;std::string&gt; &amp;dataNodes,</div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;                 uint32_t replication_factor);</div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;</div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ac5798896390890ab4646affcbf4f58a1">add_block_group</a>(<span class="keyword">const</span> std::string &amp;filePath,</div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;                       u_int64_t &amp;block_group_id,</div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;                       std::vector&lt;std::string&gt; &amp;dataNodes,</div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;                       std::vector&lt;char&gt; &amp;blockIndices,</div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;                       uint32_t total_num_storage_blocks);</div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;</div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;  uint32_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a2179be9a98e824e407006b87c69b5c33">get_total_num_storage_blocks</a>(</div>
+<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;          <span class="keyword">const</span> std::string &amp;fileName,</div>
+<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;          u_int64_t &amp;block_group_id);</div>
+<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#aed7030e0bc4c4d154ad622b93f3c698f">generate_storage_block_id</a>(</div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;          uint64_t block_group_id,</div>
+<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;          uint64_t index_within_group);</div>
+<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#aca59af943b99fb48a9be62d36466308c">generate_block_group_id</a>();</div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;</div>
+<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#abd57a5cb8c600a7ca2c9c702e6c847fa">get_block_group_id</a>(u_int64_t storage_block_id);</div>
+<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;</div>
+<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;  u_int64_t <a class="code" href="classzkclient_1_1_zk_nn_client.html#a7b136663dbb9cc41af0ad1c51528bef1">get_index_within_block_group</a>(u_int64_t storage_block_id);</div>
+<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;</div>
+<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a2e22f5b3c250bbf9cf69b3364f2dfb05">abandon_block</a>(<a class="code" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> &amp;req,</div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;                     <a class="code" href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">AbandonBlockResponseProto</a> &amp;res,</div>
+<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;                     std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;</div>
+<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;  <span class="keywordtype">bool</span> previousBlockComplete(uint64_t prev_id);</div>
+<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a11c08c24c2a199ab29c0bb0836f25c88">file_exists</a>(<span class="keyword">const</span> std::string &amp;path);</div>
+<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;</div>
+<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#af24e553e280ac12fc2772019a45379e0">get_block_size</a>(<span class="keyword">const</span> u_int64_t &amp;block_id, uint64_t &amp;blocksize);</div>
+<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;</div>
+<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;  <span class="comment">// this is public because we have not member functions in this file</span></div>
+<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;  <span class="keyword">static</span> <span class="keyword">const</span> std::string CLASS_NAME;</div>
+<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;</div>
+<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;  <span class="keywordtype">bool</span> find_live_datanodes(<span class="keyword">const</span> uint64_t blockId, <span class="keywordtype">int</span> error_code,</div>
+<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;                           std::vector&lt;std::string&gt; &amp;live_data_nodes);</div>
+<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;</div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;  <span class="keywordtype">bool</span> find_datanode_for_block(std::vector&lt;std::string&gt; &amp;datanodes,</div>
+<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;                                        std::vector&lt;std::string&gt; &amp;excluded_dns,</div>
+<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;                                         <span class="keyword">const</span> u_int64_t blockId,</div>
+<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;                                         uint32_t replication_factor,</div>
+<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;                                         uint64_t blocksize);</div>
 <div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;</div>
-<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a88e442620389be579800e80523ccfcef">rename_ops_for_file</a>(<span class="keyword">const</span> std::string &amp;src, <span class="keyword">const</span> std::string &amp;dst,</div>
-<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;                           std::vector&lt;std::shared_ptr&lt;ZooOp&gt;&gt; &amp;ops);</div>
-<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;  <span class="keywordtype">bool</span> rename_ops_for_dir(<span class="keyword">const</span> std::string &amp;src, <span class="keyword">const</span> std::string &amp;dst,</div>
-<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;                          std::vector&lt;std::shared_ptr&lt;ZooOp&gt;&gt; &amp;ops);</div>
-<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;</div>
-<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a31e5a62778562a2b2ea1a8546d31b658">check_acks</a>();</div>
-<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;</div>
-<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;  <span class="comment">// get locations given src, offset, and length</span></div>
-<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">get_block_locations</a>(<span class="keyword">const</span> std::string &amp;src,</div>
-<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;                           google::protobuf::uint64 offset,</div>
-<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;                           google::protobuf::uint64 length,</div>
-<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;                           <a class="code" href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">LocatedBlocksProto</a> *blocks,</div>
-<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;                           std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
-<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;</div>
-<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">read_file_znode</a>(<a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data, <span class="keyword">const</span> std::string &amp;path);</div>
-<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;</div>
-<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;  <span class="keywordtype">bool</span> cache_contains(<span class="keyword">const</span> std::string &amp;path);</div>
-<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;</div>
-<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;  <span class="keywordtype">int</span> cache_size();</div>
+<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;  <span class="keywordtype">bool</span> find_all_datanodes_with_block(<span class="keyword">const</span> uint64_t &amp;block_uuid,</div>
+<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;                                     std::vector&lt;std::string&gt; &amp;rdatanodes,</div>
+<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;                                     <span class="keywordtype">int</span> &amp;error_code);</div>
+<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;</div>
+<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a88e442620389be579800e80523ccfcef">rename_ops_for_file</a>(<span class="keyword">const</span> std::string &amp;src, <span class="keyword">const</span> std::string &amp;dst,</div>
+<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;                           std::vector&lt;std::shared_ptr&lt;ZooOp&gt;&gt; &amp;ops);</div>
+<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;  <span class="keywordtype">bool</span> rename_ops_for_dir(<span class="keyword">const</span> std::string &amp;src, <span class="keyword">const</span> std::string &amp;dst,</div>
+<div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;                          std::vector&lt;std::shared_ptr&lt;ZooOp&gt;&gt; &amp;ops);</div>
+<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;</div>
+<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#a31e5a62778562a2b2ea1a8546d31b658">check_acks</a>();</div>
+<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;</div>
+<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;  <span class="comment">// get locations given src, offset, and length</span></div>
+<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">get_block_locations</a>(<span class="keyword">const</span> std::string &amp;src,</div>
+<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;                           google::protobuf::uint64 offset,</div>
+<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;                           google::protobuf::uint64 length,</div>
+<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;                           <a class="code" href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">LocatedBlocksProto</a> *blocks,</div>
+<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;                           std::string client_name = <span class="stringliteral">&quot;default&quot;</span>);</div>
+<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;</div>
+<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">read_file_znode</a>(<a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data, <span class="keyword">const</span> std::string &amp;path);</div>
 <div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;</div>
-<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;  <span class="keywordtype">bool</span> sort_by_xmits(<span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;unsorted_dn_ids,</div>
-<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;                     std::vector&lt;std::string&gt; &amp;sorted_dn_ids);</div>
-<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;</div>
-<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;  <span class="keywordtype">void</span> set_file_info(<a class="code" href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">HdfsFileStatusProto</a> *fs,</div>
-<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;                     <span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;                     <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;node);</div>
-<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;  std::string ClientZookeeperPath(<span class="keyword">const</span> std::string &amp; clientname);</div>
-<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;  std::string LeaseZookeeperPath(<span class="keyword">const</span> std::string &amp; hadoopPath);</div>
-<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;</div>
-<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;  std::string ZookeeperBlocksPath(<span class="keyword">const</span> std::string &amp;hadoopPath);</div>
-<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;</div>
-<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;  std::string ZookeeperFilePath(<span class="keyword">const</span> std::string &amp;hadoopPath);</div>
-<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;</div>
-<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;  <a class="code" href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a> config;</div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;  <span class="keywordtype">bool</span> cache_contains(<span class="keyword">const</span> std::string &amp;path);</div>
+<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;</div>
+<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;  <span class="keywordtype">int</span> cache_size();</div>
+<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;</div>
+<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;  std::string <a class="code" href="classzkclient_1_1_zk_nn_client.html#a2acb25219c0d07a38b24141a8fa6d8c4">find_parent</a>(<span class="keyword">const</span> std::string &amp;path);</div>
+<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;</div>
+<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;  <span class="keywordtype">bool</span> sort_by_xmits(<span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;unsorted_dn_ids,</div>
+<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;                     std::vector&lt;std::string&gt; &amp;sorted_dn_ids);</div>
+<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;</div>
+<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;  <span class="keywordtype">void</span> set_file_info(<a class="code" href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">HdfsFileStatusProto</a> *fs,</div>
+<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;                     <span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;                     <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;node);</div>
+<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;  std::string ClientZookeeperPath(<span class="keyword">const</span> std::string &amp; clientname);</div>
+<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;  std::string LeaseZookeeperPath(<span class="keyword">const</span> std::string &amp; hadoopPath);</div>
+<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;</div>
+<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;  std::string ZookeeperBlocksPath(<span class="keyword">const</span> std::string &amp;hadoopPath);</div>
 <div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;</div>
-<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;  <span class="keywordtype">bool</span> create_file_znode(<span class="keyword">const</span> std::string &amp;path, <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> *znode_data);</div>
+<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;  std::string ZookeeperFilePath(<span class="keyword">const</span> std::string &amp;hadoopPath);</div>
 <div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;</div>
-<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;  <span class="keywordtype">void</span> set_mkdir_znode(<a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> *znode_data);</div>
-<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;  MkdirResponse mkdir_helper(<span class="keyword">const</span> std::string &amp;path, <span class="keywordtype">bool</span> create_parent);</div>
+<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;  <a class="code" href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a> config;</div>
+<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;</div>
+<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;  <span class="keywordtype">bool</span> create_file_znode(<span class="keyword">const</span> std::string &amp;path, <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> *znode_data);</div>
 <div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;</div>
-<div class="line"><a name="l00632"></a><span class="lineno">  632</span>&#160;  <span class="keywordtype">void</span> file_znode_struct_to_vec(<a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> *znode_data,</div>
-<div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160;                                std::vector&lt;std::uint8_t&gt; &amp;data);</div>
-<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> T&gt;</div>
-<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;  <span class="keywordtype">void</span> znode_data_to_vec(T *znode_data, std::vector&lt;std::uint8_t&gt; &amp;data);</div>
-<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> T&gt;</div>
-<div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;  <span class="keywordtype">void</span> read_znode_data(T &amp;znode_data, <span class="keyword">const</span> std::string &amp;path);</div>
-<div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;</div>
-<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;  <span class="keywordtype">void</span> delete_node_wrapper(std::string &amp;path, <a class="code" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;response);</div>
-<div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;</div>
-<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;  DeleteResponse destroy_helper(<span class="keyword">const</span> std::string &amp;path,</div>
-<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;                      std::vector&lt;std::shared_ptr&lt;ZooOp&gt;&gt; &amp;ops);</div>
-<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;  <span class="keywordtype">bool</span> recover_ec_blocks(<span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;to_ec_recover,</div>
-<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;                        <span class="keywordtype">int</span> error_code);</div>
-<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;</div>
+<div class="line"><a name="l00632"></a><span class="lineno">  632</span>&#160;  <span class="keywordtype">void</span> set_mkdir_znode(<a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> *znode_data);</div>
+<div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;  MkdirResponse mkdir_helper(<span class="keyword">const</span> std::string &amp;path, <span class="keywordtype">bool</span> create_parent);</div>
+<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;</div>
+<div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;  <span class="keywordtype">void</span> file_znode_struct_to_vec(<a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> *znode_data,</div>
+<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;                                std::vector&lt;std::uint8_t&gt; &amp;data);</div>
+<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> T&gt;</div>
+<div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160;  <span class="keywordtype">void</span> znode_data_to_vec(T *znode_data, std::vector&lt;std::uint8_t&gt; &amp;data);</div>
+<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> T&gt;</div>
+<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;  <span class="keywordtype">void</span> read_znode_data(T &amp;znode_data, <span class="keyword">const</span> std::string &amp;path);</div>
+<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;</div>
+<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;  <span class="keywordtype">void</span> delete_node_wrapper(std::string &amp;path, <a class="code" href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">DeleteResponseProto</a> &amp;response);</div>
 <div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;</div>
-<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;  <span class="keywordtype">bool</span> replicate_blocks(<span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;to_replicate,</div>
-<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;                        <span class="keywordtype">int</span> error_code);</div>
-<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;</div>
-<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;  <span class="keywordtype">int</span> ms_since_creation(std::string &amp;path);</div>
-<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;</div>
-<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;  <span class="comment">// bool updateLocatedBlockProto(LocatedBlockProto* location,</span></div>
-<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160;  <span class="comment">//                              uint64_t block_id);</span></div>
-<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;</div>
-<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;  <span class="keywordtype">bool</span> buildDatanodeInfoProto(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">DatanodeInfoProto</a> *dn_info,</div>
-<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;                              <span class="keyword">const</span> std::string &amp;data_node);</div>
-<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;</div>
-<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;  <span class="keywordtype">bool</span> buildTokenProto(<a class="code" href="classhadoop_1_1common_1_1_token_proto.html">hadoop::common::TokenProto</a> *token);</div>
-<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;</div>
-<div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;  <span class="keywordtype">bool</span> buildExtendedBlockProto(<a class="code" href="classhadoop_1_1hdfs_1_1_extended_block_proto.html">ExtendedBlockProto</a> *eb,</div>
-<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;                               <span class="keyword">const</span> std::uint64_t &amp;block_id,</div>
-<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;                               <span class="keyword">const</span> uint64_t &amp;block_size);</div>
-<div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;</div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> watcher_health(zhandle_t *zzh, <span class="keywordtype">int</span> type, <span class="keywordtype">int</span> state,</div>
-<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;                             <span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keywordtype">void</span> *watcherCtx);</div>
-<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;</div>
-<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> watcher_health_child(zhandle_t *zzh, <span class="keywordtype">int</span> type, <span class="keywordtype">int</span> state,</div>
-<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;                                   <span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keywordtype">void</span> *watcherCtx);</div>
-<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;</div>
-<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> watcher_listing(zhandle_t *zzh, <span class="keywordtype">int</span> type, <span class="keywordtype">int</span> state,</div>
-<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;                              <span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keywordtype">void</span> *watcherCtx);</div>
-<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;</div>
-<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;  <span class="keywordtype">bool</span> lease_expired(std::string lease_holder_client);</div>
-<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;</div>
-<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;  <span class="keywordtype">bool</span> blockDeleted(uint64_t uuid, std::string <span class="keywordtype">id</span>);</div>
-<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;</div>
-<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;  <span class="keywordtype">void</span> populateDefaultECProto();</div>
-<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;</div>
-<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;  <span class="keywordtype">bool</span> checkAccess(std::string username, <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data);</div>
-<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;</div>
-<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> UNDER_CONSTRUCTION = 1;</div>
-<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> FILE_COMPLETE = 0;</div>
-<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> UNDER_DESTRUCTION = 2;</div>
-<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;</div>
-<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> IS_FILE = 2;</div>
-<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> IS_DIR = 1;</div>
-<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;  <span class="comment">// TODO(2016): Should eventually be read from a conf file</span></div>
-<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;  <span class="comment">// in millisecons, 10 minute timeout when waiting for</span></div>
-<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;  <span class="comment">// replication acknowledgements</span></div>
-<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> ACK_TIMEOUT = 600000;</div>
+<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;  DeleteResponse destroy_helper(<span class="keyword">const</span> std::string &amp;path,</div>
+<div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160;                      std::vector&lt;std::shared_ptr&lt;ZooOp&gt;&gt; &amp;ops);</div>
+<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;  <span class="keywordtype">bool</span> recover_ec_blocks(<span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;to_ec_recover,</div>
+<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;                        <span class="keywordtype">int</span> error_code);</div>
+<div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;</div>
+<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;</div>
+<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;  <span class="keywordtype">bool</span> replicate_blocks(<span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;to_replicate,</div>
+<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;                        <span class="keywordtype">int</span> error_code);</div>
+<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160;</div>
+<div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;  <span class="keywordtype">int</span> ms_since_creation(std::string &amp;path);</div>
+<div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;</div>
+<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;  <span class="comment">// bool updateLocatedBlockProto(LocatedBlockProto* location,</span></div>
+<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;  <span class="comment">//                              uint64_t block_id);</span></div>
+<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;</div>
+<div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;  <span class="keywordtype">bool</span> buildDatanodeInfoProto(<a class="code" href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">DatanodeInfoProto</a> *dn_info,</div>
+<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;                              <span class="keyword">const</span> std::string &amp;data_node);</div>
+<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;</div>
+<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;  <span class="keywordtype">bool</span> buildTokenProto(<a class="code" href="classhadoop_1_1common_1_1_token_proto.html">hadoop::common::TokenProto</a> *token);</div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;</div>
+<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;  <span class="keywordtype">bool</span> buildExtendedBlockProto(<a class="code" href="classhadoop_1_1hdfs_1_1_extended_block_proto.html">ExtendedBlockProto</a> *eb,</div>
+<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;                               <span class="keyword">const</span> std::uint64_t &amp;block_id,</div>
+<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;                               <span class="keyword">const</span> uint64_t &amp;block_size);</div>
+<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;</div>
+<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> watcher_health(zhandle_t *zzh, <span class="keywordtype">int</span> type, <span class="keywordtype">int</span> state,</div>
+<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;                             <span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keywordtype">void</span> *watcherCtx);</div>
+<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;</div>
+<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> watcher_health_child(zhandle_t *zzh, <span class="keywordtype">int</span> type, <span class="keywordtype">int</span> state,</div>
+<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;                                   <span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keywordtype">void</span> *watcherCtx);</div>
+<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;</div>
+<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> watcher_listing(zhandle_t *zzh, <span class="keywordtype">int</span> type, <span class="keywordtype">int</span> state,</div>
+<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;                              <span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keywordtype">void</span> *watcherCtx);</div>
+<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;</div>
+<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;  <span class="keywordtype">bool</span> lease_expired(std::string lease_holder_client);</div>
+<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;</div>
+<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;  <span class="keywordtype">bool</span> blockDeleted(uint64_t uuid, std::string <span class="keywordtype">id</span>);</div>
+<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;</div>
+<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;  <span class="keywordtype">void</span> populateDefaultECProto();</div>
+<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;</div>
+<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;  <span class="keywordtype">bool</span> checkAccess(std::string username, <a class="code" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data);</div>
 <div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;</div>
-<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;  <span class="comment">// Boolean indicating whether zk_nn is in secure mode</span></div>
-<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;  <span class="keywordtype">bool</span> isSecureMode = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;  <span class="keyword">const</span> uint64_t EXPIRATION_TIME =</div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;    2 * 60 * 60 * 1000;  <span class="comment">// 2 hours in milliseconds.</span></div>
-<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;</div>
-<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;  <a class="code" href="classlru_1_1_cache.html">lru::Cache&lt;std::string, std::shared_ptr&lt;GetListingResponseProto&gt;</a>&gt; *cache;</div>
-<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;};</div>
-<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;</div>
-<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;}  <span class="comment">// namespace zkclient</span></div>
-<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;</div>
-<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;<span class="preprocessor">#endif  // ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_</span></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a8b9de71cb289ada93bfdf000ed4c7363"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a8b9de71cb289ada93bfdf000ed4c7363">zkclient::ZkNnClient::get_client_lease_timestamp</a></div><div class="ttdeci">uint64_t get_client_lease_timestamp(std::string client_name)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2768</div></div>
+<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> UNDER_CONSTRUCTION = 1;</div>
+<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> FILE_COMPLETE = 0;</div>
+<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> UNDER_DESTRUCTION = 2;</div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;</div>
+<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> IS_FILE = 2;</div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> IS_DIR = 1;</div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;  <span class="comment">// TODO(2016): Should eventually be read from a conf file</span></div>
+<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;  <span class="comment">// in millisecons, 10 minute timeout when waiting for</span></div>
+<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;  <span class="comment">// replication acknowledgements</span></div>
+<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> ACK_TIMEOUT = 600000;</div>
+<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;</div>
+<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;  <span class="comment">// Boolean indicating whether zk_nn is in secure mode</span></div>
+<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;  <span class="keywordtype">bool</span> isSecureMode = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;  <span class="keyword">const</span> uint64_t EXPIRATION_TIME =</div>
+<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;    2 * 60 * 60 * 1000;  <span class="comment">// 2 hours in milliseconds.</span></div>
+<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;</div>
+<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;  <a class="code" href="classlru_1_1_cache.html">lru::Cache&lt;std::string, std::shared_ptr&lt;GetListingResponseProto&gt;</a>&gt; *cache;</div>
+<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;};</div>
+<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;</div>
+<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;}  <span class="comment">// namespace zkclient</span></div>
+<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;</div>
+<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;<span class="preprocessor">#endif  // ZOOKEEPER_INCLUDE_ZK_NN_CLIENT_H_</span></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a8b9de71cb289ada93bfdf000ed4c7363"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a8b9de71cb289ada93bfdf000ed4c7363">zkclient::ZkNnClient::get_client_lease_timestamp</a></div><div class="ttdeci">uint64_t get_client_lease_timestamp(std::string client_name)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2906</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_listing_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">hadoop::hdfs::GetListingResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4767</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_delete_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">hadoop::hdfs::DeleteResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4337</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a80e314df5a0a8c5dbb5b08b8f1cdeae4"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a80e314df5a0a8c5dbb5b08b8f1cdeae4">zkclient::ZkNnClient::complete</a></div><div class="ttdeci">void complete(CompleteRequestProto &amp;req, CompleteResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:984</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a80e314df5a0a8c5dbb5b08b8f1cdeae4"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a80e314df5a0a8c5dbb5b08b8f1cdeae4">zkclient::ZkNnClient::complete</a></div><div class="ttdeci">void complete(CompleteRequestProto &amp;req, CompleteResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1049</div></div>
 <div class="ttc" id="classlru_1_1_cache_html"><div class="ttname"><a href="classlru_1_1_cache.html">lru::Cache</a></div><div class="ttdef"><b>Definition:</b> LRUCache.h:209</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_block_locations_response_proto.html">hadoop::hdfs::GetBlockLocationsResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:415</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abe8703a3f1897ec67bf8253b22b13437"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">zkclient::ZkNnClient::add_block</a></div><div class="ttdeci">bool add_block(AddBlockRequestProto &amp;req, AddBlockResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:557</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abe8703a3f1897ec67bf8253b22b13437"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abe8703a3f1897ec67bf8253b22b13437">zkclient::ZkNnClient::add_block</a></div><div class="ttdeci">bool add_block(AddBlockRequestProto &amp;req, AddBlockResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:590</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_set_owner_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_set_owner_response_proto.html">hadoop::hdfs::SetOwnerResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2128</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_renew_lease_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_renew_lease_response_proto.html">hadoop::hdfs::RenewLeaseResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:5364</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a5e0975d25d25bc2f286bb297902c8579"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a5e0975d25d25bc2f286bb297902c8579">zkclient::ZkNnClient::get_erasure_coding_policy_of_path</a></div><div class="ttdeci">ErasureCodingPolicyResponse get_erasure_coding_policy_of_path(GetErasureCodingPolicyRequestProto &amp;req, GetErasureCodingPolicyResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1647</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a5e0975d25d25bc2f286bb297902c8579"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a5e0975d25d25bc2f286bb297902c8579">zkclient::ZkNnClient::get_erasure_coding_policy_of_path</a></div><div class="ttdeci">ErasureCodingPolicyResponse get_erasure_coding_policy_of_path(GetErasureCodingPolicyRequestProto &amp;req, GetErasureCodingPolicyResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1770</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_file_info_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_file_info_response_proto.html">hadoop::hdfs::GetFileInfoResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:8436</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_set_permission_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_set_permission_response_proto.html">hadoop::hdfs::SetPermissionResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:1917</div></div>
 <div class="ttc" id="classzkclient_1_1_zk_client_common_html"><div class="ttname"><a href="classzkclient_1_1_zk_client_common.html">zkclient::ZkClientCommon</a></div><div class="ttdef"><b>Definition:</b> zk_client_common.h:14</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_renew_lease_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_renew_lease_request_proto.html">hadoop::hdfs::RenewLeaseRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:5266</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a88e442620389be579800e80523ccfcef"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a88e442620389be579800e80523ccfcef">zkclient::ZkNnClient::rename_ops_for_file</a></div><div class="ttdeci">bool rename_ops_for_file(const std::string &amp;src, const std::string &amp;dst, std::vector&lt; std::shared_ptr&lt; ZooOp &gt;&gt; &amp;ops)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2243</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_aed7030e0bc4c4d154ad622b93f3c698f"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#aed7030e0bc4c4d154ad622b93f3c698f">zkclient::ZkNnClient::generate_storage_block_id</a></div><div class="ttdeci">u_int64_t generate_storage_block_id(uint64_t block_group_id, uint64_t index_within_group)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2064</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a88e442620389be579800e80523ccfcef"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a88e442620389be579800e80523ccfcef">zkclient::ZkNnClient::rename_ops_for_file</a></div><div class="ttdeci">bool rename_ops_for_file(const std::string &amp;src, const std::string &amp;dst, std::vector&lt; std::shared_ptr&lt; ZooOp &gt;&gt; &amp;ops)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2380</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_aed7030e0bc4c4d154ad622b93f3c698f"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#aed7030e0bc4c4d154ad622b93f3c698f">zkclient::ZkNnClient::generate_storage_block_id</a></div><div class="ttdeci">u_int64_t generate_storage_block_id(uint64_t block_group_id, uint64_t index_within_group)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2201</div></div>
 <div class="ttc" id="structzkclient_1_1_client_info_html"><div class="ttname"><a href="structzkclient_1_1_client_info.html">zkclient::ClientInfo</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:68</div></div>
 <div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a2179be9a98e824e407006b87c69b5c33"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a2179be9a98e824e407006b87c69b5c33">zkclient::ZkNnClient::get_total_num_storage_blocks</a></div><div class="ttdeci">uint32_t get_total_num_storage_blocks(const std::string &amp;fileName, u_int64_t &amp;block_group_id)</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a2e22f5b3c250bbf9cf69b3364f2dfb05"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a2e22f5b3c250bbf9cf69b3364f2dfb05">zkclient::ZkNnClient::abandon_block</a></div><div class="ttdeci">bool abandon_block(AbandonBlockRequestProto &amp;req, AbandonBlockResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:668</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a2e22f5b3c250bbf9cf69b3364f2dfb05"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a2e22f5b3c250bbf9cf69b3364f2dfb05">zkclient::ZkNnClient::abandon_block</a></div><div class="ttdeci">bool abandon_block(AbandonBlockRequestProto &amp;req, AbandonBlockResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:702</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_recover_lease_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_recover_lease_response_proto.html">hadoop::hdfs::RecoverLeaseResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:5563</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_content_summary_response_proto.html">hadoop::hdfs::GetContentSummaryResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:11431</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_set_owner_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">hadoop::hdfs::SetOwnerRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2000</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ab748bba0d243ab0da935593a630159c6"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">zkclient::ZkNnClient::ZkNnClient</a></div><div class="ttdeci">ZkNnClient(std::shared_ptr&lt; ZKWrapper &gt; zk_in, bool secureMode=false)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:243</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ab748bba0d243ab0da935593a630159c6"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ab748bba0d243ab0da935593a630159c6">zkclient::ZkNnClient::ZkNnClient</a></div><div class="ttdeci">ZkNnClient(std::shared_ptr&lt; ZKWrapper &gt; zk_in, bool secureMode=false)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:247</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_add_block_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">hadoop::hdfs::AddBlockRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2432</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abd57a5cb8c600a7ca2c9c702e6c847fa"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abd57a5cb8c600a7ca2c9c702e6c847fa">zkclient::ZkNnClient::get_block_group_id</a></div><div class="ttdeci">u_int64_t get_block_group_id(u_int64_t storage_block_id)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2082</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abd57a5cb8c600a7ca2c9c702e6c847fa"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abd57a5cb8c600a7ca2c9c702e6c847fa">zkclient::ZkNnClient::get_block_group_id</a></div><div class="ttdeci">u_int64_t get_block_group_id(u_int64_t storage_block_id)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2219</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_abandon_block_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">hadoop::hdfs::AbandonBlockRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2211</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_set_permission_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">hadoop::hdfs::SetPermissionRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:1804</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_content_summary_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_content_summary_proto.html">hadoop::hdfs::ContentSummaryProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:1380</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a11c08c24c2a199ab29c0bb0836f25c88"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a11c08c24c2a199ab29c0bb0836f25c88">zkclient::ZkNnClient::file_exists</a></div><div class="ttdeci">bool file_exists(const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:309</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a11c08c24c2a199ab29c0bb0836f25c88"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a11c08c24c2a199ab29c0bb0836f25c88">zkclient::ZkNnClient::file_exists</a></div><div class="ttdeci">bool file_exists(const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:314</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_hdfs_file_status_proto.html">hadoop::hdfs::HdfsFileStatusProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3859</div></div>
 <div class="ttc" id="classconfig__reader_1_1_config_reader_html"><div class="ttname"><a href="classconfig__reader_1_1_config_reader.html">config_reader::ConfigReader</a></div><div class="ttdef"><b>Definition:</b> ConfigReader.h:18</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_aca59af943b99fb48a9be62d36466308c"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#aca59af943b99fb48a9be62d36466308c">zkclient::ZkNnClient::generate_block_group_id</a></div><div class="ttdeci">u_int64_t generate_block_group_id()</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2074</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_aca59af943b99fb48a9be62d36466308c"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#aca59af943b99fb48a9be62d36466308c">zkclient::ZkNnClient::generate_block_group_id</a></div><div class="ttdeci">u_int64_t generate_block_group_id()</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2211</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_request_proto.html">hadoop::hdfs::SetErasureCodingPolicyRequestProto</a></div><div class="ttdef"><b>Definition:</b> erasurecoding.pb.h:53</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_located_blocks_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">hadoop::hdfs::LocatedBlocksProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3304</div></div>
 <div class="ttc" id="structzkclient_1_1_lease_info_html"><div class="ttname"><a href="structzkclient_1_1_lease_info.html">zkclient::LeaseInfo</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:59</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_abandon_block_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_abandon_block_response_proto.html">hadoop::hdfs::AbandonBlockResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2349</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_request_proto.html">hadoop::hdfs::GetErasureCodingPolicyRequestProto</a></div><div class="ttdef"><b>Definition:</b> erasurecoding.pb.h:607</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_request_proto.html">hadoop::hdfs::GetErasureCodingPoliciesRequestProto</a></div><div class="ttdef"><b>Definition:</b> erasurecoding.pb.h:249</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a0a8dccaa1132724035ab9b35aef62ba2"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a0a8dccaa1132724035ab9b35aef62ba2">zkclient::ZkNnClient::current_time_ms</a></div><div class="ttdeci">uint64_t current_time_ms()</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2684</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a0a8dccaa1132724035ab9b35aef62ba2"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a0a8dccaa1132724035ab9b35aef62ba2">zkclient::ZkNnClient::current_time_ms</a></div><div class="ttdeci">uint64_t current_time_ms()</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2822</div></div>
 <div class="ttc" id="structzkclient_1_1_file_z_node_html"><div class="ttname"><a href="structzkclient_1_1_file_z_node.html">zkclient::FileZNode</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:35</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">hadoop::hdfs::GetBlockLocationsRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:294</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_delete_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_delete_request_proto.html">hadoop::hdfs::DeleteRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4226</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a79174a329fe6447182f16cc1a83e1569"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">zkclient::ZkNnClient::set_owner</a></div><div class="ttdeci">bool set_owner(SetOwnerRequestProto &amp;req, SetOwnerResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:517</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a79174a329fe6447182f16cc1a83e1569"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a79174a329fe6447182f16cc1a83e1569">zkclient::ZkNnClient::set_owner</a></div><div class="ttdeci">bool set_owner(SetOwnerRequestProto &amp;req, SetOwnerResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:550</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policies_response_proto.html">hadoop::hdfs::GetErasureCodingPoliciesResponseProto</a></div><div class="ttdef"><b>Definition:</b> erasurecoding.pb.h:332</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_adf852df8449c9b2a010e5956dc2ad5fd"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#adf852df8449c9b2a010e5956dc2ad5fd">zkclient::ZkNnClient::renew_lease</a></div><div class="ttdeci">void renew_lease(RenewLeaseRequestProto &amp;req, RenewLeaseResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:354</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_adf852df8449c9b2a010e5956dc2ad5fd"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#adf852df8449c9b2a010e5956dc2ad5fd">zkclient::ZkNnClient::renew_lease</a></div><div class="ttdeci">void renew_lease(RenewLeaseRequestProto &amp;req, RenewLeaseResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:387</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_extended_block_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_extended_block_proto.html">hadoop::hdfs::ExtendedBlockProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:314</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a17ec72de0d2400af7bac9ba56e7c3bdc"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc">zkclient::ZkNnClient::get_info</a></div><div class="ttdeci">GetFileInfoResponse get_info(GetFileInfoRequestProto &amp;req, GetFileInfoResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:770</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a44856670a141e5291e1692664e9dc059"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a44856670a141e5291e1692664e9dc059">zkclient::ZkNnClient::get_erasure_coding_policies</a></div><div class="ttdeci">ErasureCodingPoliciesResponse get_erasure_coding_policies(GetErasureCodingPoliciesRequestProto &amp;req, GetErasureCodingPoliciesResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1628</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a720695384b3f160c7656d064be154995"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995">zkclient::ZkNnClient::rename</a></div><div class="ttdeci">RenameResponse rename(RenameRequestProto &amp;req, RenameResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1251</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a17ec72de0d2400af7bac9ba56e7c3bdc"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a17ec72de0d2400af7bac9ba56e7c3bdc">zkclient::ZkNnClient::get_info</a></div><div class="ttdeci">GetFileInfoResponse get_info(GetFileInfoRequestProto &amp;req, GetFileInfoResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:804</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a44856670a141e5291e1692664e9dc059"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a44856670a141e5291e1692664e9dc059">zkclient::ZkNnClient::get_erasure_coding_policies</a></div><div class="ttdeci">ErasureCodingPoliciesResponse get_erasure_coding_policies(GetErasureCodingPoliciesRequestProto &amp;req, GetErasureCodingPoliciesResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1750</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a720695384b3f160c7656d064be154995"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a720695384b3f160c7656d064be154995">zkclient::ZkNnClient::rename</a></div><div class="ttdeci">RenameResponse rename(RenameRequestProto &amp;req, RenameResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1322</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_add_block_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_add_block_response_proto.html">hadoop::hdfs::AddBlockResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2600</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_rename_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_rename_response_proto.html">hadoop::hdfs::RenameResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:3924</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_file_info_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">hadoop::hdfs::GetFileInfoRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:8338</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_recover_lease_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_recover_lease_request_proto.html">hadoop::hdfs::RecoverLeaseRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:5447</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_erasure_coding_policy_response_proto.html">hadoop::hdfs::GetErasureCodingPolicyResponseProto</a></div><div class="ttdef"><b>Definition:</b> erasurecoding.pb.h:705</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abf941af735ce29cebd68b3845720b2b8"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8">zkclient::ZkNnClient::set_permission</a></div><div class="ttdeci">bool set_permission(SetPermissionRequestProto &amp;req, SetPermissionResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1887</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abf941af735ce29cebd68b3845720b2b8"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abf941af735ce29cebd68b3845720b2b8">zkclient::ZkNnClient::set_permission</a></div><div class="ttdeci">bool set_permission(SetPermissionRequestProto &amp;req, SetPermissionResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2010</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_located_block_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_located_block_proto.html">hadoop::hdfs::LocatedBlockProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:2354</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a29d04704113e8401d0de4eddd63d9c01"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a29d04704113e8401d0de4eddd63d9c01">zkclient::ZkNnClient::get_listing</a></div><div class="ttdeci">ListingResponse get_listing(GetListingRequestProto &amp;req, GetListingResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1395</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a29d04704113e8401d0de4eddd63d9c01"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a29d04704113e8401d0de4eddd63d9c01">zkclient::ZkNnClient::get_listing</a></div><div class="ttdeci">ListingResponse get_listing(GetListingRequestProto &amp;req, GetListingResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1466</div></div>
 <div class="ttc" id="classhadoop_1_1common_1_1_token_proto_html"><div class="ttname"><a href="classhadoop_1_1common_1_1_token_proto.html">hadoop::common::TokenProto</a></div><div class="ttdef"><b>Definition:</b> Security.pb.h:50</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_complete_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_complete_response_proto.html">hadoop::hdfs::CompleteResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:3119</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a0dc06e5c87b6c1f81534ae7ba3170f60"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a0dc06e5c87b6c1f81534ae7ba3170f60">zkclient::ZkNnClient::destroy</a></div><div class="ttdeci">DeleteResponse destroy(DeleteRequestProto &amp;req, DeleteResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1105</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a451138e886e54f576db5a6da7f3d7cd3"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a451138e886e54f576db5a6da7f3d7cd3">zkclient::ZkNnClient::set_file_info_content</a></div><div class="ttdeci">void set_file_info_content(ContentSummaryProto *status, const std::string &amp;path, FileZNode &amp;znode_data)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1797</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a0dc06e5c87b6c1f81534ae7ba3170f60"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a0dc06e5c87b6c1f81534ae7ba3170f60">zkclient::ZkNnClient::destroy</a></div><div class="ttdeci">DeleteResponse destroy(DeleteRequestProto &amp;req, DeleteResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1173</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a451138e886e54f576db5a6da7f3d7cd3"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a451138e886e54f576db5a6da7f3d7cd3">zkclient::ZkNnClient::set_file_info_content</a></div><div class="ttdeci">void set_file_info_content(ContentSummaryProto *status, const std::string &amp;path, FileZNode &amp;znode_data)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1919</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">hadoop::hdfs::GetContentSummaryRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:11333</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a7124eb90fcf8edb23d534a521daa3117"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a7124eb90fcf8edb23d534a521daa3117">zkclient::ZkNnClient::get_content</a></div><div class="ttdeci">void get_content(GetContentSummaryRequestProto &amp;req, GetContentSummaryResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1770</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ab052332ebdec4884a456715a73a6fb15"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">zkclient::ZkNnClient::get_block_locations</a></div><div class="ttdeci">void get_block_locations(GetBlockLocationsRequestProto &amp;req, GetBlockLocationsResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1495</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ac5798896390890ab4646affcbf4f58a1"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ac5798896390890ab4646affcbf4f58a1">zkclient::ZkNnClient::add_block_group</a></div><div class="ttdeci">bool add_block_group(const std::string &amp;filePath, u_int64_t &amp;block_group_id, std::vector&lt; std::string &gt; &amp;dataNodes, std::vector&lt; char &gt; &amp;blockIndices, uint32_t total_num_storage_blocks)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1987</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a2acb25219c0d07a38b24141a8fa6d8c4"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a2acb25219c0d07a38b24141a8fa6d8c4">zkclient::ZkNnClient::find_parent</a></div><div class="ttdeci">std::string find_parent(const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:832</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a7124eb90fcf8edb23d534a521daa3117"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a7124eb90fcf8edb23d534a521daa3117">zkclient::ZkNnClient::get_content</a></div><div class="ttdeci">void get_content(GetContentSummaryRequestProto &amp;req, GetContentSummaryResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1892</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ab052332ebdec4884a456715a73a6fb15"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ab052332ebdec4884a456715a73a6fb15">zkclient::ZkNnClient::get_block_locations</a></div><div class="ttdeci">void get_block_locations(GetBlockLocationsRequestProto &amp;req, GetBlockLocationsResponseProto &amp;res, std::string client_name=&quot;default&quot;)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1566</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ac5798896390890ab4646affcbf4f58a1"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ac5798896390890ab4646affcbf4f58a1">zkclient::ZkNnClient::add_block_group</a></div><div class="ttdeci">bool add_block_group(const std::string &amp;filePath, u_int64_t &amp;block_group_id, std::vector&lt; std::string &gt; &amp;dataNodes, std::vector&lt; char &gt; &amp;blockIndices, uint32_t total_num_storage_blocks)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2110</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_e_c_schema_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_e_c_schema_proto.html">hadoop::hdfs::ECSchemaProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3585</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_complete_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">hadoop::hdfs::CompleteRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:2981</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_mkdirs_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_mkdirs_response_proto.html">hadoop::hdfs::MkdirsResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4553</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_create_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_create_response_proto.html">hadoop::hdfs::CreateResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:894</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_listing_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">hadoop::hdfs::GetListingRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4646</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ac2b2d82a29053a95d0ed5573d67b6288"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">zkclient::ZkNnClient::read_file_znode</a></div><div class="ttdeci">void read_file_znode(FileZNode &amp;znode_data, const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:445</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a7b136663dbb9cc41af0ad1c51528bef1"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a7b136663dbb9cc41af0ad1c51528bef1">zkclient::ZkNnClient::get_index_within_block_group</a></div><div class="ttdeci">u_int64_t get_index_within_block_group(u_int64_t storage_block_id)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2087</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_ac2b2d82a29053a95d0ed5573d67b6288"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">zkclient::ZkNnClient::read_file_znode</a></div><div class="ttdeci">void read_file_znode(FileZNode &amp;znode_data, const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:478</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a7b136663dbb9cc41af0ad1c51528bef1"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a7b136663dbb9cc41af0ad1c51528bef1">zkclient::ZkNnClient::get_index_within_block_group</a></div><div class="ttdeci">u_int64_t get_index_within_block_group(u_int64_t storage_block_id)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2224</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_create_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_create_request_proto.html">hadoop::hdfs::CreateRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:688</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_erasure_coding_policy_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_erasure_coding_policy_proto.html">hadoop::hdfs::ErasureCodingPolicyProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:3719</div></div>
 <div class="ttc" id="structzkclient_1_1_target_d_n_html"><div class="ttname"><a href="structzkclient_1_1_target_d_n.html">zkclient::TargetDN</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:72</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_rename_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">hadoop::hdfs::RenameRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:3808</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_af24e553e280ac12fc2772019a45379e0"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#af24e553e280ac12fc2772019a45379e0">zkclient::ZkNnClient::get_block_size</a></div><div class="ttdeci">bool get_block_size(const u_int64_t &amp;block_id, uint64_t &amp;blocksize)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:317</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_af24e553e280ac12fc2772019a45379e0"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#af24e553e280ac12fc2772019a45379e0">zkclient::ZkNnClient::get_block_size</a></div><div class="ttdeci">bool get_block_size(const u_int64_t &amp;block_id, uint64_t &amp;blocksize)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:322</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_mkdirs_request_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">hadoop::hdfs::MkdirsRequestProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4430</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a66bd01188b9944806d448876d4ae01aa"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a66bd01188b9944806d448876d4ae01aa">zkclient::ZkNnClient::mkdir</a></div><div class="ttdeci">MkdirResponse mkdir(MkdirsRequestProto &amp;req, MkdirsResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1345</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a66bd01188b9944806d448876d4ae01aa"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a66bd01188b9944806d448876d4ae01aa">zkclient::ZkNnClient::mkdir</a></div><div class="ttdeci">MkdirResponse mkdir(MkdirsRequestProto &amp;req, MkdirsResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1416</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_set_erasure_coding_policy_response_proto.html">hadoop::hdfs::SetErasureCodingPolicyResponseProto</a></div><div class="ttdef"><b>Definition:</b> erasurecoding.pb.h:166</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a8c006a59991ab12d9d5da5207790ede5"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">zkclient::ZkNnClient::create_file</a></div><div class="ttdeci">CreateResponse create_file(CreateRequestProto &amp;request, CreateResponseProto &amp;response)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1181</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a31e5a62778562a2b2ea1a8546d31b658"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a31e5a62778562a2b2ea1a8546d31b658">zkclient::ZkNnClient::check_acks</a></div><div class="ttdeci">bool check_acks()</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2456</div></div>
-<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abad5abba35376fd55d4df0d0d83e6010"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abad5abba35376fd55d4df0d0d83e6010">zkclient::ZkNnClient::set_erasure_coding_policy_of_path</a></div><div class="ttdeci">SetErasureCodingPolicyResponse set_erasure_coding_policy_of_path(SetErasureCodingPolicyRequestProto &amp;req, SetErasureCodingPolicyResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1678</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a8c006a59991ab12d9d5da5207790ede5"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a8c006a59991ab12d9d5da5207790ede5">zkclient::ZkNnClient::create_file</a></div><div class="ttdeci">CreateResponse create_file(CreateRequestProto &amp;request, CreateResponseProto &amp;response)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1249</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_a31e5a62778562a2b2ea1a8546d31b658"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#a31e5a62778562a2b2ea1a8546d31b658">zkclient::ZkNnClient::check_acks</a></div><div class="ttdeci">bool check_acks()</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:2593</div></div>
+<div class="ttc" id="classzkclient_1_1_zk_nn_client_html_abad5abba35376fd55d4df0d0d83e6010"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html#abad5abba35376fd55d4df0d0d83e6010">zkclient::ZkNnClient::set_erasure_coding_policy_of_path</a></div><div class="ttdeci">SetErasureCodingPolicyResponse set_erasure_coding_policy_of_path(SetErasureCodingPolicyRequestProto &amp;req, SetErasureCodingPolicyResponseProto &amp;res)</div><div class="ttdef"><b>Definition:</b> zk_nn_client.cc:1801</div></div>
 <div class="ttc" id="classzkclient_1_1_zk_nn_client_html"><div class="ttname"><a href="classzkclient_1_1_zk_nn_client.html">zkclient::ZkNnClient</a></div><div class="ttdef"><b>Definition:</b> zk_nn_client.h:151</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_datanode_info_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_datanode_info_proto.html">hadoop::hdfs::DatanodeInfoProto</a></div><div class="ttdef"><b>Definition:</b> hdfs.pb.h:838</div></div>
 </div><!-- fragment --></div><!-- contents -->
