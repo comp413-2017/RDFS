@@ -208,12 +208,12 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
         }
       }
     } else {
-      // Needs to extend this block
-      if (block_info.len > nativefs::MIN_BLOCK_SIZE) {
-        LOG(ERROR) << "block " << block_id << " has more than "
-          "min block size but still"
-          "sent as a partial block.";
-      }
+        // Needs to extend this block
+        if (block_info.len > nativefs::MIN_BLOCK_SIZE) {
+          LOG(ERROR) << "block " << block_id << " has more than "
+            "min block size but still"
+            "sent as a partial block.";
+        }
         if (!fs->extendBlock(block_id, block_data)) {
           LOG(ERROR) << "Failed to extend block " << block_id << "to add "
           << "new data";
@@ -225,7 +225,6 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
               "size of block " << block_id << "to size "
             << block_info.len;
           }
-
       }
     }
   } else {
