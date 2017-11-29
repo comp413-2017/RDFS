@@ -70,6 +70,8 @@ namespace {
 
 TEST(AppendFileTest, testSimpleFileAppend) {
   // Make a file.
+  system(
+    "hadoop version");
   ASSERT_EQ(0, system(
               "python /home/vagrant/rdfs/test/integration/generate_file.py > "
                 "testfile1234"));
