@@ -51,6 +51,7 @@ typedef struct {
   char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
   int perm_length;  // number of slots filled in permissions
   int permission_number;
+  std::uint64_t last_block_id;
 } FileZNode;
 
 /**

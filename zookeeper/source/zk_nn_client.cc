@@ -25,6 +25,7 @@
 #include <google/protobuf/message.h>
 #include <erasurecoding.pb.h>
 #include <zk_dn_client.h>
+#include <zk_nn_client.h>
 
 
 using hadoop::hdfs::AddBlockRequestProto;
@@ -1225,6 +1226,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   znode_data.replication = replication;
   znode_data.blocksize = blocksize;
   znode_data.filetype = IS_FILE;
+  znode_data.last_block_id = 0;
   // Initialize permissions for file with owner and admin.
   snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
   znode_data.perm_length = 1;
@@ -1942,6 +1944,17 @@ bool ZkNnClient::add_block(const std::string &file_path,
   if (!find_datanode_for_block(data_nodes, excluded_dns, block_id,
        replicationFactor, znode_data.blocksize)) {
     return false;
+  }
+
+  // Updates the last_block_id
+  znode_data.last_block_id = block_id;
+  int error_code;
+  std::vector<std::uint8_t> data(sizeof(znode_data));
+  file_znode_struct_to_vec(&znode_data, data);
+  if (!zk->set(ZookeeperFilePath(file_path), data, error_code)) {
+    LOG(ERROR) << "[add_block] We could not set the last block id"
+                    "of the file znode "
+      "at " << file_path;
   }
 
   // Generate the massive multi-op for creating the block
