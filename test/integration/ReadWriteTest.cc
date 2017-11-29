@@ -69,7 +69,7 @@ TEST(ReadWriteTest, testReadWrite) {
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 
-//TEST(ReadWriteTest, testConcurrentRead) {
+//  TEST(ReadWriteTest, testConcurrentRead) {
 //  // Make a file.
 //  ASSERT_EQ(0,
 //            system(
