@@ -73,11 +73,11 @@ TEST(ReadWriteTest, testReadWrite) {
 //  // Make a file.
 //  ASSERT_EQ(0,
 //            system(
-//                "python /home/vagrant/rdfs/test/integration/generate_file.py >"
+//               "python /home/vagrant/rdfs/test/integration/generate_file.py >"
 //                    " expected_testfile1234"));
 //  // Put it into rdfs.
 //  system(
-//      "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 "
+//    "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 "
 //          "/f");
 //  // Read it from rdfs.
 //  std::vector<std::thread> threads;
@@ -96,7 +96,7 @@ TEST(ReadWriteTest, testReadWrite) {
 //    threads[i].join();
 //  }
 //  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
-//}
+//  }
 }  // namespace
 
 int main(int argc, char **argv) {
