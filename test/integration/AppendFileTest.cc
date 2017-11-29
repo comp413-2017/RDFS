@@ -1,8 +1,11 @@
-#include <easylogging++.h>
+// Copyright 2017 Rice University, COMP 413 2017
+
 #include <gtest/gtest.h>
-#include "../util/RDFSTestUtils.h"
-#include <string>
+#include <easylogging++.h>
 #include <thread>
+#include <string>
+#include <vector>
+#include "../util/RDFSTestUtils.h"
 
 using RDFSTestUtils::initializeDatanodes;
 
@@ -47,7 +50,8 @@ void threadTwoAppendF() {
 void threadNAppend(int threadNum) {
   // Create an identifying text file for thread threadNum
   std::string fileName = "thread" + std::to_string(threadNum) + ".txt";
-  system(("echo 'Thread " + std::to_string(threadNum) + "' > " + fileName).c_str());
+  system(("echo 'Thread " + std::to_string(threadNum) + "' > "
+      + fileName).c_str());
   // Append the file.
   system(("hdfs dfs -fs hdfs://localhost:5351 -appendToFile "
              + fileName + " /f" + std::to_string(threadNum)).c_str());
@@ -103,17 +107,20 @@ TEST(AppendFileTest, testAppendToNonExistentFile) {
                 "> testfile1234"));
 
   // Append the file.
-  system("hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 /non_existent_testfile");
+  system("hdfs dfs -fs hdfs://localhost:5351 -appendToFile testfile1234 "
+        "/non_existent_testfile");
 
   // Read it from rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /non_existent_testfile > actual_testfile1234");
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /non_existent_testfile > "
+        "actual_testfile1234");
 
   // Create the expected test file by appending the test file twice
   system("cat testfile1234 > expected_testfile1234");
 
   // Check that its contents match.
   ASSERT_EQ(0,
-            system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+            system("diff expected_testfile1234 actual_testfile1234 > "
+                  "/dev/null"));
 
   // Remove the created files
   system("rm testfile1234");
@@ -124,7 +131,9 @@ TEST(AppendFileTest, testAppendToNonExistentFile) {
 TEST(AppendFileTest, testOneClientAppends) {
   // Make a file.
   ASSERT_EQ(0,
-            system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+            system(
+              "python /home/vagrant/rdfs/test/integration/generate_file.py "
+              "> testfile1234"));
 
   // Put it into rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
@@ -146,7 +155,8 @@ TEST(AppendFileTest, testOneClientAppends) {
 
   // Check that its contents match.
   ASSERT_EQ(0,
-            system("diff expected_testfile1234 actual_testfile1234 > /dev/null"));
+            system("diff expected_testfile1234 actual_testfile1234 "
+                  "> /dev/null"));
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
@@ -156,7 +166,8 @@ TEST(AppendFileTest, testOneClientAppends) {
 TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
   // Make a file.
   ASSERT_EQ(0,
-  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+  system("python /home/vagrant/rdfs/test/integration/generate_file.py "
+          "> testfile1234"));
 
   // Put it into rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
@@ -187,9 +198,11 @@ TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
 
   // Check that its contents match.
   ASSERT_EQ(0,
-            system("diff expected_testfile1234_f actual_testfile1234_f > /dev/null"));
+            system("diff expected_testfile1234_f actual_testfile1234_f "
+                  "> /dev/null"));
   ASSERT_EQ(0,
-            system("diff expected_testfile1234_g actual_testfile1234_g > /dev/null"));
+            system("diff expected_testfile1234_g actual_testfile1234_g "
+                  "> /dev/null"));
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
@@ -202,7 +215,8 @@ TEST(AppendFileTest, testTwoClientAppendToDifferentFiles) {
 TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
   // Make a file.
   ASSERT_EQ(0,
-  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+  system("python /home/vagrant/rdfs/test/integration/generate_file.py "
+          "> testfile1234"));
 
   // Put it into rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f");
@@ -247,10 +261,10 @@ TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
                   "> /dev/null") == 0
         || system("diff thread2_expected_testfile1234_f actual_testfile1234_f "
                   "> /dev/null") == 0
-        || system("diff thread_1_2_expected_testfile1234_f actual_testfile1234_f "
-                  "> /dev/null") == 0
-        || system("diff thread_2_1_expected_testfile1234_f actual_testfile1234_f "
-                  "> /dev/null") == 0);
+        || system("diff thread_1_2_expected_testfile1234_f "
+                  "actual_testfile1234_f > /dev/null") == 0
+        || system("diff thread_2_1_expected_testfile1234_f "
+                  "actual_testfile1234_f > /dev/null") == 0);
 
   // Remove files created by this test
   system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
@@ -262,20 +276,22 @@ TEST(AppendFileTest, testTwoClientAppendToSameFiles) {
 TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
   // Make a file.
   ASSERT_EQ(0,
-  system("python /home/vagrant/rdfs/test/integration/generate_file.py > testfile1234"));
+  system("python /home/vagrant/rdfs/test/integration/generate_file.py "
+          "> testfile1234"));
 
   // Number of threads
-  int n = 5;
+  const int n = 5;
 
   // Put it into rdfs.
   for (int i = 0; i < n; i++) {
-    system(("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal testfile1234 /f" + std::to_string(i)).c_str());
+    system(("hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal "
+            "testfile1234 /f" + std::to_string(i)).c_str());
   }
 
   // Create another client and append to the file from that thread
-  std::thread threads[n];
+  std::vector<std::thread> threads;
   for (int i = 0; i < n; i++) {
-    threads[i] = std::thread(threadNAppend, i);
+    threads.push_back(std::thread(threadNAppend, i));
   }
 
   for (int i = 0; i < n; i++) {
@@ -286,22 +302,28 @@ TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
 
   // Read it from rdfs.
   for (int i = 0; i < n; i++) {
-    system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f" + std::to_string(i) + " > actual_testfile1234_f" + std::to_string(i)).c_str());
+    system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f" + std::to_string(i)
+            + " > actual_testfile1234_f" + std::to_string(i)).c_str());
   }
 
   // Create the expected test file by appending the test file twice
   for (int i = 0; i < n; i++) {
     std::string threadFileName = "thread" + std::to_string(i) + ".txt";
-    system(("echo 'Thread '" + std::to_string(i) + " > " + threadFileName).c_str());
-    system(("cat testfile1234 > expected_testfile1234_f" + std::to_string(i)).c_str());
-    system(("cat " + threadFileName + " >> expected_testfile1234_f" + std::to_string(i)).c_str());
+    system(("echo 'Thread '" + std::to_string(i) + " > "
+            + threadFileName).c_str());
+    system(("cat testfile1234 > expected_testfile1234_f"
+            + std::to_string(i)).c_str());
+    system(("cat " + threadFileName + " >> expected_testfile1234_f"
+            + std::to_string(i)).c_str());
     system(("rm " + threadFileName).c_str());
   }
 
   // Check that its contents match.
   for (int i = 0; i < n; i++) {
     ASSERT_EQ(0,
-    system(("diff expected_testfile1234_f" + std::to_string(i) + " actual_testfile1234_f" + std::to_string(i) + " > /dev/null").c_str()));
+    system(("diff expected_testfile1234_f" + std::to_string(i)
+            + " actual_testfile1234_f" + std::to_string(i)
+            + " > /dev/null").c_str()));
   }
 
   // Remove files created by this test
@@ -310,7 +332,7 @@ TEST(AppendFileTest, testNClientAppendToDifferentFiles) {
   system("rm actual_testfile1234_*");
   system("rm expected_testfile1234_*");
 }
-}
+}  // namespace
 
 int main(int argc, char **argv) {
   // Start up zookeeper
@@ -326,7 +348,6 @@ int main(int argc, char **argv) {
 
   // initialize a datanode
   initializeDatanodes(NUM_DATANODES);
-  
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   int res = RUN_ALL_TESTS();
