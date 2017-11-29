@@ -23,33 +23,39 @@
 
 namespace zkclient {
 
+/** 
+ * Enum describing the file status of a file znode
+ */
 typedef enum class FileStatus : int {
-  UnderConstruction,
   FileComplete,
+  UnderConstruction,
   UnderDestruction
 } FileStatus;
 
+/** 
+ * Enum describing the file type of a file znode
+ */
+typedef enum class FileType : int {
+  Dir = 1,
+  File
+} FileType;
+
 /**
-* This is the basic znode to describe a file
-*/
+ * This is the basic znode to describe a file
+ */
 typedef struct {
-  uint32_t replication;  // the block replication factor.
-  bool isEC;  // 1 if EC file. 0 if replication based.
+  uint32_t replication;                     // block replication factor
+  bool isEC;                                // 1 if EC file; 0 if replication
   uint64_t blocksize;
-  // 1 for under construction, 0 for complete
-  zkclient::FileStatus under_construction;
-  int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
+  zkclient::FileStatus file_status;
+  zkclient::FileType file_type;
   std::uint64_t length;
-  // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
-  // FileSystem.html#setOwner(org.apache.hadoop.fs.Path,
-  // java.lang.String,
-  // java.lang.String)
   std::uint64_t access_time;
   std::uint64_t modification_time;
-  char owner[MAX_USERNAME_LEN];  // the client who created the file
+  char owner[MAX_USERNAME_LEN];             // the client who created the file
   char group[MAX_USERNAME_LEN];
-  char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
-  int perm_length;  // number of slots filled in permissions
+  char permissions[20][MAX_USERNAME_LEN];   // max 20 users can view the file
+  int perm_length;                          // # of slots filled in permissions
   int permission_number;
 } FileZNode;
 
@@ -57,23 +63,23 @@ typedef struct {
  * Lease info that stores in each lease node.
  */
 typedef struct {
-  std::string clientName;   // Same as the
-                            // clientName passed
-                            // from RenewLeaseRequestProto
+  std::string clientName;     // Same as the
+                              // clientName passed
+                              // from RenewLeaseRequestProto
 } LeaseInfo;
 
 /**
  * Client info that stores in each client node
  */
 typedef struct {
-  uint64_t timestamp;    // std::time()
+  uint64_t timestamp;         // std::time()
 } ClientInfo;
 
 struct TargetDN {
   char policy;
   std::string dn_id;
-  uint64_t free_bytes;    // free space on disk
-  uint32_t num_xmits;        // current number of xmits
+  uint64_t free_bytes;        // free space on disk
+  uint32_t num_xmits;         // current number of xmits
 
   TargetDN(std::string id, int bytes, int xmits, char policy) : policy(policy),
                                   dn_id(id),
@@ -146,39 +152,45 @@ using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
 
 /**
- * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
+ * This is used by ClientNamenodeProtocolImpl to communicate to zookeeper
  */
 class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
   const char* EC_REPLICATION = "REPLICATION";
-  const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
+  const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // default policy
+  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;       // default cell size is 64kb
   uint32_t DEFAULT_EC_ID = 1;
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
-  std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
+  std::string DEFAULT_STORAGE_ID = "1";           // default storage id
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+  static const std::string CLASS_NAME;
+
+  /**
+   * Response enums for client protocol calls
+   */
 
   enum class ListingResponse {
-      Ok,                    // 0
-      FileDoesNotExist,      // 1
-      FailedChildRetrieval,  // 2
-      FileAccessRestricted   // 3
+    Ok,                    // 0
+    FileDoesNotExist,      // 1
+    FailedChildRetrieval,  // 2
+    FileAccessRestricted,   // 3
+    FailedGetBlockLocations
   };
 
   enum class DeleteResponse {
-      Ok,
-      FileDoesNotExist,
-      FileUnderConstruction,
-      FileIsDirectoryMismatch,
-      FailedChildRetrieval,
-      FailedBlockRetrieval,
-      FailedDataNodeRetrieval,
-      FailedZookeeperOp,
-      FileAccessRestricted
+    Ok,
+    FileDoesNotExist,
+    FileUnderConstruction,
+    FileIsDirectoryMismatch,
+    FailedChildRetrieval,
+    FailedBlockRetrieval,
+    FailedDataNodeRetrieval,
+    FailedZookeeperOp,
+    FileAccessRestricted
   };
 
   enum class GetFileInfoResponse {
@@ -189,41 +201,45 @@ class ZkNnClient : public ZkClientCommon {
   };
 
   enum class MkdirResponse {
-      Ok,
-      FailedZnodeCreation
+    Ok,
+    FailedZnodeCreation
   };
 
   enum class CreateResponse {
-      Ok,
-      FileAlreadyExists,
-      FailedMkdir,
-      FailedCreateZnode
+    Ok,
+    FileAlreadyExists,
+    FailedMkdir,
+    FailedCreateZnode
   };
 
   enum class RenameResponse {
-      Ok,
-      FileDoesNotExist,
-      RenameOpsFailed,
-      InvalidType,
-      MultiOpFailed,
-      FileAccessRestricted
+    Ok,
+    FileDoesNotExist,
+    RenameOpsFailed,
+    InvalidType,
+    MultiOpFailed,
+    FileAccessRestricted
   };
 
   enum class ErasureCodingPoliciesResponse {
-      Ok
+    Ok
   };
 
   enum class ErasureCodingPolicyResponse {
-      Ok,
-      FileDoesNotExist
+    Ok,
+    FileDoesNotExist
   };
 
   enum class SetErasureCodingPolicyResponse {
-      Ok,
-      FileDoesNotExist,
-      FailedZookeeperOp
+    Ok,
+    FileDoesNotExist,
+    FailedZookeeperOp
   };
 
+  /**
+   * Constructor to build ZkNnClient with a zkIpAndAddress.
+   * @param zkIpAndAddress
+   */
   explicit ZkNnClient(std::string zkIpAndAddress)
                         : ZkClientCommon(zkIpAndAddress),
                           cache(new lru::Cache<std::string,
@@ -249,11 +265,18 @@ class ZkNnClient : public ZkClientCommon {
     isSecureMode = secureMode;
     populateDefaultECProto();
   }
-  void register_watches();
+
+  /**
+   * Registers watches on health nodes; essentially mimicking a heartbeat
+   * liveness check.
+   */
+  bool register_watches();
+
   /**
    * Returns the current timestamp in milliseconds
    */
   uint64_t current_time_ms();
+
   /**
    * Returns the latest timestamp by the client
    */
@@ -266,6 +289,7 @@ class ZkNnClient : public ZkClientCommon {
                    RenewLeaseResponseProto &res);
   void recover_lease(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
+
   /**
    * Get info of the file.
    * @param req GetFileInfoRequestProto
@@ -292,7 +316,7 @@ class ZkNnClient : public ZkClientCommon {
    * @param client_name client's name as string
    * @return
    */
-  void get_block_locations(GetBlockLocationsRequestProto &req,
+  bool get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res,
                            std::string client_name = "default");
   /**
@@ -469,9 +493,8 @@ class ZkNnClient : public ZkClientCommon {
    * @param block_group_id the block group id.
    * @return the number of storage blocks to have within a block group.
    */
-  uint32_t get_total_num_storage_blocks(
-          const std::string &fileName,
-          u_int64_t &block_group_id);
+  uint32_t get_total_num_storage_blocks(const std::string &fileName,
+                                        u_int64_t &block_group_id);
 
   /**
    * Given the block group id and index in the block group, returns the hierarchical block id.
@@ -479,9 +502,8 @@ class ZkNnClient : public ZkClientCommon {
    * @param index_within_group the index within the block group.
    * @return the storage block id.
    */
-  u_int64_t generate_storage_block_id(
-          uint64_t block_group_id,
-          uint64_t index_within_group);
+  u_int64_t generate_storage_block_id(uint64_t block_group_id,
+                                      uint64_t index_within_group);
   /**
    * Generates the block group id.
    * @return an 64 bit unsigned integer that has bit 2 ~ bit 48 arbitrarily filled.
@@ -525,9 +547,6 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool get_block_size(const u_int64_t &block_id, uint64_t &blocksize);
 
-  // this is public because we have not member functions in this file
-  static const std::string CLASS_NAME;
-
   bool find_live_datanodes(const uint64_t blockId, int error_code,
                            std::vector<std::string> &live_data_nodes);
 
@@ -540,7 +559,13 @@ class ZkNnClient : public ZkClientCommon {
   bool find_all_datanodes_with_block(const uint64_t &block_uuid,
                                      std::vector<std::string> &rdatanodes,
                                      int &error_code);
-
+  /**
+   * Generates multiop ops for renaming src to dst
+   * @param src The path to the source file (not znode) within the filesystem
+   * @param dst The path to the renamed destination file (not znode) within the filesystem
+   * @param ops The vector of multiops which will make up the overall atomic rename operation
+   * @return Boolean indicating success or failure of the rename
+   */
   bool rename_ops_for_file(const std::string &src, const std::string &dst,
                            std::vector<std::shared_ptr<ZooOp>> &ops);
   bool rename_ops_for_dir(const std::string &src, const std::string &dst,
@@ -553,8 +578,10 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool check_acks();
 
-  // get locations given src, offset, and length
-  void get_block_locations(const std::string &src,
+  /** 
+   * Get locations given src, offset, and length
+   */
+  bool get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
@@ -565,11 +592,23 @@ class ZkNnClient : public ZkClientCommon {
    */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
+  /** 
+   * Check if the listing cache contains a path.
+   */
   bool cache_contains(const std::string &path);
 
+  /** 
+   * Get the current size of the listing cache.
+   */
   int cache_size();
 
  private:
+  /**
+   * A simple print function that will be triggered when
+   * namenode loses a heartbeat
+   */
+  void notify_delete();
+
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
    */
@@ -587,6 +626,7 @@ class ZkNnClient : public ZkClientCommon {
    * Given the client name, get the client path.
    */
   std::string ClientZookeeperPath(const std::string & clientname);
+
   /**
     * Given the filesystem path, get the full zookeeper path for leases
     */
@@ -616,9 +656,10 @@ class ZkNnClient : public ZkClientCommon {
   bool create_file_znode(const std::string &path, FileZNode *znode_data);
 
   /**
-   * Set the default information in a directory znode struct
+   * Set the default information for a directory znode
    */
   void set_mkdir_znode(FileZNode *znode_data);
+
   /**
    * Create the directories at path. If create_parent is true, then we create
    * all the parent directories which are not in zookeeper already. Return false
@@ -631,8 +672,10 @@ class ZkNnClient : public ZkClientCommon {
    */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
+
   template <class T>
   void znode_data_to_vec(T *znode_data, std::vector<std::uint8_t> &data);
+
   template <class T>
   void read_znode_data(T &znode_data, const std::string &path);
 
@@ -693,17 +736,22 @@ class ZkNnClient : public ZkClientCommon {
                                const uint64_t &block_size);
 
   /**
-   * Watches /health for new datanodes, attaches watchers to new datanodes' heartbeats.
+   * The zk watch for health nodes. Simply re-adds the health watch
+   * when triggered (mimicking a heartbeat).
    */
   static void watcher_health(zhandle_t *zzh, int type, int state,
                              const char *path, void *watcherCtx);
 
   /**
-   * Watches datanode heartbeats.
+   * The zk watch for children of health nodes. Clears data associated with
+   * the node if the node is dead.
    */
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
+  /**
+   * The zk watch used by getListing to invalidate cache entry
+   */
   static void watcher_listing(zhandle_t *zzh, int type, int state,
                               const char *path, void *watcherCtx);
 
@@ -734,22 +782,16 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool checkAccess(std::string username, FileZNode &znode_data);
 
-  const int UNDER_CONSTRUCTION = 1;
-  const int FILE_COMPLETE = 0;
-  const int UNDER_DESTRUCTION = 2;
-
-  const int IS_FILE = 2;
-  const int IS_DIR = 1;
-  // TODO(2016): Should eventually be read from a conf file
-  // in millisecons, 10 minute timeout when waiting for
-  // replication acknowledgements
+  // Timeout when waiting for replication acknowledgements, 10 min in ms
   const int ACK_TIMEOUT = 600000;
 
   // Boolean indicating whether zk_nn is in secure mode
   bool isSecureMode = false;
-  const uint64_t EXPIRATION_TIME =
-    2 * 60 * 60 * 1000;  // 2 hours in milliseconds.
 
+  // Expiration time; 2 hours in ms.
+  const uint64_t EXPIRATION_TIME = 2 * 60 * 60 * 1000;
+
+  // Cache to speed up GetListing
   lru::Cache<std::string, std::shared_ptr<GetListingResponseProto>> *cache;
 };
 

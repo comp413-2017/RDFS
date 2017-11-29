@@ -57,7 +57,7 @@ TEST_F(NamenodeTest, renameBasicFile) {
     memcpy(&renamed_data, buffer, sizeof(renamed_data));
     ASSERT_EQ(1, renamed_data.replication);
     ASSERT_EQ(0, renamed_data.blocksize);
-    ASSERT_EQ(2, renamed_data.filetype);
+    ASSERT_EQ(zkclient::FileType::File, renamed_data.file_type);
 
     // Ensure that the file's child indicating block_id was renamed as well
     auto new_block_data = std::vector<std::uint8_t>();

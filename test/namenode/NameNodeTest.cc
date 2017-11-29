@@ -296,7 +296,7 @@ TEST_F(NamenodeTest, testRenameFile) {
   memcpy(&renamed_data, buffer, sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
-  ASSERT_EQ(2, renamed_data.filetype);
+  ASSERT_EQ(zkclient::FileType::File, renamed_data.file_type);
 
   // Ensure that the file's child indicating block_id was renamed as well
   auto new_block_data = std::vector<std::uint8_t>();
@@ -348,19 +348,19 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(0, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
-  ASSERT_EQ(1, renamed_data.filetype);
+  ASSERT_EQ(zkclient::FileType::Dir, renamed_data.file_type);
 
   ASSERT_TRUE(zk->get("/fileSystem/new_dir/file1", data, error_code));
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
-  ASSERT_EQ(2, renamed_data.filetype);
+  ASSERT_EQ(zkclient::FileType::File, renamed_data.file_type);
 
   ASSERT_TRUE(zk->get("/fileSystem/new_dir/file2", data, error_code));
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
-  ASSERT_EQ(2, renamed_data.filetype);
+  ASSERT_EQ(zkclient::FileType::File, renamed_data.file_type);
 
   ASSERT_TRUE(zk->get("/fileSystem/new_dir/nested_dir/nested_file",
                       data,
@@ -368,7 +368,7 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
-  ASSERT_EQ(2, renamed_data.filetype);
+  ASSERT_EQ(zkclient::FileType::File, renamed_data.file_type);
 
   // Ensure that file nodes were deleted
   bool exist;
