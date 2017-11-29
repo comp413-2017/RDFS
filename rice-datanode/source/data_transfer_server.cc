@@ -11,6 +11,7 @@
 #include <asio.hpp>
 #include <boost/crc.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
+#include <native_filesystem.h>
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
 
@@ -184,19 +185,63 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
       last_header = p_head;
     }
   }
+  uint64_t block_id = header.baseheader().block().blockid();
+  uint64_t len_left;
+  nativefs::block_info block_info;
 
-  if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
-    LOG(ERROR)
+  // Checks whether this block exists on this datanode
+  if (fs->fetchBlock(block_id, block_info)) {
+    len_left = block_info.allocated_size - block_info.len;
+    if (len_left >= block_data.length()) {
+      if (!fs->writeBlock(block_id, block_data)) {
+        LOG(ERROR)
+        << "Failed to append to block "
+        << header.baseheader().block().blockid();
+        return;
+      } else {
+        // Updates block size
+        if (!dn->blockSizeUpdated(block_id, block_info.len + block_data.length())) {
+          LOG(ERROR)
+          << "[processwriterequest] failed to update the block "
+            "size of block " << block_id << "to size "
+          << block_info.len;
+        }
+      }
+    } else {
+      // Needs to extend this block
+      if (block_info.len > nativefs::MIN_BLOCK_SIZE) {
+        LOG(ERROR) << "block " << block_id << " has more than "
+          "min block size but still"
+          "sent as a partial block.";
+      }
+        if (!fs->extendBlock(block_id, block_data)) {
+          LOG(ERROR) << "Failed to extend block " << block_id << "to add "
+          << "new data";
+        } else {
+          // Updates block size
+          if (!dn->blockSizeUpdated(block_id, block_info.len + block_data.length())) {
+            LOG(ERROR)
+            << "[processwriterequest] failed to update the block "
+              "size of block " << block_id << "to size "
+            << block_info.len;
+          }
+
+      }
+    }
+  } else {
+    if (!fs->writeBlock(block_id, block_data)) {
+      LOG(ERROR)
       << "Failed to allocate block "
       << header.baseheader().block().blockid();
-    return;
-  } else {
-    if (dn->blockReceived(header.baseheader().block().blockid(),
-                          block_data.length())) {
-      ackPacket(sock, last_header);
-    } else {
-      LOG(ERROR) << "Failed to register received block with NameNode";
       return;
+    } else {
+      if (dn->blockReceived(block_id,
+                            block_data.length())) {
+        ackPacket(sock, last_header);
+      } else {
+        LOG(ERROR) << "Failed to register received block with NameNode";
+        return;
+      }
     }
   }
 
@@ -488,6 +533,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
 
   if (fs->hasBlock(blockToTarget.blockid())) {
     LOG(INFO) << "Block already exists on this DN";
+    //TODO(jessica) appending the some data if size is smaller
     return true;
   } else {
     LOG(INFO) << "Block not found on this DN, replicating...";

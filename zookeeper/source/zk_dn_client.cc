@@ -149,6 +149,44 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
   return created_correctly;
 }
 
+bool ZkClientDn::blockSizeUpdated(uint64_t uuid, uint64_t size_bytes) {
+  bool exists;
+  int error_code;
+  std::string block_metadata_path;
+  if (is_ec_block(uuid)) {
+    uint64_t block_group_id = get_block_group_id(uuid);
+    util::concat_path(get_block_metadata_path(block_group_id),
+                      std::to_string(uuid));
+  } else {
+    block_metadata_path = get_block_metadata_path(uuid);
+  }
+  if (zk->exists(block_metadata_path, exists, error_code)) {
+    // If the block_location does not yet exist. Flush its path.
+    // If it still does not exist error out.
+    if (!exists) {
+      zk->flush(zk->prepend_zk_root(block_metadata_path), true);
+      if (zk->exists(block_metadata_path,
+                     exists, error_code)) {
+        LOG(ERROR) << "/block_locations/<block_uuid> did not exist "
+        << error_code;
+        return false;
+      }
+    }
+    // Write the block size
+    BlockZNode block_data;
+    block_data.block_size = size_bytes;
+    std::vector<std::uint8_t> data_vect(sizeof(block_data));
+    memcpy(&data_vect[0], &block_data, sizeof(block_data));
+    if (!zk->set(block_metadata_path,
+                 data_vect, error_code, false)) {
+      LOG(ERROR)
+      << "Failed writing block size to /block_locations/<block_uuid> "
+      << error_code;
+      return false;
+    }
+
+  }
+}
 void ZkClientDn::registerDataNode(const std::string &ip,
                                   uint64_t total_disk_space,
                                   const uint32_t ipcPort,

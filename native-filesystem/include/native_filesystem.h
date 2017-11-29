@@ -17,8 +17,9 @@ namespace nativefs {
 
 typedef struct {
   uint64_t blockid;
-  uint64_t offset;
-  uint32_t len;
+  uint64_t offset;  // Address in the FS
+  uint32_t len; // length of the data in the block
+  uint32_t allocated_size; // total allocated size for this block
   bool free;
 } block_info;
 
@@ -80,12 +81,19 @@ class NativeFS {
    */
   std::vector<std::uint64_t> getKnownBlocks();
 
- private:
+  uint64_t block_len_left(uint64_t block_id);
   /**
-   * Attempt to fetch block info for block of given id, write to info
-   * reference. Return whether it exists.
-   */
+ * Attempt to fetch block info for block of given id, write to info
+ * reference. Return whether it exists.
+ */
   bool fetchBlock(uint64_t, block_info &info);
+
+  /**
+   * Extends the current block and append the block data.
+   */
+  bool extendBlock(uint64_t block_id, std::string block_data);
+
+ private:
   /**
    * Attempt to place provided block info in the block list. Returns
    * 0 on success, 1 if no space, 2 if already exists
@@ -112,6 +120,8 @@ class NativeFS {
    * Persist one particular block to storage.
    */
   void flushBlock(int block_index);
+
+  size_t findBlock(uint64_t block_id);
 
   /**
    * For debugging, print the free blocks.

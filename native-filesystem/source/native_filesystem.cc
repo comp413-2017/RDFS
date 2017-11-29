@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <mutex>
+#include <native_filesystem.h>
 
 // Return the power of two >= val.
 static size_t powerup(uint64_t val) {
@@ -181,11 +182,48 @@ bool NativeFS::allocateBlock(size_t size, uint64_t &offset) {
   }
 }
 
+size_t NativeFS::findBlock(uint64_t block_id) {
+  for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
+    if (blocks[i].blockid == block_id && !blocks[i].free) {
+      return i;
+    }
+  }
+  return nullptr;
+}
+
+uint64_t NativeFS::block_len_left(uint64_t block_id) {
+  for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
+    if (blocks[i].blockid == block_id && !blocks[i].free) {
+      return (blocks[i].allocated_size - blocks[i].len);
+    }
+  }
+  return nullptr;
+}
+
 /**
 * Given an ID, write the given block to the native filesystem. Returns true/false on success/failure.
 **/
 bool NativeFS::writeBlock(uint64_t id, const std::string &blk) {
   size_t len = blk.size();
+  size_t i;
+  if ((i = findBlock(id)) != nullptr) {
+    block_info info = blocks[i];
+    if (len + info.len > info.allocated_size) {
+      LOG(ERROR) << "Trying to write more than block " << id << " has allocated";
+      return false;
+    }
+    uint64_t offset = info.offset + info.len;
+    LOG(INFO) << "Writing block " << id << " to offset " << info;
+    disk.seekp(offset);
+    disk << blk;
+    disk.flush();
+
+    // Updates block info
+    blocks[i].len += len;
+
+    flushBlock(i);
+    return true;
+  }
   uint64_t offset;
   {
     std::lock_guard<std::mutex> lock(listMtx);
@@ -317,4 +355,7 @@ uint64_t NativeFS::getFreeSpace() {
   return getTotalSpace() - allocatedSize;
 }
 
+bool NativeFS::extendBlock(uint64_t block_id, std::string block_data) {
+  return true;
+}
 }  // namespace nativefs
