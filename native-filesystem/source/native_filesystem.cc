@@ -82,13 +82,17 @@ void NativeFS::constructFreeLists() {
   freeRange(RESERVED_SIZE, blocks[0].offset);
   // Add free space between blocks.
   for (size_t i = 0; i < BLOCK_LIST_LEN - 1; i++) {
-    if (blocks[i].offset + blocks[i].len == blocks[i + 1].offset) {
+    if (blocks[i].offset + blocks[i].allocated_size == blocks[i + 1].offset) {
       continue;
     }
-    freeRange(blocks[i].offset + blocks[i].len, blocks[i + 1].offset);
+    // Do not free the range
+    if (blocks[i].allocated_size <= MIN_BLOCK_SIZE) {
+      continue;
+    }
+    freeRange(blocks[i].offset + blocks[i].allocated_size, blocks[i + 1].offset);
   }
   // Add free space between the last block and the end of disk.
-  freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].len,
+  freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].allocated_size,
             DISK_SIZE);
 }
 
@@ -212,6 +216,7 @@ bool NativeFS::writeBlock(uint64_t id, const std::string &blk) {
       LOG(ERROR) << "Trying to write more than block " << id << " has allocated";
       return false;
     }
+
     uint64_t offset = info.offset + info.len;
     LOG(INFO) << "Writing block " << id << " to offset " << info;
     disk.seekp(offset);
@@ -242,6 +247,7 @@ bool NativeFS::writeBlock(uint64_t id, const std::string &blk) {
   info.offset = offset;
   info.len = len;
   info.free = false;
+  info.allocated_size = std::max(MIN_BLOCK_SIZE, len);
 
   std::lock_guard<std::mutex> lock(listMtx);
   int added_index = addBlock(info);
@@ -356,6 +362,43 @@ uint64_t NativeFS::getFreeSpace() {
 }
 
 bool NativeFS::extendBlock(uint64_t block_id, std::string block_data) {
+  block_info blockInfo;
+  size_t block_index;
+  if ((block_index = findBlock(block_id)) == nullptr) {
+    LOG(ERROR) << "[native_filesystem] Failed to find block for "
+               << block_id;
+    return false;
+  }
+  blockInfo = blocks[block_index];
+  uint64_t new_len = blockInfo.len + block_data.length();
+  uint64_t new_offset;
+  {
+    std::lock_guard<std::mutex> lock(listMtx);
+    if (!allocateBlock(new_len, new_offset)) {
+      LOG(ERROR) << "Could not find a free block to fit " << new_len;
+      return false;
+    }
+  }
+  LOG(INFO) << "Writing block " << block_id << " to offset " << new_offset;
+  // Copy the old block over
+  char * buffer = new char[new_len];
+  disk.read(buffer, blockInfo.len);
+  // Writes the old block
+  disk.seekp(new_offset);
+  disk.write(buffer, blockInfo.len);
+  disk << block_data;
+
+  {
+    std::lock_guard<std::mutex> lock(listMtx);
+    // Free the old block
+    freeRange(blockInfo.offset, blockInfo.len);
+
+    // Set the new block info
+    blocks[block_index].allocated_size = new_len;
+    blocks[block_index].len = new_len;
+    blocks[block_index].offset = new_offset;
+  }
+
   return true;
 }
 }  // namespace nativefs
