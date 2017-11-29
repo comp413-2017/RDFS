@@ -121,5 +121,6 @@ int main(int argc, char **argv) {
   system("pkill -f namenode");  // uses port 5351
   system("pkill -f ReadWriteTestServer*");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
+  system("rm -f expected_testfile* actual_testfile* temp* tfs*");
   return res;
 }
