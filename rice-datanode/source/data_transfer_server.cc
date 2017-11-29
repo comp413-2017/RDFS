@@ -45,7 +45,7 @@ TransferServer::TransferServer(int port,
 bool TransferServer::receive_header(tcp::socket &sock, uint16_t *version,
                                     unsigned char *type) {
   return (rpcserver::read_int16(sock, version) &&
-    rpcserver::read_byte(sock, type));
+      rpcserver::read_byte(sock, type));
 }
 
 bool TransferServer::write_header(tcp::socket &sock, uint16_t version,
@@ -147,6 +147,7 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   std::string block_data;
   // 1 added to include the empty termination packet
   int max_capacity = bytesInBlock / PACKET_PAYLOAD_BYTES + 1;
+
   PacketHeaderProto last_header;
   while (!last_packet) {
     asio::error_code error;
@@ -156,7 +157,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     rpcserver::read_int16(sock, &header_len);
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
-    // LOG(INFO) << "Receigin packet " << p_head.seqno();
+    LOG(INFO) << "Receiving packet " << p_head.seqno();
+    LOG(INFO) << " -- packet data size " << p_head.datalen();
     last_packet = p_head.lastpacketinblock();
     uint64_t data_len = p_head.datalen();
     uint32_t checksum_len = payload_len - sizeof(uint32_t) - data_len;
@@ -173,6 +175,7 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
       LOG(ERROR) << "Failed to read packet " << p_head.seqno();
       break;
     }
+
     if (!last_packet && data_len != 0) {
       block_data += data;
     }
@@ -348,7 +351,7 @@ void TransferServer::synchronize(std::function<void(TransferServer &,
     cv.wait(lk);
   }
   xmits++;
-  LOG(DEBUG) << "**********" << "num xmits is " << xmits.fetch_add(0);
+  LOG(DEBUG) << "**********" << " num xmits is " << xmits.fetch_add(0);
   lk.unlock();
   f(*this, sock);
   xmits--;
@@ -443,7 +446,7 @@ bool TransferServer::remote_read(uint64_t len, std::string ip,
     rpcserver::read_int16(sock, &header_len);
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
-    // LOG(INFO) << "Receiving packet " << p_head.seqno();
+    LOG(INFO) << "Receiving packet " << p_head.seqno();
     // read in the data
     if (!p_head.lastpacketinblock()) {
       uint64_t data_len = p_head.datalen();
