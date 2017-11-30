@@ -275,6 +275,17 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>rename_ops_for_dir</b
 <tr class="memitem:af42ce1e1adf1d38a31707426f843f1cd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af42ce1e1adf1d38a31707426f843f1cd"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>get_block_locations</b> (const std::string &amp;src, google::protobuf::uint64 offset, google::protobuf::uint64 length, <a class="el" href="classhadoop_1_1hdfs_1_1_located_blocks_proto.html">LocatedBlocksProto</a> *blocks, std::string client_name=&quot;default&quot;)</td></tr>
 <tr class="separator:af42ce1e1adf1d38a31707426f843f1cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81c6640f92cf08aece3fc2e33c59e3f3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#a81c6640f92cf08aece3fc2e33c59e3f3">append_file</a> (<a class="el" href="classhadoop_1_1hdfs_1_1_append_request_proto.html">AppendRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_append_response_proto.html">AppendResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a81c6640f92cf08aece3fc2e33c59e3f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ee3873acfe5244e77d613fa1f5399b8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5ee3873acfe5244e77d613fa1f5399b8"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>process_request</b> (std::string client_name, std::string file_path, <a class="el" href="classhadoop_1_1hdfs_1_1_append_request_proto.html">AppendRequestProto</a> &amp;req)</td></tr>
+<tr class="separator:a5ee3873acfe5244e77d613fa1f5399b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a401973fd298c668b777fbda80fbe7dfc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a401973fd298c668b777fbda80fbe7dfc"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>get_primary_block_info</b> (std::string file_path, <a class="el" href="classhadoop_1_1hdfs_1_1_append_request_proto.html">AppendRequestProto</a> &amp;req, <a class="el" href="classhadoop_1_1hdfs_1_1_append_response_proto.html">AppendResponseProto</a> &amp;res)</td></tr>
+<tr class="separator:a401973fd298c668b777fbda80fbe7dfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2974768e040130192ffb8d091d519ea4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2974768e040130192ffb8d091d519ea4"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>check_lease</b> (std::string client_name, std::string file_path)</td></tr>
+<tr class="separator:a2974768e040130192ffb8d091d519ea4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2b2d82a29053a95d0ed5573d67b6288"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzkclient_1_1_zk_nn_client.html#ac2b2d82a29053a95d0ed5573d67b6288">read_file_znode</a> (<a class="el" href="structzkclient_1_1_file_z_node.html">FileZNode</a> &amp;znode_data, const std::string &amp;path)</td></tr>
 <tr class="separator:ac2b2d82a29053a95d0ed5573d67b6288"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0954b65653d78e1f950c570139c9b630"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0954b65653d78e1f950c570139c9b630"></a>
@@ -653,6 +664,33 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if successful. false otherwise. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a81c6640f92cf08aece3fc2e33c59e3f3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zkclient::ZkNnClient::append_file </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_append_request_proto.html">AppendRequestProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classhadoop_1_1hdfs_1_1_append_response_proto.html">AppendResponseProto</a> &amp;&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Main append file mechanism and associated helpers. </p>
 
 </div>
 </div>

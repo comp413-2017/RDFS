@@ -33,6 +33,7 @@ var searchData=
   ['allowsnapshotrequestproto',['AllowSnapshotRequestProto',['../classhadoop_1_1hdfs_1_1_allow_snapshot_request_proto.html',1,'hadoop::hdfs']]],
   ['allowsnapshotresponseproto',['AllowSnapshotResponseProto',['../classhadoop_1_1hdfs_1_1_allow_snapshot_response_proto.html',1,'hadoop::hdfs']]],
   ['allowverboseifmodulenotspecified',['AllowVerboseIfModuleNotSpecified',['../namespaceel.html#a2784aacd04cb7816ac1c0b20fcbf83cbac80d746c4296fe8e99ed032f5ffef31e',1,'el']]],
+  ['append_5ffile',['append_file',['../classzkclient_1_1_zk_nn_client.html#a81c6640f92cf08aece3fc2e33c59e3f3',1,'zkclient::ZkNnClient']]],
   ['appendeventproto',['AppendEventProto',['../classhadoop_1_1hdfs_1_1_append_event_proto.html',1,'hadoop::hdfs']]],
   ['appendrequestproto',['AppendRequestProto',['../classhadoop_1_1hdfs_1_1_append_request_proto.html',1,'hadoop::hdfs']]],
   ['appendresponseproto',['AppendResponseProto',['../classhadoop_1_1hdfs_1_1_append_response_proto.html',1,'hadoop::hdfs']]],
