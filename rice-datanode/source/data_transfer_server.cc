@@ -529,38 +529,60 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
     << xferport;
 
   LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
-
-  if (fs->hasBlock(blockToTarget.blockid())) {
-    LOG(INFO) << "Block already exists on this DN";
-    //TODO(jessica) appending the some data if size is smaller
+  uint64_t block_id = blockToTarget.blockid();
+  nativefs::block_info block_info;
+  if (fs->fetchBlock(block_id, block_info)) {
+    LOG(INFO) << "[replicate] Block " << block_id
+    << " already exists on this DN";
+    uint32_t old_len = block_info.len;
+    LOG(INFO) << "[replicate] target block len is " << old_len
+    << " , source block len is " << len;
+    if (old_len >= len) {
+      return true;
+    } else {
+      // Read the block
+      std::string data(len, 0);
+      int read_len = 0;
+      //TODO(jessicayu) Read starting from offset
+      if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
+        return false;
+      }
+      std::string append_data = data.substr(old_len, len - old_len);
+      if (block_info.allocated_size < block_info.len + append_data.length) {
+        if (!fs->extendBlock(block_id, append_data)) {
+          LOG(ERROR) << "[replicate] Failed to extend and wirte to block "
+          << block_id;
+        }
+      } else {
+        if (!fs->writeBlock(block_id, append_data)) {
+          LOG(ERROR) << "[replicate] Failed to append to block " << block_id;
+        }
+      }
+    }
     return true;
   } else {
     LOG(INFO) << "Block not found on this DN, replicating...";
-  }
+    std::string data(len, 0);
+    int read_len = 0;
+    if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
+      return false;
+    }
 
-  uint64_t block_id = blockToTarget.blockid();
-
-  std::string data(len, 0);
-  int read_len = 0;
-  if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
-    return false;
-  }
-
-
-  // TODO(anyone): send ClientReadStatusProto (delimited)
-  if (!fs->writeBlock(block_id, data)) {
-    LOG(ERROR)
+    // TODO(anyone): send ClientReadStatusProto (delimited)
+    if (!fs->writeBlock(block_id, data)) {
+      LOG(ERROR)
       << "Failed to allocate block "
       << block_id;
-    return false;
-  } else {
-    dn->blockReceived(block_id, read_len);
-  }
+      return false;
+    } else {
+      dn->blockReceived(block_id, read_len);
+    }
 
-  // Pretty confident we don't need this line,
-  // but if we get a bug this is a place to check
-  LOG(INFO) << "Replication complete, closing connection.";
-  return true;
+    // Pretty confident we don't need this line,
+    // but if we get a bug this is a place to check
+    LOG(INFO) << "Replication complete, closing connection.";
+    return true;
+  }
 }
 
 bool TransferServer::rmBlock(uint64_t block_id) {
