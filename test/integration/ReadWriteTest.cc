@@ -57,7 +57,7 @@ TEST(ReadWriteTest, testReadWrite) {
   // Put it into rdfs.
   system(
       "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-          "-copyFromLocal expected_testfile1234 /f");
+            "-copyFromLocal expected_testfile1234 /f");
   // Read it from rdfs.
   system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
   // Check that its contents match.

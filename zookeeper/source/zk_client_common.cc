@@ -14,7 +14,7 @@ namespace zkclient {
 const char ZkClientCommon::WORK_QUEUES[] = "/work_queues/";
 const char ZkClientCommon::REPLICATE_QUEUES[] = "/work_queues/replicate/";
 const char ZkClientCommon::
-        REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
+    REPLICATE_QUEUES_NO_BACKSLASH[] = "/work_queues/replicate";
 const char ZkClientCommon::DELETE_QUEUES[] = "/work_queues/delete/";
 const char ZkClientCommon::DELETE_QUEUES_NO_BACKSLASH[] = "/work_queues/delete";
 const char ZkClientCommon::EC_RECOVER_QUEUES[] = "/work_queues/ec_recover/";
