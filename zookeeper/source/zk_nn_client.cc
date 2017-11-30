@@ -367,10 +367,10 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
       LOG(INFO) << "Storage Block " << idx << "is size " << block_data.block_size;
       blocksize += block_data.block_size;
     }
+    LOG(INFO) << "Default EC cellsize is " << DEFAULT_EC_CELLCIZE;
+    blocksize -= DEFAULT_PARITY_UNITS * DEFAULT_EC_CELLCIZE;
+    LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   }
-  LOG(INFO) << "Default EC cellsize is " << DEFAULT_EC_CELLCIZE;
-  blocksize -= DEFAULT_PARITY_UNITS * DEFAULT_EC_CELLCIZE;
-  LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   return true;
 }
 
