@@ -437,7 +437,7 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
     res.set_result(false);
     return;
   }
-  if (children.size() > 0) {
+  if (children.size() > 1) {
     for (std::string child : children) {
       LOG(ERROR) << "[recover_lease] Child: " + child;
     }
@@ -453,6 +453,10 @@ void ZkNnClient::recover_lease(RecoverLeaseRequestProto &req,
     return;
   }
   std::string lease_holder_client = children[0];
+  if (lease_holder_client == client_name) {
+    res.set_result(true);
+    return;
+  }
   if (lease_expired(lease_holder_client)) {
     // TODO(elfyingying): start the lease recovery process
     // that closes the file for the
@@ -852,7 +856,8 @@ std::string ZkNnClient::find_parent(const std::string &path) {
  * Create a node in zookeeper corresponding to a file
  */
 bool ZkNnClient::create_file_znode(const std::string &path,
-                                  FileZNode *znode_data) {
+                                  FileZNode *znode_data,
+                                   const std::string &client_name) {
   int error_code;
   if (!file_exists(path)) {
     LOG(INFO) << "[create_file_znode] Creating file znode at " <<
@@ -902,6 +907,19 @@ bool ZkNnClient::create_file_znode(const std::string &path,
                    << error_code;
         return false;
       }
+      // grant the client the lease
+      if (!zk->create(LeaseZookeeperPath(path) + '/' +
+                        client_name, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        LOG(ERROR) << "[create_file_znode] ZK create lease client path failed"
+        << error_code;
+        return false;
+      }
+      // set the timestamp for the client that created the file
+      RenewLeaseRequestProto req;
+      req.set_clientname(client_name);
+      RenewLeaseResponseProto res;
+      renew_lease(req, res);
     }
     return true;
   }
@@ -1308,7 +1326,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   }
 
   // if we failed, then do not set any status
-  if (!create_file_znode(path, &znode_data))
+  if (!create_file_znode(path, &znode_data, request.clientname()))
       return CreateResponse::FailedCreateZnode;
 
   HdfsFileStatusProto *status = response.mutable_fs();
@@ -1429,6 +1447,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir(MkdirsRequestProto &request,
 ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
                            bool create_parent) {
   LOG(INFO) << "[mkdir_helper] mkdir_helper called with input " << path;
+    std::string empty_string;
   if (create_parent) {
     std::vector<std::string> split_path;
     boost::split(split_path, path, boost::is_any_of("/"));
@@ -1448,7 +1467,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
         not_exist = true;
         FileZNode znode_data;
         set_mkdir_znode(&znode_data);
-        if (!create_file_znode(p_path, &znode_data)) {
+        if (!create_file_znode(p_path, &znode_data, empty_string)) {
           // TODO(2016) unroll the created directories
           return MkdirResponse::FailedZnodeCreation;
         }
@@ -1457,7 +1476,7 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
   } else {
     FileZNode znode_data;
     set_mkdir_znode(&znode_data);
-    return create_file_znode(path, &znode_data) ?
+    return create_file_znode(path, &znode_data, empty_string) ?
          MkdirResponse::Ok : MkdirResponse::FailedZnodeCreation;
   }
   return MkdirResponse::Ok;

@@ -144,3 +144,24 @@ TEST_F(NamenodeTest, creationPerformance) {
     }
 }
 
+TEST_F(NamenodeTest, createLease) {
+    hadoop::hdfs::CreateRequestProto create_req =
+      getCreateRequestProto("basic_file_1");
+    create_req.set_clientname("test_client1");
+    hadoop::hdfs::CreateResponseProto create_resp;
+    ASSERT_EQ(client->create_file(create_req, create_resp),
+              zkclient::ZkNnClient::CreateResponse::Ok);
+
+    hadoop::hdfs::HdfsFileStatusProto file_status = create_resp.fs();
+    ASSERT_EQ(file_status.filetype(),
+              hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+    ASSERT_TRUE(client->file_exists("basic_file_1"));
+
+    hadoop::hdfs::RecoverLeaseRequestProto recover_req;
+    recover_req.set_clientname("test_client2");
+    recover_req.set_src("basic_file_1");
+    hadoop::hdfs::RecoverLeaseResponseProto recover_res;
+    client->recover_lease(recover_req, recover_res);
+    ASSERT_FALSE(recover_res.result());
+}
+
