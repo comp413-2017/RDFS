@@ -347,7 +347,12 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
         return false;
       }
       memcpy(&block_data, &data[0], sizeof(block_data));
-      LOG(INFO) << "Storage Block is size " << block_data.block_size;
+      
+      std::uint64_t blk_id;
+      std::stringstream strm(child);
+      strm >> blk_id;
+      auto idx = get_index_within_block_group(blk_id);
+      LOG(INFO) << "Storage Block " << idx << "is size " << block_data.block_size;
       blocksize += block_data.block_size;
     }
   }
@@ -1610,7 +1615,9 @@ void ZkNnClient::get_block_locations(const std::string &src,
       // TODO(2016): This offset may be incorrect
       located_block->set_offset(size);
 
-      buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
+      uint64_t real_block_size;
+      get_block_size(block_id, real_block_size);
+      buildExtendedBlockProto(located_block->mutable_b(), block_id, real_block_size);
 
       auto block_meta_children = std::vector<std::string>();
       std::string block_metadata_path = get_block_metadata_path(block_id);
