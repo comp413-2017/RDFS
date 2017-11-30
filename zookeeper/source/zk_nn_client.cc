@@ -491,7 +491,7 @@ bool ZkNnClient::previousBlockComplete(uint64_t prev_id) {
     if (children.size() >= MIN_REPLICATION) {
       return true;
     } else {
-      LOG(INFO) << "[previousBlockComplete] Had to sync: previous block failed";
+      LOG(INFO) << "[previousBlock()] Had to sync: previous block failed";
       // If we failed initially attempt to sync the changes, then check again
       zk->flush(zk->prepend_zk_root(block_metadata_path), true);
       if (zk->get_children(block_metadata_path, children, error_code)) {
@@ -516,7 +516,8 @@ bool ZkNnClient::checkAccess(std::string username, FileZNode &znode_data) {
 
 bool ZkNnClient::get_acl_status(GetAclStatusRequestProto &req,
                     GetAclStatusResponseProto &res,
-                    std::string client_name) {
+                    std::string client_name,
+                    bool fromClient) {
   int zk_error;
   FileZNode znode_data;
   const std::string &path = req.src();
@@ -537,7 +538,8 @@ bool ZkNnClient::get_acl_status(GetAclStatusRequestProto &req,
 
 bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
                            SetOwnerResponseProto &res,
-                           std::string client_name) {
+                           std::string client_name,
+                           bool fromClient) {
   int zk_error;
   FileZNode znode_data;
   const std::string &path = req.src();
@@ -551,7 +553,7 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   read_file_znode(znode_data, path);
 
   // Check access
-  if (!checkAccess(client_name, znode_data)) {
+  if (fromClient && !checkAccess(client_name, znode_data)) {
     LOG(ERROR) << "[set_owner] Access denied to path " << path;
     return false;
   }
@@ -577,7 +579,8 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
 
 bool ZkNnClient::add_acl(SetOwnerRequestProto &req,
                            SetOwnerResponseProto &res,
-                           std::string client_name) {
+                           std::string client_name,
+                           bool fromClient) {
   int zk_error;
   FileZNode znode_data;
   const std::string &path = req.src();
@@ -591,7 +594,7 @@ bool ZkNnClient::add_acl(SetOwnerRequestProto &req,
   read_file_znode(znode_data, path);
 
   //check access
-  if (!checkAccess(client_name, znode_data)) {
+  if (fromClient && !checkAccess(client_name, znode_data)) {
     LOG(ERROR) << "[add acl] Access denied to path " << path;
     return false;
   }
@@ -620,7 +623,8 @@ bool ZkNnClient::add_acl(SetOwnerRequestProto &req,
 
 bool ZkNnClient::add_block(AddBlockRequestProto &req,
                            AddBlockResponseProto &res,
-                           std::string client_name) {
+                           std::string client_name,
+                           bool fromClient) {
   // make sure previous addBlock operation has completed
   auto prev_id = req.previous().blockid();
   if (!previousBlockComplete(prev_id)) {
@@ -646,10 +650,10 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   read_file_znode(znode_data, file_path);
 
   // Check access
-  // if (!checkAccess(client_name, znode_data)) {
-  //   LOG(ERROR) << "[add_block] Access denied to path " << file_path;
-  //   return false;
-  // }
+  if (fromClient && !checkAccess(client_name, znode_data)) {
+    LOG(ERROR) << "[add_block] Access denied to path " << file_path;
+    return false;
+  }
 
 
   // Assert that the znode we want to modify is a file
@@ -731,7 +735,8 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 */
 bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
                                AbandonBlockResponseProto &res,
-                               std::string client_name) {
+                               std::string client_name,
+                               bool fromClient) {
   const std::string &file_path = req.src();
   // I believe this is the lease holder?
   const std::string &holder = req.holder();
@@ -757,10 +762,10 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
   read_file_znode(znode_data, file_path);
 
   // Check access
-  // if (!checkAccess(client_name, znode_data)) {
-  //   LOG(ERROR) << "[abandon_block] Access denied to path " << file_path;
-  //   return false;
-  // }
+  if (fromClient && !checkAccess(client_name, znode_data)) {
+    LOG(ERROR) << "[abandon_block] Access denied to path " << file_path;
+    return false;
+  }
 
   // Assert that the znode we want to modify is a file
   if (znode_data.filetype != IS_FILE) {
@@ -834,7 +839,8 @@ bool ZkNnClient::abandon_block(AbandonBlockRequestProto &req,
 ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
   GetFileInfoRequestProto &req,
   GetFileInfoResponseProto &res,
-  std::string client_name) {
+  std::string client_name,
+  bool fromClient) {
   const std::string &path = req.src();
 
   if (file_exists(path)) {
@@ -843,7 +849,7 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
     read_file_znode(znode_data, path);
 
     // Check access
-    // if (!checkAccess(client_name, znode_data)) {
+    // if (fromClient && !checkAccess(client_name, znode_data)) {
     //   LOG(ERROR) << "[get_info] Access denied to path " << path;
     //   return GetFileInfoResponse::FileAccessRestricted;
     // }
@@ -1169,7 +1175,8 @@ void ZkNnClient::complete(CompleteRequestProto& req,
 ZkNnClient::DeleteResponse ZkNnClient::destroy(
     DeleteRequestProto &request,
     DeleteResponseProto &response,
-    std::string client_name) {
+    std::string client_name,
+    bool fromClient) {
   int error_code;
   const std::string &path = request.src();
   bool recursive = request.recursive();
@@ -1187,10 +1194,10 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
   read_file_znode(znode_data, path);
 
   // Check access
-  // if (!checkAccess(client_name, znode_data)) {
-  //   LOG(ERROR) << "[destroy] Access denied to path " << path;
-  //   return DeleteResponse::FileAccessRestricted;
-  // }
+  if (fromClient && !checkAccess(client_name, znode_data)) {
+    LOG(ERROR) << "[destroy] Access denied to path " << path;
+    return DeleteResponse::FileAccessRestricted;
+  }
 
   if (znode_data.filetype == IS_FILE
       && znode_data.under_construction == FileStatus::UnderConstruction) {
@@ -1245,7 +1252,8 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy(
 ZkNnClient::CreateResponse ZkNnClient::create_file(
         CreateRequestProto &request,
         CreateResponseProto &response,
-        std::string client_name) {
+        std::string client_name,
+        bool fromClient) {
   const std::string &path = request.src();
   LOG(INFO) << "[create_file] Trying to create file " << path;
   // const std::string &owner = request.clientname();
@@ -1317,17 +1325,18 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
  */
 ZkNnClient::RenameResponse ZkNnClient::rename(RenameRequestProto& req,
                                               RenameResponseProto& res,
-                                              std::string client_name) {
+                                              std::string client_name,
+                                              bool fromClient) {
   std::string file_path = req.src();
 
   FileZNode znode_data;
   read_file_znode(znode_data, file_path);
 
   // Check access
-  // if (!checkAccess(client_name, znode_data)) {
-  //   LOG(ERROR) << "[rename] Access denied to path " << file_path;
-  //   return RenameResponse::FileAccessRestricted;
-  // }
+  if (fromClient && !checkAccess(client_name, znode_data)) {
+    LOG(ERROR) << "[rename] Access denied to path " << file_path;
+    return RenameResponse::FileAccessRestricted;
+  }
 
   if (!file_exists(file_path)) {
     LOG(ERROR) << "[rename] Requested rename source: "
@@ -1462,7 +1471,8 @@ ZkNnClient::MkdirResponse ZkNnClient::mkdir_helper(const std::string &path,
 ZkNnClient::ListingResponse ZkNnClient::get_listing(
     GetListingRequestProto &req,
     GetListingResponseProto &res,
-    std::string client_name) {
+    std::string client_name,
+    bool fromClient) {
   int error_code;
 
   const std::string &src = req.src();
@@ -1499,10 +1509,10 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
       read_file_znode(znode_data, src);
 
       // Check access
-      // if (!checkAccess(client_name, znode_data)) {
-      //   LOG(ERROR) << "[get_listing] Access denied to path " << src;
-      //   return ListingResponse::FileAccessRestricted;
-      // }
+      if (fromClient && !checkAccess(client_name, znode_data)) {
+        LOG(ERROR) << "[get_listing] Access denied to path " << src;
+        return ListingResponse::FileAccessRestricted;
+      }
 
       if (znode_data.filetype == IS_FILE) {
         // Update listing with file info
@@ -1561,19 +1571,21 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
 
 void ZkNnClient::get_block_locations(GetBlockLocationsRequestProto &req,
                                      GetBlockLocationsResponseProto &res,
-                                     std::string client_name) {
+                                     std::string client_name,
+                                     bool fromClient) {
   const std::string &src = req.src();
   google::protobuf::uint64 offset = req.offset();
   google::protobuf::uint64 length = req.length();
   LocatedBlocksProto *blocks = res.mutable_locations();
-  get_block_locations(src, offset, length, blocks, client_name);
+  get_block_locations(src, offset, length, blocks, client_name, fromClient);
 }
 
 void ZkNnClient::get_block_locations(const std::string &src,
                                      google::protobuf::uint64 offset,
                                      google::protobuf::uint64 length,
                                      LocatedBlocksProto *blocks,
-                                     std::string client_name) {
+                                     std::string client_name,
+                                     bool fromClient) {
   int error_code;
   const std::string zk_path = ZookeeperBlocksPath(src);
 
@@ -1581,10 +1593,10 @@ void ZkNnClient::get_block_locations(const std::string &src,
   read_file_znode(znode_data, src);
 
   // Check access
-  // if (!checkAccess(client_name, znode_data)) {
-  //   LOG(ERROR) << "[get_block_locations] Access denied to path " << src;
-  //   return;
-  // }
+  if (fromClient && !checkAccess(client_name, znode_data)) {
+    LOG(ERROR) << "[get_block_locations] Access denied to path " << src;
+    return;
+  }
 
   blocks->set_underconstruction(false);
   blocks->set_islastblockcomplete(true);
@@ -1836,7 +1848,8 @@ std::string ZkNnClient::ZookeeperBlocksPath(const std::string &hadoopPath) {
 
 void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
                              GetContentSummaryResponseProto &res,
-                             std::string client_name) {
+                             std::string client_name,
+                             bool fromClient) {
   const std::string &path = req.path();
 
   if (file_exists(path)) {
@@ -1845,10 +1858,10 @@ void ZkNnClient::get_content(GetContentSummaryRequestProto &req,
     read_file_znode(znode_data, path);
 
     // Check access
-    // if (!checkAccess(client_name, znode_data)) {
-    //   LOG(ERROR) << "[get_content] Access denied to path " << path;
-    //   return;
-    // }
+    if (fromClient && !checkAccess(client_name, znode_data)) {
+      LOG(ERROR) << "[get_content] Access denied to path " << path;
+      return;
+    }
 
     // set the file status in the get file info response res
     ContentSummaryProto *status = res.mutable_summary();

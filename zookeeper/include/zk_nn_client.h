@@ -276,7 +276,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   GetFileInfoResponse get_info(GetFileInfoRequestProto &req,
                                GetFileInfoResponseProto &res,
-                               std::string client_name = "default");
+                               std::string client_name = "default",
+                               bool fromClient = false);
 
   /**
    * Create the file.
@@ -286,7 +287,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   CreateResponse create_file(CreateRequestProto &request,
                              CreateResponseProto &response,
-                             std::string client_name = "default");
+                             std::string client_name = "default",
+                             bool fromClient = false);
 
   /**
    * Get locations of blocks.
@@ -297,7 +299,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   void get_block_locations(GetBlockLocationsRequestProto &req,
                            GetBlockLocationsResponseProto &res,
-                           std::string client_name = "default");
+                           std::string client_name = "default",
+                           bool fromClient = false);
   /**
    * Make a directory.
    * @param req MkdirsRequestProto
@@ -316,7 +319,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   DeleteResponse destroy(DeleteRequestProto &req,
                          DeleteResponseProto &res,
-                         std::string client_name = "default");
+                         std::string client_name = "default",
+                         bool fromClient = false);
 
   /**
    * Complete the file.
@@ -338,7 +342,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   RenameResponse rename(RenameRequestProto &req,
                         RenameResponseProto &res,
-                        std::string client_name = "default");
+                        std::string client_name = "default",
+                        bool fromClient = false);
 
   /**
    * Get listing of the file.
@@ -349,7 +354,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   ListingResponse get_listing(GetListingRequestProto &req,
                               GetListingResponseProto &res,
-                              std::string client_name = "default");
+                              std::string client_name = "default",
+                              bool fromClient = false);
   /**
    * Get content of the file.
    * @param req GetContentSummaryRequestProto
@@ -359,7 +365,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   void get_content(GetContentSummaryRequestProto &req,
                    GetContentSummaryResponseProto &res,
-                   std::string client_name = "default");
+                   std::string client_name = "default",
+                   bool fromClient = false);
 
   /**
    * Sets file info content.
@@ -414,7 +421,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool set_owner(SetOwnerRequestProto &req,
                  SetOwnerResponseProto &res,
-                 std::string client_name = "default");
+                 std::string client_name = "default",
+                 bool fromClient = false);
   /**
    * Sets the acl of the file.
    * @param req SetOwnerRequestProto
@@ -424,7 +432,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool add_acl(SetOwnerRequestProto &req,
                SetOwnerResponseProto &res,
-               std::string client_name = "default");
+               std::string client_name = "default",
+               bool fromClient = false);
 
   /**
    * Gets the acl status of the file.
@@ -435,7 +444,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool get_acl_status(GetAclStatusRequestProto &req,
                       GetAclStatusResponseProto &res,
-                      std::string client_name = "default");
+                      std::string client_name = "default",
+                      bool fromClient = false);
 
   /**
    * Adds a block by making appropriate namespace changes and returns information about
@@ -447,7 +457,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool add_block(AddBlockRequestProto &req,
                  AddBlockResponseProto &res,
-                 std::string client_name = "default");
+                 std::string client_name = "default",
+                 bool fromClient = false);
 
   /**
    * A helper method that achieves the above add_block method.
@@ -530,7 +541,8 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool abandon_block(AbandonBlockRequestProto &req,
                      AbandonBlockResponseProto &res,
-                     std::string client_name = "default");
+                     std::string client_name = "default",
+                     bool fromClient = false);
 
   bool previousBlockComplete(uint64_t prev_id);
   /**
@@ -576,7 +588,8 @@ class ZkNnClient : public ZkClientCommon {
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
-                           std::string client_name = "default");
+                           std::string client_name = "default",
+                           bool fromClient = false);
 
   /**
    * Read a znode corresponding to a file into znode_data
