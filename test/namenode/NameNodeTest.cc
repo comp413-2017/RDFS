@@ -80,18 +80,57 @@ TEST_F(NamenodeTest, getErasureCodingPolicyGeneralCase) {
   auto create_req = getCreateRequestProto("filethatexists");
   req.set_src("filethatexists");
   hadoop::hdfs::CreateResponseProto create_res;
-
   client->create_file(create_req, create_res);
   ASSERT_EQ(
       zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
       client->get_erasure_coding_policy_of_path(req, res));
+  // check that the ecpolicy is null
+  ASSERT_TRUE(!res.has_ecpolicy());
 
-  // TODO(nate): check that the ecpolicy is null
-  // TODO(nate): add another test by creating an ec based file.
+  // TODO(nate): get rid of copy and paste by
+  // refactoring EC related test code
+  hadoop::hdfs::GetErasureCodingPolicyRequestProto req2;
+  hadoop::hdfs::GetErasureCodingPolicyResponseProto res2;
+
+  auto create_req2 = getCreateRequestProto("ECfilethatexists");
+  hadoop::hdfs::CreateResponseProto create_res2;
+  req2.set_src("ECfilethatexists");
+  create_req2.set_ecpolicyname("RS-6-3-1024k");
+  client->create_file(create_req2, create_res2);
+  ASSERT_EQ(
+    zkclient::ZkNnClient::ErasureCodingPolicyResponse::Ok,
+    client->get_erasure_coding_policy_of_path(req2, res2));
+
+  ASSERT_TRUE(res2.has_ecpolicy());
+
+  auto ecpolicy = res2.ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
 }
 
 TEST_F(NamenodeTest, setErasureCodingPolicies) {
-  // TODO(nate): implement this unit test.
+  hadoop::hdfs::CreateRequestProto create_req =
+  getCreateRequestProto("/some/dir/path/file.txt");
+  create_req.set_createparent(true);
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_req, create_resp),
+  zkclient::ZkNnClient::CreateResponse::Ok);
+
+  hadoop::hdfs::SetErasureCodingPolicyRequestProto set_ec_req;
+  hadoop::hdfs::SetErasureCodingPolicyResponseProto set_ec_res;
+  set_ec_req.set_src("/some/dir/path");
+  set_ec_req.set_ecpolicyname("RS-6-3-1024k");
+  ASSERT_EQ(client->set_erasure_coding_policy_of_path(
+    set_ec_req, set_ec_res),
+    zkclient::ZkNnClient::SetErasureCodingPolicyResponse::Ok);
+
+  set_ec_req.set_src("/Idondtexist/");
+  ASSERT_EQ(client->set_erasure_coding_policy_of_path(
+    set_ec_req, set_ec_res),
+    zkclient::ZkNnClient::SetErasureCodingPolicyResponse::FileDoesNotExist);
 }
 
 TEST_F(NamenodeTest, createECFile) {
@@ -124,7 +163,8 @@ TEST_F(NamenodeTest, addECBlock) {
   addblock_req.set_clientname("unittest");
   addblock_req.set_src("ec_file2");
 
-//  ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
+  // TODO(nate): investigate GMock and mock out the ZooKeeper related logic.
+  // ASSERT_EQ(true, client->add_block(addblock_req, addblock_res));
 }
 
 TEST_F(NamenodeTest, findDataNodes) {
@@ -189,6 +229,110 @@ TEST_F(NamenodeTest, findDataNodes) {
 TEST_F(NamenodeTest, findDataNodesWithReplicas) {
   // Check if we can find datanodes, without overlapping with ones that
   // already contain a replica
+}
+
+TEST_F(NamenodeTest, getFileInfo) {
+  // create a file for testing purposes.
+  hadoop::hdfs::CreateRequestProto create_file_req =
+    getCreateRequestProto("/some/path/for/get/file/info/file.txt");
+create_file_req.set_createparent(true);
+  hadoop::hdfs::CreateResponseProto create_resp;
+  ASSERT_EQ(client->create_file(create_file_req, create_resp),
+  zkclient::ZkNnClient::CreateResponse::Ok);
+
+  hadoop::hdfs::GetFileInfoRequestProto file_info_req;
+  hadoop::hdfs::GetFileInfoResponseProto file_info_res;
+  file_info_req.set_src("/some/path/for/get/file/info");
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+      client->get_info(file_info_req, file_info_res));
+
+  // Set the EC policy on the parent directory.
+  hadoop::hdfs::SetErasureCodingPolicyRequestProto set_ec_req;
+  hadoop::hdfs::SetErasureCodingPolicyResponseProto set_ec_res;
+  set_ec_req.set_src("/some/path/for/get/file/info");
+  set_ec_req.set_ecpolicyname("RS-6-3-1024k");
+  ASSERT_EQ(client->set_erasure_coding_policy_of_path(
+      set_ec_req, set_ec_res),
+  zkclient::ZkNnClient::SetErasureCodingPolicyResponse::Ok);
+
+  // call the file info again
+  // and verify that the response proto has EC related fields.
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+    client->get_info(file_info_req, file_info_res));
+
+  ASSERT_TRUE(file_info_res.fs().has_ecpolicy());
+
+  auto ecpolicy = file_info_res.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+
+  // create a file under the parent directory
+  // by explicitly setting the ec policy and verify its content.
+  auto create_req = getCreateRequestProto("/some/path/for/get/file/info/ec");
+  file_info_req.set_src("/some/path/for/get/file/info/ec");
+  hadoop::hdfs::CreateResponseProto create_res;
+  create_req.set_ecpolicyname("RS-6-3-1024k");
+  client->create_file(create_req, create_res);
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+    client->get_info(file_info_req, file_info_res));
+
+  ASSERT_TRUE(file_info_res.fs().has_ecpolicy());
+
+  ecpolicy = file_info_res.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+
+  // create a file under the root w/o explicitly setting the ec policy.
+  auto create_req2 = getCreateRequestProto("/some/path/for/get/file/info/ec2");
+  hadoop::hdfs::CreateResponseProto create_res2;
+  hadoop::hdfs::GetFileInfoRequestProto file_info_req2;
+  hadoop::hdfs::GetFileInfoResponseProto file_info_res2;
+  file_info_req2.set_src("/some/path/for/get/file/info/ec2");
+  client->create_file(create_req2, create_res2);
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+      client->get_info(file_info_req2, file_info_res2));
+
+  ASSERT_TRUE(file_info_res2.fs().has_ecpolicy());
+  ecpolicy = file_info_res2.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+
+  // create a file under the root w/o explicitly setting the ec policy.
+  // a file at 2 depths below the directory where we set the EC policy.
+  auto create_req3 = getCreateRequestProto(
+      "/some/path/for/get/file/info/ecfolder/ec2.txt");
+  create_req3.set_createparent(1);
+  hadoop::hdfs::CreateResponseProto create_res3;
+  hadoop::hdfs::GetFileInfoRequestProto file_info_req3;
+  hadoop::hdfs::GetFileInfoResponseProto file_info_res3;
+  file_info_req3.set_src("/some/path/for/get/file/info/ecfolder/ec2.txt");
+  client->create_file(create_req3, create_res3);
+  ASSERT_EQ(zkclient::ZkNnClient::GetFileInfoResponse::Ok,
+      client->get_info(file_info_req3, file_info_res3));
+
+  ASSERT_TRUE(file_info_res3.fs().has_ecpolicy());
+
+  ecpolicy = file_info_res3.fs().ecpolicy();
+  ASSERT_EQ(ecpolicy.id(), 1);
+  ASSERT_EQ(ecpolicy.name(), "RS-6-3-1024k");
+  ASSERT_EQ(ecpolicy.schema().parityunits(), 3);
+  ASSERT_EQ(ecpolicy.schema().dataunits(), 6);
+  ASSERT_EQ(ecpolicy.schema().codecname(), "rs");
+}
+
+TEST_F(NamenodeTest, testFindParent) {
+  ASSERT_EQ("/", client->find_parent("/"));
+  ASSERT_EQ("/hey", client->find_parent("/hey/yo.txt"));
+  ASSERT_EQ("/hey/yo", client->find_parent("/hey/yo/lo.txt"));
 }
 
 TEST_F(NamenodeTest, basicCheckAcks) {
