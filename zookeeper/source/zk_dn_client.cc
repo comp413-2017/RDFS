@@ -84,11 +84,17 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
   std::string block_metadata_path;
   if (is_ec_block(uuid)) {
     uint64_t block_group_id = get_block_group_id(uuid);
-    util::concat_path(get_block_metadata_path(block_group_id),
-                      std::to_string(uuid));
+    LOG(DEBUG) << "block group id: " << block_group_id;
+    LOG(DEBUG) << "prefix: " << get_block_metadata_path(block_group_id);
+
+    block_metadata_path = util::concat_path(
+        get_block_metadata_path(block_group_id), std::to_string(uuid));
   } else {
     block_metadata_path = get_block_metadata_path(uuid);
   }
+
+  LOG(DEBUG) << "block metadata path: " << block_metadata_path;
+
   if (zk->exists(block_metadata_path, exists, error_code)) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
@@ -96,9 +102,10 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
       zk->flush(zk->prepend_zk_root(block_metadata_path), true);
       if (zk->exists(block_metadata_path,
                      exists, error_code)) {
-        LOG(ERROR) << "/block_locations/<block_uuid> did not exist "
-                   << error_code;
-        return false;
+        if (!exists) {
+          LOG(ERROR) << block_metadata_path << " did not exist " << error_code;
+          return false;
+        }
       }
     }
     // Write the block size
@@ -127,6 +134,7 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
               << error_code;
       created_correctly = false;
     }
+    LOG(DEBUG) << "blockReceived: block_metadata_path/<dn_id> added";
   }
 
   // Write block to /blocks
@@ -275,7 +283,7 @@ bool ZkClientDn::poll_replication_queue() {
 }
 
 bool ZkClientDn::poll_delete_queue() {
-  LOG(INFO) << " poll delete queue";
+//  LOG(INFO) << " poll delete queue";
   processDeleteQueue();
   return true;
 }
@@ -542,7 +550,9 @@ void ZkClientDn::processDeleteQueue() {
     return;
   }
 
-  LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  if (work_items.size() > 0) {
+    LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  }
 
   for (auto &block : work_items) {
     LOG(INFO) << "Delete working on " << block;

@@ -24,8 +24,8 @@
 #include <easylogging++.h>
 #include <google/protobuf/message.h>
 #include <erasurecoding.pb.h>
+#include <zk_nn_client.h>
 #include <zk_dn_client.h>
-
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -68,6 +68,7 @@ using hadoop::hdfs::ModifyAclEntriesRequestProto;
 using hadoop::hdfs::ModifyAclEntriesResponseProto;
 using hadoop::hdfs::ErasureCodingPolicyProto;
 using hadoop::hdfs::ECSchemaProto;
+using hadoop::hdfs::ErasureCodingPolicyState;
 using hadoop::hdfs::GetErasureCodingPoliciesRequestProto;
 using hadoop::hdfs::GetErasureCodingPoliciesResponseProto;
 using hadoop::hdfs::StorageTypeProto;
@@ -82,6 +83,10 @@ void ZkNnClient::populateDefaultECProto() {
   RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
   RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
+  REPLICATION_PROTO.set_name(EC_REPLICATION);
+  REPLICATION_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  REPLICATION_PROTO.set_id(REPLICATION_EC_ID);
+  REPLICATION_PROTO.set_allocated_schema(&REPLICATION_1_2_SCHEMA);
 }
 
 /*
@@ -319,20 +324,48 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
                                 uint64_t &blocksize) {
   int error_code;
   std::string block_path = get_block_metadata_path(block_id);
+  blocksize = 0;
 
-  BlockZNode block_data;
-  std::vector<std::uint8_t> data(sizeof(block_data));
-  if (!zk->get(block_path, data, error_code)) {
-    LOG(ERROR) << "[get_block_size] We could not read "
-            "the block at " << block_path;
-    return false;
+  if (!is_ec_block(block_id)) {
+    BlockZNode block_data;
+    std::vector<std::uint8_t> data(sizeof(block_data));
+    if (!zk->get(block_path, data, error_code)) {
+      LOG(ERROR) << "[get_block_size] We could not read "
+          "the block at " << block_path;
+      return false;
+    }
+
+    std::uint8_t *buffer = &data[0];
+    memcpy(&block_data, &data[0], sizeof(block_data));
+
+    blocksize = block_data.block_size;
+    LOG(INFO) << "[get_block_size] Block size of: " << block_path << " is "
+              << blocksize;
+  } else {
+    auto children = std::vector<std::string>();
+    if (!zk->get_children(block_path, children, error_code)) {
+      LOG(ERROR) << "Can't get storage blks!";
+      return false;
+    }
+    uint64_t total_storage = children.size();
+
+    for (int i = 0; i < total_storage; i++) {
+      auto child = children[i];
+      BlockZNode block_data;
+      std::vector<std::uint8_t> data(sizeof(block_data));
+      if (!zk->get(block_path + "/" + child, data, error_code)) {
+        LOG(ERROR) << "We could not read the block at " << block_path
+                   << "/" << child;
+        return false;
+      }
+      memcpy(&block_data, &data[0], sizeof(block_data));
+      LOG(INFO) << "Storage Block is size " << block_data.block_size;
+      blocksize += block_data.block_size;
+    }
   }
-  std::uint8_t *buffer = &data[0];
-  memcpy(&block_data, &data[0], sizeof(block_data));
-
-  blocksize = block_data.block_size;
-  LOG(INFO) << "[get_block_size] Block size of: " << block_path << " is "
-            << blocksize;
+  LOG(INFO) << "Default EC cellsize is " << DEFAULT_EC_CELLCIZE;
+  blocksize -= DEFAULT_PARITY_UNITS * DEFAULT_EC_CELLCIZE;
+  LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   return true;
 }
 
@@ -757,25 +790,25 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     return false;
   }
 
+  LOG(INFO) << "repl factor: " << znode_data.replication;
+
   uint32_t replication_factor = znode_data.replication;
   uint64_t block_size = znode_data.blocksize;
   assert(block_size > 0);
 
   std::uint64_t block_id;
   auto data_nodes = std::vector<std::string>();
-  uint64_t block_group_id;
   std::vector<char> block_indices;
 
   if (!znode_data.isEC) {
       add_block(file_path, block_id, data_nodes, replication_factor);
   } else {  // case when some EC policy is used.
       add_block_group(
-          file_path, block_group_id, data_nodes, block_indices,
+          file_path, block_id, data_nodes, block_indices,
           DEFAULT_PARITY_UNITS + DEFAULT_DATA_UNITS);
   }
 
-  // TODO(nate): this might be seriously wrong.
-  block->set_offset(0);  // TODO(2016): Set this
+  block->set_offset(znode_data.length);
   block->set_corrupt(false);
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
@@ -785,7 +818,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   if (znode_data.isEC) {
     // Add storage IDs for an EC block.
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-      block->set_storageids(i, DEFAULT_STORAGE_ID);
+      block->add_storageids(DEFAULT_STORAGE_ID);
     }
 
     // Add block indices for an EC block.
@@ -794,11 +827,12 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
       block_index_string.push_back(block_indices[i]);
     }
+
     block->set_blockindices(block_index_string);
 
     // Add storage types for an EC block.
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-      block->set_storagetypes(i, StorageTypeProto::DISK);
+      block->add_storagetypes(StorageTypeProto::DISK);
     }
   }
 
@@ -947,9 +981,8 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
       return GetFileInfoResponse::FileAccessRestricted;
     }
 
-    // set the file status in the get file info response res
+    // set the file status in the get file info response
     HdfsFileStatusProto *status = res.mutable_fs();
-
     set_file_info(status, path, znode_data);
     LOG(INFO) << "[get_info] Got info for file ";
     return GetFileInfoResponse::Ok;
@@ -959,6 +992,25 @@ ZkNnClient::GetFileInfoResponse ZkNnClient::get_info(
   }
 }
 
+std::string ZkNnClient::find_parent(const std::string &path) {
+  std::string parent_path = "/";
+  int parent_index = -1;
+  for (int i = path.length() - 1; i >= 0; i--) {
+    if (path[i] == '/') {
+      parent_index = i;
+      break;
+    }
+  }
+  if (parent_index != -1) {
+    parent_path = path.substr(0, parent_index);
+    // If the parent is the root, restore the leading '/';
+    if (parent_index == 0) {
+      parent_path = "/";
+    }
+  }
+  return parent_path;
+}
+
 /**
  * Create a node in zookeeper corresponding to a file
  */
@@ -966,7 +1018,20 @@ bool ZkNnClient::create_file_znode(const std::string &path,
                                    FileZNode *znode_data) {
   int error_code;
   if (!file_exists(path)) {
-    LOG(INFO) << "[create_file_znode] Creating file znode at " << path;
+    LOG(INFO) << "[create_file_znode] Creating file znode at " <<
+                                                     ZookeeperFilePath(path);
+    // Find the EC policy of parent dir
+    std::string parent_path = find_parent(path);
+    LOG(ERROR) << "Parent path is " << parent_path;
+    LOG(ERROR) << "Zookeeper path of parent is "
+               << ZookeeperFilePath(parent_path);
+    FileZNode parent_node;
+    read_file_znode(parent_node, parent_path);
+    // inherit the ec policy of the parent directory.
+    if (!znode_data->isEC) {
+      znode_data->isEC = parent_node.isEC;
+    }
+    znode_data->length = 0;
     {
       LOG(INFO) << "[create_file_znode] is this file ec? "
                 << znode_data->isEC << "\n";
@@ -1174,9 +1239,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     return;
   }
   if (file_blocks.size() == 0) {
+    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
     res.set_result(true);
-  }    LOG(ERROR) << "[complete] No blocks found for file "
-                  << ZookeeperFilePath(src);
+  }
 
     // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
@@ -1193,6 +1258,7 @@ void ZkNnClient::complete(CompleteRequestProto& req,
       return;
     }
     uint64_t block_uuid = *reinterpret_cast<uint64_t *>(&data[0]);
+
     auto block_data = std::vector<std::uint8_t>();
     std::string block_metadata_path = get_block_metadata_path(block_uuid);
     if (!zk->get(block_metadata_path,
@@ -1205,9 +1271,11 @@ void ZkNnClient::complete(CompleteRequestProto& req,
       return;
     }
 
-    // TODO(nate): figure out why this value is the length.
-    uint64_t length = *reinterpret_cast<uint64_t *>(&block_data[0]);
+    uint64_t length;
+    get_block_size(block_uuid, length);
+    LOG(INFO) << "block " << block_uuid << "is size " << length;
     file_length += length;
+    LOG(INFO) << "Updated file size is " << file_length;
   }
   znode_data.length = file_length;
   std::vector<std::uint8_t> data(sizeof(znode_data));
@@ -1365,6 +1433,7 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
     std::string directory_paths = "";
     std::vector<std::string> split_path;
     boost::split(split_path, path, boost::is_any_of("/"));
+    LOG(INFO) << "#elements in path: " << split_path.size();
     for (int i = 1; i < split_path.size() - 1; i++) {
       directory_paths += ("/" + split_path[i]);
     }
@@ -1392,11 +1461,13 @@ ZkNnClient::CreateResponse ZkNnClient::create_file(
   snprintf(znode_data.permissions[0], MAX_USERNAME_LEN, owner.c_str());
   znode_data.perm_length = 1;
 
-  // in the case of EC, this inputECPolicyName is empty.
-  if (inputECPolicyName.empty()) {
-    znode_data.isEC = false;
-  } else {
+  // read the EC policy of the parent directory
+
+
+  // in the case of replication, this inputECPolicyName is empty.
+  if (!inputECPolicyName.empty()) {
     znode_data.isEC = true;
+    znode_data.replication = 1;
   }
 
   // if we failed, then do not set any status
@@ -1682,6 +1753,15 @@ void ZkNnClient::get_block_locations(const std::string &src,
     return;
   }
 
+
+  ErasureCodingPolicyProto *ecpolicy = blocks->mutable_ecpolicy();
+  if (znode_data.isEC) {
+    ecpolicy->CopyFrom(RS_SOLOMON_PROTO);
+  } else {
+    ecpolicy->CopyFrom(REPLICATION_PROTO);
+  }
+
+
   blocks->set_underconstruction(false);
   blocks->set_islastblockcomplete(true);
   blocks->set_filelength(znode_data.length);
@@ -1747,37 +1827,79 @@ void ZkNnClient::get_block_locations(const std::string &src,
 
       buildExtendedBlockProto(located_block->mutable_b(), block_id, block_size);
 
-      auto data_nodes = std::vector<std::string>();
+      auto block_meta_children = std::vector<std::string>();
+      std::string block_metadata_path = get_block_metadata_path(block_id);
       LOG(INFO) << "[get_block_locations] Getting datanode locations for block:"
                 << block_metadata_path;
 
       if (!zk->get_children(block_metadata_path,
-                            data_nodes, error_code)) {
+                            block_meta_children, error_code)) {
         LOG(ERROR) << "[get_block_locations] Failed getting datanode "
-                "locations for block: "
+            "locations for block: "
                    << block_metadata_path
                    << " with error: "
                    << error_code;
       }
 
-      auto sorted_data_nodes = std::vector<std::string>();
-      if (sort_by_xmits(data_nodes, sorted_data_nodes)) {
-        for (auto data_node = sorted_data_nodes.begin();
-             data_node != sorted_data_nodes.end();
-             ++data_node) {
-          LOG(INFO) << "[get_block_locations] Block DN Loc: " << *data_node;
-          buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+      LOG(INFO) << "Found block locations " << block_meta_children.size();
+      if (!znode_data.isEC) {
+        auto sorted_data_nodes = std::vector<std::string>();
+        if (sort_by_xmits(block_meta_children, sorted_data_nodes)) {
+          for (auto data_node = sorted_data_nodes.begin();
+               data_node != sorted_data_nodes.end();
+               ++data_node) {
+            LOG(INFO) << "[get_block_locations] Block DN Loc: " << *data_node;
+            buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+          }
+        } else {
+          LOG(ERROR)
+              << "[get_block_locations] Unable to sort DNs by # xmits in "
+                  "get_block_locations. Using unsorted instead.";
+          for (auto data_node = block_meta_children.begin();
+               data_node != block_meta_children.end();
+               ++data_node) {
+            LOG(INFO) << "Block DN Loc: " << *data_node;
+            buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+          }
         }
       } else {
-        LOG(ERROR)
-            << "[get_block_locations] Unable to sort DNs by # xmits in "
-                    "get_block_locations. Using unsorted instead.";
-        for (auto data_node = data_nodes.begin();
-             data_node != data_nodes.end();
-             ++data_node) {
-          LOG(INFO) << "[get_block_locations] Block DN Loc: " << *data_node;
-          buildDatanodeInfoProto(located_block->add_locs(), *data_node);
+        // Add block indices for an EC block.
+        // Each byte (i.e. char) represents an index into the group.
+        std::string block_index_string;
+        int i = 0;
+        // Add datanodes for the EC block
+        for (auto storage_block : block_meta_children) {
+          auto datanodes = std::vector<std::string>();
+          LOG(INFO) <<
+                    BLOCK_GROUP_LOCATIONS + std::to_string(block_id) +
+                        "/" + storage_block;
+
+          if (!zk->get_children(
+              BLOCK_GROUP_LOCATIONS + std::to_string(block_id) +
+                  "/" + storage_block, datanodes,
+                               error_code)) {
+            //
+          }
+          if (datanodes.size() > 1) {
+            LOG(ERROR) <<
+                       "More than one datanode found for an EC storage block,"
+                "using the first datanode found. Blockid: " << storage_block;
+          } else if (datanodes.size() == 1) {
+            located_block->add_storageids(DEFAULT_STORAGE_ID);
+            located_block->add_storagetypes(StorageTypeProto::DISK);
+            LOG(INFO) << datanodes.size();
+            buildDatanodeInfoProto(located_block->add_locs(), datanodes[0]);
+            std::uint64_t blk_id;
+            std::stringstream strm(storage_block);
+            strm >> blk_id;
+            block_index_string.push_back(
+                static_cast<char>(get_index_within_block_group(blk_id)));
+          } else {
+            LOG(WARNING) <<
+                "No datanodes found for this storage block: " << storage_block;
+          }
         }
+        located_block->set_blockindices(block_index_string);
       }
 
       buildTokenProto(located_block->mutable_blocktoken());
@@ -1798,6 +1920,7 @@ ZkNnClient::get_erasure_coding_policies(
   ec_policy_to_add->set_id(DEFAULT_EC_ID);
   ec_policy_to_add->set_name(DEFAULT_EC_POLICY);
   ec_policy_to_add->set_cellsize(DEFAULT_EC_CELLCIZE);
+  ec_policy_to_add->set_state(ErasureCodingPolicyState::ENABLED);
   ECSchemaProto* ecSchemaProto = ec_policy_to_add->mutable_schema();
   ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
   ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
@@ -1828,12 +1951,12 @@ ZkNnClient::get_erasure_coding_policy_of_path(
     ecPolicyProto->set_id(DEFAULT_EC_ID);
     ecPolicyProto->set_name(DEFAULT_EC_POLICY);
     ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+    ecPolicyProto->set_state(ErasureCodingPolicyState::ENABLED);
     ECSchemaProto* ecSchemaProto = ecPolicyProto->mutable_schema();
     ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
     ecSchemaProto->set_dataunits(DEFAULT_DATA_UNITS);
     ecSchemaProto->set_parityunits(DEFAULT_PARITY_UNITS);
   }
-
   return ErasureCodingPolicyResponse::Ok;
 }
 
@@ -1841,7 +1964,6 @@ ZkNnClient::SetErasureCodingPolicyResponse
 ZkNnClient::set_erasure_coding_policy_of_path(
     SetErasureCodingPolicyRequestProto &req,
     SetErasureCodingPolicyResponseProto &res) {
-
   std::string file_src = req.src();
   std::string ecpolicy_name = req.ecpolicyname();
 
@@ -2038,6 +2160,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
       ecPolicyProto->set_name(DEFAULT_EC_POLICY);
       ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+      ecPolicyProto->set_state(ErasureCodingPolicyState::ENABLED);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
       ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
       ecSchema->set_codecname(DEFAULT_EC_CODEC_NAME);
@@ -2196,9 +2319,11 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
 
 
   for (auto storageBlockID : storage_block_ids) {
+    std::string path = get_block_metadata_path(block_group_id) +
+        "/" + std::to_string(storageBlockID);
+    LOG(INFO) << "add_block_group blockpath: " << path;
     auto storage_block_op = zk->build_create_op(
-        get_block_metadata_path(
-            storageBlockID) + "/" + std::to_string(storageBlockID),
+        path,
         ZKWrapper::EMPTY_VECTOR);
     ops.push_back(storage_block_op);
     LOG(INFO)
@@ -2207,6 +2332,18 @@ bool ZkNnClient::add_block_group(const std::string &filePath,
         << " " << storageBlockID
         << std::endl;
   }
+  std::vector<std::uint8_t> data;
+  data.resize(sizeof(u_int64_t));
+  memcpy(&data[0], &block_group_id, sizeof(u_int64_t));
+  auto seq_file_block_op = zk->build_create_op(
+      ZookeeperBlocksPath(filePath) + "/block_",
+      data,
+      ZOO_SEQUENCE);
+  ops.push_back(seq_file_block_op);
+  auto ack_op = zk->build_create_op(
+      "/work_queues/wait_for_acks/" + std::to_string(block_group_id),
+      ZKWrapper::EMPTY_VECTOR);
+  ops.push_back(ack_op);
 
   auto results = std::vector<zoo_op_result>();
   int err;
@@ -2761,6 +2898,7 @@ bool ZkNnClient::recover_ec_blocks(
             "for recover_ec_blocks";
     return false;
   }
+  return true;
 }
 
 
@@ -2863,7 +3001,7 @@ bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
   assert(split_address.size() == 2);
 
   auto data = std::vector<std::uint8_t>();
-  if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
+  if (!zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
         error_code, sizeof(zkclient::DataNodePayload))) {
     LOG(ERROR) << "[buildDatanodeInfoProto] Getting data node stats "
             "failed with " << error_code;

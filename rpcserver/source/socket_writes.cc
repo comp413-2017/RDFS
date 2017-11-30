@@ -81,7 +81,7 @@ bool write_proto(tcp::socket &sock, std::string &proto_bytes) {
   if (write_len != proto_bytes.size())
     LOG(ERROR) << "write_len "
                << write_len
-               << "protob size "
+               << " protob size "
                << proto_bytes.size()
                << std::endl;
 

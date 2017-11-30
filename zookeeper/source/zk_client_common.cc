@@ -60,7 +60,7 @@ std::string ZkClientCommon::get_block_metadata_path(
 }
 
 u_int64_t ZkClientCommon::get_block_group_id(u_int64_t storage_block_id) {
-    u_int64_t mask = ((1ull << 47) - 1) << 16;  // 47 ones and 16 zeros.
+    u_int64_t mask = (~(0ull)) << 16;  // 47 ones and 16 zeros.
     return storage_block_id & mask;
 }
 
@@ -144,6 +144,15 @@ void ZkClientCommon::init() {
   if (zk->exists("/block_locations", exists, error_code)) {
     if (!exists) {
       zk->create("/block_locations", vec, error_code, false);
+    }
+  } else {
+    // TODO(2016): Handle error
+  }
+
+  // For EC
+  if (zk->exists("/block_group_locations", exists, error_code)) {
+    if (!exists) {
+      zk->create("/block_group_locations", vec, error_code, false);
     }
   } else {
     // TODO(2016): Handle error
