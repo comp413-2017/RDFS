@@ -359,7 +359,6 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
         return false;
       }
       memcpy(&block_data, &data[0], sizeof(block_data));
-      
       std::uint64_t blk_id;
       std::stringstream strm(child);
       strm >> blk_id;
