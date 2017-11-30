@@ -45,6 +45,7 @@ static void resetBlock(nativefs::block_info &blk) {
   blk.offset = nativefs::DISK_SIZE;
   blk.len = 0;
   blk.free = true;
+  blk.allocated_size = 0;
 }
 
 namespace nativefs {
@@ -85,14 +86,10 @@ void NativeFS::constructFreeLists() {
     if (blocks[i].offset + blocks[i].allocated_size == blocks[i + 1].offset) {
       continue;
     }
-    // Do not free the range
-    if (blocks[i].allocated_size <= MIN_BLOCK_SIZE) {
-      continue;
-    }
-    freeRange(blocks[i].offset + blocks[i].allocated_size, blocks[i + 1].offset);
+    freeRange(std::max(RESERVED_SIZE, blocks[i].offset + blocks[i].allocated_size), blocks[i + 1].offset);
   }
   // Add free space between the last block and the end of disk.
-  freeRange(blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].allocated_size,
+  freeRange(std::max(RESERVED_SIZE, blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].allocated_size),
             DISK_SIZE);
 }
 
@@ -117,6 +114,7 @@ void NativeFS::flushBlock(int block_index) {
 }
 
 void NativeFS::freeRange(uint64_t start, uint64_t end) {
+  LOG(INFO) << "[freeRange] start: " << start << " end: " << end;
   // Sanity check: make sure start <= end <= DISK_SIZE.
   end = std::max(start, std::min(end, DISK_SIZE));
   // Fill in with the largest blocks possible until no more fit.
@@ -165,8 +163,11 @@ std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
 
 bool NativeFS::allocateBlock(size_t size, uint64_t &offset) {
   // We cannot allocate a block smaller than MIN_BLOCK_SIZE.
+  LOG(INFO) << "size is " << size;
   size = std::max(MIN_BLOCK_SIZE, size);
+  LOG(INFO) << "after size is " << size;
   size_t ceiling = powerup(size);
+  LOG(INFO) << "ceiling is " << ceiling;
   if (ceiling > MAX_BLOCK_POWER) {
     LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
     return false;
@@ -271,6 +272,8 @@ int NativeFS::addBlock(const block_info &info) {
   }
   // Insert block_info into array
   for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
+    LOG(INFO) << "[addBlock] block" << i << " len is " <<
+      blocks[i].len << "free is " << blocks[i].free;
     if (blocks[i].len == 0 && blocks[i].free == true) {
       blocks[i] = info;
       return i;

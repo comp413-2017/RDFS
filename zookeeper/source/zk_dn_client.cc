@@ -134,7 +134,8 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
               << error_code;
       created_correctly = false;
     }
-    LOG(DEBUG) << "blockReceived: block_metadata_path/<dn_id> added";
+    LOG(DEBUG) << "[blockReceived]: " << block_metadata_path +
+                                         "/" + id << " added";
   }
 
   // Write block to /blocks
