@@ -2235,9 +2235,9 @@ bool ZkNnClient::add_block(const std::string &file_path,
   // Updates the last_block_id
   znode_data.last_block_id = block_id;
   int error_code;
-  std::vector<std::uint8_t> data(sizeof(znode_data));
-  file_znode_struct_to_vec(&znode_data, data);
-  if (!zk->set(ZookeeperFilePath(file_path), data, error_code)) {
+  std::vector<std::uint8_t> znode_vector_data(sizeof(znode_data));
+  file_znode_struct_to_vec(&znode_data, znode_vector_data);
+  if (!zk->set(ZookeeperFilePath(file_path), znode_vector_data, error_code)) {
     LOG(ERROR) << "[add_block] We could not set the last block id"
                     "of the file znode "
       "at " << file_path;

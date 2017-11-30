@@ -192,16 +192,7 @@ size_t NativeFS::findBlock(uint64_t block_id) {
       return i;
     }
   }
-  return nullptr;
-}
-
-uint64_t NativeFS::block_len_left(uint64_t block_id) {
-  for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-    if (blocks[i].blockid == block_id && !blocks[i].free) {
-      return (blocks[i].allocated_size - blocks[i].len);
-    }
-  }
-  return nullptr;
+  return UINT64_MAX;
 }
 
 /**
@@ -210,7 +201,7 @@ uint64_t NativeFS::block_len_left(uint64_t block_id) {
 bool NativeFS::writeBlock(uint64_t id, const std::string &blk) {
   size_t len = blk.size();
   size_t i;
-  if ((i = findBlock(id)) != nullptr) {
+  if ((i = findBlock(id)) != UINT64_MAX) {
     block_info info = blocks[i];
     if (len + info.len > info.allocated_size) {
       LOG(ERROR) << "Trying to write more than block " << id << " has allocated";
@@ -218,7 +209,7 @@ bool NativeFS::writeBlock(uint64_t id, const std::string &blk) {
     }
 
     uint64_t offset = info.offset + info.len;
-    LOG(INFO) << "Writing block " << id << " to offset " << info;
+    LOG(INFO) << "Writing block " << id << " to offset " << offset;
     disk.seekp(offset);
     disk << blk;
     disk.flush();
@@ -364,7 +355,7 @@ uint64_t NativeFS::getFreeSpace() {
 bool NativeFS::extendBlock(uint64_t block_id, std::string block_data) {
   block_info blockInfo;
   size_t block_index;
-  if ((block_index = findBlock(block_id)) == nullptr) {
+  if ((block_index = findBlock(block_id)) == UINT64_MAX) {
     LOG(ERROR) << "[native_filesystem] Failed to find block for "
                << block_id;
     return false;

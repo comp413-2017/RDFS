@@ -553,7 +553,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
         return false;
       }
       std::string append_data = data.substr(old_len, len - old_len);
-      if (block_info.allocated_size < block_info.len + append_data.length) {
+      if (block_info.allocated_size < block_info.len + append_data.length()) {
         if (!fs->extendBlock(block_id, append_data)) {
           LOG(ERROR) << "[replicate] Failed to extend and wirte to block "
           << block_id;

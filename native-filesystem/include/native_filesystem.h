@@ -81,7 +81,6 @@ class NativeFS {
    */
   std::vector<std::uint64_t> getKnownBlocks();
 
-  uint64_t block_len_left(uint64_t block_id);
   /**
  * Attempt to fetch block info for block of given id, write to info
  * reference. Return whether it exists.
