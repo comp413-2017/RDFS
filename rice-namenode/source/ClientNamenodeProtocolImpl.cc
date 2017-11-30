@@ -86,6 +86,8 @@ using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::FsPermissionProto;
+using hadoop::hdfs::AppendRequestProto;
+using hadoop::hdfs::AppendResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -98,12 +100,14 @@ ClientNamenodeTranslator::ClientNamenodeTranslator(
 
 // ----------------------- RPC HANDLERS ----------------------------
 
-
-
-
-
 std::string ClientNamenodeTranslator::append(std::string input) {
-  return "";
+  AppendRequestProto req;
+  AppendResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&req, "Append");
+  // TODO(2016) some optional fields need to be read
+  zk->append_file(req, res);
+  return Serialize(res);
 }
 
 std::string ClientNamenodeTranslator::fsync(std::string input) {
@@ -431,7 +435,7 @@ std::string ClientNamenodeTranslator::Serialize(
     google::protobuf::Message &res
 ) {
   std::string out;
-  logMessage(&res, "Responding with ");
+  // logMessage(&res, "Responding with ");
   if (!res.SerializeToString(&out)) {
     // TODO(2016): handle error
   }
