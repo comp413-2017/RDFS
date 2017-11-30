@@ -86,6 +86,8 @@ using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::FsPermissionProto;
+using hadoop::hdfs::GetAclStatusRequestProto;
+using hadoop::hdfs::GetAclStatusResponseProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -169,7 +171,9 @@ std::string ClientNamenodeTranslator::create(std::string input) {
   req.ParseFromString(input);
   logMessage(&req, "Create ");
   CreateResponseProto res;
-  if (zk->create_file(req, res) == zkclient::ZkNnClient::CreateResponse::Ok) {
+  std::string client_name = getRPCServer().getUsername();
+
+  if (zk->create_file(req, res, client_name) == zkclient::ZkNnClient::CreateResponse::Ok) {
   } else {
     throw GetErrorRPCHeader("Could not create file", "");
   }
@@ -265,6 +269,7 @@ std::string ClientNamenodeTranslator::rename(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::setPermission(std::string input) {
+  LOG(DEBUG) << input << "\n";
   SetPermissionRequestProto req;
   SetPermissionResponseProto res;
   req.ParseFromString(input);
@@ -298,15 +303,50 @@ std::string ClientNamenodeTranslator::getEZForPath(std::string input) {
 }
 
 std::string ClientNamenodeTranslator::setOwner(std::string input) {
+  LOG(DEBUG) << input << "\n";
   SetOwnerRequestProto req;
   SetOwnerResponseProto res;
 
   req.ParseFromString(input);
+
+  LOG(DEBUG) << "req username: "<< req.username() << "\n";
+  // if (req.username().empty())
+  //   LOG(DEBUG) << "no username: \n";
+  LOG(DEBUG) << "req src: "<< req.src() << "\n";
+
+  LOG(DEBUG) << "req groupname: "<< req.groupname() << "\n";
+  // if (req.groupname().empty())
+  //   LOG(DEBUG) << "no groupname: \n";
+
   std::string client_name = getRPCServer().getUsername();
-  if (zk->set_owner(req, res, client_name)) {
+
+  if (req.username().empty()) {
+    if (zk->add_acl(req, res, client_name)) {
+      return Serialize(res);
+    } else {
+      throw GetErrorRPCHeader("Could not add file acl.", "");
+    }
+  } else {
+    if (zk->set_owner(req, res, client_name)) {
+      return Serialize(res);
+    } else {
+      throw GetErrorRPCHeader("Could not set file owner.", "");
+    }
+  }
+  
+}
+
+std::string ClientNamenodeTranslator::getAclStatus(std::string input) {
+  GetAclStatusRequestProto req;
+  GetAclStatusResponseProto res;
+
+  req.ParseFromString(input);
+  std::string client_name = getRPCServer().getUsername();
+
+  if (zk->get_acl_status(req, res, client_name)) {
     return Serialize(res);
   } else {
-    throw GetErrorRPCHeader("Could not set file owner.", "");
+    throw GetErrorRPCHeader("Could not get file acl status.", "");
   }
 }
 
@@ -588,6 +628,11 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
       "setErasureCodingPolicy",
       std::bind(
           &ClientNamenodeTranslator::setErasureCodingPolicy, this, _1));
+
+  server.register_handler(
+      "getAclStatus",
+      std::bind(
+          &ClientNamenodeTranslator::getAclStatus, this, _1));
 }
 
 /**

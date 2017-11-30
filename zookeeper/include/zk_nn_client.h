@@ -144,6 +144,8 @@ using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::GetAclStatusRequestProto;
+using hadoop::hdfs::GetAclStatusResponseProto;
 
 /**
  * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -283,7 +285,8 @@ class ZkNnClient : public ZkClientCommon {
    * @return CreateResponse
    */
   CreateResponse create_file(CreateRequestProto &request,
-                                         CreateResponseProto &response);
+                             CreateResponseProto &response,
+                             std::string client_name = "default");
 
   /**
    * Get locations of blocks.
@@ -413,6 +416,28 @@ class ZkNnClient : public ZkClientCommon {
                  SetOwnerResponseProto &res,
                  std::string client_name = "default");
   /**
+   * Sets the acl of the file.
+   * @param req SetOwnerRequestProto
+   * @param res SetOwnerResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool add_acl(SetOwnerRequestProto &req,
+               SetOwnerResponseProto &res,
+               std::string client_name = "default");
+
+  /**
+   * Gets the acl status of the file.
+   * @param req GetAclStatusRequestProto
+   * @param res GetAclStatusResponseProto
+   * @param client_name client's name as string
+   * @return boolean indicating whether operation succeeded or not
+   */
+  bool get_acl_status(GetAclStatusRequestProto &req,
+                      GetAclStatusResponseProto &res,
+                      std::string client_name = "default");
+
+  /**
    * Adds a block by making appropriate namespace changes and returns information about
    * the set of DataNodes that the block data should be hosted by.
    * @param req AddBlockRequestProto
@@ -423,13 +448,6 @@ class ZkNnClient : public ZkClientCommon {
   bool add_block(AddBlockRequestProto &req,
                  AddBlockResponseProto &res,
                  std::string client_name = "default");
-  /*
-   * Sets the owner of the file.
-   * @param req SetOwnerRequestProto
-   * @param res SetOwnerResponseProto
-   * @return boolean indicating whether operation succeeded or not
-   */
-  bool set_owner(SetOwnerRequestProto &req, SetOwnerResponseProto &res);
 
   /**
    * A helper method that achieves the above add_block method.

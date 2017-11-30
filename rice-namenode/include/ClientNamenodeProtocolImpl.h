@@ -51,6 +51,7 @@ class ClientNamenodeTranslator {
   std::string getContentSummary(std::string input);
   std::string modifyAclEntries(std::string input);
   std::string setPermission(std::string);
+  std::string getAclStatus(std::string);
 
   // RPC calls which are not supported
   std::string rename(std::string);
