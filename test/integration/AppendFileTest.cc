@@ -352,7 +352,8 @@ int main(int argc, char **argv) {
   initializeDatanodes(NUM_DATANODES);
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
-  ::testing::GTEST_FLAG(filter) = "AppendFileTest.testSimpleFileAppendCommentOut";
+  ::testing::GTEST_FLAG(filter) =
+  "AppendFileTest.testSimpleFileAppendCommentOut";
   int res = RUN_ALL_TESTS();
   // NOTE: You'll need to scroll up a bit to see the test results
 
