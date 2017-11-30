@@ -113,6 +113,8 @@ void TransferServer::handle_connection(tcp::socket sock) {
 }
 
 void TransferServer::processWriteRequest(tcp::socket &sock) {
+  //TODO(jessicayu): Error and return if the numBytes in
+  // header.extendedblock proto is smaller than the block size.
   OpWriteBlockProto proto;
   if (rpcserver::read_delimited_proto(sock, proto)) {
     LOG(DEBUG) << "Op a write block proto";
