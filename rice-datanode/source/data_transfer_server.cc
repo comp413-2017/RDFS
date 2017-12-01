@@ -113,7 +113,7 @@ void TransferServer::handle_connection(tcp::socket sock) {
 }
 
 void TransferServer::processWriteRequest(tcp::socket &sock) {
-  //TODO(jessicayu): Error and return if the numBytes in
+  // TODO(jessicayu): Error and return if the numBytes in
   // header.extendedblock proto is smaller than the block size.
   OpWriteBlockProto proto;
   if (rpcserver::read_delimited_proto(sock, proto)) {
@@ -207,7 +207,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
         return;
       } else {
         // Updates block size
-        if (!dn->blockSizeUpdated(block_id, block_info.len + block_data.length())) {
+        if (!dn->blockSizeUpdated(block_id, block_info.len
+                                            + block_data.length())) {
           LOG(ERROR)
           << "[processwriterequest] failed to update the block "
             "size of block " << block_id << "to size "
@@ -231,7 +232,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
           return;
         } else {
           // Updates block size
-          if (!dn->blockSizeUpdated(block_id, block_info.len + block_data.length())) {
+          if (!dn->blockSizeUpdated(block_id, block_info.len
+                                              + block_data.length())) {
             LOG(ERROR)
             << "[processwriterequest] failed to update the block "
               "size of block " << block_id << "to size "
@@ -558,7 +560,7 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
       // Read the block
       std::string data(len, 0);
       int read_len = 0;
-      //TODO(jessicayu) Read starting from offset
+      // TODO(jessicayu) Read starting from offset
       if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
         return false;
       }
