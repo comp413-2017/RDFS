@@ -6,10 +6,43 @@
 #include <sstream>
 #include <iostream>
 
+// Path to the HTML file containing the webRDFS client.
+#define WEBRDFS_CLIENT_FILE "/home/vagrant/rdfs/web-rdfs/source/index.html"
+
 zkclient::ZkNnClient *zk;
 
 void setZk(zkclient::ZkNnClient *zk_arg) {
   zk = zk_arg;
+}
+
+/**
+ * Serve a static file to the client.
+ *
+ * @param response HTTP response object.
+ * @param content_type Content-Type to send to the client.
+ * @param static_file_path Full path to the static file to serve.
+ */
+void serve_static_file(std::shared_ptr<HttpsServer::Response> response,
+                       const char *content_type,
+                       const char *static_file_path) {
+  std::stringstream stream;
+  std::string file_contents;
+
+  LOG(DEBUG) << "Serving static file "
+             << static_file_path
+             << " with Content-Type "
+             << content_type;
+
+  // Read the static file contents into memory as text
+  std::ifstream static_file(static_file_path);
+  std::stringstream buffer;
+  buffer << static_file.rdbuf();
+  file_contents = buffer.str();
+
+  *response << "HTTP/1.1 200 OK\r\n"
+            << "Content-Type: " << content_type << "\r\n"
+            << "Content-Length: " << file_contents.length() << "\r\n\r\n"
+            << file_contents;
 }
 
 std::string get_request_type(std::shared_ptr<HttpsServer::Request> request) {
@@ -41,6 +74,32 @@ std::string get_destination(std::shared_ptr<HttpsServer::Request> request) {
   return dest;
 }
 
+std::string get_user(std::shared_ptr<HttpsServer::Request> request) {
+  std::string userDelim = "&owner=";
+  std::string groupDelim = "&";
+
+  int idxOfUser = request->query_string.rfind(userDelim) + userDelim.size();
+  std::string userAndGroup = request->query_string.substr(idxOfUser);
+
+  int idxOfGroup = userAndGroup.rfind(groupDelim);
+
+  std::string user = userAndGroup.substr(0, idxOfGroup);
+
+  LOG(DEBUG) << "User given " << user;
+
+  return user;
+}
+
+std::string get_group(std::shared_ptr<HttpsServer::Request> request) {
+  std::string groupDelim = "&group=";
+  int idxOfGrp = request->query_string.rfind(groupDelim) + groupDelim.size();
+  std::string group = request->query_string.substr(idxOfGrp);
+
+  LOG(DEBUG) << "Group given " << group;
+
+  return group;
+}
+
 void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::shared_ptr<HttpsServer::Request> request) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
@@ -50,11 +109,47 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::shared_ptr<HttpsServer::Request> request) {
+                         std::string path) {
   LOG(DEBUG) << "HTTP request: append_file_handler";
 
-  // TODO(security): implement
-  response->write("append_file_handler");
+  hadoop::hdfs::AppendResponseProto res;
+  hadoop::hdfs::AppendRequestProto req;
+
+  req.set_src(path);
+
+  // TODO(Victoria) change so sends correct data
+
+//  bool isSuccess = zk->append_file(req, res);
+
+  bool isSuccess = true;
+
+  if (isSuccess) {
+    response->write(SimpleWeb::StatusCode::success_ok);
+  } else {
+    response->write(SimpleWeb::StatusCode::server_error_internal_server_error);
+  }
+}
+
+void set_permission_handler(std::shared_ptr<HttpsServer::Response> response,
+                            std::string path,
+                            std::string user,
+                            std::string group) {
+  LOG(DEBUG) << "HTTP request: set_permission_handler";
+
+  hadoop::hdfs::SetPermissionRequestProto req;
+  hadoop::hdfs::SetPermissionResponseProto res;
+
+  req.set_src(path);
+
+  // TODO(Victoria) change so sends correct data
+
+  bool isSuccess = zk->set_permission(req, res);
+
+  if (isSuccess) {
+    response->write(SimpleWeb::StatusCode::success_ok);
+  } else {
+    response->write(SimpleWeb::StatusCode::server_error_internal_server_error);
+  }
 }
 
 void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -119,6 +214,13 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
   response->write(webRequestTranslator::getRenameResponse(zkResp));
 }
 
+void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
+                      std::shared_ptr<HttpsServer::Request> request) {
+  LOG(DEBUG) << "Frontend handler invoked";
+
+  serve_static_file(response, "text/html", WEBRDFS_CLIENT_FILE);
+}
+
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
   std::string typeOfRequest = get_request_type(request);
@@ -133,8 +235,14 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
-  // Do not support post requests right now
-  response->write(SimpleWeb::StatusCode::client_error_bad_request);
+  std::string typeOfRequest = get_request_type(request);
+  std::string path = get_path(request);
+
+  if (!typeOfRequest.compare("APPEND")) {
+    append_file_handler(response, path);
+  } else {
+    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+  }
 }
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -147,6 +255,10 @@ void put_handler(std::shared_ptr<HttpsServer::Response> response,
   } else if (!typeOfRequest.compare("RENAME")) {
     std::string pathForRename = get_destination(request);
     rename_file_handler(response, path, pathForRename);
+  } else if (!typeOfRequest.compare("SETOWNER")) {
+    std::string user = get_user(request);
+    std::string group = get_group(request);
+    set_permission_handler(response, path, user, group);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }

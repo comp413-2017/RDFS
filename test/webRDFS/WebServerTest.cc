@@ -77,6 +77,12 @@ TEST(WebServerTest, testRename) {
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToRename");
 }
 
+TEST(WebServerTest, testFrontend) {
+  ASSERT_EQ(0, system("curl -i https://comp413.local:8080 > frontend"));
+  ASSERT_EQ(0, system("grep \"Content-Type: text/html\" frontend"));
+  ASSERT_EQ(0, system("rm frontend"));
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
