@@ -527,13 +527,25 @@ bool ZkNnClient::check_lease(std::string client_name,
     renew_lease_helper(renew_lease_req, renew_lease_res);
 
     // Now update/set the timestamp in files->leases.
+    bool exists;
     int error_code;
-    if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
-                    client_name, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
-      LOG(ERROR) << "[check_lease] Failed to put lease into file_name->leases for " <<
-                 ZookeeperFilePath(file_path) << LEASES << '/' <<
-                 client_name << ".";
+    std::string lease_path = ZookeeperFilePath(file_path)
+                             + LEASES + '/' + client_name;
+    if (!zk->exists(lease_path, exists, error_code)) {
+      LOG(ERROR) << "[check_lease] Failed to check whether " <<
+        lease_path << " exits.";
       return false;
+    }
+    if (!exists) {
+      if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
+                      client_name, ZKWrapper::EMPTY_VECTOR,
+                      error_code, false)) {
+        LOG(ERROR) << "[check_lease] Failed to put lease into "
+                        "file_name->leases for " <<
+        ZookeeperFilePath(file_path) << LEASES << '/' <<
+        client_name << ".";
+        return false;
+      }
     }
     return true;
   }

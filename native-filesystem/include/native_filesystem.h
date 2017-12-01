@@ -18,8 +18,10 @@ namespace nativefs {
 typedef struct {
   uint64_t blockid;
   uint64_t offset;  // Address in the FS
-  uint32_t len; // length of the data in the block
-  uint32_t allocated_size; // total allocated size for this block
+  uint32_t len; // length of the data
+  // in the block
+  uint32_t allocated_size; // total
+  // allocated size for this block
   bool free;
 } block_info;
 

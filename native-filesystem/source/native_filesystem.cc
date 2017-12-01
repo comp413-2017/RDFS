@@ -86,10 +86,13 @@ void NativeFS::constructFreeLists() {
     if (blocks[i].offset + blocks[i].allocated_size == blocks[i + 1].offset) {
       continue;
     }
-    freeRange(std::max(RESERVED_SIZE, blocks[i].offset + blocks[i].allocated_size), blocks[i + 1].offset);
+    freeRange(std::max(RESERVED_SIZE, blocks[i].offset
+                                      + blocks[i].allocated_size),
+              blocks[i + 1].offset);
   }
   // Add free space between the last block and the end of disk.
-  freeRange(std::max(RESERVED_SIZE, blocks[BLOCK_LIST_LEN - 1].offset + blocks[BLOCK_LIST_LEN - 1].allocated_size),
+  freeRange(std::max(RESERVED_SIZE, blocks[BLOCK_LIST_LEN - 1].offset
+                                    + blocks[BLOCK_LIST_LEN - 1].allocated_size),
             DISK_SIZE);
 }
 
@@ -163,11 +166,8 @@ std::vector<std::uint64_t> NativeFS::getKnownBlocks() {
 
 bool NativeFS::allocateBlock(size_t size, uint64_t &offset) {
   // We cannot allocate a block smaller than MIN_BLOCK_SIZE.
-  LOG(INFO) << "size is " << size;
   size = std::max(MIN_BLOCK_SIZE, size);
-  LOG(INFO) << "after size is " << size;
   size_t ceiling = powerup(size);
-  LOG(INFO) << "ceiling is " << ceiling;
   if (ceiling > MAX_BLOCK_POWER) {
     LOG(ERROR) << "Failed attempting to allocated block of power " << ceiling;
     return false;
@@ -205,7 +205,8 @@ bool NativeFS::writeBlock(uint64_t id, const std::string &blk) {
   if ((i = findBlock(id)) != UINT64_MAX) {
     block_info info = blocks[i];
     if (len + info.len > info.allocated_size) {
-      LOG(ERROR) << "Trying to write more than block " << id << " has allocated";
+      LOG(ERROR) << "Trying to write more than block "
+      << id << " has allocated";
       return false;
     }
 
@@ -272,8 +273,6 @@ int NativeFS::addBlock(const block_info &info) {
   }
   // Insert block_info into array
   for (size_t i = 0; i < BLOCK_LIST_LEN; i++) {
-    LOG(INFO) << "[addBlock] block" << i << " len is " <<
-      blocks[i].len << "free is " << blocks[i].free;
     if (blocks[i].len == 0 && blocks[i].free == true) {
       blocks[i] = info;
       return i;
