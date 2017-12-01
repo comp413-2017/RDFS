@@ -822,13 +822,14 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
   for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
     block->add_storageids(DEFAULT_STORAGE_ID);
   }
-  // Add storage types.
-  for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-    block->add_storagetypes(StorageTypeProto::DISK);
-  }
+
   // Populate optional fields for an EC block.
   // i.e. block indices and storage IDs.
   if (znode_data.isEC) {
+    // Add storage types.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->add_storagetypes(StorageTypeProto::DISK);
+    }
     // Add block indices for an EC block.
     // Each byte (i.e. char) represents an index into the group.
     std::string block_index_string;
