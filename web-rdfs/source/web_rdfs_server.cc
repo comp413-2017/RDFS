@@ -20,6 +20,9 @@ void WebRDFSServer::start() {
   WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
                                   HTTP_DELETE,
                                   delete_handler);
+  WebRDFSServer::register_handler("^/$",
+                                  HTTP_GET,
+                                  frontend_handler);
 
   server.start();
 }
