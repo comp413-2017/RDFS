@@ -7,7 +7,7 @@
 #include <iostream>
 
 // Path to the HTML file containing the webRDFS client.
-#define WEBRDFS_CLIENT_STATIC_FILE "/home/vagrant/rdfs/web-rdfs/source/index.html"
+#define WEBRDFS_CLIENT_FILE "/home/vagrant/rdfs/web-rdfs/source/index.html"
 
 zkclient::ZkNnClient *zk;
 
@@ -218,7 +218,7 @@ void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
                       std::shared_ptr<HttpsServer::Request> request) {
   LOG(DEBUG) << "Frontend handler invoked";
 
-  serve_static_file(response, "text/html", WEBRDFS_CLIENT_STATIC_FILE);
+  serve_static_file(response, "text/html", WEBRDFS_CLIENT_FILE);
 }
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
