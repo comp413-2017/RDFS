@@ -158,6 +158,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     rpcserver::read_int32(sock, &payload_len);
     uint16_t header_len;
     rpcserver::read_int16(sock, &header_len);
+    LOG(INFO) << "[processwriterequest] payload_len: "
+    << payload_len << " header_len:" << header_len;
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
     LOG(INFO) << "Receiving packet " << p_head.seqno();

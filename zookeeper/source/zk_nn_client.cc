@@ -27,6 +27,7 @@
 #include <zk_nn_client.h>
 #include <zk_dn_client.h>
 #include <zk_nn_client.h>
+#include "native_filesystem.h"
 
 using hadoop::hdfs::AddBlockRequestProto;
 using hadoop::hdfs::AddBlockResponseProto;
@@ -388,39 +389,118 @@ bool ZkNnClient::append_file(AppendRequestProto &req,
   std::string client_name = req.clientname();
   bool isValid = process_request(client_name, file_path, req);
 
-  if (!isValid) return false;
+  if (!isValid) {
+    LOG(ERROR) << "[append_file] Append request is not valid.";
+    return false;
+  }
 
   // The append request is valid.
+  FileZNode file_data;
+  read_file_znode(file_data, file_path);
+  LOG(INFO) << "[append_file] The file length being appended is "
+  << file_data.length;
+  // Check whether the last block is partial
+  if (file_data.length > 0) {
+    uint64_t last_block_id = file_data.last_block_id;
+    LOG(INFO) << "[append_file] last block is " << last_block_id;
+    uint64_t block_size;
+    if (!get_block_size(file_data.last_block_id, block_size)) {
+      LOG(ERROR) << "[append_file] cannot get the block size for"
+                      " the last block.";
+      return false;
+    }
+    if (block_size < nativefs::MIN_BLOCK_SIZE) {
+      // The last block is a partial block
+      LocatedBlockProto *locatedBlockProto = res.mutable_block();
+      HdfsFileStatusProto *hdfsFileStatusProto = res.mutable_stat();
+      if ((set_located_block(locatedBlockProto, last_block_id,
+                            block_size))
+          && (set_file_status(file_path,
+        hdfsFileStatusProto))) {
+        return true;
+      } else {
+        LOG(ERROR) << "[append_file] failed to create located_"
+                        "block_proto even the last block is partial.";
+        return false;
+      }
+    }
+  }
+  // Gets a new block
+  return false;
+}
 
+bool ZkNnClient::set_file_status(std::string file_path,
+                     HdfsFileStatusProto* hdfsFileStatusProto) {
+  GetFileInfoRequestProto req;
+  GetFileInfoResponseProto res;
+  req.set_src(file_path);
+  get_info(req, res);
+  *hdfsFileStatusProto = res.fs();
+  return true;
+}
 
-  bool done = get_primary_block_info(file_path, req, res);
+bool ZkNnClient::set_located_block(LocatedBlockProto* locatedBlockProto,
+                                   uint64_t block_id, uint64_t block_size) {
+  // Set the block info
+  locatedBlockProto->set_corrupt(0);
+  locatedBlockProto->set_offset(block_size);  // TODO(jessicayu)
+  buildExtendedBlockProto(locatedBlockProto->mutable_b(), block_id, block_size);
 
-  return done;
+  // Set the datanode info
+  int error_code;
+  auto block_meta_children = std::vector<std::string>();
+  std::string block_metadata_path = get_block_metadata_path(block_id);
+  LOG(INFO) << "[set_located_block] Getting datanode locations for block:"
+  << block_metadata_path;
+
+  if (!zk->get_children(block_metadata_path,
+                        block_meta_children, error_code)) {
+    LOG(ERROR) << "[set_located_block] Failed getting datanode "
+      "locations for block: "
+    << block_metadata_path
+    << " with error: "
+    << error_code;
+    return false;
+  }
+
+  LOG(INFO) << "Found block locations " << block_meta_children.size();
+  auto sorted_data_nodes = std::vector<std::string>();
+  if (sort_by_xmits(block_meta_children, sorted_data_nodes)) {
+    for (auto data_node = sorted_data_nodes.begin();
+         data_node != sorted_data_nodes.end();
+         ++data_node) {
+      LOG(INFO) << "[set_located_block] Block DN Loc: " << *data_node;
+      buildDatanodeInfoProto(locatedBlockProto->add_locs(), *data_node);
+    }
+  } else {
+    LOG(ERROR)
+    << "[get_block_locations] Unable to sort DNs by # xmits in "
+      "get_block_locations. Using unsorted instead.";
+    for (auto data_node = block_meta_children.begin();
+         data_node != block_meta_children.end();
+         ++data_node) {
+      LOG(INFO) << "Block DN Loc: " << *data_node;
+      buildDatanodeInfoProto(locatedBlockProto->add_locs(), *data_node);
+    }
+  }
+  buildTokenProto(locatedBlockProto->mutable_blocktoken());
+  return true;
 }
 
 bool ZkNnClient::process_request(std::string client_name,
                                  std::string file_path,
                                  AppendRequestProto &req) {
-  bool exists;
-  int error_code;
   // Check if valid file path.
   if (!file_exists(file_path)) {
-    LOG(ERROR) << "Requested file " << file_path << " does not exist";
-    return false;
-    // Check if valid client
-  }
-
-  if (!zk->exists(CLIENTS + '/' + client_name, exists, error_code)) {
-    LOG(ERROR) << "Failed to check whether " <<
-               CLIENTS << client_name
-               << " exists.";
+    LOG(ERROR) << "[process_request] Requested file " << file_path
+    << " does not exist";
     return false;
   }
-
-  if (!exists) return false;
 
   bool lease_ok = check_lease(client_name, file_path);
-
+  if (!lease_ok) {
+    LOG(INFO) << "[process_request] This client cannot acquire this lease.";
+  }
   return lease_ok;
 }
 
@@ -442,57 +522,18 @@ bool ZkNnClient::check_lease(std::string client_name,
 
     // Now update/set the timestamp in files->leases.
     int error_code;
-    ClientInfo clientInfo;
-    clientInfo.timestamp = current_time_ms();
-    std::vector<std::uint8_t> data(sizeof(clientInfo));
-    znode_data_to_vec(&clientInfo, data);
     if (!zk->create(ZookeeperFilePath(file_path) + LEASES + '/' +
-                    client_name, data, error_code, false)) {
-      LOG(ERROR) << "Failed to put lease into file_name->leases for " <<
+                    client_name, ZKWrapper::EMPTY_VECTOR, error_code, false)) {
+      LOG(ERROR) << "[check_lease] Failed to put lease into file_name->leases for " <<
                  ZookeeperFilePath(file_path) << LEASES << '/' <<
                  client_name << ".";
       return false;
     }
     return true;
-
-  } else {
-    int error_code;
-    std::vector<std::string> children;
-    if (!zk->get_children(ZookeeperFilePath(file_path) + LEASES, children,
-                          error_code)) {
-      LOG(ERROR) << "Failed to get children of "
-                 << ZookeeperFilePath(file_path) << ".";
-      return false;
-    }
-    if (children.size() == 1 && children.at(0) == client_name) {
-      RenewLeaseRequestProto renew_lease_req;
-      RenewLeaseResponseProto renew_lease_res;
-      renew_lease_req.set_clientname(client_name);
-      renew_lease_helper(renew_lease_req, renew_lease_res);
-
-      // Now update/set the timestamp in files->leases.
-      int error_code2;
-      ClientInfo clientInfo;
-      clientInfo.timestamp = current_time_ms();
-      std::vector<std::uint8_t> data(sizeof(clientInfo));
-      znode_data_to_vec(&clientInfo, data);
-      if (!zk->set(ZookeeperFilePath(file_path) + LEASES + '/' +
-                      client_name, data, error_code2, false)) {
-        LOG(ERROR) << "Failed to update lease for file_name->leases for " <<
-                   ZookeeperFilePath(file_path) << LEASES << '/' <<
-                   client_name << ".";
-        return false;
-      }
-      return true;
-
-  } else {
-      LOG(ERROR) << "Recover lease failed with file " << file_path <<
-                 " and client" << client_name << "!!";
-      return false;
-    }
   }
+  LOG(INFO) << "[check_lease] recover lease failed.";
+  return false;
 }
-
 
 // TODO(marccanby): should rename this method; it's misleading --anthony
 bool ZkNnClient::get_primary_block_info(std::string file_path,
@@ -583,6 +624,8 @@ void ZkNnClient::recover_lease_helper(RecoverLeaseRequestProto &req,
   }
   if (!exists) {
     // TODO(elfyingying): not sure how to throw IOException.
+    LOG(ERROR) << "[recover_lease] File " <<
+    ZookeeperFilePath(file_path) << "does not exist.";
     res.set_result(false);
     return;
   }
@@ -593,7 +636,7 @@ void ZkNnClient::recover_lease_helper(RecoverLeaseRequestProto &req,
     res.set_result(false);
     return;
   }
-  if (children.size() > 0) {
+  if (children.size() > 1) {
     for (std::string child : children) {
       LOG(ERROR) << "[recover_lease] Child: " + child;
     }
@@ -609,6 +652,10 @@ void ZkNnClient::recover_lease_helper(RecoverLeaseRequestProto &req,
     return;
   }
   std::string lease_holder_client = children[0];
+  if (lease_holder_client == client_name) {
+    res.set_result(true);
+    return;
+  }
   if (lease_expired(lease_holder_client)) {
     // TODO(elfyingying): start the lease recovery process
     // that closes the file for the
@@ -626,6 +673,8 @@ void ZkNnClient::recover_lease_helper(RecoverLeaseRequestProto &req,
     return;
   } else {
     // The file is under construction and the lease holder is still alive.
+    LOG(INFO) << "[recover_lease] The lease holder still hods the lease for "
+    << LeaseZookeeperPath(file_path);
     res.set_result(false);
     return;
   }
@@ -2200,6 +2249,12 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
 
   return true;
 }
+void ZkNnClient::update_block_for_pipeline
+  (UpdateBlockForPipelineRequestProto &req,
+   UpdateBlockForPipelineResponseProto &res) {
+  auto block = res.mutable_block();
+  set_located_block(block, req.block().blockid(), req.block().numbytes());
+}
 
 bool ZkNnClient::add_block(const std::string &file_path,
                std::uint64_t &block_id,
@@ -3076,6 +3131,7 @@ bool ZkNnClient::lease_expired(std::string lease_holder_client) {
                       ClientZookeeperPath(lease_holder_client) << ".";
       return false;
     }
+    return true;
   }
 }
 
