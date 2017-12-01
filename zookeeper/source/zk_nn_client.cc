@@ -2764,6 +2764,7 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
  * @return
  */
 bool ZkNnClient::check_acks() {
+  std::vector<std::shared_ptr<ZooOp>> ops;
   int error_code = 0;
 
   // Get the current block UUIDs that are waiting to be fully replicated
@@ -2782,6 +2783,7 @@ bool ZkNnClient::check_acks() {
             << " blocks";
 
   for (auto block_uuid : block_uuids) {
+    int elapsed_time;
     uint64_t block_id;
     std::stringstream strm(block_uuid);
     strm >> block_id;
@@ -2793,7 +2795,9 @@ bool ZkNnClient::check_acks() {
     auto data = std::vector<std::uint8_t>();
     if (!zk->get(block_path, data, error_code)) {
       LOG(ERROR) << "[check_acks] Error getting payload at: " << block_path;
-      return false;
+      auto undo_ack_op = zk->build_delete_op(block_path);
+      ops.push_back(undo_ack_op);
+      continue;
     }
     int replication_factor = unsigned(data[0]);
     LOG(INFO) << "[check_acks] Replication factor for "
@@ -2808,14 +2812,14 @@ bool ZkNnClient::check_acks() {
                  << error_code
                  << " occurred in check_acks when getting children for "
                  << block_path;
-      return false;
+      goto delete_ack;
     }
     LOG(INFO) << "[check_acks] Found "
               << existing_dn_replicas.size()
               << " replicas of "
               << block_uuid;
 
-    int elapsed_time = ms_since_creation(block_path);
+    elapsed_time = ms_since_creation(block_path);
     if (elapsed_time < 0) {
       LOG(ERROR) << "[check_acks] Failed to get elapsed time";
     }
@@ -2825,12 +2829,7 @@ bool ZkNnClient::check_acks() {
       // Emit error and remove this block from wait_for_acks
       LOG(ERROR) << block_path << "[check_acks]  has 0 replicas! "
               "Delete from wait_for_acks.";
-      if (!zk->delete_node(block_path, error_code)) {
-        LOG(ERROR) << "[check_acks] Failed to delete: " << block_path;
-        return false;
-      }
-      return false;
-
+      goto delete_ack;
     } else if (existing_dn_replicas.size() < replication_factor
            && elapsed_time > ACK_TIMEOUT) {
       LOG(INFO) << "[check_acks] Not yet enough replicas after time out for "
@@ -2847,29 +2846,44 @@ bool ZkNnClient::check_acks() {
         if (!recover_ec_blocks(to_replicate, error_code)) {
           LOG(ERROR) << "[check_acks] Failed to add necessary "
                   "items to ec_recover queue.";
-          return false;
         }
+        continue;
       } else {
         if (!replicate_blocks(to_replicate, error_code)) {
           LOG(ERROR) << "Failed to add necessary items to replication queue.";
-          return false;
         }
+        continue;
       }
 
     } else if (existing_dn_replicas.size() == replication_factor) {
       LOG(INFO) << "[check_acks] Enough replicas have been made, "
               "no longer need to wait on "
                 << block_path;
-      if (!zk->recursive_delete(block_path, error_code)) {
-        LOG(ERROR) << "[check_acks] Failed to delete: " << block_path;
-        return false;
-      }
+      goto delete_ack;
     } else {
       LOG(INFO) << "[check_acks] Not enough replicas, but still time left"
                 << block_path;
+      continue;
+    }
+delete_ack:
+    if (!zk->recursive_delete(block_path, error_code)) {
+      LOG(ERROR) << "[check_acks] Failed to delete ack with error code: ";
     }
   }
-  return true;
+  /*
+  auto results = std::vector<zoo_op_result>();
+  if (!zk->execute_multi(ops, results, error_code)) {
+    ZKWrapper::print_error(error_code);
+    for (int i = 0; i < results.size(); i++) {
+      LOG(ERROR) << "[check_acks] UNDO_ACK_MULTIOP #" << i
+                 << " ERROR CODE: " << results[i].err;
+    }
+  }
+  */
+  if (error_code == 0)
+    return true;
+  else
+    return false;
 }
 
 bool ZkNnClient::recover_ec_blocks(
