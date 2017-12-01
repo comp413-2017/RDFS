@@ -74,8 +74,8 @@ TEST_F(NamenodeTest, processRequestTest) {
   hadoop::hdfs::CreateResponseProto create_resp;
   ASSERT_EQ(client->create_file(create_req, create_resp),
             zkclient::ZkNnClient::CreateResponse::Ok);
-
-  ASSERT_FALSE(client->process_request(client_name, file_path, append_req));
+  // This client should be able to append
+  ASSERT_TRUE(client->process_request(client_name, file_path, append_req));
 }
 
 // TEST_F(NamenodeTest, checkLeaseTest) {

@@ -91,8 +91,9 @@ void NativeFS::constructFreeLists() {
               blocks[i + 1].offset);
   }
   // Add free space between the last block and the end of disk.
-  freeRange(std::max(RESERVED_SIZE, blocks[BLOCK_LIST_LEN - 1].offset
-                                    + blocks[BLOCK_LIST_LEN - 1].allocated_size),
+  freeRange(std::max(RESERVED_SIZE,
+                     blocks[BLOCK_LIST_LEN - 1].offset
+                     + blocks[BLOCK_LIST_LEN - 1].allocated_size),
             DISK_SIZE);
 }
 
