@@ -6,10 +6,43 @@
 #include <sstream>
 #include <iostream>
 
+// Path to the HTML file containing the webRDFS client.
+#define WEBRDFS_CLIENT_STATIC_FILE "/home/vagrant/rdfs/web-rdfs/source/index.html"
+
 zkclient::ZkNnClient *zk;
 
 void setZk(zkclient::ZkNnClient *zk_arg) {
   zk = zk_arg;
+}
+
+/**
+ * Serve a static file to the client.
+ *
+ * @param response HTTP response object.
+ * @param content_type Content-Type to send to the client.
+ * @param static_file_path Full path to the static file to serve.
+ */
+void serve_static_file(std::shared_ptr<HttpsServer::Response> response,
+                       const char *content_type,
+                       const char *static_file_path) {
+  std::stringstream stream;
+  std::string file_contents;
+
+  LOG(DEBUG) << "Serving static file "
+             << static_file_path
+             << " with Content-Type "
+             << content_type;
+
+  // Read the static file contents into memory as text
+  std::ifstream static_file(static_file_path);
+  std::stringstream buffer;
+  buffer << static_file.rdbuf();
+  file_contents = buffer.str();
+
+  *response << "HTTP/1.1 200 OK\r\n"
+            << "Content-Type: " << content_type << "\r\n"
+            << "Content-Length: " << file_contents.length() << "\r\n\r\n"
+            << file_contents;
 }
 
 std::string get_request_type(std::shared_ptr<HttpsServer::Request> request) {
@@ -179,6 +212,13 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
   zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
 
   response->write(webRequestTranslator::getRenameResponse(zkResp));
+}
+
+void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
+                      std::shared_ptr<HttpsServer::Request> request) {
+  LOG(DEBUG) << "Frontend handler invoked";
+
+  serve_static_file(response, "text/html", WEBRDFS_CLIENT_STATIC_FILE);
 }
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
