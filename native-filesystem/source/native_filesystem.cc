@@ -118,7 +118,6 @@ void NativeFS::flushBlock(int block_index) {
 }
 
 void NativeFS::freeRange(uint64_t start, uint64_t end) {
-  LOG(INFO) << "[freeRange] start: " << start << " end: " << end;
   // Sanity check: make sure start <= end <= DISK_SIZE.
   end = std::max(start, std::min(end, DISK_SIZE));
   // Fill in with the largest blocks possible until no more fit.

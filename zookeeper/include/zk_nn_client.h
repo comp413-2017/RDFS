@@ -577,7 +577,8 @@ class ZkNnClient : public ZkClientCommon {
 * Main append file mechanism and associated helpers.
 */
   bool append_file(AppendRequestProto &req, AppendResponseProto &res);
-  void update_block_for_pipeline(UpdateBlockForPipelineRequestProto &req, UpdateBlockForPipelineResponseProto &res);
+  void update_block_for_pipeline(UpdateBlockForPipelineRequestProto &req,
+                                 UpdateBlockForPipelineResponseProto &res);
   bool process_request(std::string client_name, std::string file_path,
                        AppendRequestProto &req);
   bool get_primary_block_info(std::string file_path,
