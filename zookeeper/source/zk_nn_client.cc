@@ -484,6 +484,7 @@ bool ZkNnClient::set_located_block(LocatedBlockProto* locatedBlockProto,
     }
   }
   buildTokenProto(locatedBlockProto->mutable_blocktoken());
+  locatedBlockProto->add_storageids("testid");
   return true;
 }
 

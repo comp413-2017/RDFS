@@ -212,6 +212,9 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
           << "[processwriterequest] failed to update the block "
             "size of block " << block_id << "to size "
           << block_info.len;
+          return;
+        } else {
+          ackPacket(sock, last_header);
         }
       }
     } else {
@@ -220,17 +223,22 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
           LOG(ERROR) << "block " << block_id << " has more than "
             "min block size but still"
             "sent as a partial block.";
+          return;
         }
         if (!fs->extendBlock(block_id, block_data)) {
           LOG(ERROR) << "Failed to extend block " << block_id << "to add "
           << "new data";
+          return;
         } else {
           // Updates block size
           if (!dn->blockSizeUpdated(block_id, block_info.len + block_data.length())) {
             LOG(ERROR)
             << "[processwriterequest] failed to update the block "
               "size of block " << block_id << "to size "
-            << block_info.len;
+            << block_info.len + block_data.length();
+            return;
+          } else {
+            ackPacket(sock, last_header);
           }
       }
     }
@@ -274,7 +282,7 @@ void TransferServer::ackPacket(tcp::socket &sock,
   std::string ack_string;
   ack.SerializeToString(&ack_string);
   if (rpcserver::write_delimited_proto(sock, ack_string)) {
-    // LOG(INFO) << "Successfully sent ack to client";
+    LOG(INFO) << "[ackPacket] Successfully sent ack to client";
   } else {
     LOG(ERROR) << "Could not send ack to client";
   }

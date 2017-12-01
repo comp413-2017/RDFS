@@ -176,7 +176,8 @@ bool ZkClientDn::blockSizeUpdated(uint64_t uuid, uint64_t size_bytes) {
       zk->flush(zk->prepend_zk_root(block_metadata_path), true);
       if (zk->exists(block_metadata_path,
                      exists, error_code)) {
-        LOG(ERROR) << "/block_locations/<block_uuid> did not exist "
+        LOG(ERROR) << "[blockSizeUpdated] /block_locations/<block_uuid> "
+                        "did not exist "
         << error_code;
         return false;
       }
@@ -189,12 +190,16 @@ bool ZkClientDn::blockSizeUpdated(uint64_t uuid, uint64_t size_bytes) {
     if (!zk->set(block_metadata_path,
                  data_vect, error_code, false)) {
       LOG(ERROR)
-      << "Failed writing block size to /block_locations/<block_uuid> "
+      << "[blockSizeUpdated] Failed writing block size to "
+                 "/block_locations/<block_uuid> "
       << error_code;
       return false;
     }
-
+    return true;
   }
+  LOG(ERROR) << "[blockSizeUpdated] Failed to check whether "
+  << block_metadata_path << " exists.";
+  return false;
 }
 void ZkClientDn::registerDataNode(const std::string &ip,
                                   uint64_t total_disk_space,
