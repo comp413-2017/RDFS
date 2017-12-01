@@ -23,7 +23,7 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
 
   zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
 
-  response->write(webRequestTranslator::getCreateResponse(path));
+  *response << webRequestTranslator::getCreateResponse(path);
 }
 
 void ls_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -106,11 +106,6 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   }
 }
 
-void not_found_handler(std::shared_ptr<HttpsServer::Response> response,
-                       std::shared_ptr<HttpsServer::Request> request,
-                       std::string path) {
-  // TODO(security): invoke another handler depending on qs opcode.
-}
 
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
