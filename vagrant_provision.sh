@@ -38,7 +38,7 @@ if [ -d /home/vagrant/hadoop3 ]; then
     rm -rf /home/vagrant/hadoop3
 fi
 if [ -f hadoop-3.0.0-beta1-2.tar.gz ]; then
-    rm -f hadoop-3.0.0-beta1-2.tar.gz
+    rm -f hadoop-3.0.0-beta1-2.tar.gz*
 fi
 wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
 tar -xf hadoop-3.0.0-beta1-2.tar.gz
@@ -63,7 +63,7 @@ if [ -d /home/vagrant/hadoop2 ]; then
     rm -rf /home/vagrant/hadoop2
 fi
 if [ -f hadoop-2.8.1.tar.gz ]; then
-    rm -f hadoop-2.8.1.tar.gz
+    rm -f hadoop-2.8.1.tar.gz*
 fi
 wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
 tar -xf hadoop-2.8.1.tar.gz
@@ -81,7 +81,7 @@ if [ -d /home/vagrant/isal ]; then
     rm -rf /home/vagrant/isal
 fi
 if [ -f isal-2.tar.gz ]; then
-    rm -f isal-2.tar.gz
+    rm -f isal-2.tar.gz*
 fi
 wget --quiet http://kevinlin.web.rice.edu/static/isal-2.tar.gz
 tar -xf isal-2.tar.gz
@@ -98,7 +98,7 @@ if [ -d /home/vagrant/zookeeper ]; then
     rm -rf /home/vagrant/zookeeper
 fi
 if [ -f zookeeper-3.4.9.tar.gz ]; then
-    rm -f zookeeper-3.4.9.tar.gz
+    rm -f zookeeper-3.4.9.tar.gz*
 fi
 wget --quiet http://kevinlin.web.rice.edu/static/zookeeper-3.4.9.tar.gz
 tar -xf zookeeper-3.4.9.tar.gz
