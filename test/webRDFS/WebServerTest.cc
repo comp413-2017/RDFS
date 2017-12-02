@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
+#include <sstream>
 
 INITIALIZE_EASYLOGGINGPP
 

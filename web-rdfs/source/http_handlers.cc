@@ -259,6 +259,7 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   }
 }
 
+
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
   std::string typeOfRequest = get_request_type(request);

@@ -39,8 +39,8 @@ namespace webRequestTranslator {
 
     res += location;
     res += "\n";
-    res += "Content-Length: ";
-    res += std::to_string(contentOfFile.length());
+    res += "Content-Length: 0";
+    //res += std::to_string(contentOfFile.length());
     res += "\n\n";
 
     return "";
