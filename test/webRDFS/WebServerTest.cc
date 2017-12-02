@@ -83,6 +83,46 @@ TEST(WebServerTest, testFrontend) {
   ASSERT_EQ(0, system("rm frontend"));
 }
 
+TEST(WebServerTest, testCreate) {
+  system(
+          "hdfs dfs -fs hdfs://comp413.local:5351 "
+                  "-copyFromLocal fileForTesting /fileToCreate");
+
+  system("curl -i -X PUT "
+                   "\"https://comp413.local:8080/webhdfs/v1/"
+                   "fileToCreate?op=CREATE\" > actualResultCreate");
+
+  // Check that results match
+  ASSERT_EQ(0,
+            system("diff /home/vagrant/rdfs/test/webRDFS/"
+                           "expectedResultCreate actualResultCreate"));
+
+  //system("rm actualResultCreate");
+  system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToCreate");
+}
+
+TEST(WebServerTest, testListing) {
+  system(
+          "hdfs dfs -fs hdfs://comp413.local:5351 "
+                  "-mkdir /dirToLs");
+  system(
+          "hdfs dfs -fs hdfs://comp413.local:5351 "
+                  "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting "
+                  "/dirToLs/");
+
+  ASSERT_EQ(0,
+            system("curl -i https://comp413.local:8080/webhdfs/v1/"
+                           "dirToLs?op=LISTSTATUS > actualResultLs"));
+
+  // Check that results match
+  ASSERT_EQ(0,
+            system("diff /home/vagrant/rdfs/test/webRDFS/"
+                           "expectedResultLs actualResultLs"));
+
+  //system("rm actualResultLs");
+  system("hdfs dfs -fs hdfs://comp413.local:5351 -rm -r /dirToLs");
+
+}
 }  // namespace
 
 int main(int argc, char **argv) {
