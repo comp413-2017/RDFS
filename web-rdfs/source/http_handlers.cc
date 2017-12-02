@@ -114,7 +114,6 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
   zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
 
   *response << webRequestTranslator::getCreateResponse(path);
-
 }
 
 void ls_handler(std::shared_ptr<HttpsServer::Response> response,

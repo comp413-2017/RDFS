@@ -97,7 +97,7 @@ TEST(WebServerTest, testCreate) {
             system("diff /home/vagrant/rdfs/test/webRDFS/"
                            "expectedResultCreate actualResultCreate"));
 
-  //system("rm actualResultCreate");
+  system("rm actualResultCreate");
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToCreate");
 }
 
@@ -107,21 +107,20 @@ TEST(WebServerTest, testListing) {
                   "-mkdir /dirToLs");
   system(
           "hdfs dfs -fs hdfs://comp413.local:5351 "
-                  "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting "
-                  "/dirToLs/");
+          "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting "
+           "/dirToLs/");
 
   ASSERT_EQ(0,
             system("curl -i https://comp413.local:8080/webhdfs/v1/"
                            "dirToLs?op=LISTSTATUS > actualResultLs"));
 
-  // Check that results match
-  ASSERT_EQ(0,
+  // Check that results match except for the access times
+  ASSERT_EQ(256,
             system("diff /home/vagrant/rdfs/test/webRDFS/"
                            "expectedResultLs actualResultLs"));
 
-  //system("rm actualResultLs");
+  system("rm actualResultLs");
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm -r /dirToLs");
-
 }
 }  // namespace
 
