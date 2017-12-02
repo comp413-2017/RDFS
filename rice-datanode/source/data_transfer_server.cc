@@ -520,7 +520,7 @@ bool TransferServer::remote_read(uint64_t len, std::string ip,
     rpcserver::read_int16(sock, &header_len);
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
-    //LOG(INFO) << "Receiving packet " << p_head.seqno();
+    // LOG(INFO) << "Receiving packet " << p_head.seqno();
     // read in the data
     if (!p_head.lastpacketinblock()) {
       uint64_t data_len = p_head.datalen();
