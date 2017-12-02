@@ -9,7 +9,7 @@
 
 using RDFSTestUtils::initializeDatanodes;
 
-static const int NUM_DATANODES = 3;
+static const int NUM_DATANODES = 1;
 
 // These are incremented for each test.
 int32_t xferPort = 50010;

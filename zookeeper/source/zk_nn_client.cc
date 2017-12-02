@@ -3140,7 +3140,7 @@ bool ZkNnClient::buildExtendedBlockProto(ExtendedBlockProto *eb,
                      const uint64_t &block_size) {
   eb->set_poolid("0");
   eb->set_blockid(block_id);
-  eb->set_generationstamp(1);
+  eb->set_generationstamp(block_size);
   eb->set_numbytes(block_size);
   return true;
 }

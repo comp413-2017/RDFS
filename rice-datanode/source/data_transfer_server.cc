@@ -33,6 +33,7 @@ using hadoop::hdfs::PacketHeaderProto;
 using hadoop::hdfs::PipelineAckProto;
 using hadoop::hdfs::ReadOpChecksumInfoProto;
 using hadoop::hdfs::SUCCESS;
+using hadoop::hdfs::IN_PROGRESS;
 
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
@@ -121,8 +122,7 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   } else {
     ERROR_AND_RETURN("Failed to op the write block proto.");
   }
-  std::string response_string;
-  buildBlockOpResponse(response_string);
+
 
   const ClientOperationHeaderProto header = proto.header();
   std::vector<DatanodeInfoProto> targets;
@@ -139,6 +139,16 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   // num bytes sent
   uint64_t bytesSent = proto.maxbytesrcvd();
 
+  uint64_t block_id = header.baseheader().block().blockid();
+  nativefs::block_info blockInfo;
+  std::string response_string;
+  if (!fs->fetchBlock(block_id, blockInfo)) {
+    buildBlockOpResponse(response_string);
+  } else if (blockInfo.len == header.baseheader().block().numbytes()) {
+    buildBlockOpResponse(response_string);
+  } else {
+    buildFailBlockOpResponse(response_string);
+  }
   if (rpcserver::write_delimited_proto(sock, response_string)) {
     LOG(INFO) << "Successfully sent response to client";
   } else {
@@ -158,8 +168,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     rpcserver::read_int32(sock, &payload_len);
     uint16_t header_len;
     rpcserver::read_int16(sock, &header_len);
-    LOG(INFO) << "[processwriterequest] payload_len: "
-    << payload_len << " header_len:" << header_len;
+//    LOG(INFO) << "[processwriterequest] payload_len: "
+//    << payload_len << " header_len:" << header_len;
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
     LOG(INFO) << "Receiving packet " << p_head.seqno();
@@ -192,7 +202,7 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
       last_header = p_head;
     }
   }
-  uint64_t block_id = header.baseheader().block().blockid();
+
   uint64_t len_left;
   nativefs::block_info block_info;
 
@@ -389,6 +399,12 @@ void TransferServer::buildBlockOpResponse(std::string &response_string) {
   response.SerializeToString(&response_string);
 }
 
+void TransferServer::buildFailBlockOpResponse(std::string &response_string) {
+  BlockOpResponseProto response;
+  response.set_status(IN_PROGRESS);
+  response.SerializeToString(&response_string);
+}
+
 void TransferServer::serve(asio::io_service &io_service) {
   LOG(INFO) << "Transfer Server listens on :" << this->port;
   tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), this->port));
@@ -504,7 +520,7 @@ bool TransferServer::remote_read(uint64_t len, std::string ip,
     rpcserver::read_int16(sock, &header_len);
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
-    LOG(INFO) << "Receiving packet " << p_head.seqno();
+    //LOG(INFO) << "Receiving packet " << p_head.seqno();
     // read in the data
     if (!p_head.lastpacketinblock()) {
       uint64_t data_len = p_head.datalen();
