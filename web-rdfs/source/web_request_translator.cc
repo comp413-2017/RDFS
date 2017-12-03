@@ -39,8 +39,19 @@ namespace webRequestTranslator {
 
     res += location;
     res += "\n";
-    res += "Content-Length: ";
-    res += std::to_string(contentOfFile.length());
+    res += "Content-Length: 0";
+    res += "\n\n";
+
+    return "";
+  }
+
+  /**
+   * Converts the create response into the appropriate webRDFS response.
+   */
+  std::string getCreateResponse(std::string path) {
+    std::string res = std::string("HTTP/1.1 200 OK\n");
+
+    res += "Content-Length: 0";
     res += "\n\n";
 
     return "";
