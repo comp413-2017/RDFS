@@ -161,7 +161,7 @@ make && make install
 cd /home/vagrant
 
 # Add Google Mock
-if [! -d /usr/src/gmock ]; then
+if [ ! -d /usr/src/gmock ]; then
     apt-get install -y google-mock
     cd /usr/src/gmock
     cmake CMakeLists.txt
