@@ -11,6 +11,7 @@
 #include <asio.hpp>
 #include <boost/crc.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
+#include <native_filesystem.h>
 
 #define ERROR_AND_RETURN(msg) LOG(ERROR) << msg; return
 
@@ -32,6 +33,7 @@ using hadoop::hdfs::PacketHeaderProto;
 using hadoop::hdfs::PipelineAckProto;
 using hadoop::hdfs::ReadOpChecksumInfoProto;
 using hadoop::hdfs::SUCCESS;
+using hadoop::hdfs::IN_PROGRESS;
 
 // Default from CommonConfigurationKeysPublic.java#IO_FILE_BUFFER_SIZE_DEFAULT
 const size_t PACKET_PAYLOAD_BYTES = 4096 * 4;
@@ -112,14 +114,15 @@ void TransferServer::handle_connection(tcp::socket sock) {
 }
 
 void TransferServer::processWriteRequest(tcp::socket &sock) {
+  // TODO(jessicayu): Error and return if the numBytes in
+  // header.extendedblock proto is smaller than the block size.
   OpWriteBlockProto proto;
   if (rpcserver::read_delimited_proto(sock, proto)) {
     LOG(DEBUG) << "Op a write block proto";
   } else {
     ERROR_AND_RETURN("Failed to op the write block proto.");
   }
-  std::string response_string;
-  buildBlockOpResponse(response_string);
+
 
   const ClientOperationHeaderProto header = proto.header();
   std::vector<DatanodeInfoProto> targets;
@@ -136,6 +139,16 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   // num bytes sent
   uint64_t bytesSent = proto.maxbytesrcvd();
 
+  uint64_t block_id = header.baseheader().block().blockid();
+  nativefs::block_info blockInfo;
+  std::string response_string;
+  if (!fs->fetchBlock(block_id, blockInfo)) {
+    buildBlockOpResponse(response_string);
+  } else if (blockInfo.len == header.baseheader().block().numbytes()) {
+    buildBlockOpResponse(response_string);
+  } else {
+    buildFailBlockOpResponse(response_string);
+  }
   if (rpcserver::write_delimited_proto(sock, response_string)) {
     LOG(INFO) << "Successfully sent response to client";
   } else {
@@ -155,6 +168,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     rpcserver::read_int32(sock, &payload_len);
     uint16_t header_len;
     rpcserver::read_int16(sock, &header_len);
+//    LOG(INFO) << "[processwriterequest] payload_len: "
+//    << payload_len << " header_len:" << header_len;
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
     LOG(INFO) << "Receiving packet " << p_head.seqno();
@@ -188,18 +203,71 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
     }
   }
 
-  if (!fs->writeBlock(header.baseheader().block().blockid(), block_data)) {
-    LOG(ERROR)
+  uint64_t len_left;
+  nativefs::block_info block_info;
+
+  // Checks whether this block exists on this datanode
+  if (fs->fetchBlock(block_id, block_info)) {
+    len_left = block_info.allocated_size - block_info.len;
+    if (len_left >= block_data.length()) {
+      if (!fs->writeBlock(block_id, block_data)) {
+        LOG(ERROR)
+        << "Failed to append to block "
+        << header.baseheader().block().blockid();
+        return;
+      } else {
+        // Updates block size
+        if (!dn->blockSizeUpdated(block_id, block_info.len
+                                            + block_data.length())) {
+          LOG(ERROR)
+          << "[processwriterequest] failed to update the block "
+            "size of block " << block_id << "to size "
+          << block_info.len;
+          return;
+        } else {
+          ackPacket(sock, last_header);
+        }
+      }
+    } else {
+        // Needs to extend this block
+        if (block_info.len > nativefs::MIN_BLOCK_SIZE) {
+          LOG(ERROR) << "block " << block_id << " has more than "
+            "min block size but still"
+            "sent as a partial block.";
+          return;
+        }
+        if (!fs->extendBlock(block_id, block_data)) {
+          LOG(ERROR) << "Failed to extend block " << block_id << "to add "
+          << "new data";
+          return;
+        } else {
+          // Updates block size
+          if (!dn->blockSizeUpdated(block_id, block_info.len
+                                              + block_data.length())) {
+            LOG(ERROR)
+            << "[processwriterequest] failed to update the block "
+              "size of block " << block_id << "to size "
+            << block_info.len + block_data.length();
+            return;
+          } else {
+            ackPacket(sock, last_header);
+          }
+      }
+    }
+  } else {
+    if (!fs->writeBlock(block_id, block_data)) {
+      LOG(ERROR)
       << "Failed to allocate block "
       << header.baseheader().block().blockid();
-    return;
-  } else {
-    if (dn->blockReceived(header.baseheader().block().blockid(),
-                          block_data.length())) {
-      ackPacket(sock, last_header);
-    } else {
-      LOG(ERROR) << "Failed to register received block with NameNode";
       return;
+    } else {
+      if (dn->blockReceived(block_id,
+                            block_data.length())) {
+        ackPacket(sock, last_header);
+      } else {
+        LOG(ERROR) << "Failed to register received block with NameNode";
+        return;
+      }
     }
   }
 
@@ -226,7 +294,7 @@ void TransferServer::ackPacket(tcp::socket &sock,
   std::string ack_string;
   ack.SerializeToString(&ack_string);
   if (rpcserver::write_delimited_proto(sock, ack_string)) {
-    // LOG(INFO) << "Successfully sent ack to client";
+    LOG(INFO) << "[ackPacket] Successfully sent ack to client";
   } else {
     LOG(ERROR) << "Could not send ack to client";
   }
@@ -328,6 +396,12 @@ void TransferServer::buildBlockOpResponse(std::string &response_string) {
   ChecksumProto *checksum = checksum_info->mutable_checksum();
   checksum->set_type(CHECKSUM_NULL);
   checksum->set_bytesperchecksum(17);
+  response.SerializeToString(&response_string);
+}
+
+void TransferServer::buildFailBlockOpResponse(std::string &response_string) {
+  BlockOpResponseProto response;
+  response.set_status(IN_PROGRESS);
   response.SerializeToString(&response_string);
 }
 
@@ -446,7 +520,7 @@ bool TransferServer::remote_read(uint64_t len, std::string ip,
     rpcserver::read_int16(sock, &header_len);
     PacketHeaderProto p_head;
     rpcserver::read_proto(sock, p_head, header_len);
-    LOG(INFO) << "Receiving packet " << p_head.seqno();
+    // LOG(INFO) << "Receiving packet " << p_head.seqno();
     // read in the data
     if (!p_head.lastpacketinblock()) {
       uint64_t data_len = p_head.datalen();
@@ -488,37 +562,60 @@ bool TransferServer::replicate(uint64_t len, std::string ip,
     << xferport;
 
   LOG(INFO) << "blockToTarget is " << blockToTarget.blockid();
-
-  if (fs->hasBlock(blockToTarget.blockid())) {
-    LOG(INFO) << "Block already exists on this DN";
+  uint64_t block_id = blockToTarget.blockid();
+  nativefs::block_info block_info;
+  if (fs->fetchBlock(block_id, block_info)) {
+    LOG(INFO) << "[replicate] Block " << block_id
+    << " already exists on this DN";
+    uint32_t old_len = block_info.len;
+    LOG(INFO) << "[replicate] target block len is " << old_len
+    << " , source block len is " << len;
+    if (old_len >= len) {
+      return true;
+    } else {
+      // Read the block
+      std::string data(len, 0);
+      int read_len = 0;
+      // TODO(jessicayu) Read starting from offset
+      if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
+        return false;
+      }
+      std::string append_data = data.substr(old_len, len - old_len);
+      if (block_info.allocated_size < block_info.len + append_data.length()) {
+        if (!fs->extendBlock(block_id, append_data)) {
+          LOG(ERROR) << "[replicate] Failed to extend and wirte to block "
+          << block_id;
+        }
+      } else {
+        if (!fs->writeBlock(block_id, append_data)) {
+          LOG(ERROR) << "[replicate] Failed to append to block " << block_id;
+        }
+      }
+    }
     return true;
   } else {
     LOG(INFO) << "Block not found on this DN, replicating...";
-  }
+    std::string data(len, 0);
+    int read_len = 0;
+    if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
+      return false;
+    }
 
-  uint64_t block_id = blockToTarget.blockid();
-
-  std::string data(len, 0);
-  int read_len = 0;
-  if (!remote_read(len, ip, xferport, blockToTarget, data, read_len)) {
-    return false;
-  }
-
-
-  // TODO(anyone): send ClientReadStatusProto (delimited)
-  if (!fs->writeBlock(block_id, data)) {
-    LOG(ERROR)
+    // TODO(anyone): send ClientReadStatusProto (delimited)
+    if (!fs->writeBlock(block_id, data)) {
+      LOG(ERROR)
       << "Failed to allocate block "
       << block_id;
-    return false;
-  } else {
-    dn->blockReceived(block_id, read_len);
-  }
+      return false;
+    } else {
+      dn->blockReceived(block_id, read_len);
+    }
 
-  // Pretty confident we don't need this line,
-  // but if we get a bug this is a place to check
-  LOG(INFO) << "Replication complete, closing connection.";
-  return true;
+    // Pretty confident we don't need this line,
+    // but if we get a bug this is a place to check
+    LOG(INFO) << "Replication complete, closing connection.";
+    return true;
+  }
 }
 
 bool TransferServer::rmBlock(uint64_t block_id) {
