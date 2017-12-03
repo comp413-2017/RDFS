@@ -88,6 +88,9 @@ using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::FsPermissionProto;
 using hadoop::hdfs::AppendRequestProto;
 using hadoop::hdfs::AppendResponseProto;
+using hadoop::hdfs::UpdateBlockForPipelineRequestProto;
+using hadoop::hdfs::UpdateBlockForPipelineResponseProto;
+using hadoop::hdfs::UpdatePipelineRequestProto;
 
 ClientNamenodeTranslator::ClientNamenodeTranslator(
     int port_arg,
@@ -107,6 +110,15 @@ std::string ClientNamenodeTranslator::append(std::string input) {
   logMessage(&req, "Append");
   // TODO(2016) some optional fields need to be read
   zk->append_file(req, res);
+  return Serialize(res);
+}
+std::string ClientNamenodeTranslator::updateBlockForPipeline
+  (std::string input) {
+  UpdateBlockForPipelineRequestProto req;
+  UpdateBlockForPipelineResponseProto res;
+  req.ParseFromString(input);
+  logMessage(&req, "updateBlockForPipeline");
+  zk->update_block_for_pipeline(req, res);
   return Serialize(res);
 }
 
@@ -568,6 +580,12 @@ void ClientNamenodeTranslator::RegisterClientRPCHandlers() {
   server.register_handler(
       "append",
       std::bind(&ClientNamenodeTranslator::append, this, _1));
+  server.register_handler(
+    "updateBlockForPipeline",
+    std::bind(&ClientNamenodeTranslator::updateBlockForPipeline, this, _1));
+  server.register_handler(
+    "updatePipeline",
+    std::bind(&ClientNamenodeTranslator::updatePipeline, this, _1));
 
   server.register_handler(
       "fsync",

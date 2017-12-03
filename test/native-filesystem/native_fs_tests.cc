@@ -33,7 +33,7 @@ TEST_F(NativeFSTest, CanWriteBlock) {
 TEST_F(NativeFSTest, WriteExistingBlock) {
   NativeFS filesystem(backing);
   filesystem.writeBlock(1, blk);
-  ASSERT_FALSE(filesystem.writeBlock(1, blk));
+  ASSERT_TRUE(filesystem.writeBlock(1, blk));
 }
 
 TEST_F(NativeFSTest, CanWriteAndGetBlock) {
@@ -176,7 +176,8 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
     // Even though block that is smaller than min is requested, MIN_BLOCK_SIZE
     // is allocated and used.
     std::string  smallerThanMinBlk_a(MIN_BLOCK_SIZE / 2, 'a');
-    for (int j = k; j < k + memory_left / MIN_BLOCK_SIZE; j++) {
+    int j;
+    for (j = k; j < k + memory_left / MIN_BLOCK_SIZE; j++) {
       std::string readblk;
       ASSERT_TRUE(filesystem.writeBlock(j, smallerThanMinBlk_a));
       ASSERT_TRUE(filesystem.getBlock(j, readblk));
@@ -186,6 +187,9 @@ TEST_F(NativeFSTest, VerifySpaceWasted) {
     ASSERT_FALSE(filesystem.writeBlock(
       (DISK_SIZE - RESERVED_SIZE) / MIN_BLOCK_SIZE,
                                        smallerThanMinBlk_a));
+    for (int t = 0; t < j; t++) {
+      ASSERT_TRUE(filesystem.rmBlock(t));
+    }
   }
 }
 
