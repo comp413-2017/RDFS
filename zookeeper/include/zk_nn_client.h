@@ -156,15 +156,16 @@ using hadoop::hdfs::UpdateBlockForPipelineResponseProto;
 class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
-  const char* EC_REPLICATION = "REPLICATION";
+  const char* EC_REPLICATION = "replication";
   const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
   uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
-  uint32_t REPLICATION_EC_ID = 0;
+  uint32_t REPLICATION_EC_ID = 63;
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
   std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
+  std::string REPLICATION_STORAGE_ID = "63";
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
   ErasureCodingPolicyProto REPLICATION_PROTO;

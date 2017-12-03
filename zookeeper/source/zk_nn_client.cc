@@ -81,14 +81,19 @@ void ZkNnClient::populateDefaultECProto() {
   DEFAULT_EC_SCHEMA.set_parityunits(DEFAULT_PARITY_UNITS);
   DEFAULT_EC_SCHEMA.set_dataunits(DEFAULT_DATA_UNITS);
   DEFAULT_EC_SCHEMA.set_codecname(DEFAULT_EC_CODEC_NAME);
+  REPLICATION_1_2_SCHEMA.set_parityunits(2);
+  REPLICATION_1_2_SCHEMA.set_dataunits(1);
+  REPLICATION_1_2_SCHEMA.set_codecname(EC_REPLICATION);
   RS_SOLOMON_PROTO.set_name(DEFAULT_EC_POLICY);
   RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
   RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
+  RS_SOLOMON_PROTO.set_state(ErasureCodingPolicyState::ENABLED);
   REPLICATION_PROTO.set_name(EC_REPLICATION);
   REPLICATION_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
   REPLICATION_PROTO.set_id(REPLICATION_EC_ID);
   REPLICATION_PROTO.set_allocated_schema(&REPLICATION_1_2_SCHEMA);
+  REPLICATION_PROTO.set_state(ErasureCodingPolicyState::ENABLED);
 }
 
 /*
@@ -881,9 +886,22 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
 
-  // Add storage IDs.
-  for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-    block->add_storageids(DEFAULT_STORAGE_ID);
+  if (znode_data.isEC) {
+    // Add storage IDs.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->add_storageids(DEFAULT_STORAGE_ID);
+    }
+    // Add storage types.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->add_storagetypes(StorageTypeProto::DISK);
+    }
+  } else {
+    for (int i = 0; i < znode_data.replication; i++) {
+      block->add_storageids(REPLICATION_STORAGE_ID);
+    }
+    for (int i = 0; i < znode_data.replication; i++) {
+      block->add_storagetypes(StorageTypeProto::DISK);
+    }
   }
 
   // Populate optional fields for an EC block.
