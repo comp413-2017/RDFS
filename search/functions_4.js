@@ -6,5 +6,6 @@ var searchData=
   ['endswith',['endsWith',['../classel_1_1base_1_1utils_1_1_str.html#a8116fdf0f0308f78a42989da9df52377',1,'el::base::utils::Str']]],
   ['execute_5fmulti',['execute_multi',['../class_z_k_wrapper.html#a03c175112e76cf7930277df1519bc8b1',1,'ZKWrapper']]],
   ['exists',['exists',['../class_z_k_wrapper.html#a7d2629dd6880c17bb7ee4e112d9a3932',1,'ZKWrapper']]],
+  ['extendblock',['extendBlock',['../classnativefs_1_1_native_f_s.html#a23ca9d839f493b3c3766d0ce9e58404e',1,'nativefs::NativeFS']]],
   ['extractpathfromfilename',['extractPathFromFilename',['../classel_1_1base_1_1utils_1_1_file.html#aeb03bbb8d34b7ac37bcec1ab493926e6',1,'el::base::utils::File']]]
 ];

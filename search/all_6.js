@@ -3,6 +3,7 @@ var searchData=
   ['fatal',['Fatal',['../namespaceel.html#ab0ac6091262344c52dd2d3ad099e8e36a882384ec38ce8d9582b57e70861730e4',1,'el']]],
   ['fencerequestproto',['FenceRequestProto',['../classhadoop_1_1hdfs_1_1_fence_request_proto.html',1,'hadoop::hdfs']]],
   ['fenceresponseproto',['FenceResponseProto',['../classhadoop_1_1hdfs_1_1_fence_response_proto.html',1,'hadoop::hdfs']]],
+  ['fetchblock',['fetchBlock',['../classnativefs_1_1_native_f_s.html#ae5b9abd23940c2230484518ea17b9c6f',1,'nativefs::NativeFS']]],
   ['file',['File',['../classel_1_1base_1_1utils_1_1_file.html',1,'el::base::utils']]],
   ['file_5fdata_5ft',['file_data_t',['../structfile__data__t.html',1,'']]],
   ['file_5fexists',['file_exists',['../classzkclient_1_1_zk_nn_client.html#a11c08c24c2a199ab29c0bb0836f25c88',1,'zkclient::ZkNnClient']]],

@@ -116,6 +116,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a64d558ff86417f24ac73360a74993139"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aded8657cc348dcbcced63c66d55690ae"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnativefs_1_1_native_f_s.html#aded8657cc348dcbcced63c66d55690ae">getKnownBlocks</a> ()</td></tr>
 <tr class="separator:aded8657cc348dcbcced63c66d55690ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5b9abd23940c2230484518ea17b9c6f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnativefs_1_1_native_f_s.html#ae5b9abd23940c2230484518ea17b9c6f">fetchBlock</a> (uint64_t, <a class="el" href="structnativefs_1_1block__info.html">block_info</a> &amp;info)</td></tr>
+<tr class="separator:ae5b9abd23940c2230484518ea17b9c6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23ca9d839f493b3c3766d0ce9e58404e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnativefs_1_1_native_f_s.html#a23ca9d839f493b3c3766d0ce9e58404e">extendBlock</a> (uint64_t block_id, std::string block_data)</td></tr>
+<tr class="separator:a23ca9d839f493b3c3766d0ce9e58404e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a8abf49d3f1e054620b9fbe2b8d86ac9b"></a>
@@ -160,6 +164,61 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a23ca9d839f493b3c3766d0ce9e58404e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool nativefs::NativeFS::extendBlock </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>block_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>block_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Extends the current block and append the block data. </p>
+
+</div>
+</div>
+<a class="anchor" id="ae5b9abd23940c2230484518ea17b9c6f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool nativefs::NativeFS::fetchBlock </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structnativefs_1_1block__info.html">block_info</a> &amp;&#160;</td>
+          <td class="paramname"><em>info</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Attempt to fetch block info for block of given id, write to info reference. Return whether it exists.</p>
+<p>Fetch <a class="el" href="structnativefs_1_1block__info.html">block_info</a> for an id. Assumes it has a lock on the block list. </p>
+
+</div>
+</div>
 <a class="anchor" id="a19299efc6d412fe5ff8ad053247bab38"></a>
 <div class="memitem">
 <div class="memproto">
