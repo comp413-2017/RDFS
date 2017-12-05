@@ -166,6 +166,10 @@ class ZkNnClient : public ZkClientCommon {
   const char* DEFAULT_EC_CODEC_NAME = "rs";
   std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
   std::string REPLICATION_STORAGE_ID = "63";
+  /*
+   * TODO(2017) For some reason, these fields can't be properly
+   * reclaimed/destructed in some cases.
+   */
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
   ErasureCodingPolicyProto REPLICATION_PROTO;

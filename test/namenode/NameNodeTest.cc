@@ -14,10 +14,8 @@ void NamenodeTest::SetUp() {
             std::make_shared<ZKWrapper>("localhost:2181",
             error_code, "/testing");
     assert(error_code == 0);  // Z_OK
-    client = std::unique_ptr<zkclient::ZkNnClient>{
-        new zkclient::ZkNnClient(zk_shared)};
-    zk = std::unique_ptr<ZKWrapper>{
-        new ZKWrapper("localhost:2181", error_code, "/testing")};
+    client = new zkclient::ZkNnClient{zk_shared};
+    zk = new ZKWrapper{"localhost:2181", error_code, "/testing"};
 }
 
 void NamenodeTest::TearDown() {
