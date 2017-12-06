@@ -13,7 +13,7 @@ apt-get install -y language-pack-en zip unzip curl
 
 apt-get install -y git build-essential cmake automake autoconf libtool libboost-all-dev libasio-dev
 
-apt-get install -y yasm
+apt-get install -y yasm tcpflow
 
 if [ ! -d /home/vagrant/protobuf-3.0.0 ]; then
     wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
