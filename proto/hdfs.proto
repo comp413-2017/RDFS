@@ -385,6 +385,8 @@ message HdfsFileStatusProto {
   optional uint32 storagePolicy = 16 [default = 0]; // block storage policy id
 
   optional ErasureCodingPolicyProto ecPolicy = 17;
+
+  optional uint32 flags = 18 [default=0];
 } 
 
 /**
