@@ -226,7 +226,15 @@ ZKWrapper::~ZKWrapper() {
      * we risk double freeing due to zkWrapper being potentially copied in
      * zk_lock. See the TODO in zk_lock.h
      */
-    close();
+    /*
+     * TODO(2017) We would do "close();" here, but ZKWrapper cloning is again
+     * causing issues.
+     * One way to convince yourself that "close();" is being properly called is
+     * to reduce the max number of connections that ZooKeeper accepts and see
+     * if all the unit tests still pass. The "maxClientCnxns" configuration
+     * option can be changed to achieve this. We had to bump this number since
+     * connections are not being properly reclaimed.
+     */
 }
 
 std::string ZKWrapper::prepend_zk_root(const std::string &path) const {
