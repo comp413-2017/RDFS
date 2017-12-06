@@ -6,6 +6,7 @@
 #include "zkwrapper.h"
 #include "zk_nn_client.h"
 #include "zk_dn_client.h"
+#include "server_http.h"
 
 #include <iostream>
 #include <string>
@@ -16,21 +17,10 @@
 
 namespace webRequestTranslator {
   /**
-  * Converts the RDFS namenode create response into the appropriate webRDFS response.
-  */
-  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto
-                                        &dataProto,
-                                        std::string requestLink);
-
-  /**
-  * Converts the RDFS datanode create response into the appropriate webRDFS response.
-  */
-  std::string getDatanodeCreateResponse(std::string contentOfFile);
-
-  /**
   * Converts the RDFS create response into the appropriate webRDFS response.
   */
-  std::string getCreateResponse(std::string path);
+  SimpleWeb::StatusCode getCreateResponse(zkclient::ZkNnClient::CreateResponse
+                                          &resProto);
 
   /**
    * Converts the RDFS read response into the appropriate webRDFS response.
