@@ -158,7 +158,7 @@ class ZkNnClient : public ZkClientCommon {
   char policy;
   const char* EC_REPLICATION = "replication";
   const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
+  uint32_t DEFAULT_EC_CELLSIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
   uint32_t REPLICATION_EC_ID = 63;
   const uint32_t DEFAULT_DATA_UNITS = 6;
