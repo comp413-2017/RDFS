@@ -553,7 +553,7 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   read_file_znode(znode_data, path);
 
   // Check access
-  if (fromClient && !checkAccess(client_name, znode_data)) {
+  if (fromClient && client_name.compare(std::string(znode_data.permissions[0])) != 0) {
     LOG(ERROR) << "[set_owner] Access denied to path " << path;
     return false;
   }
