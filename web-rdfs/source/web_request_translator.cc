@@ -4,46 +4,15 @@
 
 namespace webRequestTranslator {
   /**
-   * Converts the RDFS namenode create response into the appropriate webRDFS response.
+   * Converts the create response into the appropriate webRDFS response.
    */
-  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto
-                                        &dataProto,
-                                        std::string requestLink) {
-    std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
-
-    std::string delimiter = "/webhfs/v1/";
-    std::string restOfRequest = requestLink.substr(requestLink
-                                                   .find(delimiter)
-                                                   + delimiter.length(),
-                                                   requestLink.length());
-
-    hadoop::hdfs::DatanodeIDProto id = dataProto.id();
-    res += "Location: http://";
-    res += id.hostname();
-    res += ":";
-    res += std::to_string(id.infoport());
-
-    res += delimiter;
-    res += restOfRequest;
-
-    res += "\nContent-Length: 0";
-    return res;
-  }
-
-  /**
-   * Converts the RDFS datanode create response into the appropriate webRDFS response.
-   */
-  std::string getDatanodeCreateResponse(std::string location,
-                                        std::string contentOfFile) {
-    std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
-
-    res += location;
-    res += "\n";
-    res += "Content-Length: ";
-    res += std::to_string(contentOfFile.length());
-    res += "\n\n";
-
-    return "";
+  SimpleWeb::StatusCode getCreateResponse(zkclient::ZkNnClient::CreateResponse
+                                          &resProto) {
+    if (resProto == zkclient::ZkNnClient::CreateResponse::Ok) {
+      return SimpleWeb::StatusCode::success_created;
+    } else {
+      return SimpleWeb::StatusCode::server_error_internal_server_error;
+    }
   }
 
   /**

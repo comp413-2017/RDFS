@@ -101,11 +101,34 @@ std::string get_group(std::shared_ptr<HttpsServer::Request> request) {
 }
 
 void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::shared_ptr<HttpsServer::Request> request) {
+                         std::string path) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
-  // TODO(security): implement
-  response->write("create_file_handler");
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -put " + path;
+
+  hadoop::hdfs::CreateResponseProto res;
+  hadoop::hdfs::CreateRequestProto req;
+
+  req.set_src(path);
+
+  zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
+
+  response->write(webRequestTranslator::getCreateResponse(zkResp));
+}
+
+void ls_handler(std::shared_ptr<HttpsServer::Response> response,
+                std::shared_ptr<HttpsServer::Request> request,
+                std::string path) {
+  LOG(DEBUG) << "HTTP request: ls_handler";
+
+  GetListingRequestProto req;
+  GetListingResponseProto res;
+
+  req.set_src(path);
+
+  zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req, res);
+
+  response->write(webRequestTranslator::getListingResponse(zkResp, res));
 }
 
 void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -228,10 +251,13 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 
   if (!typeOfRequest.compare("OPEN")) {
     read_file_handler(response, path);
+  } else if (!typeOfRequest.compare("LISTST")) {
+    ls_handler(response, request, path);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
 }
+
 
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
@@ -259,6 +285,8 @@ void put_handler(std::shared_ptr<HttpsServer::Response> response,
     std::string user = get_user(request);
     std::string group = get_group(request);
     set_permission_handler(response, path, user, group);
+  } else if (!typeOfRequest.compare("CREATE")) {
+    create_file_handler(response, path);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
