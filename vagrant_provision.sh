@@ -15,13 +15,11 @@ apt-get install -y git build-essential cmake automake autoconf libtool libboost-
 
 apt-get install -y yasm tcpflow
 
-if [ ! -d /home/vagrant/protobuf-3.0.0 ]; then
-    wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
-    tar -xf protobuf-cpp-3.0.0.tar.gz
-    rm protobuf-cpp-3.0.0.tar.gz
-    cd protobuf-3.0.0; ./autogen.sh && ./configure --prefix=/usr && make && make install
-    cd /home/vagrant/; ldconfig
-fi
+wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
+tar -xf protobuf-cpp-3.0.0.tar.gz
+rm protobuf-cpp-3.0.0.tar.gz
+cd protobuf-3.0.0; ./autogen.sh && ./configure --prefix=/usr && make && make install
+cd /home/vagrant/; ldconfig
 
 # Install and setup dependencies of hadoop
 apt-get install -y ssh pdsh openjdk-8-jdk-headless
