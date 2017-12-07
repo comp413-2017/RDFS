@@ -251,7 +251,7 @@ message MkdirsResponseProto {
 
 message GetListingRequestProto {
   required string src = 1;
-  required int32 startAfter = 2;
+  optional int32 startAfter = 2;
   required bool needLocation = 3;
 }
 message GetListingResponseProto {

@@ -1317,10 +1317,10 @@ void ZkNnClient::complete(CompleteRequestProto& req,
     return;
   }
   if (file_blocks.size() == 0) {
-    LOG(ERROR) << "No blocks found for file " << ZookeeperFilePath(src);
     res.set_result(true);
-  }
-
+    LOG(ERROR) << "[complete] No blocks found for file "
+               << ZookeeperFilePath(src);
+  }    
     // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
     auto data = std::vector<std::uint8_t>();
@@ -1709,17 +1709,17 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
     GetListingRequestProto &req,
     GetListingResponseProto &res,
     std::string client_name) {
-  int error_code;
+  // int error_code;
 
   const std::string &src = req.src();
 
-  if (cache->contains(src)) {
-    // Get cached
-        LOG(INFO) << "[get_listing] Found path " << src << " listing in cache";
-    auto listing = cache->get(src);
-    auto l_copy = new DirectoryListingProto(*listing.get()->mutable_dirlist());
-    res.set_allocated_dirlist(l_copy);
-  } else {
+  // if (cache->contains(src)) {
+  //   // Get cached
+  //       LOG(INFO) << "[get_listing] Found path " << src << " listing in cache";
+  //   auto listing = cache->get(src);
+  //   auto l_copy = new DirectoryListingProto(*listing.get()->mutable_dirlist());
+  //   res.set_allocated_dirlist(l_copy);
+  // } else {
         LOG(INFO) << "[get_listing] Did not find path " << src
                   << " listing in cache";
     // From 2016:
@@ -1801,7 +1801,7 @@ ZkNnClient::ListingResponse ZkNnClient::get_listing(
       LOG(ERROR) << "[get_listing] File does not exist with name " << src;
       return ListingResponse::FileDoesNotExist;
     }
-  }
+  // }
   return ListingResponse::Ok;
 }
 
