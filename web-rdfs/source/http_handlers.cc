@@ -5,6 +5,7 @@
 #include <easylogging++.h>
 #include <sstream>
 #include <iostream>
+#include <map>
 
 // Path to the HTML file containing the webRDFS client.
 #define WEBRDFS_CLIENT_FILE "/home/vagrant/rdfs/web-rdfs/source/index.html"
@@ -45,15 +46,6 @@ void serve_static_file(std::shared_ptr<HttpsServer::Response> response,
             << file_contents;
 }
 
-std::string get_request_type(std::shared_ptr<HttpsServer::Request> request) {
-  // Remove op= from query string
-  std::string typeOfRequest = request->query_string.substr(3, 6);
-
-  LOG(DEBUG) << "Type of Request " << typeOfRequest;
-
-  return typeOfRequest;
-}
-
 std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
   std::string baseUrl = "/webhdfs/v1";
   int idxOfSplit = (request->path).rfind(baseUrl) + baseUrl.size();
@@ -64,46 +56,30 @@ std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
   return path;
 }
 
-std::string get_destination(std::shared_ptr<HttpsServer::Request> request) {
-  std::string destDelim = "&destination=";
-  int idxOfDest = request->query_string.rfind(destDelim) + destDelim.size();
-  std::string dest = request->query_string.substr(idxOfDest);
+std::map<std::string, std::string> parseURL(std::shared_ptr
+                                            <HttpsServer::Request> request) {
+  LOG(DEBUG) << "Parsing " << request->query_string;
 
-  LOG(DEBUG) << "Destination given " << dest;
+  std::map<std::string, std::string> queryValues;
+  queryValues["path"] = get_path(request);
+  char *givenValues = strtok((char*)request->query_string.c_str(), "&");
 
-  return dest;
-}
+  while (givenValues != NULL)
+  {
+    std::string currentVal = std::string(givenValues);
+    int idxOfSplit = currentVal.rfind("=");
+    queryValues[currentVal.substr(0, idxOfSplit)] = currentVal.substr(idxOfSplit + 1);
+    givenValues = strtok(NULL, "&");
+  }
 
-std::string get_user(std::shared_ptr<HttpsServer::Request> request) {
-  std::string userDelim = "&owner=";
-  std::string groupDelim = "&";
-
-  int idxOfUser = request->query_string.rfind(userDelim) + userDelim.size();
-  std::string userAndGroup = request->query_string.substr(idxOfUser);
-
-  int idxOfGroup = userAndGroup.rfind(groupDelim);
-
-  std::string user = userAndGroup.substr(0, idxOfGroup);
-
-  LOG(DEBUG) << "User given " << user;
-
-  return user;
-}
-
-std::string get_group(std::shared_ptr<HttpsServer::Request> request) {
-  std::string groupDelim = "&group=";
-  int idxOfGrp = request->query_string.rfind(groupDelim) + groupDelim.size();
-  std::string group = request->query_string.substr(idxOfGrp);
-
-  LOG(DEBUG) << "Group given " << group;
-
-  return group;
-}
+  return queryValues;
+};
 
 void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
+  std::string path = requestInfo["path"];
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -put " + path;
 
   hadoop::hdfs::CreateResponseProto res;
@@ -117,13 +93,13 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void ls_handler(std::shared_ptr<HttpsServer::Response> response,
-                std::shared_ptr<HttpsServer::Request> request,
-                std::string path) {
+                std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: ls_handler";
 
   GetListingRequestProto req;
   GetListingResponseProto res;
 
+  std::string path = requestInfo["path"];
   req.set_src(path);
 
   zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req, res);
@@ -132,12 +108,13 @@ void ls_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: append_file_handler";
 
   hadoop::hdfs::AppendResponseProto res;
   hadoop::hdfs::AppendRequestProto req;
 
+  std::string path = requestInfo["path"];
   req.set_src(path);
 
   // TODO(Victoria) change so sends correct data
@@ -154,13 +131,13 @@ void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void set_permission_handler(std::shared_ptr<HttpsServer::Response> response,
-                            std::string path,
-                            std::string user,
-                            std::string group) {
+                            std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: set_permission_handler";
 
   hadoop::hdfs::SetPermissionRequestProto req;
   hadoop::hdfs::SetPermissionResponseProto res;
+
+  std::string path = requestInfo["path"];
 
   req.set_src(path);
 
@@ -176,12 +153,13 @@ void set_permission_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: delete_file_handler";
 
   hadoop::hdfs::DeleteResponseProto res;
   hadoop::hdfs::DeleteRequestProto req;
 
+  std::string path = requestInfo["path"];
   req.set_src(path);
   zkclient::ZkNnClient::DeleteResponse zkResp = zk->destroy(req, res);
 
@@ -189,9 +167,10 @@ void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+                       std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
+  std::string path = requestInfo["path"];
   std::string storedFile = "tempStore" + path;
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat " + path +
                       " > " + storedFile;
@@ -209,12 +188,13 @@ void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+                   std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: mkdir_handler";
 
   hadoop::hdfs::MkdirsResponseProto res;
   hadoop::hdfs::MkdirsRequestProto req;
 
+  std::string path = requestInfo["path"];
   req.set_createparent(true);
   req.set_src(path);
   zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
@@ -223,13 +203,14 @@ void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
 }
 
 void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string oldPath,
-                         std::string newPath) {
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: rename_file_handler";
 
   hadoop::hdfs::RenameResponseProto res;
   hadoop::hdfs::RenameRequestProto req;
 
+  std::string oldPath = requestInfo["path"];
+  std::string newPath = requestInfo["destination"];
   req.set_src(oldPath);
   req.set_dst(newPath);
   zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
@@ -246,13 +227,13 @@ void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("OPEN")) {
-    read_file_handler(response, path);
-  } else if (!typeOfRequest.compare("LISTST")) {
-    ls_handler(response, request, path);
+    read_file_handler(response, requestInfo);
+  } else if (!typeOfRequest.compare("LISTSTATUS")) {
+    ls_handler(response, requestInfo);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
@@ -261,11 +242,11 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("APPEND")) {
-    append_file_handler(response, path);
+    append_file_handler(response, requestInfo);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
@@ -273,20 +254,18 @@ void post_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::string typeOfRequest = requestInfo["op"];
 
+  parseURL(request);
   if (!typeOfRequest.compare("MKDIRS")) {
-    mkdir_handler(response, path);
+    mkdir_handler(response, requestInfo);
   } else if (!typeOfRequest.compare("RENAME")) {
-    std::string pathForRename = get_destination(request);
-    rename_file_handler(response, path, pathForRename);
+    rename_file_handler(response, requestInfo);
   } else if (!typeOfRequest.compare("SETOWNER")) {
-    std::string user = get_user(request);
-    std::string group = get_group(request);
-    set_permission_handler(response, path, user, group);
+    set_permission_handler(response, requestInfo);
   } else if (!typeOfRequest.compare("CREATE")) {
-    create_file_handler(response, path);
+    create_file_handler(response, requestInfo);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
@@ -294,12 +273,11 @@ void put_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void delete_handler(std::shared_ptr<HttpsServer::Response> response,
                     std::shared_ptr<HttpsServer::Request> request) {
-  // Remove op= from query string
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("DELETE")) {
-    delete_file_handler(response, path);
+    delete_file_handler(response, requestInfo);
   } else {
     response->write(SimpleWeb::StatusCode::client_error_bad_request);
   }
