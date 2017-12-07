@@ -62,18 +62,21 @@ std::map<std::string, std::string> parseURL(std::shared_ptr
 
   std::map<std::string, std::string> queryValues;
   queryValues["path"] = get_path(request);
-  char *givenValues = strtok((char*)request->query_string.c_str(), "&");
+  char *save;
+  char *givenValues = strtok_r(const_cast<char*>(
+                                 request->query_string.c_str()), "&", &save);
 
-  while (givenValues != NULL)
-  {
+  while (givenValues != NULL) {
     std::string currentVal = std::string(givenValues);
     int idxOfSplit = currentVal.rfind("=");
-    queryValues[currentVal.substr(0, idxOfSplit)] = currentVal.substr(idxOfSplit + 1);
-    givenValues = strtok(NULL, "&");
+    queryValues[
+                currentVal.substr(0, idxOfSplit)
+               ] = currentVal.substr(idxOfSplit + 1);
+    givenValues = strtok_r(NULL, "&", &save);
   }
 
   return queryValues;
-};
+}
 
 void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
                          std::map<std::string, std::string> requestInfo) {
