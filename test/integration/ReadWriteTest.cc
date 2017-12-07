@@ -52,19 +52,19 @@ TEST(ReadWriteTest, testReadWrite) {
   // Make a file.
   ASSERT_EQ(0,
             system(
-                "python /home/vagrant/rdfs/test/integration/generate_file.py > "
-                    "expected_testfile1234"));
+                "python /home/vagrant/rdfs/test/integration/generate_file.py > expected_testfile1234"));
   // Put it into rdfs.
-  system(
-      "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
+  system("echo /home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
             "-copyFromLocal expected_testfile1234 /f");
+  system(
+      "/home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 /f");
   // Read it from rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+  system("echo /home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+  system("/home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
   // Check that its contents match.
   ASSERT_EQ(0,
-            system("diff expected_testfile1234 actual_testfile1234 > "
-                       "/dev/null"));
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+            system("diff expected_testfile1234 actual_testfile1234"));
+  system("/home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 
 TEST(ReadWriteTest, testConcurrentRead) {
