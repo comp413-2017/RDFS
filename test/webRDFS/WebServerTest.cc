@@ -16,8 +16,9 @@ TEST(WebServerTest, testDelete) {
 
   ASSERT_EQ(0,
             system("curl -i -X DELETE "
-                   "https://comp413.local:8080/webhdfs/v1/"
-                   "fileToDelete?op=DELETE > actualResultDelete"));
+                   "\"https://comp413.local:8080/webhdfs/v1/"
+                   "fileToDelete?user.name=vagrant&op=DELETE\" > "
+                   "actualResultDelete"));
 
   // Check that results match
   ASSERT_EQ(0,
@@ -33,8 +34,9 @@ TEST(WebServerTest, testRead) {
         "-copyFromLocal fileForTesting /fileToRead");
 
   ASSERT_EQ(0,
-            system("curl -i https://comp413.local:8080/webhdfs/v1/"
-                  "fileToRead?op=OPEN > actualResultRead"));
+            system("curl -i \"https://comp413.local:8080/webhdfs/v1/"
+                  "fileToRead?user.name=vagrant&op=OPEN\" > "
+                  "actualResultRead"));
 
   // Check that results match
   ASSERT_EQ(0,
@@ -48,8 +50,9 @@ TEST(WebServerTest, testRead) {
 TEST(WebServerTest, testMkdir) {
   ASSERT_EQ(0,
             system("curl -i -X PUT "
-                   "https://comp413.local:8080/webhdfs/v1/"
-                   "pathToCreate?op=MKDIRS > actualResultMkdir"));
+                   "\"https://comp413.local:8080/webhdfs/v1/"
+                   "pathToCreate?user.name=vagrant&op=MKDIRS\" "
+                   "> actualResultMkdir"));
 
   // Check that results match
   ASSERT_EQ(0,
@@ -65,8 +68,8 @@ TEST(WebServerTest, testRename) {
 
   system("curl -i -X PUT "
                    "\"https://comp413.local:8080/webhdfs/v1/"
-                   "fileToRename?op=RENAME&destination=newPath\" > "
-                   "actualResultRename");
+                   "fileToRename?user.name=vagrant&op=RENAME&destination="
+                   "/newPath\" > actualResultRename");
 
   // Check that results match
   ASSERT_EQ(0,
@@ -75,6 +78,7 @@ TEST(WebServerTest, testRename) {
 
   system("rm actualResultRename");
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToRename");
+  system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /newPath");
 }
 
 TEST(WebServerTest, testFrontend) {
@@ -90,7 +94,8 @@ TEST(WebServerTest, testCreate) {
 
   system("curl -i -X PUT "
                    "\"https://comp413.local:8080/webhdfs/v1/"
-                   "fileToCreate?op=CREATE\" > actualResultCreate");
+                   "fileToCreate?user.name=vagrant&op=CREATE\" > "
+                   "actualResultCreate");
 
   // Check that results match
   ASSERT_EQ(0,
@@ -111,8 +116,9 @@ TEST(WebServerTest, testListing) {
            "/dirToLs/");
 
   ASSERT_EQ(0,
-            system("curl -i https://comp413.local:8080/webhdfs/v1/"
-                           "dirToLs?op=LISTSTATUS > actualResultLs"));
+            system("curl -i \"https://comp413.local:8080/webhdfs/v1/"
+                           "dirToLs?user.name=vagrant&op=LISTSTATUS\" > "
+                           "actualResultLs"));
 
   // Check that results match except for the access times
   ASSERT_EQ(0,

@@ -38,7 +38,11 @@ namespace webRequestTranslator {
    */
   std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse
                                 &resProto) {
-    return "{\"boolean\":true}\n";
+    if (resProto == zkclient::ZkNnClient::RenameResponse::Ok) {
+      return "{\"boolean\":true}\n";
+    } else {
+      return "{\"boolean\":false}\n";
+    }
   }
 
   /**
