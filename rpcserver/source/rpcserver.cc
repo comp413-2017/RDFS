@@ -132,6 +132,7 @@ void RPCServer::handle_rpc(tcp::socket sock) {
     auto iter = dispatch_table.find(request_header.methodname());
     LOG(INFO) << "RPC_METHOD_FOUND: [[" << request_header.methodname()
               << "]]\n";
+    LOG(INFO) << request;
 
     // The if-statement is true only if there is a corresponding handler in
     // for the requested command in on of the Namenode or datanode
