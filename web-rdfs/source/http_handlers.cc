@@ -56,8 +56,9 @@ std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
   return path;
 }
 
-std::map<std::string, std::string> parseURL(std::shared_ptr
-                                            <HttpsServer::Request> request) {
+std::map<std::string, std::string> parseQueryString(std::shared_ptr
+                                                    <HttpsServer::Request>
+                                                    request) {
   LOG(DEBUG) << "Parsing " << request->query_string;
 
   std::map<std::string, std::string> queryValues;
@@ -230,7 +231,7 @@ void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("OPEN")) {
@@ -245,7 +246,7 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
-  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("APPEND")) {
@@ -257,10 +258,10 @@ void post_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
   std::string typeOfRequest = requestInfo["op"];
 
-  parseURL(request);
+  parseQueryString(request);
   if (!typeOfRequest.compare("MKDIRS")) {
     mkdir_handler(response, requestInfo);
   } else if (!typeOfRequest.compare("RENAME")) {
@@ -276,7 +277,7 @@ void put_handler(std::shared_ptr<HttpsServer::Response> response,
 
 void delete_handler(std::shared_ptr<HttpsServer::Response> response,
                     std::shared_ptr<HttpsServer::Request> request) {
-  std::map<std::string, std::string> requestInfo = parseURL(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("DELETE")) {
