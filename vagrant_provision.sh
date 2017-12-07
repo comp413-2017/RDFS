@@ -13,13 +13,15 @@ apt-get install -y language-pack-en zip unzip curl
 
 apt-get install -y git build-essential cmake automake autoconf libtool libboost-all-dev libasio-dev
 
-apt-get install -y yasm tcpflow
+apt-get install -y yasm
 
-wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
-tar -xf protobuf-cpp-3.0.0.tar.gz
-rm protobuf-cpp-3.0.0.tar.gz
-cd protobuf-3.0.0; ./autogen.sh && ./configure --prefix=/usr && make && make install
-cd /home/vagrant/; ldconfig
+if [ ! -d /home/vagrant/protobuf-3.0.0 ]; then
+    wget --quiet https://github.com/google/protobuf/releases/download/v3.0.0/protobuf-cpp-3.0.0.tar.gz
+    tar -xf protobuf-cpp-3.0.0.tar.gz
+    rm protobuf-cpp-3.0.0.tar.gz
+    cd protobuf-3.0.0; ./autogen.sh && ./configure --prefix=/usr && make && make install
+    cd /home/vagrant/; ldconfig
+fi
 
 # Install and setup dependencies of hadoop
 apt-get install -y ssh pdsh openjdk-8-jdk-headless
@@ -28,53 +30,48 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Alias hdfs and hadoop executables
-# alias hdfs3="/home/vagrant/hadoop3/bin/hdfs"
-# alias hadoop3="/home/vagrant/hadoop3/bin/hadoop"
+alias hdfs3="/home/vagrant/hadoop3/bin/hdfs"
+alias hadoop3="/home/vagrant/hadoop3/bin/hadoop"
 
 # Setup Apache hadoop for pseudo-distributed usage
-# if [ -d /home/vagrant/hadoop3 ]; then
-#     rm -rf /home/vagrant/hadoop3
-# fi
-# wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
-# tar -xf hadoop-3.0.0-beta1-2.tar.gz
-# mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
-# rm hadoop-3.0.0-beta1-2.tar.gz
-# echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
-# echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop3/etc/hadoop/hadoop-env.sh
+if [ -d /home/vagrant/hadoop3 ]; then
+    rm -rf /home/vagrant/hadoop3
+fi
+if [ -f hadoop-3.0.0-beta1-2.tar.gz ]; then
+    rm -f hadoop-3.0.0-beta1-2.tar.gz*
+fi
+wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
+tar -xf hadoop-3.0.0-beta1-2.tar.gz
+mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
+rm hadoop-3.0.0-beta1-2.tar.gz
+echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
+echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop3/etc/hadoop/hadoop-env.sh
 
-# Setup Apache hadoop 2.8.1
+# add custom config files to Hadoop
+cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml
+cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop3/etc/hadoop/core-site.xml
+
+# add hadoop to path
+echo 'export PATH=${PATH//:\/home\/vagrant\/hadoop2\/bin:/:}' >> /home/vagrant/.bashrc
+echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
+
+# add hadoop to classpath
+echo 'export CLASSPATH=/home/vagrant/hadoop3/share/hadoop/hdfs/*:/home/vagrant/hadoop3/share/hadoop/common/*' >> /home/vagrant/.bashrc
+
+# Download hadoop 2.8.1 as well
 if [ -d /home/vagrant/hadoop2 ]; then
     rm -rf /home/vagrant/hadoop2
 fi
-wget --quiet http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-2.8.1/hadoop-2.8.1.tar.gz
+if [ -f hadoop-2.8.1.tar.gz ]; then
+    rm -f hadoop-2.8.1.tar.gz*
+fi
+wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
 tar -xf hadoop-2.8.1.tar.gz
 mv hadoop-2.8.1 /home/vagrant/hadoop2
 rm hadoop-2.8.1.tar.gz
 ln -s hadoop2 hadoop
-echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
-echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop/etc/hadoop/hadoop-env.sh
-
-# add custom config files to Hadoop
-cat /home/vagrant/rdfs/config/hdfs-site.xml > /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
-cat /home/vagrant/rdfs/config/core-site.xml > /home/vagrant/hadoop2/etc/hadoop/core-site.xml
-
-# add hadoop to path
-echo 'export PATH=/home/vagrant/hadoop/bin:$PATH' >> /home/vagrant/.bashrc
-
-# add hadoop to classpath
-echo 'export CLASSPATH=/home/vagrant/hadoop/share/hadoop/hdfs/*:/home/vagrant/hadoop/share/hadoop/common/*' >> /home/vagrant/.bashrc
-
-# Download hadoop 2.7.4 as well, but do not set as default.
-# if [ -d /home/vagrant/hadoop2 ]; then
-#     rm -rf /home/vagrant/hadoop2
-# fi
-# wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
-# tar -xf hadoop-2.8.1.tar.gz
-# mv hadoop-2.8.1 /home/vagrant/hadoop2
-# rm hadoop-2.8.1.tar.gz
-# ln -s hadoop2 hadoop
-# cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
-# cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
+cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
+cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
 # Setup Intel Storage Acceleration Library (ISA-L)
 if [ -d /home/vagrant/isal ]; then
@@ -115,11 +112,15 @@ maxClientCnxns=200
 EOF
 
 # Setup Apache Hive
+if [ -d /home/vagrant/hive/lib/hive-common-2.1.1.jar ]; then
+    # if on hive 2.1.1, remove
+    rm -rf /home/vagrant/hive
+fi
 if [ ! -d /home/vagrant/hive ]; then
-    wget --quiet http://apache.claz.org/hive/hive-2.1.1/apache-hive-2.1.1-bin.tar.gz
-    tar -xf apache-hive-2.1.1-bin.tar.gz
-    mv apache-hive-2.1.1-bin /home/vagrant/hive
-    rm apache-hive-2.1.1-bin.tar.gz
+    wget --quiet http://apache.claz.org/hive/hive-2.3.2/apache-hive-2.3.2-bin.tar.gz
+    tar -xf apache-hive-2.3.2-bin.tar.gz
+    mv apache-hive-2.3.2-bin /home/vagrant/hive
+    rm apache-hive-2.3.2-bin.tar.gz
     echo 'export HIVE_HOME=/home/vagrant/hive' >> /home/vagrant/.bashrc
     echo 'export PATH=$HIVE_HOME/bin:$PATH' >> /home/vagrant/.bashrc
 fi
