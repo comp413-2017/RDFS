@@ -75,14 +75,14 @@ TEST(ReadWriteTest, testConcurrentRead) {
                     " expected_testfile1234"));
   // Put it into rdfs.
   system(
-      "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 "
+      "/home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 "
           "/f");
   // Read it from rdfs.
   std::vector<std::thread> threads;
   for (int i = 0; i < num_threads; i++) {
     threads.push_back(std::thread([i]() {
       LOG(INFO) << "starting thread " << i;
-      system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp"
+      system(("/home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp"
           + std::to_string(i)).c_str());
       // Check that its contents match.
       ASSERT_EQ(0,
@@ -93,7 +93,7 @@ TEST(ReadWriteTest, testConcurrentRead) {
   for (int i = 0; i < num_threads; i++) {
     threads[i].join();
   }
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  system("/home/vagrant/hadoop3/bin/hdfs dfs -fs hdfs://localhost:5351 -rm /f");
 }
 }  // namespace
 
