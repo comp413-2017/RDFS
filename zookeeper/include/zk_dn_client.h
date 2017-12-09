@@ -83,8 +83,6 @@ class ZkClientDn : public ZkClientCommon {
   */
   bool blockReceived(uint64_t uuid, uint64_t size_bytes);
 
-  bool blockSizeUpdated(uint64_t uuid, uint64_t size_bytes);
-
   bool sendStats(uint64_t free_space, uint32_t xmits);
 
   /**

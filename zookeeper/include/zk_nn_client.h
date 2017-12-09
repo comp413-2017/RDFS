@@ -51,7 +51,6 @@ typedef struct {
   char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
   int perm_length;  // number of slots filled in permissions
   int permission_number;
-  std::uint64_t last_block_id;
 } FileZNode;
 
 /**
@@ -147,8 +146,6 @@ using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
-using hadoop::hdfs::UpdateBlockForPipelineRequestProto;
-using hadoop::hdfs::UpdateBlockForPipelineResponseProto;
 
 /**
 * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
@@ -577,8 +574,6 @@ class ZkNnClient : public ZkClientCommon {
 * Main append file mechanism and associated helpers.
 */
   bool append_file(AppendRequestProto &req, AppendResponseProto &res);
-  void update_block_for_pipeline(UpdateBlockForPipelineRequestProto &req,
-                                 UpdateBlockForPipelineResponseProto &res);
   bool process_request(std::string client_name, std::string file_path,
                        AppendRequestProto &req);
   bool get_primary_block_info(std::string file_path,
@@ -603,12 +598,6 @@ class ZkNnClient : public ZkClientCommon {
   std::string find_parent(const std::string &path);
 
  private:
-  bool set_located_block(LocatedBlockProto* locatedBlockProto,
-                         uint64_t block_id, uint64_t block_size);
-
-  bool set_file_status(std::string file_path,
-                        HdfsFileStatusProto* hdfsFileStatusProto);
-
   void recover_lease_helper(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
 
