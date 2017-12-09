@@ -56,10 +56,7 @@ class ClientNamenodeTranslator {
   std::string rename(std::string);
   std::string rename2(std::string);
   std::string append(std::string);
-  std::string updateBlockForPipeline(std::string);
-  std::string updatePipeline(std::string) {
-    return std::string();
-  }
+
   std::string recoverLease(std::string);
   std::string concat(std::string);
 
