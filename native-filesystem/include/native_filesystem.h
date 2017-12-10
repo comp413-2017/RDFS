@@ -34,7 +34,7 @@ constexpr size_t DISK_SIZE = MAX_BLOCK_SIZE * 6;
 constexpr size_t BLOCK_LIST_LEN = DISK_SIZE / MIN_BLOCK_SIZE;
 constexpr size_t BLOCK_LIST_SIZE = BLOCK_LIST_LEN * sizeof(block_info);
 // If MAGIC changes, make sure to change the 8 in RESERVED_SIZE too.
-const char MAGIC[] = "DEADBEEF";
+const char MAGIC[] = "LIVEBEEF";
 // Reserved space for magic bytes + block_info array.
 constexpr size_t RESERVED_SIZE = BLOCK_LIST_SIZE + 8;
 
