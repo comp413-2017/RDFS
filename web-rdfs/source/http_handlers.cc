@@ -229,7 +229,8 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Request> request,
   std::string oldPath = requestInfo["path"];
   std::string newPath = requestInfo["destination"];
 
-  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -mv " + oldPath + " " + newPath;
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -mv " + oldPath
+                      + " " + newPath;
   int is_failure = system(input.c_str());
   std::string resp = webRequestTranslator::getRenameResponse(is_failure);
 
