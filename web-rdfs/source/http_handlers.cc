@@ -100,18 +100,10 @@ void create_file_handler(std::shared_ptr<HttpsServer::Request> request,
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
   std::string path = requestInfo["path"];
-  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -put " + path;
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -touchz " + path;
 
-  hadoop::hdfs::CreateResponseProto res;
-  hadoop::hdfs::CreateRequestProto req;
-
-  req.set_src(path);
-
-  zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
-  SimpleWeb::StatusCode resp = webRequestTranslator::getCreateResponse(zkResp);
-
-  log_req_res(request, "");
-  response->write(resp);
+  int is_failure = system(input.c_str());
+  response->write(webRequestTranslator::getCreateResponse(is_failure));
 }
 
 void ls_handler(std::shared_ptr<HttpsServer::Request> request,
@@ -148,10 +140,10 @@ void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
                       tempFile + " " + path;
 
   system(copyFileReq.c_str());
-  system(input.c_str());
+  int is_failure = system(input.c_str());
   system(removeFileReq.c_str());  // Clean up temp file
   log_req_res(request, content);
-  response->write(SimpleWeb::StatusCode::success_ok);
+  response->write(webRequestTranslator::getAppendResponse(is_failure));
 }
 
 void set_permission_handler(std::shared_ptr<HttpsServer::Request> request,
@@ -204,11 +196,12 @@ void read_file_handler(std::shared_ptr<HttpsServer::Request> request,
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat " + path +
                       " > " + storedFile;
 
-  system(input.c_str());
+  int is_failure = system(input.c_str());
   std::ifstream file(storedFile);
   std::string content((std::istreambuf_iterator<char>(file)),
                        std::istreambuf_iterator<char>());
-  std::string resp = webRequestTranslator::getReadResponse(content);
+  std::string resp = webRequestTranslator::getReadResponse(content,
+                                                           is_failure);
 
   log_req_res(request, resp);
   response->write(resp);

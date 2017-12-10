@@ -19,13 +19,17 @@ namespace webRequestTranslator {
   /**
   * Converts the RDFS create response into the appropriate webRDFS response.
   */
-  SimpleWeb::StatusCode getCreateResponse(zkclient::ZkNnClient::CreateResponse
-                                          &resProto);
+  SimpleWeb::StatusCode getCreateResponse(int is_failure);
+
+  /**
+    * Converts the RDFS append response into the appropriate webRDFS response.
+    */
+  SimpleWeb::StatusCode getAppendResponse(int is_failure);
 
   /**
    * Converts the RDFS read response into the appropriate webRDFS response.
    */
-  std::string getReadResponse(std::string contentOfFile);
+  std::string getReadResponse(std::string contentOfFile, int is_failure);
 
   /**
   * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
