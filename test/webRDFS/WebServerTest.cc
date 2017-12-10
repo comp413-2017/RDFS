@@ -112,7 +112,7 @@ TEST(WebServerTest, testListing) {
                   "-mkdir /dirToLs");
   system(
           "hdfs dfs -fs hdfs://comp413.local:5351 "
-          "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting "
+          "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fmakileForTesting "
            "/dirToLs/");
 
   ASSERT_EQ(0,
@@ -128,6 +128,22 @@ TEST(WebServerTest, testListing) {
   system("rm actualResultLs");
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm -r /dirToLs");
 }
+
+TEST(WebServerTest, testAppend) {
+    system("hdfs dfs -fs hdfs://comp413.local:5351 -touchz /fileToTestAppend");
+
+    sleep(5);
+    system("curl -i -T \"/home/vagrant/rdfs/test/webRDFS/fileForTesting\" "
+           "-X POST https://comp413.local:8080/webhdfs/v1/fileToTestAppend?"
+            "op=APPEND > actualResultAppend");
+
+    // Should get same result as a read
+    ASSERT_EQ(0, system("diff /home/vagrant/rdfs/test/webRDFS/"
+                        "expectedResultRead actualResultAppend"));
+
+    system("rm actualResultAppend");
+    system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToTestAppend");
+}
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -136,6 +152,7 @@ int main(int argc, char **argv) {
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh start");
   sleep(10);
 
+  system("/home/vagrant/zookeeper/bin/zkCli.sh rmr /testing");
   system("/home/vagrant/rdfs/build/rice-namenode/namenode &");
   system("/home/vagrant/rdfs/build/rice-datanode/datanode &");
   system("/home/vagrant/rdfs/build/web-rdfs/webrdfs &");
@@ -147,6 +164,7 @@ int main(int argc, char **argv) {
 
   // Remove test files and shutdown zookeeper
   system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToDelete");
+  system("hdfs dfs -fs hdfs://comp413.local:5351 -rm /fileToTestAppend");
   system("pkill -f namenode");
   system("pkill -f datanode");
   system("pkill -f webrdfs");

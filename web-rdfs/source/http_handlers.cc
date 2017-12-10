@@ -61,7 +61,11 @@ std::string get_file_content(std::string raw_content) {
   std::string end = "------WebKitFormBoundary";
   int idxOfStart = raw_content.rfind(start) + start.size();
   int idxOfEnd = raw_content.substr(idxOfStart).rfind(end);
-  return raw_content.substr(idxOfStart, idxOfEnd);
+  if (idxOfStart == -1 || idxOfEnd == -1) {
+    return raw_content;
+  } else {
+    return raw_content.substr(idxOfStart, idxOfEnd);
+  }
 }
 
 std::map<std::string, std::string> parseQueryString(std::shared_ptr
