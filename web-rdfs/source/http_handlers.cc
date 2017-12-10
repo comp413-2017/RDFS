@@ -56,18 +56,6 @@ std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
   return path;
 }
 
-std::string get_file_content(std::string raw_content) {
-  std::string start = "\"file\"";
-  std::string end = "------WebKitFormBoundary";
-  int idxOfStart = raw_content.rfind(start) + start.size();
-  int idxOfEnd = raw_content.substr(idxOfStart).rfind(end);
-  if (idxOfStart == -1 || idxOfEnd == -1) {
-    return raw_content;
-  } else {
-    return raw_content.substr(idxOfStart, idxOfEnd);
-  }
-}
-
 std::map<std::string, std::string> parseQueryString(std::shared_ptr
                                                     <HttpsServer::Request>
                                                     request) {
@@ -152,8 +140,6 @@ void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
 
   std::string path = requestInfo["path"];
   LOG(DEBUG) << content;
-  std::string parsedContent = get_file_content(content);
-  LOG(DEBUG) << parsedContent;
 
   std::string tempFile = "tempAppend" + path.substr(1);
   std::string copyFileReq = "echo " + content + " > " + tempFile;
