@@ -39,8 +39,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
-  std::string getMkdirResponse(zkclient::ZkNnClient::MkdirResponse &resProto) {
-    if (resProto == zkclient::ZkNnClient::MkdirResponse::Ok) {
+  std::string getMkdirResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
@@ -50,9 +50,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode rename response into the appropriate webRDFS response.
    */
-  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse
-                                &resProto) {
-    if (resProto == zkclient::ZkNnClient::RenameResponse::Ok) {
+  std::string getRenameResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
@@ -70,9 +69,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
-  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse
-                                &resProto) {
-    if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
+  std::string getDeleteResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";

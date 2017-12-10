@@ -34,12 +34,12 @@ namespace webRequestTranslator {
   /**
   * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
   */
-  std::string getMkdirResponse(zkclient::ZkNnClient::MkdirResponse &resProto);
+  std::string getMkdirResponse(int is_failure);
 
   /**
    * Converts the RDFS datanode rename response into the appropriate webRDFS response.
    */
-  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse &resProto);
+  std::string getRenameResponse(int is_failure);
 
   /**
   * Converts the RDFS datanode mv response into the appropriate webRDFS response.
@@ -50,8 +50,7 @@ namespace webRequestTranslator {
   /**
   * Converts the RDFS datanode delete response into the appropriate webRDFS response.
   */
-  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse
-                                &resProto);
+  std::string getDeleteResponse(int is_failure);
 
   /**
    * Gets all the file info from the status and converts it to a string.

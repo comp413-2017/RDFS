@@ -174,14 +174,11 @@ void delete_file_handler(std::shared_ptr<HttpsServer::Request> request,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: delete_file_handler";
 
-  hadoop::hdfs::DeleteResponseProto res;
-  hadoop::hdfs::DeleteRequestProto req;
-
   std::string path = requestInfo["path"];
-  req.set_src(path);
-  zkclient::ZkNnClient::DeleteResponse zkResp = zk->destroy(req, res);
-  std::string resp = webRequestTranslator::getDeleteResponse(zkResp);
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -rm " + path;
 
+  int is_failure = system(input.c_str());
+  std::string resp = webRequestTranslator::getDeleteResponse(is_failure);
   log_req_res(request, resp);
   response->write(resp);
 }
@@ -214,14 +211,11 @@ void mkdir_handler(std::shared_ptr<HttpsServer::Request> request,
                    std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: mkdir_handler";
 
-  hadoop::hdfs::MkdirsResponseProto res;
-  hadoop::hdfs::MkdirsRequestProto req;
-
   std::string path = requestInfo["path"];
-  req.set_createparent(true);
-  req.set_src(path);
-  zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
-  std::string resp = webRequestTranslator::getMkdirResponse(zkResp);
+
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -mkdir " + path;
+  int is_failure = system(input.c_str());
+  std::string resp = webRequestTranslator::getMkdirResponse(is_failure);
 
   log_req_res(request, resp);
   response->write(resp);
@@ -232,15 +226,12 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Request> request,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: rename_file_handler";
 
-  hadoop::hdfs::RenameResponseProto res;
-  hadoop::hdfs::RenameRequestProto req;
-
   std::string oldPath = requestInfo["path"];
   std::string newPath = requestInfo["destination"];
-  req.set_src(oldPath);
-  req.set_dst(newPath);
-  zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
-  std::string resp = webRequestTranslator::getRenameResponse(zkResp);
+
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -mv " + oldPath + " " + newPath;
+  int is_failure = system(input.c_str());
+  std::string resp = webRequestTranslator::getRenameResponse(is_failure);
 
   log_req_res(request, resp);
   response->write(resp);
