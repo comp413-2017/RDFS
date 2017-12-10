@@ -10,7 +10,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/nn-log-conf.conf"
+#define LOG_CONFIG_FILE "/home/vagrant/rdfs/config/webrdfs-log-conf.conf"
 
 static inline void parse_cmdline_options(int argc,
                                          char *argv[],
