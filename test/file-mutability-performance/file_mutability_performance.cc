@@ -3,7 +3,6 @@
 // https://hadoop.apache.org/docs/current/hadoop-project-dist +
 //   /hadoop-common/SingleCluster.html
 
-#include <gtest/gtest.h>
 #include <easylogging++.h>
 #include <math.h>
 #include <chrono>
