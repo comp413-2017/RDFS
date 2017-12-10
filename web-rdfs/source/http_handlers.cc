@@ -142,7 +142,7 @@ void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
   LOG(DEBUG) << content;
 
   std::string tempFile = "tempAppend";
-  std::string copyFileReq = "echo " + content + " > " + tempFile;
+  std::string copyFileReq = "echo \"" + content + "\" > " + tempFile;
   std::string removeFileReq = "rm " + tempFile;
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -appendToFile " +
                       tempFile + " " + path;
