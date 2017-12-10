@@ -142,13 +142,8 @@ void TransferServer::processWriteRequest(tcp::socket &sock) {
   uint64_t block_id = header.baseheader().block().blockid();
   nativefs::block_info blockInfo;
   std::string response_string;
-  if (!fs->fetchBlock(block_id, blockInfo)) {
-    buildBlockOpResponse(response_string);
-  } else if (blockInfo.len == header.baseheader().block().numbytes()) {
-    buildBlockOpResponse(response_string);
-  } else {
-    buildFailBlockOpResponse(response_string);
-  }
+  buildBlockOpResponse(response_string);
+
   if (rpcserver::write_delimited_proto(sock, response_string)) {
     LOG(INFO) << "Successfully sent response to client";
   } else {

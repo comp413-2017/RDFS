@@ -101,6 +101,37 @@ TEST(AppendFileTest, testSimpleFileAppend) {
   system("rm *testfile1234");
 }
 
+TEST(AppendFileTest, testSimpleFileSmallAppend) {
+  // Make a file.
+  system("echo 'helloworld' > helloworld.txt");
+
+  // Put it into rdfs.
+  system(
+    "hdfs dfs -fs hdfs://localhost:5351 -touchz /f");
+
+  // Append the file.
+  system(
+    "hdfs dfs -fs hdfs://localhost:5351 -appendToFile helloworld.txt /f");
+  system(
+    "hdfs dfs -fs hdfs://localhost:5351 -appendToFile helloworld.txt /f");
+
+  // Read it from rdfs.
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_helloworld");
+
+  // Create the expected test file by appending the test file twice
+  system("cat helloworld.txt > expected_helloworld");
+  system("cat helloworld.txt >> expected_helloworld");
+
+  // Check that its contents match.
+  ASSERT_EQ(0,
+            system("diff expected_helloworld actual_helloworld > "
+                     "/dev/null"));
+
+  // Remove files created by this test
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  system("rm *helloworld.txt");
+}
+
 TEST(AppendFileTest, testAppendToNonExistentFile) {
   // Make a local file.
   ASSERT_EQ(0,
@@ -353,7 +384,7 @@ int main(int argc, char **argv) {
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::GTEST_FLAG(filter) =
-  "AppendFileTest.testSimpleFileAppend";
+  "AppendFileTest.testSimpleFileAppend:AppendFileTest.testSimpleFileSmallAppend";
   int res = RUN_ALL_TESTS();
   // NOTE: You'll need to scroll up a bit to see the test results
 
