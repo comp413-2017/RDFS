@@ -181,32 +181,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    std::function&lt;<span class="keywordtype">void</span>(</div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;      std::shared_ptr&lt;HttpsServer::Response&gt; response,</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;      std::shared_ptr&lt;HttpsServer::Request&gt; request)&gt; handler);</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  std::string getFileInfo(<a class="code" href="classhadoop_1_1hdfs_1_1_get_file_info_request_proto.html">GetFileInfoRequestProto</a> req);</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  std::string mkdir(<a class="code" href="classhadoop_1_1hdfs_1_1_mkdirs_request_proto.html">MkdirsRequestProto</a> req);</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  std::string create(<a class="code" href="classhadoop_1_1hdfs_1_1_create_request_proto.html">CreateRequestProto</a> req);</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;  std::string getBlockLocations(<a class="code" href="classhadoop_1_1hdfs_1_1_get_block_locations_request_proto.html">GetBlockLocationsRequestProto</a> req);</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;  std::string getServerDefaults(<a class="code" href="classhadoop_1_1hdfs_1_1_get_server_defaults_request_proto.html">GetServerDefaultsRequestProto</a> req);</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;  std::string renewLease(<a class="code" href="classhadoop_1_1hdfs_1_1_renew_lease_request_proto.html">RenewLeaseRequestProto</a> req);</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  std::string complete(<a class="code" href="classhadoop_1_1hdfs_1_1_complete_request_proto.html">CompleteRequestProto</a> req);</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  std::string setReplication(<a class="code" href="classhadoop_1_1hdfs_1_1_set_replication_request_proto.html">SetReplicationRequestProto</a> req);</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  std::string addBlock(<a class="code" href="classhadoop_1_1hdfs_1_1_add_block_request_proto.html">AddBlockRequestProto</a> req);</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  std::string getListing(<a class="code" href="classhadoop_1_1hdfs_1_1_get_listing_request_proto.html">GetListingRequestProto</a> req);</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  std::string getEZForPath(<a class="code" href="classhadoop_1_1hdfs_1_1_get_e_z_for_path_request_proto.html">GetEZForPathRequestProto</a> req);</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  std::string setOwner(<a class="code" href="classhadoop_1_1hdfs_1_1_set_owner_request_proto.html">SetOwnerRequestProto</a> req);</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;  std::string getContentSummary(<a class="code" href="classhadoop_1_1hdfs_1_1_get_content_summary_request_proto.html">GetContentSummaryRequestProto</a> req);</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;  std::string rename(<a class="code" href="classhadoop_1_1hdfs_1_1_rename_request_proto.html">RenameRequestProto</a> req);</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;  std::string rename2(<a class="code" href="classhadoop_1_1hdfs_1_1_rename2_request_proto.html">Rename2RequestProto</a> req);</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;  std::string append(<a class="code" href="classhadoop_1_1hdfs_1_1_append_request_proto.html">AppendRequestProto</a> req);</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;  std::string setPermission(<a class="code" href="classhadoop_1_1hdfs_1_1_set_permission_request_proto.html">SetPermissionRequestProto</a> req);</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  std::string recoverLease(<a class="code" href="classhadoop_1_1hdfs_1_1_recover_lease_request_proto.html">RecoverLeaseRequestProto</a> req);</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  std::string concat(<a class="code" href="classhadoop_1_1hdfs_1_1_concat_request_proto.html">ConcatRequestProto</a> req);</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  std::string abandonBlock(<a class="code" href="classhadoop_1_1hdfs_1_1_abandon_block_request_proto.html">AbandonBlockRequestProto</a> req);</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;};</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;<span class="preprocessor">#endif  // WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_</span></div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;};</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="preprocessor">#endif  // WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_</span></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_get_listing_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_get_listing_response_proto.html">hadoop::hdfs::GetListingResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4767</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_delete_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_delete_response_proto.html">hadoop::hdfs::DeleteResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4337</div></div>
 <div class="ttc" id="classhadoop_1_1hdfs_1_1_rename2_response_proto_html"><div class="ttname"><a href="classhadoop_1_1hdfs_1_1_rename2_response_proto.html">hadoop::hdfs::Rename2ResponseProto</a></div><div class="ttdef"><b>Definition:</b> ClientNamenodeProtocol.pb.h:4143</div></div>
