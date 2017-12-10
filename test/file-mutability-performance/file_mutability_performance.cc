@@ -3,10 +3,12 @@
 // https://hadoop.apache.org/docs/current/hadoop-project-dist +
 //   /hadoop-common/SingleCluster.html
 
-#include <easylogging++.h>
-#include <math.h>
 #include <chrono>
+#include <easylogging++.h>
+#include <iterator>
+#include <math.h>
 #include <string>
+#include <unistd.h>
 #include <vector>
 #include "../util/RDFSTestUtils.h"
 
