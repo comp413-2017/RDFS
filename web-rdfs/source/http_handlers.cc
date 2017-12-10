@@ -134,26 +134,24 @@ void ls_handler(std::shared_ptr<HttpsServer::Request> request,
 
 void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
                          std::shared_ptr<HttpsServer::Response> response,
+                         std::string content,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: append_file_handler";
 
-  hadoop::hdfs::AppendResponseProto res;
-  hadoop::hdfs::AppendRequestProto req;
-
   std::string path = requestInfo["path"];
-  req.set_src(path);
+  LOG(DEBUG) << content;
 
-  // TODO(Victoria) change so sends correct data
+  std::string tempFile = "tempAppend";
+  std::string copyFileReq = "echo \"" + content + "\" > " + tempFile;
+  std::string removeFileReq = "rm " + tempFile;
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -appendToFile " +
+                      tempFile + " " + path;
 
-//  bool isSuccess = zk->append_file(req, res);
-
-  bool isSuccess = true;
-
-  if (isSuccess) {
-    response->write(SimpleWeb::StatusCode::success_ok);
-  } else {
-    response->write(SimpleWeb::StatusCode::server_error_internal_server_error);
-  }
+  system(copyFileReq.c_str());
+  system(input.c_str());
+  system(removeFileReq.c_str());  // Clean up temp file
+  log_req_res(request, content);
+  response->write(SimpleWeb::StatusCode::success_ok);
 }
 
 void set_permission_handler(std::shared_ptr<HttpsServer::Request> request,
@@ -202,7 +200,7 @@ void read_file_handler(std::shared_ptr<HttpsServer::Request> request,
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
   std::string path = requestInfo["path"];
-  std::string storedFile = "tempStore" + path;
+  std::string storedFile = "tempStore";
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat " + path +
                       " > " + storedFile;
 
@@ -283,7 +281,8 @@ void post_handler(std::shared_ptr<HttpsServer::Response> response,
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("APPEND")) {
-    append_file_handler(request, response, requestInfo);
+    std::string content = request->content.string();
+    append_file_handler(request, response, content, requestInfo);
   } else {
     bad_request_handler(request, response);
   }
