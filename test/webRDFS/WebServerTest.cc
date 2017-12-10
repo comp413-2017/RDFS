@@ -112,7 +112,7 @@ TEST(WebServerTest, testListing) {
                   "-mkdir /dirToLs");
   system(
           "hdfs dfs -fs hdfs://comp413.local:5351 "
-          "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fmakileForTesting "
+          "-copyFromLocal /home/vagrant/rdfs/test/webRDFS/fileForTesting "
            "/dirToLs/");
 
   ASSERT_EQ(0,
