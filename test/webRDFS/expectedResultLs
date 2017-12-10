@@ -1,0 +1,21 @@
+HTTP/1.1 200 OK
+Content-Length: 249
+
+{
+"FileStatuses":
+"FileStatus":
+[{
+"accessTime":1512198580004
+"blockSize":134217728
+"group":
+"length":0
+"modificationTime":1512198580004
+"owner":DFSCl
+"path":/dirToLs/fileForTesting._COPYING_
+"permission":4294967295
+"replication":0
+"type":2
+}
+]
+}
+}
