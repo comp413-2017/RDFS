@@ -3,8 +3,6 @@
 #include <gtest/gtest.h>
 #include <easylogging++.h>
 #include <math.h>
-#include <chrono>
-#include <thread>
 #include <string>
 #include <vector>
 #include "../util/RDFSTestUtils.h"
@@ -37,7 +35,8 @@ double performAppend(std::string hdfsPath, int appendSize, int numAppends) {
   std::mt19937 gen{ std::random_device()() };
   std::uniform_int_distribution<> dis(0, 255);
   std::ofstream file("appendFile.txt");
-  std::generate_n(std::ostream_iterator<char>(file, ""), appendSize, [&]{ return dis(gen); });
+  std::generate_n(std::ostream_iterator<char>(file, ""),
+                  appendSize, [&]{ return dis(gen); });
 
   system((hdfsPath + " dfs -touchz /a").c_str());
   auto start = std::chrono::high_resolution_clock::now();
@@ -51,7 +50,8 @@ double performAppend(std::string hdfsPath, int appendSize, int numAppends) {
   return elapsed.count();
 }
 
-void trackAppendSizePerformance(std::string hdfsPath, std::string outputFileName) {
+void trackAppendSizePerformance(std::string hdfsPath,
+                                std::string outputFileName) {
   int maxPower = 6;
   int coefficients[3] = {1, 3, 5};
 
