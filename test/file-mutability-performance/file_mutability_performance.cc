@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <easylogging++.h>
 #include <math.h>
+#include <chrono>
 #include <string>
 #include <vector>
 #include "../util/RDFSTestUtils.h"
