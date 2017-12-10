@@ -384,7 +384,8 @@ int main(int argc, char **argv) {
   // Initialize and run the tests
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::GTEST_FLAG(filter) =
-  "AppendFileTest.testSimpleFileAppend:AppendFileTest.testSimpleFileSmallAppend";
+  "AppendFileTest.testSimpleFileAppend:"
+    "AppendFileTest.testSimpleFileSmallAppend";
   int res = RUN_ALL_TESTS();
   // NOTE: You'll need to scroll up a bit to see the test results
 
