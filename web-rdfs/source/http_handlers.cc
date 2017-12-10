@@ -79,7 +79,23 @@ std::map<std::string, std::string> parseQueryString(std::shared_ptr
   return queryValues;
 }
 
-void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
+void log_req_res(std::shared_ptr<HttpsServer::Request> request,
+                 std::string resp_body) {
+  LOG(INFO) << "[webRDFS] "
+            << "[" << request->remote_endpoint_address() << "] "
+            << request->method << " " << request->path
+            << " " << resp_body;
+}
+
+void bad_request_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response) {
+  log_req_res(request, "Bad request");
+
+  response->write(SimpleWeb::StatusCode::client_error_bad_request);
+}
+
+void create_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
@@ -92,11 +108,14 @@ void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
   req.set_src(path);
 
   zkclient::ZkNnClient::CreateResponse zkResp = zk->create_file(req, res);
+  SimpleWeb::StatusCode resp = webRequestTranslator::getCreateResponse(zkResp);
 
-  response->write(webRequestTranslator::getCreateResponse(zkResp));
+  log_req_res(request, "");
+  response->write(resp);
 }
 
-void ls_handler(std::shared_ptr<HttpsServer::Response> response,
+void ls_handler(std::shared_ptr<HttpsServer::Request> request,
+                std::shared_ptr<HttpsServer::Response> response,
                 std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: ls_handler";
 
@@ -107,11 +126,14 @@ void ls_handler(std::shared_ptr<HttpsServer::Response> response,
   req.set_src(path);
 
   zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req, res);
+  std::string resp = webRequestTranslator::getListingResponse(zkResp, res);
 
-  response->write(webRequestTranslator::getListingResponse(zkResp, res));
+  log_req_res(request, resp);
+  response->write(resp);
 }
 
-void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
+void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: append_file_handler";
 
@@ -134,7 +156,8 @@ void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
   }
 }
 
-void set_permission_handler(std::shared_ptr<HttpsServer::Response> response,
+void set_permission_handler(std::shared_ptr<HttpsServer::Request> request,
+                            std::shared_ptr<HttpsServer::Response> response,
                             std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: set_permission_handler";
 
@@ -156,7 +179,8 @@ void set_permission_handler(std::shared_ptr<HttpsServer::Response> response,
   }
 }
 
-void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
+void delete_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: delete_file_handler";
 
@@ -166,11 +190,14 @@ void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
   std::string path = requestInfo["path"];
   req.set_src(path);
   zkclient::ZkNnClient::DeleteResponse zkResp = zk->destroy(req, res);
+  std::string resp = webRequestTranslator::getDeleteResponse(zkResp);
 
-  response->write(webRequestTranslator::getDeleteResponse(zkResp));
+  log_req_res(request, resp);
+  response->write(resp);
 }
 
-void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
+void read_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                       std::shared_ptr<HttpsServer::Response> response,
                        std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
@@ -183,15 +210,16 @@ void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
   std::ifstream file(storedFile);
   std::string content((std::istreambuf_iterator<char>(file)),
                        std::istreambuf_iterator<char>());
+  std::string resp = webRequestTranslator::getReadResponse(content);
 
-  LOG(DEBUG) << content;
-
-  response->write(webRequestTranslator::getReadResponse(content));
+  log_req_res(request, resp);
+  response->write(resp);
 
   system(("rm " + storedFile).c_str());  // Clean up temp file
 }
 
-void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
+void mkdir_handler(std::shared_ptr<HttpsServer::Request> request,
+                   std::shared_ptr<HttpsServer::Response> response,
                    std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: mkdir_handler";
 
@@ -202,11 +230,14 @@ void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
   req.set_createparent(true);
   req.set_src(path);
   zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
+  std::string resp = webRequestTranslator::getMkdirResponse(zkResp);
 
-  response->write(webRequestTranslator::getMkdirResponse(zkResp));
+  log_req_res(request, resp);
+  response->write(resp);
 }
 
-void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
+void rename_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: rename_file_handler";
 
@@ -218,8 +249,10 @@ void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
   req.set_src(oldPath);
   req.set_dst(newPath);
   zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
+  std::string resp = webRequestTranslator::getRenameResponse(zkResp);
 
-  response->write(webRequestTranslator::getRenameResponse(zkResp));
+  log_req_res(request, resp);
+  response->write(resp);
 }
 
 void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
@@ -235,11 +268,11 @@ void get_handler(std::shared_ptr<HttpsServer::Response> response,
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("OPEN")) {
-    read_file_handler(response, requestInfo);
+    read_file_handler(request, response, requestInfo);
   } else if (!typeOfRequest.compare("LISTSTATUS")) {
-    ls_handler(response, requestInfo);
+    ls_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }
 
@@ -250,9 +283,9 @@ void post_handler(std::shared_ptr<HttpsServer::Response> response,
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("APPEND")) {
-    append_file_handler(response, requestInfo);
+    append_file_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }
 
@@ -263,15 +296,15 @@ void put_handler(std::shared_ptr<HttpsServer::Response> response,
 
   parseQueryString(request);
   if (!typeOfRequest.compare("MKDIRS")) {
-    mkdir_handler(response, requestInfo);
+    mkdir_handler(request, response, requestInfo);
   } else if (!typeOfRequest.compare("RENAME")) {
-    rename_file_handler(response, requestInfo);
+    rename_file_handler(request, response, requestInfo);
   } else if (!typeOfRequest.compare("SETOWNER")) {
-    set_permission_handler(response, requestInfo);
+    set_permission_handler(request, response, requestInfo);
   } else if (!typeOfRequest.compare("CREATE")) {
-    create_file_handler(response, requestInfo);
+    create_file_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }
 
@@ -281,8 +314,8 @@ void delete_handler(std::shared_ptr<HttpsServer::Response> response,
   std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("DELETE")) {
-    delete_file_handler(response, requestInfo);
+    delete_file_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }
