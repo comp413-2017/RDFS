@@ -141,7 +141,7 @@ void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
   std::string path = requestInfo["path"];
   LOG(DEBUG) << content;
 
-  std::string tempFile = "tempAppend" + path.substr(1);
+  std::string tempFile = "tempAppend";
   std::string copyFileReq = "echo " + content + " > " + tempFile;
   std::string removeFileReq = "rm " + tempFile;
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -appendToFile " +
@@ -199,7 +199,7 @@ void read_file_handler(std::shared_ptr<HttpsServer::Request> request,
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
   std::string path = requestInfo["path"];
-  std::string storedFile = "tempStore" + path;
+  std::string storedFile = "tempStore";
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat " + path +
                       " > " + storedFile;
 
