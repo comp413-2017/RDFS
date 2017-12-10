@@ -150,6 +150,7 @@ void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
   system(copyFileReq.c_str());
   system(input.c_str());
   system(removeFileReq.c_str());  // Clean up temp file
+  log_req_res(request, content);
   response->write(SimpleWeb::StatusCode::success_ok);
 }
 
