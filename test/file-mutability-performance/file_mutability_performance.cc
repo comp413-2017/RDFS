@@ -1,4 +1,7 @@
 // Copyright 2017 Rice University, COMP 413 2017
+// NOTE: Please download and configure HDFS before running
+// https://hadoop.apache.org/docs/current/hadoop-project-dist +
+//   /hadoop-common/SingleCluster.html
 
 #include <gtest/gtest.h>
 #include <easylogging++.h>
@@ -104,6 +107,7 @@ int main(int argc, char **argv) {
   system("~/zookeeper/bin/zkCli.sh rmr /testing");
   system("sudo /home/vagrant/zookeeper/bin/zkServer.sh stop");
 
+  // Run HDFS
   system("$HOME/hadoop-2.9.0/sbin/start-dfs.sh");
   performHDFSAnalysis();
   system("$HOME/hadoop-2.9.0/sbin/stop-dfs.sh");
