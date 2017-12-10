@@ -134,7 +134,7 @@ void ls_handler(std::shared_ptr<HttpsServer::Request> request,
 
 void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
                          std::shared_ptr<HttpsServer::Response> response,
-                         std::string content, 
+                         std::string content,
                          std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: append_file_handler";
 
