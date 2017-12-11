@@ -160,20 +160,20 @@ autoreconf -if
 make && make install
 cd /home/vagrant
 
-# Add Google Mock
-if [ ! -d /usr/src/gmock ]; then
-    apt-get install -y google-mock
-    cd /usr/src/gmock
+# Add Google Test
+if [ ! -d /usr/src/gtest ]; then
+    apt-get install -y libgtest-dev
+    cd /usr/src/gtest
     cmake CMakeLists.txt
     make
     cp *.a /usr/lib
     cd /home/vagrant
 fi
 
-# Add Google Test
-if [ ! -d /usr/src/gtest ]; then
-    apt-get install -y libgtest-dev
-    cd /usr/src/gtest
+# Add Google Mock
+if [ ! -d /usr/src/gmock ]; then
+    apt-get install -y google-mock
+    cd /usr/src/gmock
     cmake CMakeLists.txt
     make
     cp *.a /usr/lib
