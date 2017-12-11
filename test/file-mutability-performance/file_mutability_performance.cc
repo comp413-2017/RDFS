@@ -37,6 +37,7 @@ static inline void initializeDatanodes(int numDatanodes) {
 }
 
 double performAppend(std::string hdfsPath, int appendSize, int numAppends) {
+  // Generate file with random characters of appendSize size
   std::mt19937 gen{ std::random_device()() };
   std::uniform_int_distribution<> dis(0, 255);
   std::ofstream file("appendFile.txt");
@@ -57,8 +58,9 @@ double performAppend(std::string hdfsPath, int appendSize, int numAppends) {
 
 void trackAppendSizePerformance(std::string hdfsPath,
                                 std::string outputFileName) {
-  int maxPower = 6;
+  int maxPower = 7;
   int coefficients[3] = {1, 3, 5};
+  int numTrials = 1;
 
   std::ofstream outputFile;
   outputFile.open(outputFileName);
@@ -66,8 +68,31 @@ void trackAppendSizePerformance(std::string hdfsPath,
   for (int i = 0; i < maxPower; i++) {
     for (const int &coefficient : coefficients) {
       int appendSize = coefficient * pow(10, i);
-      double time = performAppend(hdfsPath, appendSize, 1);
-      outputFile << appendSize << " bytes: " << time << " seconds\n";
+      double time = 0;
+      for (int j = 0; j < numTrials; j++) {
+        time += performAppend(hdfsPath, appendSize, 1);
+      }
+      double avgTime = time /= numTrials;
+      outputFile << appendSize << " bytes: " << avgTime << " seconds\n";
+    }
+  }
+  outputFile.close();
+}
+
+void trackMultipleAppendPerformance(std::string hdfsPath,
+                                std::string outputFileName) {
+  int appendSize = 1000;
+  int maxPower = 2;
+  int coefficients[3] = {1, 3, 5};
+
+  std::ofstream outputFile;
+  outputFile.open(outputFileName, std::ofstream::app);
+  outputFile << "Performing varying numbers of appends:\n";
+  for (int i = 0; i < maxPower; i++) {
+    for (const int &coefficient : coefficients) {
+      int numAppends = coefficient * pow(10, i);
+      double time = performAppend(hdfsPath, appendSize, numAppends);
+      outputFile << numAppends << " appends: " << time << " seconds\n";
     }
   }
   outputFile.close();
@@ -77,12 +102,14 @@ void performRDFSAnalysis() {
   std::string path = "hdfs";
   std::string outputFileName = "rdfsAppendPerformanceResults.txt";
   trackAppendSizePerformance(path, outputFileName);
+  trackMultipleAppendPerformance(path, outputFileName);
 }
 
 void performHDFSAnalysis() {
   std::string path = "$HOME/hadoop-2.9.0/bin/hdfs";
   std::string outputFileName = "hdfsAppendPerformanceResults.txt";
   trackAppendSizePerformance(path, outputFileName);
+  trackMultipleAppendPerformance(path, outputFileName);
 }
 
 int main(int argc, char **argv) {
