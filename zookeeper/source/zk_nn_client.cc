@@ -864,7 +864,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     return false;
   }
 
-  LOG(INFO) << "repl factor: " << znode_data.replication;
+  LOG(INFO) << "[add_block] repl factor: " << znode_data.replication;
 
   uint32_t replication_factor = znode_data.replication;
   uint64_t block_size = znode_data.blocksize;
@@ -896,22 +896,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
       block->add_storagetypes(StorageTypeProto::DISK);
     }
-  } else {
-    for (int i = 0; i < znode_data.replication; i++) {
-      block->add_storageids(REPLICATION_STORAGE_ID);
-    }
-    for (int i = 0; i < znode_data.replication; i++) {
-      block->add_storagetypes(StorageTypeProto::DISK);
-    }
-  }
 
-  // Populate optional fields for an EC block.
-  // i.e. block indices and storage IDs.
-  if (znode_data.isEC) {
-    // Add storage types.
-    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
-      block->add_storagetypes(StorageTypeProto::DISK);
-    }
     // Add block indices for an EC block.
     // Each byte (i.e. char) represents an index into the group.
     std::string block_index_string;
@@ -920,6 +905,13 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     }
 
     block->set_blockindices(block_index_string);
+  } else {
+    for (int i = 0; i < znode_data.replication; i++) {
+      block->add_storageids(REPLICATION_STORAGE_ID);
+    }
+    for (int i = 0; i < znode_data.replication; i++) {
+      block->add_storagetypes(StorageTypeProto::DISK);
+    }
   }
 
   for (auto data_node : data_nodes) {
@@ -1121,8 +1113,8 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     {
       LOG(INFO) << "[create_file_znode] is this file ec? "
                 << znode_data->isEC << "\n";
-      LOG(INFO) << "[create_file_znode] " << znode_data->replication;
-      LOG(INFO) << "[create_file_znode] " << znode_data->owner;
+      LOG(INFO) << "[create_file_znode] repl: " << znode_data->replication;
+      LOG(INFO) << "[create_file_znode] owner: " << znode_data->owner;
       LOG(INFO) << "[create_file_znode] size of znode is "
                 << sizeof(*znode_data);
     }
@@ -2259,7 +2251,6 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       ecSchema->set_dataunits(DEFAULT_DATA_UNITS);
       ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
   }
-
   LOG(INFO) << "[set_file_info] Successfully set the file info ";
 }
   bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
