@@ -16,6 +16,16 @@ using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
 void setZk(zkclient::ZkNnClient *zk_arg);
 
 /**
+ * Handler invoked when the client issues a GET request to the web server root
+ * path. This is a request for the webRDFS client/frontend.
+ *
+ * @param response HTTP response object.
+ * @param request HTTP request object.
+ */
+void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
+                      std::shared_ptr<HttpsServer::Request> request);
+
+/**
  * Handler invoked when a client issues a GET request for an RDFS path.
  *
  * @param response HTTP response object.

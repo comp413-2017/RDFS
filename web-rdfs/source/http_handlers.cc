@@ -5,6 +5,10 @@
 #include <easylogging++.h>
 #include <sstream>
 #include <iostream>
+#include <map>
+
+// Path to the HTML file containing the webRDFS client.
+#define WEBRDFS_CLIENT_FILE "/home/vagrant/rdfs/web-rdfs/source/index.html"
 
 zkclient::ZkNnClient *zk;
 
@@ -12,13 +16,34 @@ void setZk(zkclient::ZkNnClient *zk_arg) {
   zk = zk_arg;
 }
 
-std::string get_request_type(std::shared_ptr<HttpsServer::Request> request) {
-  // Remove op= from query string
-  std::string typeOfRequest = request->query_string.substr(3, 6);
+/**
+ * Serve a static file to the client.
+ *
+ * @param response HTTP response object.
+ * @param content_type Content-Type to send to the client.
+ * @param static_file_path Full path to the static file to serve.
+ */
+void serve_static_file(std::shared_ptr<HttpsServer::Response> response,
+                       const char *content_type,
+                       const char *static_file_path) {
+  std::stringstream stream;
+  std::string file_contents;
 
-  LOG(DEBUG) << "Type of Request " << typeOfRequest;
+  LOG(DEBUG) << "Serving static file "
+             << static_file_path
+             << " with Content-Type "
+             << content_type;
 
-  return typeOfRequest;
+  // Read the static file contents into memory as text
+  std::ifstream static_file(static_file_path);
+  std::stringstream buffer;
+  buffer << static_file.rdbuf();
+  file_contents = buffer.str();
+
+  *response << "HTTP/1.1 200 OK\r\n"
+            << "Content-Type: " << content_type << "\r\n"
+            << "Content-Length: " << file_contents.length() << "\r\n\r\n"
+            << file_contents;
 }
 
 std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
@@ -31,136 +56,250 @@ std::string get_path(std::shared_ptr<HttpsServer::Request> request) {
   return path;
 }
 
-std::string get_destination(std::shared_ptr<HttpsServer::Request> request) {
-  std::string destDelim = "&destination=";
-  int idxOfDest = request->query_string.rfind(destDelim) + destDelim.size();
-  std::string dest = request->query_string.substr(idxOfDest);
+std::map<std::string, std::string> parseQueryString(std::shared_ptr
+                                                    <HttpsServer::Request>
+                                                    request) {
+  LOG(DEBUG) << "Parsing " << request->query_string;
 
-  LOG(DEBUG) << "Destination given " << dest;
+  std::map<std::string, std::string> queryValues;
+  queryValues["path"] = get_path(request);
+  char *save;
+  char *givenValues = strtok_r(const_cast<char*>(
+                                 request->query_string.c_str()), "&", &save);
 
-  return dest;
+  while (givenValues != NULL) {
+    std::string currentVal = std::string(givenValues);
+    int idxOfSplit = currentVal.rfind("=");
+    queryValues[
+                currentVal.substr(0, idxOfSplit)
+               ] = currentVal.substr(idxOfSplit + 1);
+    givenValues = strtok_r(NULL, "&", &save);
+  }
+
+  return queryValues;
 }
 
-void create_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::shared_ptr<HttpsServer::Request> request) {
+void log_req_res(std::shared_ptr<HttpsServer::Request> request,
+                 std::string resp_body) {
+  LOG(INFO) << "[webRDFS] "
+            << "[" << request->remote_endpoint_address() << "] "
+            << request->method << " " << request->path
+            << " " << resp_body;
+}
+
+void bad_request_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response) {
+  log_req_res(request, "Bad request");
+
+  response->write(SimpleWeb::StatusCode::client_error_bad_request);
+}
+
+void create_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: create_file_handler";
 
-  // TODO(security): implement
-  response->write("create_file_handler");
+  std::string path = requestInfo["path"];
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -touchz " + path;
+
+  int is_failure = system(input.c_str());
+  response->write(webRequestTranslator::getCreateResponse(is_failure));
 }
 
-void append_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::shared_ptr<HttpsServer::Request> request) {
+void ls_handler(std::shared_ptr<HttpsServer::Request> request,
+                std::shared_ptr<HttpsServer::Response> response,
+                std::map<std::string, std::string> requestInfo) {
+  LOG(DEBUG) << "HTTP request: ls_handler";
+
+  GetListingRequestProto req;
+  GetListingResponseProto res;
+
+  std::string path = requestInfo["path"];
+  req.set_src(path);
+
+  zkclient::ZkNnClient::ListingResponse zkResp = zk->get_listing(req, res);
+  std::string resp = webRequestTranslator::getListingResponse(zkResp, res);
+
+  log_req_res(request, resp);
+  response->write(resp);
+}
+
+void append_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
+                         std::string content,
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: append_file_handler";
 
-  // TODO(security): implement
-  response->write("append_file_handler");
+  std::string path = requestInfo["path"];
+  LOG(DEBUG) << content;
+
+  std::string tempFile = "tempAppend";
+  std::string copyFileReq = "echo \"" + content + "\" > " + tempFile;
+  std::string removeFileReq = "rm " + tempFile;
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -appendToFile " +
+                      tempFile + " " + path;
+
+  system(copyFileReq.c_str());
+  int is_failure = system(input.c_str());
+  system(removeFileReq.c_str());  // Clean up temp file
+  log_req_res(request, content);
+  response->write(webRequestTranslator::getAppendResponse(is_failure));
 }
 
-void delete_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
-  LOG(DEBUG) << "HTTP request: delete_file_handler";
+void set_permission_handler(std::shared_ptr<HttpsServer::Request> request,
+                            std::shared_ptr<HttpsServer::Response> response,
+                            std::map<std::string, std::string> requestInfo) {
+  LOG(DEBUG) << "HTTP request: set_permission_handler";
 
-  hadoop::hdfs::DeleteResponseProto res;
-  hadoop::hdfs::DeleteRequestProto req;
+  hadoop::hdfs::SetPermissionRequestProto req;
+  hadoop::hdfs::SetPermissionResponseProto res;
+
+  std::string path = requestInfo["path"];
 
   req.set_src(path);
-  zkclient::ZkNnClient::DeleteResponse zkResp = zk->destroy(req, res);
 
-  response->write(webRequestTranslator::getDeleteResponse(zkResp));
+  // TODO(Victoria) change so sends correct data
+
+  bool isSuccess = zk->set_permission(req, res);
+
+  if (isSuccess) {
+    response->write(SimpleWeb::StatusCode::success_ok);
+  } else {
+    response->write(SimpleWeb::StatusCode::server_error_internal_server_error);
+  }
 }
 
-void read_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+void delete_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
+                         std::map<std::string, std::string> requestInfo) {
+  LOG(DEBUG) << "HTTP request: delete_file_handler";
+
+  std::string path = requestInfo["path"];
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -rm " + path;
+
+  int is_failure = system(input.c_str());
+  std::string resp = webRequestTranslator::getDeleteResponse(is_failure);
+  log_req_res(request, resp);
+  response->write(resp);
+}
+
+void read_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                       std::shared_ptr<HttpsServer::Response> response,
+                       std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: read_file_handler";
 
-  std::string storedFile = "tempStore" + path;
+  std::string path = requestInfo["path"];
+  std::string storedFile = "tempStore";
   std::string input = "hdfs dfs -fs hdfs://localhost:5351 -cat " + path +
                       " > " + storedFile;
 
-  system(input.c_str());
+  int is_failure = system(input.c_str());
   std::ifstream file(storedFile);
   std::string content((std::istreambuf_iterator<char>(file)),
                        std::istreambuf_iterator<char>());
+  std::string resp = webRequestTranslator::getReadResponse(content,
+                                                           is_failure);
 
-  LOG(DEBUG) << content;
-
-  response->write(webRequestTranslator::getReadResponse(content));
+  log_req_res(request, resp);
+  response->write(resp);
 
   system(("rm " + storedFile).c_str());  // Clean up temp file
 }
 
-void mkdir_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string path) {
+void mkdir_handler(std::shared_ptr<HttpsServer::Request> request,
+                   std::shared_ptr<HttpsServer::Response> response,
+                   std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: mkdir_handler";
 
-  hadoop::hdfs::MkdirsResponseProto res;
-  hadoop::hdfs::MkdirsRequestProto req;
+  std::string path = requestInfo["path"];
 
-  req.set_createparent(true);
-  req.set_src(path);
-  zkclient::ZkNnClient::MkdirResponse zkResp = zk->mkdir(req, res);
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -mkdir " + path;
+  int is_failure = system(input.c_str());
+  std::string resp = webRequestTranslator::getMkdirResponse(is_failure);
 
-  response->write(webRequestTranslator::getMkdirResponse(zkResp));
+  log_req_res(request, resp);
+  response->write(resp);
 }
 
-void rename_file_handler(std::shared_ptr<HttpsServer::Response> response,
-                         std::string oldPath,
-                         std::string newPath) {
+void rename_file_handler(std::shared_ptr<HttpsServer::Request> request,
+                         std::shared_ptr<HttpsServer::Response> response,
+                         std::map<std::string, std::string> requestInfo) {
   LOG(DEBUG) << "HTTP request: rename_file_handler";
 
-  hadoop::hdfs::RenameResponseProto res;
-  hadoop::hdfs::RenameRequestProto req;
+  std::string oldPath = requestInfo["path"];
+  std::string newPath = requestInfo["destination"];
 
-  req.set_src(oldPath);
-  req.set_dst(newPath);
-  zkclient::ZkNnClient::RenameResponse zkResp = zk->rename(req, res);
+  std::string input = "hdfs dfs -fs hdfs://localhost:5351 -mv " + oldPath
+                      + " " + newPath;
+  int is_failure = system(input.c_str());
+  std::string resp = webRequestTranslator::getRenameResponse(is_failure);
 
-  response->write(webRequestTranslator::getRenameResponse(zkResp));
+  log_req_res(request, resp);
+  response->write(resp);
+}
+
+void frontend_handler(std::shared_ptr<HttpsServer::Response> response,
+                      std::shared_ptr<HttpsServer::Request> request) {
+  LOG(DEBUG) << "Frontend handler invoked";
+
+  serve_static_file(response, "text/html", WEBRDFS_CLIENT_FILE);
 }
 
 void get_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
+  std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("OPEN")) {
-    read_file_handler(response, path);
+    read_file_handler(request, response, requestInfo);
+  } else if (!typeOfRequest.compare("LISTSTATUS")) {
+    ls_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }
 
+
 void post_handler(std::shared_ptr<HttpsServer::Response> response,
                   std::shared_ptr<HttpsServer::Request> request) {
-  // Do not support post requests right now
-  response->write(SimpleWeb::StatusCode::client_error_bad_request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
+  std::string typeOfRequest = requestInfo["op"];
+
+  if (!typeOfRequest.compare("APPEND")) {
+    std::string content = request->content.string();
+    append_file_handler(request, response, content, requestInfo);
+  } else {
+    bad_request_handler(request, response);
+  }
 }
 
 void put_handler(std::shared_ptr<HttpsServer::Response> response,
                  std::shared_ptr<HttpsServer::Request> request) {
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
+  std::string typeOfRequest = requestInfo["op"];
 
+  parseQueryString(request);
   if (!typeOfRequest.compare("MKDIRS")) {
-    mkdir_handler(response, path);
+    mkdir_handler(request, response, requestInfo);
   } else if (!typeOfRequest.compare("RENAME")) {
-    std::string pathForRename = get_destination(request);
-    rename_file_handler(response, path, pathForRename);
+    rename_file_handler(request, response, requestInfo);
+  } else if (!typeOfRequest.compare("SETOWNER")) {
+    set_permission_handler(request, response, requestInfo);
+  } else if (!typeOfRequest.compare("CREATE")) {
+    create_file_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }
 
 void delete_handler(std::shared_ptr<HttpsServer::Response> response,
                     std::shared_ptr<HttpsServer::Request> request) {
-  // Remove op= from query string
-  std::string typeOfRequest = get_request_type(request);
-  std::string path = get_path(request);
+  std::map<std::string, std::string> requestInfo = parseQueryString(request);
+  std::string typeOfRequest = requestInfo["op"];
 
   if (!typeOfRequest.compare("DELETE")) {
-    delete_file_handler(response, path);
+    delete_file_handler(request, response, requestInfo);
   } else {
-    response->write(SimpleWeb::StatusCode::client_error_bad_request);
+    bad_request_handler(request, response);
   }
 }

@@ -84,11 +84,17 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
   std::string block_metadata_path;
   if (is_ec_block(uuid)) {
     uint64_t block_group_id = get_block_group_id(uuid);
-    util::concat_path(get_block_metadata_path(block_group_id),
-                      std::to_string(uuid));
+    LOG(DEBUG) << "block group id: " << block_group_id;
+    LOG(DEBUG) << "prefix: " << get_block_metadata_path(block_group_id);
+
+    block_metadata_path = util::concat_path(
+        get_block_metadata_path(block_group_id), std::to_string(uuid));
   } else {
     block_metadata_path = get_block_metadata_path(uuid);
   }
+
+  LOG(DEBUG) << "block metadata path: " << block_metadata_path;
+
   if (zk->exists(block_metadata_path, exists, error_code)) {
     // If the block_location does not yet exist. Flush its path.
     // If it still does not exist error out.
@@ -96,9 +102,10 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
       zk->flush(zk->prepend_zk_root(block_metadata_path), true);
       if (zk->exists(block_metadata_path,
                      exists, error_code)) {
-        LOG(ERROR) << "/block_locations/<block_uuid> did not exist "
-                   << error_code;
-        return false;
+        if (!exists) {
+          LOG(ERROR) << block_metadata_path << " did not exist " << error_code;
+          return false;
+        }
       }
     }
     // Write the block size
@@ -127,6 +134,8 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
               << error_code;
       created_correctly = false;
     }
+    LOG(DEBUG) << "[blockReceived]: " << block_metadata_path +
+                                         "/" + id << " added";
   }
 
   // Write block to /blocks
@@ -149,6 +158,49 @@ bool ZkClientDn::blockReceived(uint64_t uuid, uint64_t size_bytes) {
   return created_correctly;
 }
 
+bool ZkClientDn::blockSizeUpdated(uint64_t uuid, uint64_t size_bytes) {
+  bool exists;
+  int error_code;
+  std::string block_metadata_path;
+  if (is_ec_block(uuid)) {
+    uint64_t block_group_id = get_block_group_id(uuid);
+    util::concat_path(get_block_metadata_path(block_group_id),
+                      std::to_string(uuid));
+  } else {
+    block_metadata_path = get_block_metadata_path(uuid);
+  }
+  if (zk->exists(block_metadata_path, exists, error_code)) {
+    // If the block_location does not yet exist. Flush its path.
+    // If it still does not exist error out.
+    if (!exists) {
+      zk->flush(zk->prepend_zk_root(block_metadata_path), true);
+      if (zk->exists(block_metadata_path,
+                     exists, error_code)) {
+        LOG(ERROR) << "[blockSizeUpdated] /block_locations/<block_uuid> "
+                        "did not exist "
+        << error_code;
+        return false;
+      }
+    }
+    // Write the block size
+    BlockZNode block_data;
+    block_data.block_size = size_bytes;
+    std::vector<std::uint8_t> data_vect(sizeof(block_data));
+    memcpy(&data_vect[0], &block_data, sizeof(block_data));
+    if (!zk->set(block_metadata_path,
+                 data_vect, error_code, false)) {
+      LOG(ERROR)
+      << "[blockSizeUpdated] Failed writing block size to "
+                 "/block_locations/<block_uuid> "
+      << error_code;
+      return false;
+    }
+    return true;
+  }
+  LOG(ERROR) << "[blockSizeUpdated] Failed to check whether "
+  << block_metadata_path << " exists.";
+  return false;
+}
 void ZkClientDn::registerDataNode(const std::string &ip,
                                   uint64_t total_disk_space,
                                   const uint32_t ipcPort,
@@ -275,7 +327,7 @@ bool ZkClientDn::poll_replication_queue() {
 }
 
 bool ZkClientDn::poll_delete_queue() {
-  LOG(INFO) << " poll delete queue";
+//  LOG(INFO) << " poll delete queue";
   processDeleteQueue();
   return true;
 }
@@ -542,7 +594,9 @@ void ZkClientDn::processDeleteQueue() {
     return;
   }
 
-  LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  if (work_items.size() > 0) {
+    LOG(INFO) << "Deleting this many blocks " << work_items.size();
+  }
 
   for (auto &block : work_items) {
     LOG(INFO) << "Delete working on " << block;
@@ -606,7 +660,7 @@ bool ZkClientDn::buildExtendedBlockProto(hadoop::hdfs::ExtendedBlockProto *eb,
                                          const uint64_t &block_size) {
   eb->set_poolid("0");
   eb->set_blockid(block_id);
-  eb->set_generationstamp(1);
+  eb->set_generationstamp(block_size);
   eb->set_numbytes(block_size);
   return true;
 }

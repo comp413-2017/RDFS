@@ -40,10 +40,10 @@ typedef struct {
   zkclient::FileStatus under_construction;
   int filetype;  // 0 or 1 for dir, 2 for file, 3 for symlinks (not supported)
   std::uint64_t length;
-  // https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
-  // FileSystem.html#setOwner(org.apache.hadoop.fs.Path,
-  // java.lang.String,
-  // java.lang.String)
+// https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/fs/
+// FileSystem.html#setOwner(org.apache.hadoop.fs.Path,
+// java.lang.String,
+// java.lang.String)
   std::uint64_t access_time;
   std::uint64_t modification_time;
   char owner[MAX_USERNAME_LEN];  // the client who created the file
@@ -51,6 +51,7 @@ typedef struct {
   char permissions[20][MAX_USERNAME_LEN];  // max 20 users can view the file.
   int perm_length;  // number of slots filled in permissions
   int permission_number;
+  std::uint64_t last_block_id;
 } FileZNode;
 
 /**
@@ -89,7 +90,7 @@ struct TargetDN {
     }
     return num_xmits > other.num_xmits;
 
-    // Default policy is choose the node with the most free space
+      // Default policy is choose the node with the most free space
     } else {
     if (free_bytes == other.free_bytes) {
       return num_xmits > other.num_xmits;
@@ -132,6 +133,8 @@ using hadoop::hdfs::SetOwnerResponseProto;
 using hadoop::hdfs::RenameResponseProto;
 using hadoop::hdfs::SetPermissionRequestProto;
 using hadoop::hdfs::SetPermissionResponseProto;
+using hadoop::hdfs::AppendRequestProto;
+using hadoop::hdfs::AppendResponseProto;
 using hadoop::hdfs::RenewLeaseRequestProto;
 using hadoop::hdfs::RenewLeaseResponseProto;
 using hadoop::hdfs::RecoverLeaseRequestProto;
@@ -144,41 +147,48 @@ using hadoop::hdfs::GetErasureCodingPolicyRequestProto;
 using hadoop::hdfs::GetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyResponseProto;
 using hadoop::hdfs::SetErasureCodingPolicyRequestProto;
+using hadoop::hdfs::UpdateBlockForPipelineRequestProto;
+using hadoop::hdfs::UpdateBlockForPipelineResponseProto;
 
 /**
- * This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
- */
+* This is used by ClientNamenodeProtocolImpl to communicate the zookeeper.
+*/
 class ZkNnClient : public ZkClientCommon {
  public:
   char policy;
-  const char* EC_REPLICATION = "REPLICATION";
+  const char* EC_REPLICATION = "replication";
   const char* DEFAULT_EC_POLICY = "RS-6-3-1024k";  // the default policy.
-  uint32_t DEFAULT_EC_CELLCIZE = 1024*1024;  // the default cell size is 64kb.
+  uint32_t DEFAULT_EC_CELLSIZE = 1024*1024;  // the default cell size is 64kb.
   uint32_t DEFAULT_EC_ID = 1;
+  uint32_t REPLICATION_EC_ID = 63;
   const uint32_t DEFAULT_DATA_UNITS = 6;
   const uint32_t DEFAULT_PARITY_UNITS = 3;
   const char* DEFAULT_EC_CODEC_NAME = "rs";
   std::string DEFAULT_STORAGE_ID = "1";  // the default storage id.
+  std::string REPLICATION_STORAGE_ID = "63";
   ECSchemaProto DEFAULT_EC_SCHEMA;
   ErasureCodingPolicyProto RS_SOLOMON_PROTO;
+  ErasureCodingPolicyProto REPLICATION_PROTO;
+  ECSchemaProto REPLICATION_1_2_SCHEMA;
+
 
   enum class ListingResponse {
-      Ok,                    // 0
-      FileDoesNotExist,      // 1
-      FailedChildRetrieval,  // 2
-      FileAccessRestricted   // 3
+    Ok,                    // 0
+    FileDoesNotExist,      // 1
+    FailedChildRetrieval,  // 2
+    FileAccessRestricted   // 3
   };
 
   enum class DeleteResponse {
-      Ok,
-      FileDoesNotExist,
-      FileUnderConstruction,
-      FileIsDirectoryMismatch,
-      FailedChildRetrieval,
-      FailedBlockRetrieval,
-      FailedDataNodeRetrieval,
-      FailedZookeeperOp,
-      FileAccessRestricted
+    Ok,
+    FileDoesNotExist,
+    FileUnderConstruction,
+    FileIsDirectoryMismatch,
+    FailedChildRetrieval,
+    FailedBlockRetrieval,
+    FailedDataNodeRetrieval,
+    FailedZookeeperOp,
+    FileAccessRestricted
   };
 
   enum class GetFileInfoResponse {
@@ -189,24 +199,24 @@ class ZkNnClient : public ZkClientCommon {
   };
 
   enum class MkdirResponse {
-      Ok,
-      FailedZnodeCreation
+    Ok,
+    FailedZnodeCreation
   };
 
   enum class CreateResponse {
-      Ok,
-      FileAlreadyExists,
-      FailedMkdir,
-      FailedCreateZnode
+    Ok,
+    FileAlreadyExists,
+    FailedMkdir,
+    FailedCreateZnode
   };
 
   enum class RenameResponse {
-      Ok,
-      FileDoesNotExist,
-      RenameOpsFailed,
-      InvalidType,
-      MultiOpFailed,
-      FileAccessRestricted
+    Ok,
+    FileDoesNotExist,
+    RenameOpsFailed,
+    InvalidType,
+    MultiOpFailed,
+    FileAccessRestricted
   };
 
   enum class ErasureCodingPoliciesResponse {
@@ -250,10 +260,13 @@ class ZkNnClient : public ZkClientCommon {
     populateDefaultECProto();
   }
   void register_watches();
+
+
   /**
    * Returns the current timestamp in milliseconds
    */
   uint64_t current_time_ms();
+
   /**
    * Returns the latest timestamp by the client
    */
@@ -264,6 +277,7 @@ class ZkNnClient : public ZkClientCommon {
    */
   void renew_lease(RenewLeaseRequestProto &req,
                    RenewLeaseResponseProto &res);
+
   void recover_lease(RecoverLeaseRequestProto &req,
                      RecoverLeaseResponseProto &res);
   /**
@@ -283,7 +297,7 @@ class ZkNnClient : public ZkClientCommon {
    * @return CreateResponse
    */
   CreateResponse create_file(CreateRequestProto &request,
-                                         CreateResponseProto &response);
+                             CreateResponseProto &response);
 
   /**
    * Get locations of blocks.
@@ -320,7 +334,7 @@ class ZkNnClient : public ZkClientCommon {
    * @param req CompleteRequestProto
    * @param res CompleteResponseProto
    * @param client_name client's name as string
-   * @return 
+   * @return
    */
   void complete(CompleteRequestProto &req,
                 CompleteResponseProto &res,
@@ -546,35 +560,67 @@ class ZkNnClient : public ZkClientCommon {
   bool rename_ops_for_dir(const std::string &src, const std::string &dst,
                           std::vector<std::shared_ptr<ZooOp>> &ops);
 
-  /**
-   * Look through the wait_for_acks work queue to check the replication
-   * status of the pending blocks and take an appropriate action to
-   * ensure that the blocks get replicated
-   */
+/**
+ * Look through the wait_for_acks work queue to check the replication
+ * status of the pending blocks and take an appropriate action to
+ * ensure that the blocks get replicated
+ */
   bool check_acks();
 
-  // get locations given src, offset, and length
+// get locations given src, offset, and length
   void get_block_locations(const std::string &src,
                            google::protobuf::uint64 offset,
                            google::protobuf::uint64 length,
                            LocatedBlocksProto *blocks,
                            std::string client_name = "default");
 
-  /**
-   * Read a znode corresponding to a file into znode_data
-   */
+/**
+* Main append file mechanism and associated helpers.
+*/
+  bool append_file(AppendRequestProto &req, AppendResponseProto &res);
+  void update_block_for_pipeline(UpdateBlockForPipelineRequestProto &req,
+                                 UpdateBlockForPipelineResponseProto &res);
+  bool process_request(std::string client_name, std::string file_path,
+                       AppendRequestProto &req);
+  bool get_primary_block_info(std::string file_path,
+                                     AppendRequestProto &req,
+                                     AppendResponseProto &res);
+  bool check_lease(std::string client_name, std::string file_path);
+
+/**
+ * Read a znode corresponding to a file into znode_data
+ */
   void read_file_znode(FileZNode &znode_data, const std::string &path);
 
   bool cache_contains(const std::string &path);
 
   int cache_size();
 
+  /**
+   * Find the parent directory of a path
+   * @param path The path of the source file
+   * @return the parent of the path
+   */
+  std::string find_parent(const std::string &path);
+
  private:
+  bool set_located_block(LocatedBlockProto* locatedBlockProto,
+                         uint64_t block_id, uint64_t block_size);
+
+  bool set_file_status(std::string file_path,
+                        HdfsFileStatusProto* hdfsFileStatusProto);
+
+  void recover_lease_helper(RecoverLeaseRequestProto &req,
+                     RecoverLeaseResponseProto &res);
+
+  void renew_lease_helper(RenewLeaseRequestProto &req,
+                          RenewLeaseResponseProto &res);
+
   /**
    * Given a vector of DN IDs, sorts them from fewest to most number of transmits
    */
   bool sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
-                     std::vector<std::string> &sorted_dn_ids);
+                       std::vector<std::string> &sorted_dn_ids);
 
   /**
    * Set the file status proto with information from the znode struct and the path
@@ -598,37 +644,38 @@ class ZkNnClient : public ZkClientCommon {
    */
   std::string ZookeeperBlocksPath(const std::string &hadoopPath);
 
-   /**
-   * Given the filesystem path, get the full zookeeper path for the dir
-   * where the file metadata is written
-   */
+  /**
+  * Given the filesystem path, get the full zookeeper path for the dir
+  * where the file metadata is written
+  */
   std::string ZookeeperFilePath(const std::string &hadoopPath);
 
-  /**
-   * Use to read values from config
-   */
+/**
+ * Use to read values from config
+ */
   config_reader::ConfigReader config;
 
-  /**
-   * Crate a znode corresponding to a file of "filetype", with path "path", with
-   * znode data contained in "znode_data"
-   */
+/**
+ * Crate a znode corresponding to a file of "filetype", with path "path", with
+ * znode data contained in "znode_data"
+ */
   bool create_file_znode(const std::string &path, FileZNode *znode_data);
 
-  /**
-   * Set the default information in a directory znode struct
-   */
+/**
+ * Set the default information in a directory znode struct
+ */
   void set_mkdir_znode(FileZNode *znode_data);
-  /**
-   * Create the directories at path. If create_parent is true, then we create
-   * all the parent directories which are not in zookeeper already. Return false
-   * if the creation did not work, true otherwise
-   */
+/**
+ * Create the directories at path. If create_parent is true, then we create
+ * all the parent directories which are not in zookeeper already. Return false
+ * if the creation did not work, true otherwise
+ */
   MkdirResponse mkdir_helper(const std::string &path, bool create_parent);
 
-  /**
-   * Serialize a znode struct representation to a byte array to feed into zookeeper
-   */
+/**
+ * Serialize a znode struct representation to a
+ * byte array to feed into zookeeper
+ */
   void file_znode_struct_to_vec(FileZNode *znode_data,
                                 std::vector<std::uint8_t> &data);
   template <class T>
@@ -636,10 +683,11 @@ class ZkNnClient : public ZkClientCommon {
   template <class T>
   void read_znode_data(T &znode_data, const std::string &path);
 
-  /**
-   * Try to delete a node and log error if we couldnt and set response to false
-   */
-  void delete_node_wrapper(std::string &path, DeleteResponseProto &response);
+/**
+ * Try to delete a node and log error if we couldnt and set response to false
+ */
+  void delete_node_wrapper(std::string &path,
+                           DeleteResponseProto &response);
 
   DeleteResponse destroy_helper(const std::string &path,
                       std::vector<std::shared_ptr<ZooOp>> &ops);
@@ -652,55 +700,56 @@ class ZkNnClient : public ZkClientCommon {
                         int error_code);
 
 
-  /**
-   * Give a vector of block IDs, executes a multiop which creates items in
-   * the replicate queue and children nodes indicating which datanote to
-   * read from for those items.
-   */
+/**
+ * Give a vector of block IDs, executes a multiop which creates items in
+ * the replicate queue and children nodes indicating which datanote to
+ * read from for those items.
+ */
   bool replicate_blocks(const std::vector<std::string> &to_replicate,
                         int error_code);
 
-  /**
-   * Calculates the approximate number of milliseconds that have elapsed
-   * since the znode at the given path was created.
-   */
+/**
+ * Calculates the approximate number of milliseconds that have elapsed
+ * since the znode at the given path was created.
+ */
   int ms_since_creation(std::string &path);
 
-  /**
-   * Modifies the LocatedBlockProto with the proper block information
-   */
-  // bool updateLocatedBlockProto(LocatedBlockProto* location,
-  //                              uint64_t block_id);
+/**
+ * Modifies the LocatedBlockProto with the proper block information
+ */
+// bool updateLocatedBlockProto(LocatedBlockProto* location,
+//                              uint64_t block_id);
 
-  /**
-   * Modifies the DatanodeInfoProto with information about the specified datanode.
-   * Datanode is represented as a string as most calls to this function follow a
-   * getChild() request. Returns true on success
-   */
+/**
+ * Modifies the DatanodeInfoProto with information about the specified datanode.
+ * Datanode is represented as a string as most calls to this function follow a
+ * getChild() request. Returns true on success
+ */
   bool buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
                               const std::string &data_node);
 
-  /**
-   * Builds an empty token. Returns true on success.
-   */
+/**
+ * Builds an empty token. Returns true on success.
+ */
   bool buildTokenProto(hadoop::common::TokenProto *token);
 
-  /**
-   * Build an extended block proto. Returns true on success
-   */
+/**
+ * Build an extended block proto. Returns true on success
+ */
   bool buildExtendedBlockProto(ExtendedBlockProto *eb,
                                const std::uint64_t &block_id,
                                const uint64_t &block_size);
 
-  /**
-   * Watches /health for new datanodes, attaches watchers to new datanodes' heartbeats.
-   */
+/**
+ * Watches /health for new datanodes, attaches watchers to new datanodes'
+ * heartbeats.
+ */
   static void watcher_health(zhandle_t *zzh, int type, int state,
                              const char *path, void *watcherCtx);
 
-  /**
-   * Watches datanode heartbeats.
-   */
+/**
+ * Watches datanode heartbeats.
+ */
   static void watcher_health_child(zhandle_t *zzh, int type, int state,
                                    const char *path, void *watcherCtx);
 
@@ -712,12 +761,12 @@ class ZkNnClient : public ZkClientCommon {
    */
   bool lease_expired(std::string lease_holder_client);
 
-  /**
-  * Informs Zookeeper when the DataNode has deleted a block.
-  * @param uuid The UUID of the block deleted by the DataNode.
-  * @param size_bytes The number of bytes in the block
-  * @return True on success, false on error.
-  */
+/**
+* Informs Zookeeper when the DataNode has deleted a block.
+* @param uuid The UUID of the block deleted by the DataNode.
+* @param size_bytes The number of bytes in the block
+* @return True on success, false on error.
+*/
   bool blockDeleted(uint64_t uuid, std::string id);
 
   /**
@@ -740,12 +789,12 @@ class ZkNnClient : public ZkClientCommon {
 
   const int IS_FILE = 2;
   const int IS_DIR = 1;
-  // TODO(2016): Should eventually be read from a conf file
-  // in millisecons, 10 minute timeout when waiting for
-  // replication acknowledgements
+// TODO(2016): Should eventually be read from a conf file
+// in millisecons, 10 minute timeout when waiting for
+// replication acknowledgements
   const int ACK_TIMEOUT = 600000;
 
-  // Boolean indicating whether zk_nn is in secure mode
+// Boolean indicating whether zk_nn is in secure mode
   bool isSecureMode = false;
   const uint64_t EXPIRATION_TIME =
     2 * 60 * 60 * 1000;  // 2 hours in milliseconds.

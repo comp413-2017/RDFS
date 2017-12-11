@@ -5,6 +5,7 @@ build/
 logs/
 raw_storage.vdi
 clion-build/
+cmake-build-debug/
 
 # Python virtualenv
 env/

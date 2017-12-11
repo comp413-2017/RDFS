@@ -4,60 +4,43 @@
 
 namespace webRequestTranslator {
   /**
-   * Converts the RDFS namenode create response into the appropriate webRDFS response.
+   * Converts the create response into the appropriate webRDFS response.
    */
-  std::string getNamenodeCreateResponse(hadoop::hdfs::DatanodeInfoProto
-                                        &dataProto,
-                                        std::string requestLink) {
-    std::string res = std::string("HTTP/1.1 307 TEMPORARY REDIRECT\n");
-
-    std::string delimiter = "/webhfs/v1/";
-    std::string restOfRequest = requestLink.substr(requestLink
-                                                   .find(delimiter)
-                                                   + delimiter.length(),
-                                                   requestLink.length());
-
-    hadoop::hdfs::DatanodeIDProto id = dataProto.id();
-    res += "Location: http://";
-    res += id.hostname();
-    res += ":";
-    res += std::to_string(id.infoport());
-
-    res += delimiter;
-    res += restOfRequest;
-
-    res += "\nContent-Length: 0";
-    return res;
+  SimpleWeb::StatusCode getCreateResponse(int is_failure) {
+    if (is_failure == 0) {
+      return SimpleWeb::StatusCode::success_created;
+    } else {
+      return SimpleWeb::StatusCode::server_error_internal_server_error;
+    }
   }
 
   /**
-   * Converts the RDFS datanode create response into the appropriate webRDFS response.
-   */
-  std::string getDatanodeCreateResponse(std::string location,
-                                        std::string contentOfFile) {
-    std::string res = std::string("HTTP/1.1 200 OK\nLocation: ");
-
-    res += location;
-    res += "\n";
-    res += "Content-Length: ";
-    res += std::to_string(contentOfFile.length());
-    res += "\n\n";
-
-    return "";
+    * Converts the append response into the appropriate webRDFS response.
+    */
+  SimpleWeb::StatusCode getAppendResponse(int is_failure) {
+    if (is_failure == 0) {
+      return SimpleWeb::StatusCode::success_ok;
+    } else {
+      return SimpleWeb::StatusCode::server_error_internal_server_error;
+    }
   }
 
   /**
    * Converts the read response into the appropriate webRDFS response.
    */
-  std::string getReadResponse(std::string contentOfFile) {
-    return contentOfFile;
+  std::string getReadResponse(std::string contentOfFile, int is_failure) {
+    if (is_failure == 0) {
+      return contentOfFile;
+    } else {
+      return "";
+    }
   }
 
   /**
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
-  std::string getMkdirResponse(zkclient::ZkNnClient::MkdirResponse &resProto) {
-    if (resProto == zkclient::ZkNnClient::MkdirResponse::Ok) {
+  std::string getMkdirResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
@@ -67,9 +50,12 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode rename response into the appropriate webRDFS response.
    */
-  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse
-                                &resProto) {
-    return "{\"boolean\":true}\n";
+  std::string getRenameResponse(int is_failure) {
+    if (is_failure == 0) {
+      return "{\"boolean\":true}\n";
+    } else {
+      return "{\"boolean\":false}\n";
+    }
   }
 
   /**
@@ -83,9 +69,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
-  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse
-                                &resProto) {
-    if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
+  std::string getDeleteResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
@@ -136,13 +121,16 @@ namespace webRequestTranslator {
       return "Failed to find child\n";
     }
 
-    res += "{\n\"FileStatuses\":\n\"FileStatus\":\n[";
+    res += "{\n\"FileStatuses\":\n{\n\"FileStatus\":\n[";
 
     hadoop::hdfs::DirectoryListingProto dir_listing = resProto.dirlist();
     int i;
     int num_files = dir_listing.partiallisting_size();
 
     for (i = 0; i < num_files; i++) {
+      if (i > 0) {
+        res += ',\n';
+      }
       res += "{\n";
       res += getFileInfoHelper(&dir_listing.partiallisting(i));
       res += "}\n";
@@ -163,23 +151,21 @@ namespace webRequestTranslator {
     char buf[400];
     int len = 0;
 
-    len += snprintf(buf, sizeof(buf), "\"accessTime\":%ld\n",
+    len += snprintf(buf, sizeof(buf), "\"accessTime\":%ld,\n",
                     file_status->access_time());
-    len += snprintf(buf + len, sizeof(buf), "\"blockSize\":%ld\n",
+    len += snprintf(buf + len, sizeof(buf), "\"blockSize\":%ld,\n",
                     file_status->blocksize());
-    len += snprintf(buf + len, sizeof(buf), "\"group\":%s\n",
-                    file_status->group().c_str());
-    len += snprintf(buf + len, sizeof(buf), "\"length\":%ld\n",
+    len += snprintf(buf + len, sizeof(buf), "\"group\":null,\n");
+    len += snprintf(buf + len, sizeof(buf), "\"length\":%ld,\n",
                     file_status->length());
-    len += snprintf(buf + len, sizeof(buf), "\"modificationTime\":%ld\n",
+    len += snprintf(buf + len, sizeof(buf), "\"modificationTime\":%ld,\n",
                     file_status->modification_time());
-    len += snprintf(buf + len, sizeof(buf), "\"owner\":%s\n",
-                    file_status->owner().c_str());
-    len += snprintf(buf + len, sizeof(buf), "\"path\":%s\n",
+    len += snprintf(buf + len, sizeof(buf), "\"owner\":null,\n");
+    len += snprintf(buf + len, sizeof(buf), "\"path\":\"%s\",\n",
                     file_status->path().c_str());
-    len += snprintf(buf + len, sizeof(buf), "\"permission\":%ld\n",
+    len += snprintf(buf + len, sizeof(buf), "\"permission\":%ld,\n",
                     file_status->permission().perm());
-    len += snprintf(buf + len, sizeof(buf), "\"replication\":%ld\n",
+    len += snprintf(buf + len, sizeof(buf), "\"replication\":%ld,\n",
                     file_status->block_replication());
     len += snprintf(buf + len, sizeof(buf), "\"type\":%d\n",
                     file_status->filetype());

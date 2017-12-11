@@ -52,19 +52,21 @@ TEST(ReadWriteTest, testReadWrite) {
   // Make a file.
   ASSERT_EQ(0,
             system(
-                "python /home/vagrant/rdfs/test/integration/generate_file.py > "
-                    "expected_testfile1234"));
+                "python /home/vagrant/rdfs/test/integration/generate_file.py "
+                "> expected_testfile1234"));
   // Put it into rdfs.
   system(
-      "hdfs dfs -fs hdfs://localhost:5351 -D dfs.blocksize=1048576 "
-          "-copyFromLocal expected_testfile1234 /f");
+      "hdfs dfs -fs hdfs://localhost:5351 "
+        "-copyFromLocal expected_testfile1234 /f");
   // Read it from rdfs.
-  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f > actual_testfile1234");
+  system("hdfs dfs -fs hdfs://localhost:5351 -cat /f"
+          " > actual_testfile1234");
   // Check that its contents match.
   ASSERT_EQ(0,
             system("diff expected_testfile1234 actual_testfile1234 > "
-                       "/dev/null"));
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+              "dev/null"));
+  system("hdfs dfs -fs hdfs://localhost:5351 -rm "
+          "/f");
 }
 
 TEST(ReadWriteTest, testConcurrentRead) {
@@ -75,14 +77,15 @@ TEST(ReadWriteTest, testConcurrentRead) {
                     " expected_testfile1234"));
   // Put it into rdfs.
   system(
-      "hdfs dfs -fs hdfs://localhost:5351 -copyFromLocal expected_testfile1234 "
-          "/f");
+      "hdfs dfs -fs hdfs://localhost:5351 "
+        "-copyFromLocal expected_testfile1234 /f");
   // Read it from rdfs.
   std::vector<std::thread> threads;
   for (int i = 0; i < num_threads; i++) {
     threads.push_back(std::thread([i]() {
       LOG(INFO) << "starting thread " << i;
-      system(("hdfs dfs -fs hdfs://localhost:5351 -cat /f > temp"
+      system(("hdfs dfs -fs hdfs://localhost:5351 "
+                "-cat /f > temp"
           + std::to_string(i)).c_str());
       // Check that its contents match.
       ASSERT_EQ(0,
@@ -93,7 +96,8 @@ TEST(ReadWriteTest, testConcurrentRead) {
   for (int i = 0; i < num_threads; i++) {
     threads[i].join();
   }
-  system("hdfs dfs -fs hdfs://localhost:5351 -rm /f");
+  system("hdfs dfs -fs hdfs://localhost:5351 "
+          "-rm /f");
 }
 }  // namespace
 
