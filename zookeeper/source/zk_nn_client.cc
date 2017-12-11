@@ -906,10 +906,10 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
     block->set_blockindices(block_index_string);
   } else {
-    for (int i = 0; i < znode_data.replication; i++) {
+    for (int i = 0; i < data_nodes.size(); i++) {
       block->add_storageids(REPLICATION_STORAGE_ID);
     }
-    for (int i = 0; i < znode_data.replication; i++) {
+    for (int i = 0; i < data_nodes.size(); i++) {
       block->add_storagetypes(StorageTypeProto::DISK);
     }
   }

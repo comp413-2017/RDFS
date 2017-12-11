@@ -30,4 +30,4 @@ run_test ./ZKWrapperTest
 run_test ./UsernameTest
 run_test ./LeaseTest
 run_test ./AppendTestMJP
-# PATH=/home/vagrant/hadoop-legacy/bin:$PATH run_test ./AppendFileTest
+run_test ./AppendFileTest
