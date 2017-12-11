@@ -44,6 +44,8 @@ wget --quiet http://kevinlin.web.rice.edu/static/hadoop-3.0.0-beta1-2.tar.gz
 tar -xf hadoop-3.0.0-beta1-2.tar.gz
 mv hadoop-3.0.0-beta1 /home/vagrant/hadoop3
 rm hadoop-3.0.0-beta1-2.tar.gz
+# force re-link hadoop as hadoop3
+ln -sfn hadoop3 hadoop 
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/.bashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre' >> /home/vagrant/hadoop3/etc/hadoop/hadoop-env.sh
 
@@ -69,7 +71,6 @@ wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
 tar -xf hadoop-2.8.1.tar.gz
 mv hadoop-2.8.1 /home/vagrant/hadoop2
 rm hadoop-2.8.1.tar.gz
-ln -s hadoop2 hadoop
 cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
@@ -112,7 +113,7 @@ maxClientCnxns=200
 EOF
 
 # Setup Apache Hive
-if [ -d /home/vagrant/hive ]; then
+if [ -f /home/vagrant/hive/lib/hive-common-2.1.1.jar ]; then
     rm -rf /home/vagrant/hive
 fi
 if [ ! -d /home/vagrant/hive ]; then
