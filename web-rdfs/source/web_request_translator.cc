@@ -6,10 +6,20 @@ namespace webRequestTranslator {
   /**
    * Converts the create response into the appropriate webRDFS response.
    */
-  SimpleWeb::StatusCode getCreateResponse(zkclient::ZkNnClient::CreateResponse
-                                          &resProto) {
-    if (resProto == zkclient::ZkNnClient::CreateResponse::Ok) {
+  SimpleWeb::StatusCode getCreateResponse(int is_failure) {
+    if (is_failure == 0) {
       return SimpleWeb::StatusCode::success_created;
+    } else {
+      return SimpleWeb::StatusCode::server_error_internal_server_error;
+    }
+  }
+
+  /**
+    * Converts the append response into the appropriate webRDFS response.
+    */
+  SimpleWeb::StatusCode getAppendResponse(int is_failure) {
+    if (is_failure == 0) {
+      return SimpleWeb::StatusCode::success_ok;
     } else {
       return SimpleWeb::StatusCode::server_error_internal_server_error;
     }
@@ -18,15 +28,19 @@ namespace webRequestTranslator {
   /**
    * Converts the read response into the appropriate webRDFS response.
    */
-  std::string getReadResponse(std::string contentOfFile) {
-    return contentOfFile;
+  std::string getReadResponse(std::string contentOfFile, int is_failure) {
+    if (is_failure == 0) {
+      return contentOfFile;
+    } else {
+      return "";
+    }
   }
 
   /**
    * Converts the RDFS datanode mkdir response into the appropriate webRDFS response.
    */
-  std::string getMkdirResponse(zkclient::ZkNnClient::MkdirResponse &resProto) {
-    if (resProto == zkclient::ZkNnClient::MkdirResponse::Ok) {
+  std::string getMkdirResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
@@ -36,9 +50,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode rename response into the appropriate webRDFS response.
    */
-  std::string getRenameResponse(zkclient::ZkNnClient::RenameResponse
-                                &resProto) {
-    if (resProto == zkclient::ZkNnClient::RenameResponse::Ok) {
+  std::string getRenameResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
@@ -56,9 +69,8 @@ namespace webRequestTranslator {
   /**
    * Converts the RDFS datanode delete response into the appropriate webRDFS response.
    */
-  std::string getDeleteResponse(zkclient::ZkNnClient::DeleteResponse
-                                &resProto) {
-    if (resProto == zkclient::ZkNnClient::DeleteResponse::Ok) {
+  std::string getDeleteResponse(int is_failure) {
+    if (is_failure == 0) {
       return "{\"boolean\":true}\n";
     } else {
       return "{\"boolean\":false}\n";
