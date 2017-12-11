@@ -108,29 +108,6 @@ class WebRDFSServer {
     std::function<void(
       std::shared_ptr<HttpsServer::Response> response,
       std::shared_ptr<HttpsServer::Request> request)> handler);
-
-  std::string getFileInfo(GetFileInfoRequestProto req);
-  std::string mkdir(MkdirsRequestProto req);
-  std::string create(CreateRequestProto req);
-  std::string getBlockLocations(GetBlockLocationsRequestProto req);
-  std::string getServerDefaults(GetServerDefaultsRequestProto req);
-  std::string renewLease(RenewLeaseRequestProto req);
-  std::string complete(CompleteRequestProto req);
-  std::string setReplication(SetReplicationRequestProto req);
-  std::string addBlock(AddBlockRequestProto req);
-  std::string getListing(GetListingRequestProto req);
-  std::string getEZForPath(GetEZForPathRequestProto req);
-  std::string setOwner(SetOwnerRequestProto req);
-  std::string getContentSummary(GetContentSummaryRequestProto req);
-
-  std::string rename(RenameRequestProto req);
-  std::string rename2(Rename2RequestProto req);
-  std::string append(AppendRequestProto req);
-  std::string setPermission(SetPermissionRequestProto req);
-  std::string recoverLease(RecoverLeaseRequestProto req);
-  std::string concat(ConcatRequestProto req);
-
-  std::string abandonBlock(AbandonBlockRequestProto req);
 };
 
 #endif  // WEB_RDFS_INCLUDE_WEB_RDFS_SERVER_H_

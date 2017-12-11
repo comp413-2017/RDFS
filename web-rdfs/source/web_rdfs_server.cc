@@ -5,7 +5,7 @@
 #include "http_handlers.h"
 
 void WebRDFSServer::start() {
-  LOG(INFO) << "WebRDFS listening on port " << server.config.port;
+  LOG(DEBUG) << "WebRDFS listening on port " << server.config.port;
 
   // Register all handlers.
   WebRDFSServer::register_handler("^/webhdfs/v1/.+$",
