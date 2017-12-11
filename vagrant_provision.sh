@@ -112,8 +112,7 @@ maxClientCnxns=200
 EOF
 
 # Setup Apache Hive
-if [ -d /home/vagrant/hive/lib/hive-common-2.1.1.jar ]; then
-    # if on hive 2.1.1, remove
+if [ -d /home/vagrant/hive ]; then
     rm -rf /home/vagrant/hive
 fi
 if [ ! -d /home/vagrant/hive ]; then
