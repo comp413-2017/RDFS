@@ -30,8 +30,8 @@ apt-get install -y ssh pdsh openjdk-8-jdk-headless
 #cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 
 # Alias hdfs and hadoop executables
-alias hdfs3="/home/vagrant/hadoop3/bin/hdfs"
-alias hadoop3="/home/vagrant/hadoop3/bin/hadoop"
+alias hdfs2="/home/vagrant/hadoop2/bin/hdfs"
+alias hadoop2="/home/vagrant/hadoop2/bin/hadoop"
 
 # Setup Apache hadoop for pseudo-distributed usage
 if [ -d /home/vagrant/hadoop3 ]; then
@@ -69,7 +69,7 @@ wget --quiet http://kevinlin.web.rice.edu/static/hadoop-2.8.1.tar.gz
 tar -xf hadoop-2.8.1.tar.gz
 mv hadoop-2.8.1 /home/vagrant/hadoop2
 rm hadoop-2.8.1.tar.gz
-ln -s hadoop2 hadoop
+ln -s hadoop3 hadoop
 cp /home/vagrant/hadoop3/etc/hadoop/core-site.xml /home/vagrant/hadoop2/etc/hadoop/core-site.xml
 cp /home/vagrant/hadoop3/etc/hadoop/hdfs-site.xml /home/vagrant/hadoop2/etc/hadoop/hdfs-site.xml
 
@@ -160,20 +160,20 @@ autoreconf -if
 make && make install
 cd /home/vagrant
 
-# Add Google Mock
-if [ ! -d /usr/src/gmock ]; then
-    apt-get install -y google-mock
-    cd /usr/src/gmock
+# Add Google Test
+if [ ! -d /usr/src/gtest ]; then
+    apt-get install -y libgtest-dev
+    cd /usr/src/gtest
     cmake CMakeLists.txt
     make
     cp *.a /usr/lib
     cd /home/vagrant
 fi
 
-# Add Google Test
-if [ ! -d /usr/src/gtest ]; then
-    apt-get install -y libgtest-dev
-    cd /usr/src/gtest
+# Add Google Mock
+if [ ! -d /usr/src/gmock ]; then
+    apt-get install -y google-mock
+    cd /usr/src/gmock
     cmake CMakeLists.txt
     make
     cp *.a /usr/lib

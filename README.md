@@ -1,4 +1,5 @@
 # RDFS 2.0
+[![Build Status](https://travis-ci.org/comp413-2017/RDFS.svg?branch=develop)](https://travis-ci.org/comp413-2017/RDFS)
 
 RDFS 2.0 is COMP 413 2017's extension of [RDFS 1.0](https://github.com/Rice-Comp413-2016/RDFS).
 

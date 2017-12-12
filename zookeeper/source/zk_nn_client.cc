@@ -81,14 +81,19 @@ void ZkNnClient::populateDefaultECProto() {
   DEFAULT_EC_SCHEMA.set_parityunits(DEFAULT_PARITY_UNITS);
   DEFAULT_EC_SCHEMA.set_dataunits(DEFAULT_DATA_UNITS);
   DEFAULT_EC_SCHEMA.set_codecname(DEFAULT_EC_CODEC_NAME);
+  REPLICATION_1_2_SCHEMA.set_parityunits(2);
+  REPLICATION_1_2_SCHEMA.set_dataunits(1);
+  REPLICATION_1_2_SCHEMA.set_codecname(EC_REPLICATION);
   RS_SOLOMON_PROTO.set_name(DEFAULT_EC_POLICY);
   RS_SOLOMON_PROTO.set_allocated_schema(&DEFAULT_EC_SCHEMA);
-  RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  RS_SOLOMON_PROTO.set_cellsize(DEFAULT_EC_CELLSIZE);
   RS_SOLOMON_PROTO.set_id(DEFAULT_EC_ID);
+  RS_SOLOMON_PROTO.set_state(ErasureCodingPolicyState::ENABLED);
   REPLICATION_PROTO.set_name(EC_REPLICATION);
-  REPLICATION_PROTO.set_cellsize(DEFAULT_EC_CELLCIZE);
+  REPLICATION_PROTO.set_cellsize(DEFAULT_EC_CELLSIZE);
   REPLICATION_PROTO.set_id(REPLICATION_EC_ID);
   REPLICATION_PROTO.set_allocated_schema(&REPLICATION_1_2_SCHEMA);
+  REPLICATION_PROTO.set_state(ErasureCodingPolicyState::ENABLED);
 }
 
 /*
@@ -369,8 +374,9 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
                 << block_data.block_size;
       blocksize += block_data.block_size;
     }
-    LOG(INFO) << "Default EC cellsize is " << DEFAULT_EC_CELLCIZE;
-    blocksize -= DEFAULT_PARITY_UNITS * DEFAULT_EC_CELLCIZE;
+    LOG(INFO) << "Default EC cellsize is " << DEFAULT_EC_CELLSIZE;
+    blocksize -= DEFAULT_PARITY_UNITS * DEFAULT_EC_CELLSIZE;
+    LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   }
   LOG(INFO) << "Block size of: " << block_path << " is " << blocksize;
   return true;
@@ -858,7 +864,7 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     return false;
   }
 
-  LOG(INFO) << "repl factor: " << znode_data.replication;
+  LOG(INFO) << "[add_block] repl factor: " << znode_data.replication;
 
   uint32_t replication_factor = znode_data.replication;
   uint64_t block_size = znode_data.blocksize;
@@ -881,12 +887,14 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
 
   buildExtendedBlockProto(block->mutable_b(), block_id, block_size);
 
-  // Populate optional fields for an EC block.
-  // i.e. block indices and storage IDs.
   if (znode_data.isEC) {
-    // Add storage IDs for an EC block.
+    // Add storage IDs.
     for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
       block->add_storageids(DEFAULT_STORAGE_ID);
+    }
+    // Add storage types.
+    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+      block->add_storagetypes(StorageTypeProto::DISK);
     }
 
     // Add block indices for an EC block.
@@ -897,9 +905,11 @@ bool ZkNnClient::add_block(AddBlockRequestProto &req,
     }
 
     block->set_blockindices(block_index_string);
-
-    // Add storage types for an EC block.
-    for (int i = 0; i < DEFAULT_DATA_UNITS + DEFAULT_PARITY_UNITS; i++) {
+  } else {
+    for (int i = 0; i < data_nodes.size(); i++) {
+      block->add_storageids(REPLICATION_STORAGE_ID);
+    }
+    for (int i = 0; i < data_nodes.size(); i++) {
       block->add_storagetypes(StorageTypeProto::DISK);
     }
   }
@@ -1103,8 +1113,8 @@ bool ZkNnClient::create_file_znode(const std::string &path,
     {
       LOG(INFO) << "[create_file_znode] is this file ec? "
                 << znode_data->isEC << "\n";
-      LOG(INFO) << "[create_file_znode] " << znode_data->replication;
-      LOG(INFO) << "[create_file_znode] " << znode_data->owner;
+      LOG(INFO) << "[create_file_znode] repl: " << znode_data->replication;
+      LOG(INFO) << "[create_file_znode] owner: " << znode_data->owner;
       LOG(INFO) << "[create_file_znode] size of znode is "
                 << sizeof(*znode_data);
     }
@@ -1827,7 +1837,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
   if (znode_data.isEC) {
     ecpolicy->CopyFrom(RS_SOLOMON_PROTO);
   } else {
-    ecpolicy->CopyFrom(REPLICATION_PROTO);
+    blocks->clear_ecpolicy();
   }
 
 
@@ -1993,7 +2003,7 @@ ZkNnClient::get_erasure_coding_policies(
   // TODO(nate): will have to change if we support multiple EC policies.
   ec_policy_to_add->set_id(DEFAULT_EC_ID);
   ec_policy_to_add->set_name(DEFAULT_EC_POLICY);
-  ec_policy_to_add->set_cellsize(DEFAULT_EC_CELLCIZE);
+  ec_policy_to_add->set_cellsize(DEFAULT_EC_CELLSIZE);
   ec_policy_to_add->set_state(ErasureCodingPolicyState::ENABLED);
   ECSchemaProto* ecSchemaProto = ec_policy_to_add->mutable_schema();
   ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
@@ -2024,7 +2034,7 @@ ZkNnClient::get_erasure_coding_policy_of_path(
     ErasureCodingPolicyProto* ecPolicyProto = res.mutable_ecpolicy();
     ecPolicyProto->set_id(DEFAULT_EC_ID);
     ecPolicyProto->set_name(DEFAULT_EC_POLICY);
-    ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+    ecPolicyProto->set_cellsize(DEFAULT_EC_CELLSIZE);
     ecPolicyProto->set_state(ErasureCodingPolicyState::ENABLED);
     ECSchemaProto* ecSchemaProto = ecPolicyProto->mutable_schema();
     ecSchemaProto->set_codecname(DEFAULT_EC_CODEC_NAME);
@@ -2233,7 +2243,7 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       LOG(ERROR) << "[set_file_info] Setting EC related proto fields";
       ErasureCodingPolicyProto *ecPolicyProto = status->mutable_ecpolicy();
       ecPolicyProto->set_name(DEFAULT_EC_POLICY);
-      ecPolicyProto->set_cellsize(DEFAULT_EC_CELLCIZE);
+      ecPolicyProto->set_cellsize(DEFAULT_EC_CELLSIZE);
       ecPolicyProto->set_state(ErasureCodingPolicyState::ENABLED);
       ecPolicyProto->set_id(DEFAULT_EC_ID);
       ECSchemaProto* ecSchema = ecPolicyProto->mutable_schema();
@@ -2241,7 +2251,6 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
       ecSchema->set_dataunits(DEFAULT_DATA_UNITS);
       ecSchema->set_parityunits(DEFAULT_PARITY_UNITS);
   }
-
   LOG(INFO) << "[set_file_info] Successfully set the file info ";
 }
   bool ZkNnClient::set_permission(SetPermissionRequestProto &req,
