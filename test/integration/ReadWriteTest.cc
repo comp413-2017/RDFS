@@ -88,6 +88,7 @@ TEST(ReadWriteTest, testConcurrentRead) {
                 "-cat /f > temp"
           + std::to_string(i)).c_str());
       // Check that its contents match.
+      sleep(10);
       ASSERT_EQ(0,
                 system(("diff expected_testfile1234 temp" + std::to_string(i)
                     + " > /dev/null").c_str()));
