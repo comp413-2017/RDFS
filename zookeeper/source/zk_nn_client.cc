@@ -2172,9 +2172,9 @@ void ZkNnClient::set_file_info_content(ContentSummaryProto *status,
     int num_file = 0;
     int num_dir = 0;
     std::vector<std::string> children;
-    if (!zk->get_children(ZookeeperBlocksPath(path), children, error_code)) {
+    if (!zk->get_children(ZookeeperFilePath(path), children, error_code)) {
       LOG(FATAL) << "[set_file_info_content] Failed to get children for "
-                 << ZookeeperBlocksPath(path);
+                 << ZookeeperFilePath(path);
     } else {
       for (auto &child : children) {
         auto child_path = util::concat_path(path, child);
