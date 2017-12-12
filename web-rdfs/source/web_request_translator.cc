@@ -129,7 +129,7 @@ namespace webRequestTranslator {
 
     for (i = 0; i < num_files; i++) {
       if (i > 0) {
-        res += ',\n';
+        res += ",\n";
       }
       res += "{\n";
       res += getFileInfoHelper(&dir_listing.partiallisting(i));
