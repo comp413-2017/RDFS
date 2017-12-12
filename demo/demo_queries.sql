@@ -2,8 +2,8 @@
 
 -- Build schemas and load the csv data for the tables fact_country, fact_population, dim_student.
 CREATE TABLE fact_country (
-	name string, -- Country name
-	code string, -- Country abreviation
+	name string,
+	code string,
 	currency_name string,
 	is_independent string, 
 	capital string, 
@@ -13,22 +13,27 @@ CREATE TABLE fact_country (
 LOAD DATA LOCAL INPATH '/home/vagrant/demo_script/country.csv' OVERWRITE INTO TABLE fact_country;
 
 CREATE TABLE fact_population (
-	name string, -- Country name
-	code string, -- Country abreviation
-	year int, -- Year of existence for the country
-	value int -- Population of the country
+	name string,
+	code string,
+	year int,
+	value int
 ) row format delimited fields terminated by ',';
 LOAD DATA LOCAL INPATH '/home/vagrant/demo_script/population.csv' OVERWRITE INTO TABLE fact_population;
 
 CREATE TABLE dim_student (
-	id int, -- Student ID
+	id int,
 	name string,  
 	gender string, 
 	age int, 
-	country string -- Country of origin
+	country string
 ) row format delimited fields terminated by ',';
 LOAD DATA LOCAL INPATH '/home/vagrant/demo_script/student.csv' OVERWRITE INTO TABLE dim_student;
 
+
+select p.name, p.value as population
+from fact_population as p
+where p.year = 2010
+order by population;
 
 ---------- QUERY 1 ----------:
 ---- PROBLEM: What are the populations of all the countries that are not independent in 2010?
@@ -40,7 +45,7 @@ from fact_population as p
 join fact_country as c
 on (c.code = p.code)
 where p.year = 2010 and is_independent  <>  'Yes'
-order by p.value;
+order by population;
 
 ---------- QUERY 2 ----------:
 ---- PROBLEM: How many male students come from countries that are not independent?
@@ -51,6 +56,12 @@ from dim_student as s
 join fact_country as c
 on (s.country = c.name)
 where  s.gender = 'male' AND c.is_independent  <>  'Yes';
+
+select c.name, 
+from dim_student as s
+join fact_country as c
+on (s.country = c.name);
+-- where s.gender = 'male' AND c.is_independent  <>  'Yes';
 
 
 ---------- QUERY 3 ----------:
