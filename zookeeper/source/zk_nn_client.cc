@@ -359,7 +359,7 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
       auto child = children[i];
       BlockZNode block_data;
       std::vector<std::uint8_t> data(sizeof(block_data));
-      if (!zk->get(block_path + "/" + child, data, error_code)) {
+      if (!zk->get(block_path + "/" + child, data, error_code, false)) {
         LOG(ERROR) << "We could not read the block at " << block_path
                    << "/" << child;
         return false;
