@@ -97,8 +97,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7266ad66ba0762fa0abecc20cf0c92aa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a7266ad66ba0762fa0abecc20cf0c92aa">ZKWrapper</a> (std::string host, int &amp;error_code, std::string root=&quot;&quot;)</td></tr>
-<tr class="separator:a7266ad66ba0762fa0abecc20cf0c92aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc5ddbe9a05f67d888cac07c9de6dad2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#afc5ddbe9a05f67d888cac07c9de6dad2">ZKWrapper</a> (const std::string &amp;host, int &amp;error_code, const std::string &amp;root)</td></tr>
+<tr class="separator:afc5ddbe9a05f67d888cac07c9de6dad2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38c8ce01159a1a8e71d5204c4ff6040a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a38c8ce01159a1a8e71d5204c4ff6040a">prepend_zk_root</a> (const std::string &amp;path) const </td></tr>
 <tr class="separator:a38c8ce01159a1a8e71d5204c4ff6040a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa64341f0663c10e3644d53d6ea953c23"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa64341f0663c10e3644d53d6ea953c23"></a>
@@ -128,12 +128,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>create_ephemeral</b> 
 <tr class="separator:aae428b88e1f1d0a213b299e20fb5e3bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6757e5ee9a55071faa02883caad8c48b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a6757e5ee9a55071faa02883caad8c48b">wget_children</a> (const std::string &amp;path, std::vector&lt; std::string &gt; &amp;children, watcher_fn watch, void *watcherCtx, int &amp;error_code) const </td></tr>
 <tr class="separator:a6757e5ee9a55071faa02883caad8c48b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a743df578deb55cece05f648daf9e1abd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a743df578deb55cece05f648daf9e1abd">get</a> (const std::string &amp;path, std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, int length=MAX_PAYLOAD) const </td></tr>
-<tr class="separator:a743df578deb55cece05f648daf9e1abd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac55624e514fb1ab2ee765ba37ef7785c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#ac55624e514fb1ab2ee765ba37ef7785c">get</a> (const std::string &amp;path, std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool resize) const </td></tr>
+<tr class="separator:ac55624e514fb1ab2ee765ba37ef7785c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97463e55b810738ee39199711d52c934"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a97463e55b810738ee39199711d52c934">get_info</a> (const std::string &amp;path, struct Stat &amp;stat, int &amp;error_code) const </td></tr>
 <tr class="separator:a97463e55b810738ee39199711d52c934"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97bbe304fbac8cf3229d1b064b91448d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a97bbe304fbac8cf3229d1b064b91448d">wget</a> (const std::string &amp;path, std::vector&lt; std::uint8_t &gt; &amp;data, watcher_fn watch, void *watcherCtx, int &amp;error_code, int length=MAX_PAYLOAD) const </td></tr>
-<tr class="separator:a97bbe304fbac8cf3229d1b064b91448d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0832f32c784959f07cec2187a7c44e02"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a0832f32c784959f07cec2187a7c44e02">wget</a> (const std::string &amp;path, std::vector&lt; std::uint8_t &gt; &amp;data, watcher_fn watch, void *watcherCtx, int &amp;error_code, bool resize) const </td></tr>
+<tr class="separator:a0832f32c784959f07cec2187a7c44e02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad55907a4c539f391dc576b978f8c82b7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#ad55907a4c539f391dc576b978f8c82b7">set</a> (const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, int &amp;error_code, bool sync=true, int version=-1) const </td></tr>
 <tr class="separator:ad55907a4c539f391dc576b978f8c82b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1d12dfe93fa12ac56f6b9272b5b5c21"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_zoo_op.html">ZooOp</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#aa1d12dfe93fa12ac56f6b9272b5b5c21">build_create_op</a> (const std::string &amp;path, const std::vector&lt; std::uint8_t &gt; &amp;data, const int flags=0) const </td></tr>
@@ -154,6 +154,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>close</b> ()</td></tr
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a1a6926cf9d21ec269e06305f4decf007"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_z_k_wrapper.html#a1a6926cf9d21ec269e06305f4decf007">translate_error</a> (int error_code)</td></tr>
 <tr class="separator:a1a6926cf9d21ec269e06305f4decf007"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0133e6e9f30f1e9f41eb1d2805e67249"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0133e6e9f30f1e9f41eb1d2805e67249"></a>
+static std::string&#160;</td><td class="memItemRight" valign="bottom"><b>translate_watch_event_type</b> (int type)</td></tr>
+<tr class="separator:a0133e6e9f30f1e9f41eb1d2805e67249"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e37dbac7c9c8cb510d45abe5e488b75"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7e37dbac7c9c8cb510d45abe5e488b75"></a>
+static std::string&#160;</td><td class="memItemRight" valign="bottom"><b>translate_watch_state</b> (int state)</td></tr>
+<tr class="separator:a7e37dbac7c9c8cb510d45abe5e488b75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74dca6ed21ec134c5b499a5d903d4a28"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a74dca6ed21ec134c5b499a5d903d4a28"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>watcher_znode_data</b> (zhandle_t *zzh, int type, int state, const char *path, void *watcherCtx)</td></tr>
 <tr class="separator:a74dca6ed21ec134c5b499a5d903d4a28"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,14 +183,14 @@ Friends</h2></td></tr>
 <tr class="separator:af9c1b65d94bce9fb69d14a2556bf3794"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="a7266ad66ba0762fa0abecc20cf0c92aa"></a>
+<a class="anchor" id="afc5ddbe9a05f67d888cac07c9de6dad2"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">ZKWrapper::ZKWrapper </td>
           <td>(</td>
-          <td class="paramtype">std::string&#160;</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>host</em>, </td>
         </tr>
         <tr>
@@ -196,8 +202,8 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>root</em> = <code>&quot;&quot;</code>&#160;</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>root</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -206,7 +212,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Initializes zookeeper</p>
+<p>Initializes zookeeper. If error_code is ZOK after return, a connection to ZooKeeper would have been established, and the root would have been created.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">host</td><td>The location of where Zookeeper is running. For local development this will usually be 'localhost:2181' </td></tr>
@@ -617,7 +623,7 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a743df578deb55cece05f648daf9e1abd"></a>
+<a class="anchor" id="ac55624e514fb1ab2ee765ba37ef7785c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -642,8 +648,8 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>length</em> = <code>MAX_PAYLOAD</code>&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>resize</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -652,16 +658,17 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Gets the data associated with a node</p>
+<p>Gets the data associated with a node.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>The path to the node </td></tr>
-    <tr><td class="paramname">data</td><td>Reference to a vector which will be filled with the znode data Should be of size MAX_PAYLOAD when passed in, will be resized in this method </td></tr>
+    <tr><td class="paramname">data</td><td>Reference to a vector which will be filled with the znode data. The 2016 folks claimed that this field "Should be of size MAX_PAYLOAD when passed in, will be resized in this method." We (2017) are not sure why there is a MAX_PAYLOAD limit in the first place, and the 2016 folks never honored their own requirement. </td></tr>
     <tr><td class="paramname">error_code</td><td>Int reference, set to a value in ZK_ERRORS </td></tr>
+    <tr><td class="paramname">resize</td><td>Should automatic resizing of the data vector be performed? If this argument is false, then the data buffer is expected to be large enough to hold everything in the node, otherwise the operation will fail. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>True if the operation completed successfully, False otherwise (caller should check 'error_code' value) </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the operation completed successfully and all of the node data fits within the data buffer; False otherwise (caller should check 'error_code' value) </dd></dl>
 
 </div>
 </div>
@@ -999,7 +1006,7 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a97bbe304fbac8cf3229d1b064b91448d"></a>
+<a class="anchor" id="a0832f32c784959f07cec2187a7c44e02"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1036,8 +1043,8 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>length</em> = <code>MAX_PAYLOAD</code>&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>resize</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1046,7 +1053,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This function is similar to 'get' except it allows one to specify a watcher object rather than a boolean watch flag.</p>
+<p>This function is similar to 'get' except it allows one to specify a watcher object.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>The path to the node </td></tr>
@@ -1054,6 +1061,7 @@ Friends</h2></td></tr>
     <tr><td class="paramname">watch</td><td>A watcher function </td></tr>
     <tr><td class="paramname">watcherCtx</td><td>User specific data, will be passed to the watcher callback. </td></tr>
     <tr><td class="paramname">error_code</td><td>Int reference, set to a value in ZK_ERRORS </td></tr>
+    <tr><td class="paramname">resize</td><td>Should automatic resizing of the data vector be performed? If this argument is false, then the data buffer is expected to be large enough to hold everything in the node, otherwise the operation will fail. </td></tr>
   </table>
   </dd>
 </dl>
