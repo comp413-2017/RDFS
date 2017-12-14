@@ -18,7 +18,7 @@ class ZKLockTest : public ::testing::Test {
     // Code here will be called immediately after the constructor (right
     // before each test).
     int errorCode;
-    zkWrapper = new ZKWrapper("localhost:2181", errorCode);
+    zkWrapper = new ZKWrapper("localhost:2181", errorCode, "");
     assert(errorCode == 0);  // ZOK
   }
 

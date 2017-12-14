@@ -29,7 +29,7 @@ float StorageMetrics::usedSpaceFraction() {
     std::string statsPath = "/health/" + datanodeId + "/stats";
     std::vector<std::uint8_t> statsPayload = std::vector<std::uint8_t>();
     statsPayload.resize(sizeof(DataNodePayload));
-    if (!zkWrapper->get(statsPath, statsPayload, error)) {
+    if (!zkWrapper->get(statsPath, statsPayload, error, false)) {
       LOG(ERROR) << "Failed to get " << statsPath;
       return 0;
     }
@@ -52,7 +52,7 @@ float StorageMetrics::usedSpace() {
     std::string statsPath = "/health/" + datanodeId + "/stats";
     std::vector<std::uint8_t> statsPayload = std::vector<std::uint8_t>();
     statsPayload.resize(sizeof(DataNodePayload));
-    if (!zkWrapper->get(statsPath, statsPayload, error)) {
+    if (!zkWrapper->get(statsPath, statsPayload, error, false)) {
       LOG(ERROR) << "Failed to get " << statsPath;
       return 0;
     }

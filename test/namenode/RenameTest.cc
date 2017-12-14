@@ -52,7 +52,7 @@ TEST_F(NamenodeTest, renameBasicFile) {
     // Ensure that the renamed node has the same data
     zkclient::FileZNode renamed_data;
     std::vector<std::uint8_t> data(sizeof(renamed_data));
-    ASSERT_TRUE(zk->get("/fileSystem/renamed_file", data, error_code));
+    ASSERT_TRUE(zk->get("/fileSystem/renamed_file", data, error_code, false));
     std::uint8_t *buffer = &data[0];
     memcpy(&renamed_data, buffer, sizeof(renamed_data));
     ASSERT_EQ(1, renamed_data.replication);
@@ -62,7 +62,7 @@ TEST_F(NamenodeTest, renameBasicFile) {
     // Ensure that the file's child indicating block_id was renamed as well
     auto new_block_data = std::vector<std::uint8_t>();
     zk->get("/fileSystem/renamed_file/blocks/block-0000000000",
-    new_block_data, error_code);
+    new_block_data, error_code, true);
     ASSERT_EQ(0, error_code);
     ASSERT_EQ("Block uuid",
     std::string(new_block_data.begin(), new_block_data.end()));

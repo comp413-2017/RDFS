@@ -416,7 +416,7 @@ bool ZkClientDn::handleReconstructCmds(const std::string &path) {
       DataNodePayload dn_target_info;
       std::vector<std::uint8_t> dn_data(sizeof(DataNodePayload));
       if (!zk->get(HEALTH_BACKSLASH + node.second + STATS, dn_data, err,
-                   sizeof(DataNodePayload))) {
+                   false)) {
         LOG(ERROR) << "failed to read target dn payload" << err;
         continue;
       }
@@ -525,7 +525,7 @@ void ZkClientDn::handleReplicateCmds(const std::string &path) {
     std::vector<std::uint8_t> block_size_vec(sizeof(std::uint64_t));
     std::uint64_t block_size;
     if (!zk->get(get_block_metadata_path(block_id), block_size_vec,
-                 err, sizeof(std::uint64_t))) {
+                 err, false)) {
       LOG(ERROR) << "could not get the block length for "
                  << block
                  << " because of "
@@ -552,7 +552,7 @@ void ZkClientDn::handleReplicateCmds(const std::string &path) {
       DataNodePayload dn_target_info;
       std::vector<std::uint8_t> dn_data(sizeof(DataNodePayload));
       if (!zk->get(HEALTH_BACKSLASH + read_from + STATS, dn_data, err,
-                   sizeof(DataNodePayload))) {
+                   false)) {
         LOG(ERROR) << "failed to read target dn payload" << err;
         continue;
       }
@@ -604,7 +604,7 @@ void ZkClientDn::processDeleteQueue() {
     std::vector<std::uint8_t> block_id_vec(sizeof(std::uint64_t));
     std::uint64_t block_id;
     if (!zk->get(util::concat_path(path, block), block_id_vec, err,
-                 sizeof(std::uint64_t))) {
+                 false)) {
       LOG(ERROR) << "could not get the block id "
                  << block
                  << " because of "
@@ -627,7 +627,6 @@ void ZkClientDn::processDeleteQueue() {
 }
 
 ZkClientDn::~ZkClientDn() {
-  zk->close();
 }
 
 std::string ZkClientDn::build_datanode_id(DataNodeId data_node_id) {

@@ -15,10 +15,14 @@
 #include "LRUCache.h"
 
 
+/*
+ * These extend the set of error codes defined by ZooKeeper to provide more
+ * error codes that can be returned by zkwrapper.
+ */
 enum ZK_ERRORS {
-  OK = 0,
-  PATH_NOT_FOUND = -1
-  // TODO(2016): Add more errors as needed
+  ZKWRAPPERINSUFFICIENTBUFFER = -997,
+  ZKWRAPPERUNINITIALIZED = -998,
+  ZKWRAPPERDEFAULTERROR = -999
 };
 
 class ZkNnClient;
@@ -58,7 +62,9 @@ class ZooOp {
 class ZKWrapper {
  public:
   /**
-   * Initializes zookeeper
+   * Initializes zookeeper. If error_code is ZOK after return, a connection
+   * to ZooKeeper would have been established, and the root would have been
+   * created.
    *
    * @param host The location of where Zookeeper is running. For local
    *        development this will usually be 'localhost:2181'
@@ -67,7 +73,9 @@ class ZKWrapper {
    *        can be retrieved from translate_error()
    * @param root
    */
-  ZKWrapper(std::string host, int &error_code, std::string root = "");
+  ZKWrapper(const std::string &host, int &error_code, const std::string &root);
+
+  ~ZKWrapper();
 
   /**
    * Prepends the ZooKeeper root to all paths passed in
@@ -88,6 +96,10 @@ class ZKWrapper {
    * @return A string translation of the error code
    */
   static std::string translate_error(int error_code);
+
+  static std::string translate_watch_event_type(int type);
+
+  static std::string translate_watch_state(int state);
 
   static void watcher_znode_data(zhandle_t *zzh,
                                  int type,
@@ -243,20 +255,28 @@ class ZKWrapper {
                      int &error_code) const;
 
   /**
-   * Gets the data associated with a node
+   * Gets the data associated with a node.
    *
    * @param path The path to the node
-   * @param data Reference to a vector which will be filled with the znode data
-   *        Should be of size MAX_PAYLOAD when passed in, will be resized in
-   *        this method
+   * @param data Reference to a vector which will be filled with the znode data.
+   *        The 2016 folks claimed that this field "Should be of size
+   *        MAX_PAYLOAD when passed in, will be resized in
+   *        this method." We (2017) are not sure why there is a MAX_PAYLOAD
+   *        limit in the first place, and the 2016 folks never honored their
+   *        own requirement.
    * @param error_code Int reference, set to a value in ZK_ERRORS
-   * @return True if the operation completed successfully,
-   *       False otherwise (caller should check 'error_code' value)
+   * @param resize Should automatic resizing of the data vector be performed?
+   *               If this argument is false, then the data buffer is expected
+   *               to be large enough to hold everything in the node, otherwise
+   *               the operation will fail.
+   * @return True if the operation completed successfully and all of the node
+   *         data fits within the data buffer;
+   *         False otherwise (caller should check 'error_code' value)
    */
   bool get(const std::string &path,
            std::vector<std::uint8_t> &data,
            int &error_code,
-           int length = MAX_PAYLOAD) const;
+           bool resize) const;
 
   /**
    * Gets the info associated with a znode
@@ -273,7 +293,7 @@ class ZKWrapper {
 
   /**
    * This function is similar to 'get' except it allows one to specify
-   * a watcher object rather than a boolean watch flag.
+   * a watcher object.
    *
    * @param path The path to the node
    * @param data Reference to a vector which will be filled with the znode data
@@ -283,6 +303,10 @@ class ZKWrapper {
    * @param watcherCtx User specific data, will be passed to the watcher 
    *                   callback.
    * @param error_code Int reference, set to a value in ZK_ERRORS
+   * @param resize Should automatic resizing of the data vector be performed?
+   *               If this argument is false, then the data buffer is expected
+   *               to be large enough to hold everything in the node, otherwise
+   *               the operation will fail.
    * @return True if the operation completed successfully,
    *       False otherwise (caller should check 'error_code' value)
    */
@@ -291,7 +315,7 @@ class ZKWrapper {
             watcher_fn watch,
             void *watcherCtx,
             int &error_code,
-            int length = MAX_PAYLOAD) const;
+            bool resize) const;
 
   /**
    * Sets the data in a given znode
@@ -313,7 +337,8 @@ class ZKWrapper {
    * @param path path of znode
    * @param data data to initialize the node with. Set to the empty string to
    *        create an empty znode
-   * @param flags node flags: ZOO_EPHEMERAL, ZOO_SEQUENCE, ZOO_EPHEMERAL || ZOO_SEQUENCE
+   * @param flags node flags: ZOO_EPHEMERAL, ZOO_SEQUENCE,
+   *                          ZOO_EPHEMERAL || ZOO_SEQUENCE
    * @return a ZooOp to be used in execute_multi
    */
   // TODO(2016): Crexate a path buffer for returning sequential path names
@@ -323,8 +348,8 @@ class ZKWrapper {
 
   /**
    * @param path of znode
-   * @param version Checks the version of the znode before deleting. Defaults to -1, which does not perform the
-   *                check.
+   * @param version Checks the version of the znode before deleting.
+   *                Defaults to -1, which does not perform the check.
    * @return a ZooOp to be used in execute_multi
    */
   std::shared_ptr<ZooOp> build_delete_op(const std::string &path,
@@ -341,12 +366,14 @@ class ZKWrapper {
                                       int version = -1) const;
 
   /**
-   * Runs all of the zookeeper operations within the operations vector atomically (without ordering).
-   * Atomic execution mean that either all of the operations will succeed, else they will all
-   * be rolled back.
+   * Runs all of the zookeeper operations within the operations vector
+   * atomically (without ordering).
+   * Atomic execution mean that either all of the operations will succeed, else
+   * they will all be rolled back.
    *
    * @param operations a vector of operations to be executed
-   * @param results a vector that maps to the results of each of the executed operations
+   * @param results a vector that maps to the results of each of the executed
+   *                operations
    * @param error_code Int reference, set to a value in ZK_ERRORS
    * @return True if the operation worked successfully; false otherwise.
    */
@@ -357,7 +384,8 @@ class ZKWrapper {
 
   /**
    * Flush changes inside of ZooKeeper
-   * @param full_path the full path of the znode directory to be flushed. Must be qualified with the ZooKeeper root
+   * @param full_path the full path of the znode directory to be flushed.
+   *                  Must be qualified with the ZooKeeper root
    * @param synchronous Whether this operation is blocking
    * @return true on success
    */
@@ -368,26 +396,48 @@ class ZKWrapper {
   static std::vector<uint8_t> get_byte_vector(const std::string &string);
 
   static void print_error(int error) {
-    LOG(ERROR) << "Got error: " << translate_error(error);
+    LOG(ERROR) << "[zkwrapper] Got error: " << translate_error(error);
   }
 
   static const std::vector<std::uint8_t> EMPTY_VECTOR;
 
  private:
-  zhandle_t *zh;
-
   friend void watcher(zhandle_t *zzh, int type, int state, const char *path,
                       void *watcherCtx);
 
-  std::string root = "";
-  static const std::uint32_t MAX_PAYLOAD = 65536;
-  static const std::uint32_t MAX_PATH_LEN = 512;
-  static const int NUM_SEQUENTIAL_DIGITS = 10;
-
-  static const std::map<int, std::string> error_message;
-  static const std::string CLASS_NAME;
-
   lru::Cache<std::string, std::shared_ptr<std::vector<unsigned char>>> *cache;
+  zhandle_t *zh;
+  std::string root = "";
+  /*
+   * Was a connection to ZooKeeper successfully established? Note that a
+   * successful connection requires a successful call to zookeeper_init
+   * and an invocation of the global watcher (passed into zookeeper_init)
+   * with the desired state (ZOO_CONNECTED_STATE).
+   */
+  bool connected = false;
+  /*
+   * Use the "initializing" flag to explicitly allow certain methods to execute
+   * in the constructor. Otherwise, the "initialized" flag prevents any useful
+   * method from being invoked on an unsuccessfully initialized instance.
+   */
+  bool initializing = true;
+  bool initialized = false;
+
+  static const int MAX_PAYLOAD;
+  static const int MAX_PATH_LEN;
+  static const int NUM_SEQUENTIAL_DIGITS;
+  static const int DEFAULT_ZK_RECV_TIMEOUT;
+  static const int INITIAL_CONNECTION_TIMEOUT_MILLIS;
+  static const int INITIAL_CONNECTION_RETRY_INTERVAL_MILLIS;
+  static const int ROOT_CREATION_RETRY_LIMIT;
+  static const int ROOT_CREATION_RETRY_INTERVAL_MILLIS;
+
+  /*
+   * TODO(2017): This field (as well fields with the same name in several other
+   * classes) is not being used anywhere. We have no idea what the 2016 folks
+   * intended to do with it.
+   */
+  static const std::string CLASS_NAME;
 };
 
 #endif  // ZKWRAPPER_INCLUDE_ZKWRAPPER_H_

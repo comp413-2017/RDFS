@@ -336,12 +336,11 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
   if (!is_ec_block(block_id)) {
     BlockZNode block_data;
     std::vector<std::uint8_t> data(sizeof(block_data));
-    if (!zk->get(block_path, data, error_code)) {
+    if (!zk->get(block_path, data, error_code, false)) {
       LOG(ERROR) << "[get_block_size] We could not read "
           "the block at " << block_path;
       return false;
     }
-
     std::uint8_t *buffer = &data[0];
     memcpy(&block_data, &data[0], sizeof(block_data));
 
@@ -360,7 +359,7 @@ bool ZkNnClient::get_block_size(const u_int64_t &block_id,
       auto child = children[i];
       BlockZNode block_data;
       std::vector<std::uint8_t> data(sizeof(block_data));
-      if (!zk->get(block_path + "/" + child, data, error_code)) {
+      if (!zk->get(block_path + "/" + child, data, error_code, false)) {
         LOG(ERROR) << "We could not read the block at " << block_path
                    << "/" << child;
         return false;
@@ -713,7 +712,7 @@ void ZkNnClient::read_file_znode(FileZNode &znode_data,
                                  const std::string &path) {
   int error_code;
   std::vector<std::uint8_t> data(sizeof(znode_data));
-  if (!zk->get(ZookeeperFilePath(path), data, error_code)) {
+  if (!zk->get(ZookeeperFilePath(path), data, error_code, false)) {
     LOG(ERROR) << "[read_file_znode] We could not read the file znode "
             "at " << path;
     return;  // don't bother reading the data
@@ -739,7 +738,7 @@ template <class T>
 void ZkNnClient::read_znode_data(T &znode_data, const std::string &path) {
   int error_code;
   std::vector<std::uint8_t> data(sizeof(znode_data));
-  if (!zk->get(path, data, error_code)) {
+  if (!zk->get(path, data, error_code, false)) {
     LOG(ERROR) << "[read_znode_data] We could not read znode data at " << path;
     return;  // don't bother reading the data
   }
@@ -814,7 +813,7 @@ bool ZkNnClient::set_owner(SetOwnerRequestProto &req,
   // Write the modified node back to Zookeeper
   zk->set(ZookeeperFilePath(path), zk_data, zk_error);
 
-  if (zk_error != ZK_ERRORS::OK) {
+  if (zk_error != ZOK) {
     LOG(ERROR) << "[set_owner] ZK reported error writing modified node "
             "back to disk";
     return false;
@@ -1236,9 +1235,9 @@ ZkNnClient::DeleteResponse ZkNnClient::destroy_helper(const std::string &path,
       auto child_path = util::concat_path(ZookeeperBlocksPath(path), child);
       child_path = child_path;
       ops.push_back(zk->build_delete_op(child_path));
-      std::vector<std::uint8_t> block_vec;
       std::uint64_t block;
-      if (!zk->get(child_path, block_vec, error_code, sizeof(block))) {
+      auto block_vec = std::vector<std::uint8_t>(sizeof(block));
+      if (!zk->get(child_path, block_vec, error_code, false)) {
         LOG(ERROR) << "[destroy_helper] failed block retrieval "
                 "in destroy helper";
         return DeleteResponse::FailedBlockRetrieval;
@@ -1323,9 +1322,9 @@ void ZkNnClient::complete(CompleteRequestProto& req,
 
     // TODO(2016): This loop could be two multi-ops instead
   for (auto file_block : file_blocks) {
-    auto data = std::vector<std::uint8_t>();
+    auto data = std::vector<std::uint8_t>(sizeof(uint64_t));
     if (!zk->get(ZookeeperBlocksPath(src) + "/" + file_block, data,
-                 error_code, sizeof(uint64_t))) {
+                 error_code, false)) {
       LOG(ERROR) << "[complete] Failed to get "
                  << ZookeeperBlocksPath(src)
                  << "/"
@@ -1336,11 +1335,10 @@ void ZkNnClient::complete(CompleteRequestProto& req,
       return;
     }
     uint64_t block_uuid = *reinterpret_cast<uint64_t *>(&data[0]);
-
-    auto block_data = std::vector<std::uint8_t>();
+    auto block_data = std::vector<std::uint8_t>(sizeof(uint64_t));
     std::string block_metadata_path = get_block_metadata_path(block_uuid);
     if (!zk->get(block_metadata_path,
-                 block_data, error_code, sizeof(uint64_t))) {
+                 block_data, error_code, false)) {
       LOG(ERROR) << "[complete] Failed to get "
                  << block_metadata_path
                  << " with error: "
@@ -1870,9 +1868,9 @@ void ZkNnClient::get_block_locations(const std::string &src,
     }
 
     // Retreive block size
-    auto data = std::vector<uint8_t>();
+    auto data = std::vector<uint8_t>(sizeof(uint64_t));
     if (!zk->get(zk_path + "/" + sorted_block, data,
-                 error_code, sizeof(uint64_t))) {
+                 error_code, false)) {
       LOG(ERROR) << "[get_block_locations] Failed to get "
       << zk_path << "/"
       << sorted_block
@@ -1887,7 +1885,7 @@ void ZkNnClient::get_block_locations(const std::string &src,
     BlockZNode block_data;
     std::vector<std::uint8_t> block_data_vec(sizeof(block_data));
     if (!zk->get(block_metadata_path, block_data_vec, error_code,
-                 sizeof(block_data))) {
+                 false)) {
       LOG(ERROR) << "[get_block_locations] Failed getting block size for "
       << block_metadata_path << " with error " << error_code;
     }
@@ -2086,10 +2084,9 @@ bool ZkNnClient::sort_by_xmits(const std::vector<std::string> &unsorted_dn_ids,
 
   for (auto datanode : unsorted_dn_ids) {
     std::string dn_stats_path = HEALTH_BACKSLASH + datanode + STATS;
-    std::vector<uint8_t> stats_payload;
-    stats_payload.resize(sizeof(DataNodePayload));
+    auto stats_payload = std::vector<uint8_t>(sizeof(DataNodePayload));
     if (!zk->get(dn_stats_path, stats_payload,
-           error_code, sizeof(DataNodePayload))) {
+           error_code, false)) {
       LOG(ERROR) << "[sort_by_xmits] Failed to get " << dn_stats_path;
       return false;
     }
@@ -2273,9 +2270,9 @@ void ZkNnClient::set_file_info(HdfsFileStatusProto *status,
     // Write the modified node back to Zookeeper
     zk->set(ZookeeperFilePath(path), zk_data, zk_error);
 
-
-  if (zk_error != ZK_ERRORS::OK) {
-    LOG(ERROR) << "ZK reported error writing modified node back to disk";
+  if (zk_error != ZOK) {
+    LOG(ERROR) << "[set_permission] ZK reported error writing modified "
+            "node back to disk";
     return false;
   }
 
@@ -2539,10 +2536,9 @@ bool ZkNnClient::find_datanode_for_block(std::vector<std::string> &datanodes,
 
         if (!exclude) {
           std::string dn_stats_path = HEALTH_BACKSLASH + datanode + STATS;
-          std::vector<uint8_t> stats_payload;
-          stats_payload.resize(sizeof(DataNodePayload));
+          auto stats_payload = std::vector<uint8_t>(sizeof(DataNodePayload));
           if (!zk->get(dn_stats_path, stats_payload,
-                 error_code, sizeof(DataNodePayload))) {
+                 error_code, false)) {
             LOG(ERROR) << "[find_datanode_for_block] Failed to get "
                        << dn_stats_path;
             return false;
@@ -2653,7 +2649,7 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   std::string dst_znode_leases = LeaseZookeeperPath(dst);
 
   // Get the payload from the old filesystem znode for the src
-  zk->get(src_znode, data, error_code);
+  zk->get(src_znode, data, error_code, true);
   if (error_code != ZOK) {
     LOG(ERROR) << "[rename_ops_for_file] Failed to get data from '"
                << src_znode
@@ -2666,7 +2662,7 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
             << ": create " << dst_znode;
   ops.push_back(zk->build_create_op(dst_znode, data));
 
-    zk->get(src_znode_blocks, data, error_code);
+    zk->get(src_znode_blocks, data, error_code, true);
     if (error_code != ZOK) {
         LOG(ERROR) << "[rename_ops_for_file] Failed to get data from '"
                    << src_znode
@@ -2681,7 +2677,7 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
 
   // Copy over the lease branch
   auto lease_data = std::vector<std::uint8_t>();
-  zk->get(src_znode_leases, lease_data, error_code);
+  zk->get(src_znode_leases, lease_data, error_code, true);
   if (error_code != ZOK) {
     LOG(ERROR) << "[rename_ops_for_file] Failed to get data from '"
     << src_znode_leases
@@ -2701,7 +2697,7 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   for (auto child : lease_children) {
     auto child_data = std::vector<std::uint8_t>();
 
-    zk->get(src_znode_leases + "/" + child, child_data, error_code);
+    zk->get(src_znode_leases + "/" + child, child_data, error_code, true);
     if (error_code != ZOK) {
       LOG(ERROR) << "[rename_ops_for_file] Failed to get data from '"
                  << child << "' when renaming.";
@@ -2738,7 +2734,7 @@ bool ZkNnClient::rename_ops_for_file(const std::string &src,
   for (auto child : children) {
     // Get child's data
     auto child_data = std::vector<std::uint8_t>();
-    zk->get(src_znode_blocks + "/" + child, child_data, error_code);
+    zk->get(src_znode_blocks + "/" + child, child_data, error_code, true);
     if (error_code != ZOK) {
       LOG(ERROR) << "Failed to get data from '" << child << "' when renaming.";
       return false;
@@ -2782,7 +2778,7 @@ bool ZkNnClient::rename_ops_for_dir(const std::string &src,
   std::string dst_znode = ZookeeperFilePath(dst);
 
   // Get the payload from the old filesystem znode for the src
-  zk->get(src_znode, data, error_code);
+  zk->get(src_znode, data, error_code, true);
   if (error_code != ZOK) {
     LOG(ERROR) << "[rename_ops_for_dir] Failed to get data from '"
            << src_znode
@@ -2883,7 +2879,7 @@ bool ZkNnClient::check_acks() {
                  + block_uuid;
 
     auto data = std::vector<std::uint8_t>();
-    if (!zk->get(block_path, data, error_code)) {
+    if (!zk->get(block_path, data, error_code, true)) {
       LOG(ERROR) << "[check_acks] Error getting payload at: " << block_path;
       auto undo_ack_op = zk->build_delete_op(block_path);
       ops.push_back(undo_ack_op);
@@ -3114,9 +3110,9 @@ bool ZkNnClient::buildDatanodeInfoProto(DatanodeInfoProto *dn_info,
   boost::split(split_address, data_node, boost::is_any_of(":"));
   assert(split_address.size() == 2);
 
-  auto data = std::vector<std::uint8_t>();
-  if (!zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
-        error_code, sizeof(zkclient::DataNodePayload))) {
+  auto data = std::vector<std::uint8_t>(sizeof(zkclient::DataNodePayload));
+  if (zk->get(HEALTH_BACKSLASH + data_node + STATS, data,
+        error_code, false)) {
     LOG(ERROR) << "[buildDatanodeInfoProto] Getting data node stats "
             "failed with " << error_code;
   }

@@ -14,13 +14,11 @@ void NamenodeTest::SetUp() {
             std::make_shared<ZKWrapper>("localhost:2181",
             error_code, "/testing");
     assert(error_code == 0);  // Z_OK
-    client = new zkclient::ZkNnClient(zk_shared);
-    zk = new ZKWrapper("localhost:2181", error_code, "/testing");
+    client = new zkclient::ZkNnClient{zk_shared};
+    zk = new ZKWrapper{"localhost:2181", error_code, "/testing"};
 }
 
 void NamenodeTest::TearDown() {
-  client->zk->close();
-  zk->close();
 }
 
 hadoop::hdfs::CreateRequestProto NamenodeTest::getCreateRequestProto(
@@ -435,7 +433,7 @@ TEST_F(NamenodeTest, testRenameFile) {
   // Ensure that the renamed node has the same data
   zkclient::FileZNode renamed_data;
   std::vector<std::uint8_t> data(sizeof(renamed_data));
-  ASSERT_TRUE(zk->get("/fileSystem/new_name", data, error_code));
+  ASSERT_TRUE(zk->get("/fileSystem/new_name", data, error_code, false));
   std::uint8_t *buffer = &data[0];
   memcpy(&renamed_data, buffer, sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
@@ -445,7 +443,7 @@ TEST_F(NamenodeTest, testRenameFile) {
   // Ensure that the file's child indicating block_id was renamed as well
   auto new_block_data = std::vector<std::uint8_t>();
   zk->get("/fileSystem/new_name/blocks/block-0000000000",
-          new_block_data, error_code);
+          new_block_data, error_code, true);
   ASSERT_EQ(0, error_code);
   ASSERT_EQ("Block uuid",
             std::string(new_block_data.begin(), new_block_data.end()));
@@ -488,19 +486,19 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
   // // Ensure that the renamed node has the same data
   zkclient::FileZNode renamed_data;
   std::vector<std::uint8_t> data(sizeof(renamed_data));
-  ASSERT_TRUE(zk->get("/fileSystem/new_dir", data, error_code));
+  ASSERT_TRUE(zk->get("/fileSystem/new_dir", data, error_code, false));
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(0, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
   ASSERT_EQ(1, renamed_data.filetype);
 
-  ASSERT_TRUE(zk->get("/fileSystem/new_dir/file1", data, error_code));
+  ASSERT_TRUE(zk->get("/fileSystem/new_dir/file1", data, error_code, false));
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
   ASSERT_EQ(2, renamed_data.filetype);
 
-  ASSERT_TRUE(zk->get("/fileSystem/new_dir/file2", data, error_code));
+  ASSERT_TRUE(zk->get("/fileSystem/new_dir/file2", data, error_code, false));
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);
@@ -508,7 +506,8 @@ TEST_F(NamenodeTest, testRenameDirWithFiles) {
 
   ASSERT_TRUE(zk->get("/fileSystem/new_dir/nested_dir/nested_file",
                       data,
-                      error_code));
+                      error_code,
+                      false));
   memcpy(&renamed_data, &data[0], sizeof(renamed_data));
   ASSERT_EQ(1, renamed_data.replication);
   ASSERT_EQ(0, renamed_data.blocksize);

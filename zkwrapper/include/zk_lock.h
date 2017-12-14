@@ -25,6 +25,10 @@ class ZKLock {
    * @param zkWrapper
    * @param path the path to lock onto. This path does not need to exist inside ZooKeeper.
    * @return
+   *
+   * TODO(2017) What exactly do we need here in terms of cloning zkWrapper?
+   * Default copying causes problem for resource reclamation (risking leakage
+   * or double free).
    */
   ZKLock(ZKWrapper &zkWrapper, std::string path) :
           zkWrapper(zkWrapper), path_to_lock(path) {}
